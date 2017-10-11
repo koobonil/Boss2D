@@ -1,6 +1,5 @@
 ﻿#include <boss.h>
 #if BOSS_NEED_ADDON_ALPR
-
 #include <iostream>
 #include <functional>
 #include <cctype>

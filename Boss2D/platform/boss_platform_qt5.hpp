@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <platform/boss_platform.hpp>
 #include <platform/boss_platform_impl.hpp>
 
@@ -44,7 +44,7 @@
     #include <QAudioProbe>
     #include <QAudioDeviceInfo>
 
-    #if !BOSS_MAC_OSX & !BOSS_IPHONE
+    #if BOSS_WINDOWS
         #include <QWebEngineView>
     #endif
 
@@ -1730,7 +1730,7 @@
         }
     };
 
-    #if BOSS_MAC_OSX | BOSS_IPHONE
+    #if !BOSS_WINDOWS
         class WebPrivate
         {
         public:
@@ -2188,15 +2188,64 @@
         class SerialPortForAndroid
         {
         public:
+            enum BaudRate {
+                Baud1200 = QSerialPort::Baud1200,
+                Baud2400 = QSerialPort::Baud2400,
+                Baud4800 = QSerialPort::Baud4800,
+                Baud9600 = QSerialPort::Baud9600,
+                Baud19200 = QSerialPort::Baud19200,
+                Baud38400 = QSerialPort::Baud38400,
+                Baud57600 = QSerialPort::Baud57600,
+                Baud115200 = QSerialPort::Baud115200,
+                UnknownBaud = QSerialPort::UnknownBaud};
+            enum DataBits {
+                Data5 = QSerialPort::Data5,
+                Data6 = QSerialPort::Data6,
+                Data7 = QSerialPort::Data7,
+                Data8 = QSerialPort::Data8,
+                UnknownDataBits = QSerialPort::UnknownDataBits};
+            enum Parity {
+                NoParity = QSerialPort::NoParity,
+                EvenParity = QSerialPort::EvenParity,
+                OddParity = QSerialPort::OddParity,
+                SpaceParity = QSerialPort::SpaceParity,
+                MarkParity = QSerialPort::MarkParity,
+                UnknownParity = QSerialPort::UnknownParity};
+            enum StopBits {
+                OneStop = QSerialPort::OneStop,
+                OneAndHalfStop = QSerialPort::OneAndHalfStop,
+                TwoStop = QSerialPort::TwoStop,
+                UnknownStopBits = QSerialPort::UnknownStopBits};
+            enum FlowControl {
+                NoFlowControl = QSerialPort::NoFlowControl,
+                HardwareControl = QSerialPort::HardwareControl,
+                SoftwareControl = QSerialPort::SoftwareControl,
+                UnknownFlowControl = QSerialPort::UnknownFlowControl};
+            enum SerialPortError {
+                NoError = QSerialPort::NoError,
+                DeviceNotFoundError = QSerialPort::DeviceNotFoundError,
+                PermissionError = QSerialPort::PermissionError,
+                OpenError = QSerialPort::OpenError,
+                ParityError = QSerialPort::ParityError,
+                FramingError = QSerialPort::FramingError,
+                BreakConditionError = QSerialPort::BreakConditionError,
+                WriteError = QSerialPort::WriteError,
+                ReadError = QSerialPort::ReadError,
+                ResourceError = QSerialPort::ResourceError,
+                UnsupportedOperationError = QSerialPort::UnsupportedOperationError,
+                UnknownError = QSerialPort::UnknownError,
+                TimeoutError = QSerialPort::TimeoutError,
+                NotOpenError = QSerialPort::NotOpenError};
+        public:
             SerialPortForAndroid(const SerialPortInfoClass& info)
             {
                 mPortName = info.portName().toUtf8().constData();
                 mLocation = info.systemLocation().toUtf8().constData();
-                mBaudRate = QSerialPort::UnknownBaud;
-                mDataBits = QSerialPort::UnknownDataBits;
-                mParity = QSerialPort::UnknownParity;
-                mStopBits = QSerialPort::UnknownStopBits;
-                mFlowControl = QSerialPort::UnknownFlowControl;
+                mBaudRate = UnknownBaud;
+                mDataBits = UnknownDataBits;
+                mParity = UnknownParity;
+                mStopBits = UnknownStopBits;
+                mFlowControl = UnknownFlowControl;
                 mFd = -1;
             }
             ~SerialPortForAndroid()
@@ -2294,25 +2343,25 @@
             }
 
         public: // setter
-            void setBaudRate(QSerialPort::BaudRate baudrate) {mBaudRate = baudrate;}
-            void setDataBits(QSerialPort::DataBits databits) {mDataBits = databits;}
-            void setParity(QSerialPort::Parity parity) {mParity = parity;}
-            void setStopBits(QSerialPort::StopBits stopbits) {mStopBits = stopbits;}
-            void setFlowControl(QSerialPort::FlowControl flowcontrol) {mFlowControl = flowcontrol;}
+            void setBaudRate(BaudRate baudrate) {mBaudRate = baudrate;}
+            void setDataBits(DataBits databits) {mDataBits = databits;}
+            void setParity(Parity parity) {mParity = parity;}
+            void setStopBits(StopBits stopbits) {mStopBits = stopbits;}
+            void setFlowControl(FlowControl flowcontrol) {mFlowControl = flowcontrol;}
 
         public: // getter
             QString portName() {return (chars) mPortName;}
             QString errorString() {return "NoError";}
-            QSerialPort::SerialPortError error() {return QSerialPort::NoError;}
+            SerialPortError error() {return NoError;}
 
         private:
             String mPortName;
             String mLocation;
-            QSerialPort::BaudRate mBaudRate;
-            QSerialPort::DataBits mDataBits;
-            QSerialPort::Parity mParity;
-            QSerialPort::StopBits mStopBits;
-            QSerialPort::FlowControl mFlowControl;
+            BaudRate mBaudRate;
+            DataBits mDataBits;
+            Parity mParity;
+            StopBits mStopBits;
+            FlowControl mFlowControl;
             int mFd;
 
         private:
@@ -2341,15 +2390,15 @@
                 speed_t baud;
                 switch(mBaudRate)
                 {
-                case QSerialPort::Baud1200: baud = B1200; break;
-                case QSerialPort::Baud2400: baud = B2400; break;
-                case QSerialPort::Baud4800: baud = B4800; break;
+                case Baud1200: baud = B1200; break;
+                case Baud2400: baud = B2400; break;
+                case Baud4800: baud = B4800; break;
                 default: BOSS_ASSERT("알 수 없는 mBaudRate값입니다", false);
-                case QSerialPort::Baud9600: baud = B9600; break;
-                case QSerialPort::Baud19200: baud = B19200; break;
-                case QSerialPort::Baud38400: baud = B38400; break;
-                case QSerialPort::Baud57600: baud = B57600; break;
-                case QSerialPort::Baud115200: baud = B115200; break;
+                case Baud9600: baud = B9600; break;
+                case Baud19200: baud = B19200; break;
+                case Baud38400: baud = B38400; break;
+                case Baud57600: baud = B57600; break;
+                case Baud115200: baud = B115200; break;
                 }
                 #ifdef _BSD_SOURCE
                     ::cfsetspeed(&options, baud);
@@ -2362,20 +2411,20 @@
                 options.c_cflag &= (tcflag_t) ~CSIZE;
                 switch(mDataBits)
                 {
-                case QSerialPort::Data5: options.c_cflag |= CS5; break;
-                case QSerialPort::Data6: options.c_cflag |= CS6; break;
-                case QSerialPort::Data7: options.c_cflag |= CS7; break;
+                case Data5: options.c_cflag |= CS5; break;
+                case Data6: options.c_cflag |= CS6; break;
+                case Data7: options.c_cflag |= CS7; break;
                 default: BOSS_ASSERT("알 수 없는 mDataBits값입니다", false);
-                case QSerialPort::Data8: options.c_cflag |= CS8; break;
+                case Data8: options.c_cflag |= CS8; break;
                 }
 
                 // setup stopbits
                 switch(mStopBits)
                 {
                 default: BOSS_ASSERT("알 수 없는 mStopBits값입니다", false);
-                case QSerialPort::OneStop: options.c_cflag &= (tcflag_t) ~(CSTOPB); break;
-                case QSerialPort::OneAndHalfStop: options.c_cflag |= (CSTOPB); break;
-                case QSerialPort::TwoStop: options.c_cflag |= (CSTOPB); break;
+                case OneStop: options.c_cflag &= (tcflag_t) ~(CSTOPB); break;
+                case OneAndHalfStop: options.c_cflag |= (CSTOPB); break;
+                case TwoStop: options.c_cflag |= (CSTOPB); break;
                 }
 
                 // setup parity
@@ -2383,14 +2432,14 @@
                 switch(mParity)
                 {
                 default: BOSS_ASSERT("알 수 없는 mParity값입니다", false);
-                case QSerialPort::NoParity: options.c_cflag &= (tcflag_t) ~(PARENB | PARODD); break;
-                case QSerialPort::EvenParity: options.c_cflag &= (tcflag_t) ~(PARODD); options.c_cflag |= (PARENB); break;
-                case QSerialPort::OddParity: options.c_cflag |= (PARENB | PARODD); break;
-                case QSerialPort::SpaceParity: options.c_cflag |= (PARENB | CMSPAR); options.c_cflag &= (tcflag_t) ~(PARODD); break;
-                case QSerialPort::MarkParity: options.c_cflag |= (PARENB | CMSPAR | PARODD); break;
+                case NoParity: options.c_cflag &= (tcflag_t) ~(PARENB | PARODD); break;
+                case EvenParity: options.c_cflag &= (tcflag_t) ~(PARODD); options.c_cflag |= (PARENB); break;
+                case OddParity: options.c_cflag |= (PARENB | PARODD); break;
+                case SpaceParity: options.c_cflag |= (PARENB | CMSPAR); options.c_cflag &= (tcflag_t) ~(PARODD); break;
+                case MarkParity: options.c_cflag |= (PARENB | CMSPAR | PARODD); break;
                 }
                 #ifndef CMSPAR
-                    if(mParity == QSerialPort::SpaceParity || mParity == QSerialPort::MarkParity)
+                    if(mParity == SpaceParity || mParity == MarkParity)
                         BOSS_ASSERT("OS에서 지원하지 않는 mParity값입니다", false);
                 #endif
 
@@ -2399,9 +2448,9 @@
                 switch(mFlowControl)
                 {
                 default: BOSS_ASSERT("알 수 없는 mFlowControl값입니다", false);
-                case QSerialPort::NoFlowControl: xonxoff = false; rtscts = false; break;
-                case QSerialPort::HardwareControl: xonxoff = false; rtscts = true; break;
-                case QSerialPort::SoftwareControl: xonxoff = true; rtscts = false; break;
+                case NoFlowControl: xonxoff = false; rtscts = false; break;
+                case HardwareControl: xonxoff = false; rtscts = true; break;
+                case SoftwareControl: xonxoff = true; rtscts = false; break;
                 }
                 // xonxoff
                 #ifdef IXANY

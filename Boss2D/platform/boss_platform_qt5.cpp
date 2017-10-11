@@ -1,4 +1,4 @@
-#include <boss.hpp>
+﻿#include <boss.hpp>
 #include "boss_platform_qt5.hpp"
 
 #ifdef BOSS_PLATFORM_QT5
@@ -1372,7 +1372,7 @@
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data);
             if(!g_data->getGLWidget()) return nullptr;
             
-            #if BOSS_IPHONE
+            #if BOSS_IPHONE | BOSS_ANDROID
                 #define GL_RGBA32F_ARB 0x8814
             #endif
 
