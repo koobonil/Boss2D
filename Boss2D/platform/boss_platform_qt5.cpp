@@ -927,6 +927,14 @@
             CanvasClass::get()->painter().fillRect(QRectF(x, y, w, h), CanvasClass::get()->color());
         }
 
+        void Platform::Graphics::FillCircle(float x, float y, float w, float h)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
+            CanvasClass::get()->painter().setPen(Qt::NoPen);
+            CanvasClass::get()->painter().setBrush(QBrush(CanvasClass::get()->color()));
+            CanvasClass::get()->painter().drawEllipse(QRectF(x, y, w, h));
+        }
+
         void Platform::Graphics::FillPolygon(float x, float y, Points p)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
@@ -962,11 +970,11 @@
             CanvasClass::get()->painter().drawLine(QPointF(begin.x, begin.y), QPointF(end.x, end.y));
         }
 
-        void Platform::Graphics::DrawCircle(float x, float y, float w, float h)
+        void Platform::Graphics::DrawCircle(float x, float y, float w, float h, float thick)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
-            CanvasClass::get()->painter().setPen(Qt::NoPen);
-            CanvasClass::get()->painter().setBrush(QBrush(CanvasClass::get()->color()));
+            CanvasClass::get()->painter().setPen(QPen(QBrush(CanvasClass::get()->color()), thick));
+            CanvasClass::get()->painter().setBrush(Qt::NoBrush);
             CanvasClass::get()->painter().drawEllipse(QRectF(x, y, w, h));
         }
 
@@ -1559,12 +1567,7 @@
             sint32 FindPos = PathQ.lastIndexOf("assets:");
             if(0 <= FindPos) PathQ = PathQ.mid(FindPos);
 
-            QDir TargetDir =
-                #if BOSS_WINDOWS
-                    QDir((0 <= FindPos)? "../assets" + PathQ.mid(7) : PathQ);
-                #else
-                    QDir(PathQ);
-                #endif
+            QDir TargetDir((0 <= FindPos)? String(RootForAssets()).Sub(1) + PathQ.mid(7) : PathQ);
             if(!TargetDir.exists())
             {
                 BOSS_TRACE("Search(%s) - The TargetDir is nonexistent", (chars) PathUTF8);

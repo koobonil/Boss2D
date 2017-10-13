@@ -618,6 +618,15 @@ namespace BOSS
             static void FillRect(float x, float y, float w, float h);
 
             /*!
+            \brief 타원 출력
+            \param x : 좌측위치(px)
+            \param y : 상단위치(px)
+            \param w : 가로길이(px)
+            \param h : 세로길이(px)
+            */
+            static void FillCircle(float x, float y, float w, float h);
+
+            /*!
             \brief 폴리곤 출력
             \param x : 좌측위치(px)
             \param y : 상단위치(px)
@@ -644,13 +653,14 @@ namespace BOSS
             static void DrawLine(const Point& begin, const Point& end, float thick);
 
             /*!
-            \brief 타원 출력
+            \brief 타원라인 출력
             \param x : 좌측위치(px)
             \param y : 상단위치(px)
             \param w : 가로길이(px)
             \param h : 세로길이(px)
+            \param thick : 두께(px)
             */
-            static void DrawCircle(float x, float y, float w, float h);
+            static void DrawCircle(float x, float y, float w, float h, float thick);
 
             /*!
             \brief 베지어 출력

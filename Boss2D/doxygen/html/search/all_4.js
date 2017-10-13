@@ -7,7 +7,7 @@ var searchData=
   ['disconnect',['Disconnect',['../class_b_o_s_s_1_1_remote.html#a43dcbeb48a4aa0a82fb289ad531b122e',1,'BOSS::Remote::Disconnect()'],['../class_b_o_s_s_1_1_platform_1_1_socket.html#a0d6ebc57949161b8ae4f836fb6098d33',1,'BOSS::Platform::Socket::Disconnect()']]],
   ['distance',['Distance',['../class_b_o_s_s_1_1_math.html#a87efc650a98b40127edefe2da405e248',1,'BOSS::Math']]],
   ['drawbezier',['DrawBezier',['../class_b_o_s_s_1_1_platform_1_1_graphics.html#aa8ff4b4c4ed1628ebaeb5969af0b3ca7',1,'BOSS::Platform::Graphics']]],
-  ['drawcircle',['DrawCircle',['../class_b_o_s_s_1_1_platform_1_1_graphics.html#a0836e8049ff03897db5c249d5f5533cb',1,'BOSS::Platform::Graphics']]],
+  ['drawcircle',['DrawCircle',['../class_b_o_s_s_1_1_platform_1_1_graphics.html#a5a9f8d1589a7136820ff0c647b24eaf0',1,'BOSS::Platform::Graphics']]],
   ['drawimage',['DrawImage',['../class_b_o_s_s_1_1_platform_1_1_graphics.html#af579a180d75933d8120f1dbfb92933ff',1,'BOSS::Platform::Graphics']]],
   ['drawline',['DrawLine',['../class_b_o_s_s_1_1_platform_1_1_graphics.html#a115efcb7e223d8498bc1f003e62ebbe0',1,'BOSS::Platform::Graphics']]],
   ['drawpolybezier',['DrawPolyBezier',['../class_b_o_s_s_1_1_platform_1_1_graphics.html#a844048d2ab2168c111f7109f3797c9b8',1,'BOSS::Platform::Graphics']]],

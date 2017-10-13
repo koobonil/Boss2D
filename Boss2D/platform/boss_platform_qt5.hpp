@@ -1731,6 +1731,19 @@
     };
 
     #if !BOSS_WINDOWS
+        class WebViewPrivate : public QObject
+        {
+            Q_OBJECT
+
+        public:
+            WebViewPrivate()
+            {
+            }
+            ~WebViewPrivate()
+            {
+            }
+        };
+
         class WebPrivate
         {
         public:

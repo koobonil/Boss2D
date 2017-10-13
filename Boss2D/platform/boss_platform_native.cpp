@@ -716,6 +716,13 @@
             ViewAPI::CurPainter()->fillRect(Rect(x, y, x + w, y + h), ViewAPI::CurColor());
         }
 
+        void Platform::Graphics::FillCircle(float x, float y, float w, float h)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
+
+            BOSS_ASSERT("Further development is needed.", false);
+        }
+
         void Platform::Graphics::FillPolygon(float x, float y, Points p)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
@@ -737,7 +744,7 @@
             BOSS_ASSERT("Further development is needed.", false);
         }
 
-        void Platform::Graphics::DrawCircle(float x, float y, float w, float h)
+        void Platform::Graphics::DrawCircle(float x, float y, float w, float h, float thick)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
 

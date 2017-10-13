@@ -11,6 +11,7 @@ var searchData=
   ['fdunmap',['FDUnmap',['../class_b_o_s_s_1_1_platform_1_1_file.html#a2c243b7826f09a6fe3c2983688c4658b',1,'BOSS::Platform::File']]],
   ['fdwrite',['FDWrite',['../class_b_o_s_s_1_1_platform_1_1_file.html#ad75d97e5fd30f1073b6d2143ffc002c5',1,'BOSS::Platform::File']]],
   ['filedialog',['FileDialog',['../class_b_o_s_s_1_1_platform_1_1_popup.html#a0811ae7c885d554d7f8b0b52ee37c6a6',1,'BOSS::Platform::Popup']]],
+  ['fillcircle',['FillCircle',['../class_b_o_s_s_1_1_platform_1_1_graphics.html#af6bb3e71c3a8ded59bdede5eb2dc5e79',1,'BOSS::Platform::Graphics']]],
   ['fillpolygon',['FillPolygon',['../class_b_o_s_s_1_1_platform_1_1_graphics.html#ac3e6aae06eb0ed94289bbcf440d84e27',1,'BOSS::Platform::Graphics']]],
   ['fillrect',['FillRect',['../class_b_o_s_s_1_1_platform_1_1_graphics.html#a4b41c52798a1328be54eda1124b1e812',1,'BOSS::Platform::Graphics']]],
   ['find',['Find',['../class_b_o_s_s_1_1_string.html#a5c426056e0a81447012013e10a2d6e09',1,'BOSS::String']]],

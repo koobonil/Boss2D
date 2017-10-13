@@ -323,7 +323,7 @@ namespace BOSS
     void ZayPanel::circle() const
     {
         const Clip& LastClip = m_stack_clip[-1];
-        Platform::Graphics::DrawCircle(LastClip.l, LastClip.t, LastClip.Width(), LastClip.Height());
+        Platform::Graphics::FillCircle(LastClip.l, LastClip.t, LastClip.Width(), LastClip.Height());
     }
 
     void ZayPanel::bezier(const Vector& begin, const Vector& end, float thick) const
