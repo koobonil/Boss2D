@@ -2,15 +2,15 @@
 /*!
 \mainpage BOSS Engine
 \section information 목적
-    - Qt기반 UI프레임워크
+    - Qt기반 2D게임엔진
 \section advanced 소개
-    - core그룹: 기본유틸(공유자원/컨테이너/스트링/파서/콘텍스트/프로파일링/태스킹)
-    - element그룹: 기본객체
-    - format그룹: BMP, PNG, ZEN
-    - manager그룹: 이미지빌더, 뷰운영
-    - platform그룹: 크로스플랫폼 제공
+    - core그룹: 코어라이브러리
+    - element그룹: 단위모델지원
+    - format그룹: 파일포맷지원
+    - platform그룹: 하이브리드 환경제공
+    - service그룹: 서비스레이어 기능제공
 \section developer 개발자
-    - Bonex Gu
+    - FinalBossBehindTheDoor
 */
 
 // About disable warning
