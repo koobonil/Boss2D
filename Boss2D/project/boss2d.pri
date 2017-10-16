@@ -179,6 +179,7 @@ HEADERS += ../../Boss2D/platform/win32/glew.h
 # SERVICE
 ###########################################################
 HEADERS += ../../Boss2D/service/boss_asyncfilemanager.hpp
+HEADERS += ../../Boss2D/service/boss_backey.hpp
 HEADERS += ../../Boss2D/service/boss_batchbuilder.hpp
 HEADERS += ../../Boss2D/service/boss_boxr.hpp
 HEADERS += ../../Boss2D/service/boss_brii.hpp
@@ -189,6 +190,7 @@ HEADERS += ../../Boss2D/service/boss_streamingservice.hpp
 HEADERS += ../../Boss2D/service/boss_tryworld.hpp
 HEADERS += ../../Boss2D/service/boss_zay.hpp
 SOURCES += ../../Boss2D/service/boss_asyncfilemanager.cpp
+SOURCES += ../../Boss2D/service/boss_backey.cpp
 SOURCES += ../../Boss2D/service/boss_batchbuilder.cpp
 SOURCES += ../../Boss2D/service/boss_boxr.cpp
 SOURCES += ../../Boss2D/service/boss_brii.cpp

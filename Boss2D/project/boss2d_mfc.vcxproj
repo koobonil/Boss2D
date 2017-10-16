@@ -85,6 +85,7 @@
     <ClCompile Include="..\platform\boss_platform_native.cpp" />
     <ClCompile Include="..\platform\boss_platform_qt5.cpp" />
     <ClCompile Include="..\service\boss_asyncfilemanager.cpp" />
+    <ClCompile Include="..\service\boss_backey.cpp" />
     <ClCompile Include="..\service\boss_batchbuilder.cpp" />
     <ClCompile Include="..\service\boss_boxr.cpp" />
     <ClCompile Include="..\service\boss_brii.cpp" />
@@ -165,6 +166,7 @@
     <ClInclude Include="..\platform\boss_platform_native.hpp" />
     <ClInclude Include="..\platform\boss_platform_qt5.hpp" />
     <ClInclude Include="..\service\boss_asyncfilemanager.hpp" />
+    <ClInclude Include="..\service\boss_backey.hpp" />
     <ClInclude Include="..\service\boss_batchbuilder.hpp" />
     <ClInclude Include="..\service\boss_boxr.hpp" />
     <ClInclude Include="..\service\boss_brii.hpp" />
