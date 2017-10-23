@@ -957,7 +957,10 @@
         void Platform::Graphics::DrawRect(float x, float y, float w, float h, float thick)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
-            CanvasClass::get()->painter().setPen(QPen(QBrush(CanvasClass::get()->color()), thick));
+            QPen NewPen(QBrush(CanvasClass::get()->color()), thick);
+            NewPen.setCapStyle(Qt::FlatCap);
+            NewPen.setJoinStyle(Qt::MiterJoin);
+            CanvasClass::get()->painter().setPen(NewPen);
             CanvasClass::get()->painter().setBrush(Qt::NoBrush);
             CanvasClass::get()->painter().drawRect(QRectF(x - thick / 2, y - thick / 2, w + thick, h + thick));
         }

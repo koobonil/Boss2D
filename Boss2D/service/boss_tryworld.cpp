@@ -129,7 +129,7 @@ namespace BOSS
         map = nullptr;
 	}
 
-	TryWorld::Path* TryWorld::Map::BuildPath(const Point& beginPos, const Point& endPos, const int step)
+	TryWorld::Path* TryWorld::Map::BuildPath(const Point& beginPos, const Point& endPos, const int step, int* score)
 	{
 		Triangle* ClearNode = &Top;
 		while(ClearNode = ClearNode->Next)
@@ -165,6 +165,7 @@ namespace BOSS
 					Result->Dots.AtAdding() = CurTriangle->WayDot;
 					CurTriangle = CurTriangle->WayBack;
 				}
+                if(score) *score = End->DistanceSum;
 				return Result;
 			}
 		}

@@ -43,8 +43,8 @@ namespace BOSS
 		    friend class Map;
             friend class GetPosition;
             private: const int Step;
-            private: int DotFocus;
-		    private: DotList Dots;
+            public: int DotFocus;
+		    public: DotList Dots;
 
             private: Path(int step) : Step(step)
 		    {
@@ -122,7 +122,7 @@ namespace BOSS
 		    private: Map();
 		    public: ~Map();
 		    public: static void Release(Map*& map);
-		    public: Path* BuildPath(const Point& beginPos, const Point& endPos, const int step = 0);
+		    public: Path* BuildPath(const Point& beginPos, const Point& endPos, const int step = 0, int* score = nullptr);
 		    private: void CREATE_TRIANGLES(const Rect& boundBox, PolygonList& list);
 		    private: void MAPPING(Triangle* focus, Triangle* parent, linetype type, int dotA, int dotB);
 		    private: bool IS_INCLUDE_ANY_DOT_BY(int dotA, int dotB, int dotC);
