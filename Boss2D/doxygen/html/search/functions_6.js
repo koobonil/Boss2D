@@ -47,6 +47,7 @@ var searchData=
   ['getstringwidth',['GetStringWidth',['../class_b_o_s_s_1_1_platform_1_1_graphics.html#aed5b67434e95c2e14e9be1db92840505',1,'BOSS::Platform::Graphics']]],
   ['getstringwidthw',['GetStringWidthW',['../class_b_o_s_s_1_1_platform_1_1_graphics.html#a55705963a46fde2eb1be8cf9b35baac1',1,'BOSS::Platform::Graphics']]],
   ['getsurfaceheight',['GetSurfaceHeight',['../class_b_o_s_s_1_1_platform_1_1_graphics.html#a2ca0af5eebb32543efb03199ddbb5653',1,'BOSS::Platform::Graphics']]],
+  ['getsurfaceid',['GetSurfaceId',['../class_b_o_s_s_1_1_platform_1_1_graphics.html#aa9a6b21c73dd5ff9a25b22f11ef591fd',1,'BOSS::Platform::Graphics']]],
   ['getsurfacewidth',['GetSurfaceWidth',['../class_b_o_s_s_1_1_platform_1_1_graphics.html#a0ef9d67feedde3b3c2d7f139c478f4d1',1,'BOSS::Platform::Graphics']]],
   ['getwindowrect',['GetWindowRect',['../class_b_o_s_s_1_1_platform.html#a2a16016c34ea42ed7271e5f92bfcab0f',1,'BOSS::Platform']]]
 ];

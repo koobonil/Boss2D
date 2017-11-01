@@ -1,5 +1,6 @@
 var searchData=
 [
+  ['tan',['Tan',['../class_b_o_s_s_1_1_math.html#a7d52b4eeed7434c63bbb93253fd26ad6',1,'BOSS::Math']]],
   ['tempname',['Tempname',['../class_b_o_s_s_1_1_platform_1_1_file.html#a9b10809b2080b2104a2231bf5345e883',1,'BOSS::Platform::File']]],
   ['textdialog',['TextDialog',['../class_b_o_s_s_1_1_platform_1_1_popup.html#a8509d5b10b81612acab03cc2f87394f6',1,'BOSS::Platform::Popup']]],
   ['threading',['Threading',['../class_b_o_s_s_1_1_platform_1_1_utility.html#ac783bcfcba7d47d177682a6707ad454e',1,'BOSS::Platform::Utility']]],

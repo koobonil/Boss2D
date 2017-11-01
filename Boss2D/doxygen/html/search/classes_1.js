@@ -6,6 +6,7 @@ var searchData=
   ['apibuilder',['ApiBuilder',['../class_b_o_s_s_1_1_api_builder.html',1,'BOSS']]],
   ['apifunctions',['ApiFunctions',['../class_b_o_s_s_1_1_api_functions.html',1,'BOSS']]],
   ['array',['Array',['../class_b_o_s_s_1_1_array.html',1,'BOSS']]],
+  ['array_3c_20blendrole_2c_20datatype_5fpod_5fcanmemcpy_20_3e',['Array&lt; BlendRole, datatype_pod_canmemcpy &gt;',['../class_b_o_s_s_1_1_array.html',1,'BOSS']]],
   ['array_3c_20blockunit_2c_20datatype_5fpod_5fcanmemcpy_2c_200_20_3e',['Array&lt; BlockUnit, datatype_pod_canmemcpy, 0 &gt;',['../class_b_o_s_s_1_1_array.html',1,'BOSS']]],
   ['array_3c_20boss_3a_3aarray_20_3e',['Array&lt; BOSS::Array &gt;',['../class_b_o_s_s_1_1_array.html',1,'BOSS']]],
   ['array_3c_20boss_3a_3acontext_2c_20datatype_5fclass_5fnomemcpy_2c_200_20_3e',['Array&lt; BOSS::Context, datatype_class_nomemcpy, 0 &gt;',['../class_b_o_s_s_1_1_array.html',1,'BOSS']]],

@@ -218,6 +218,7 @@ namespace BOSS
         m_stack_clip.AtAdding() = Clip(0, 0, m_width, m_height, true);
         m_stack_scissor.AtAdding() = Rect(0, 0, m_width, m_height);
         m_stack_color.AtAdding() = Color(Color::ColoringDefault);
+        m_stack_blend.AtAdding() = BR_None;
         m_stack_font.AtAdding() = Font("Arial", 10);
         m_stack_zoom.AtAdding() = 1;
 
@@ -273,6 +274,7 @@ namespace BOSS
             m_stack_clip.AtAdding() = Clip(0, 0, m_width, m_height, true);
             m_stack_scissor.AtAdding() = Rect(0, 0, m_width, m_height);
             m_stack_color.AtAdding() = Color(Color::ColoringDefault);
+            m_stack_blend.AtAdding() = BR_None;
             m_stack_font.AtAdding() = Font("Arial", 10);
             m_stack_zoom.AtAdding() = 1;
 
@@ -683,6 +685,13 @@ namespace BOSS
         }
     }
 
+    uint32 ZayPanel::fboid() const
+    {
+        if(m_ref_surface)
+            return Platform::Graphics::GetSurfaceId(m_ref_surface);
+        return 0;
+    }
+
     ZayPanel::StackBinder ZayPanel::_push_clip(float l, float t, float r, float b, bool doScissor)
     {
         Clip& NewClip = m_stack_clip.AtAdding();
@@ -798,6 +807,15 @@ namespace BOSS
         return StackBinder(this, ST_Color);
     }
 
+    ZayPanel::StackBinder ZayPanel::_push_blend(BlendRole role)
+    {
+        BlendRole& NewBlend = m_stack_blend.AtAdding();
+        NewBlend = role;
+
+        Platform::Graphics::SetBlend(NewBlend);
+        return StackBinder(this, ST_Blend);
+    }
+
     ZayPanel::StackBinder ZayPanel::_push_font(float size, chars name)
     {
         Font& NewFont = m_stack_font.AtAdding();
@@ -853,6 +871,15 @@ namespace BOSS
 
         const Color& LastColor = m_stack_color[-1];
         Platform::Graphics::SetColor(LastColor.r, LastColor.g, LastColor.b, LastColor.a);
+    }
+
+    void ZayPanel::_pop_blend()
+    {
+        BOSS_ASSERT("Pop할 잔여스택이 없습니다", 1 < m_stack_blend.Count());
+        m_stack_blend.SubtractionOne();
+
+        const BlendRole& LastBlend = m_stack_blend[-1];
+        Platform::Graphics::SetBlend(LastBlend);
     }
 
     void ZayPanel::_pop_font()

@@ -25,6 +25,7 @@
         mSavedCanvas = nullptr;
         mSavedZoom = 1.0f;
         mPainter.setRenderHints(QPainter::Antialiasing | QPainter::HighQualityAntialiasing);
+        mBlend = QPainter::CompositionMode_SourceOver;
     }
     CanvasClass::CanvasClass(QPaintDevice* device) : mIsTypeSurface(false)
     {
@@ -32,6 +33,7 @@
         mSavedCanvas = nullptr;
         mSavedZoom = 1.0f;
         mPainter.setRenderHints(QPainter::Antialiasing | QPainter::HighQualityAntialiasing);
+        mBlend = QPainter::CompositionMode_SourceOver;
         BindCore(device);
     }
     CanvasClass::~CanvasClass()
@@ -898,6 +900,18 @@
             CanvasClass::get()->SetColor(r, g, b, a);
         }
 
+        void Platform::Graphics::SetBlend(BlendRole role)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
+            switch(role)
+            {
+            case BR_None: CanvasClass::get()->SetBlend(QPainter::CompositionMode_SourceOver); break;
+            case BR_Plus: CanvasClass::get()->SetBlend(QPainter::CompositionMode_Plus); break;
+            case BR_Multiply: CanvasClass::get()->SetBlend(QPainter::CompositionMode_Multiply); break;
+            case BR_Screen: CanvasClass::get()->SetBlend(QPainter::CompositionMode_Screen); break;
+            }
+        }
+
         void Platform::Graphics::SetFont(chars name, float size)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
@@ -1253,6 +1267,8 @@
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             BOSS_ASSERT("image파라미터가 nullptr입니다", image);
+            CanvasClass::get()->painter().setCompositionMode(CanvasClass::get()->blend());
+
             if(w == iw && h == ih)
                 CanvasClass::get()->painter().drawPixmap(QPoint((sint32) x, (sint32) y), *((const QPixmap*) image),
                     QRect((sint32) ix, (sint32) iy, (sint32) iw, (sint32) ih));
@@ -1397,6 +1413,12 @@
             buffer NewSurface = Buffer::AllocNoConstructorOnce<SurfaceClass>(BOSS_DBG 1);
             BOSS_CONSTRUCTOR(NewSurface, 0, SurfaceClass, width, height, &SurfaceFormat);
             return (id_surface) NewSurface;
+        }
+
+        uint32 Platform::Graphics::GetSurfaceId(id_surface_read surface)
+        {
+            if(!surface) return 0;
+            return ((const SurfaceClass*) surface)->id();
         }
 
         sint32 Platform::Graphics::GetSurfaceWidth(id_surface_read surface)

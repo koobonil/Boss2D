@@ -18,6 +18,7 @@ namespace BOSS
     typedef const unsigned char*              bytes;
     typedef const char*                       chars;
     typedef const char*                       chars_cp949;
+    typedef const char*                       chars_kssm;
     typedef const char*                       chars_endless;
     typedef const wchar_t*                    wchars;
     typedef const wchar_t*                    wchars_endless;

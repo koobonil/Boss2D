@@ -480,7 +480,7 @@ namespace BOSS
 			}
 			BOSS_ASSERT("계산상 오류입니다", Result[0].x != 0 || Result[0].y != 0);
 		}
-		else Result.At(0) = Dst[BestDstI];
+		else Result.AtAdding() = Dst[BestDstI];
 		do
 		{
 			int DstIndex = -1;

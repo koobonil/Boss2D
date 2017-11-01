@@ -695,6 +695,13 @@
             ViewAPI::CurColor().set(r, g, b, a);
         }
 
+        void Platform::Graphics::SetBlend(BlendRole role)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
+
+            BOSS_ASSERT("Further development is needed.", false);
+        }
+
         void Platform::Graphics::SetFont(chars name, float size)
         {
             BOSS_ASSERT("Qt5플랫폼처럼 CurCanvas()로의 통합이 필요!!!", false);
@@ -972,6 +979,14 @@
 
             BOSS_ASSERT("Further development is needed.", false);
             return nullptr;
+        }
+
+        uint32 Platform::Graphics::GetSurfaceId(id_surface_read surface)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
+
+            BOSS_ASSERT("Further development is needed.", false);
+            return 0;
         }
 
         sint32 Platform::Graphics::GetSurfaceWidth(id_surface_read surface)

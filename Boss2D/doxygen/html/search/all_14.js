@@ -1,6 +1,7 @@
 var searchData=
 [
   ['tag',['Tag',['../class_b_o_s_s_1_1_parser_1_1_tag.html',1,'BOSS::Parser']]],
+  ['tan',['Tan',['../class_b_o_s_s_1_1_math.html#a7d52b4eeed7434c63bbb93253fd26ad6',1,'BOSS::Math']]],
   ['tasking',['Tasking',['../class_b_o_s_s_1_1_tasking.html',1,'BOSS']]],
   ['taskingclass',['TaskingClass',['../class_tasking_class.html',1,'']]],
   ['tempname',['Tempname',['../class_b_o_s_s_1_1_platform_1_1_file.html#a9b10809b2080b2104a2231bf5345e883',1,'BOSS::Platform::File']]],

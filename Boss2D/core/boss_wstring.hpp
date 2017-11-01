@@ -196,6 +196,21 @@ namespace BOSS
         sint32 Length() const;
 
         /*!
+        \brief 추가(네이티브 와이드스트링으로부터)
+        \param other : 네이티브 와이드스트링
+        \param length : 적용할 길이(-1이면 자동설정)
+        \return 자기 객체
+        */
+        WString& Add(wchars other, sint32 length = -1);
+
+        /*!
+        \brief 감소
+        \param length : 감소할 길이
+        \return 자기 객체
+        */
+        WString& Sub(sint32 length);
+
+        /*!
         \brief CP949형 스트링으로 컨버팅하여 반환
         \param urlcode : URL코드방식 여부
         \return 생성된 버퍼
@@ -227,6 +242,14 @@ namespace BOSS
         \return 객체
         */
         static WString FromCp949(bool urlcode, chars_cp949 text_cp949, sint32 length = -1);
+
+        /*!
+        \brief 한글일 경우 조합식으로 병합하여 반환
+        \param front : 앞 코드
+        \param rear : 뒷 코드
+        \return 병합된 결과(병합성공시 스트링사이즈 1, 실패시 2)
+        */
+        static wchars MergeKorean(wchar_t front, wchar_t rear);
 
         /*!
         \brief wcscmp식 비교

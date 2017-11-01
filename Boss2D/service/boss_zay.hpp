@@ -98,6 +98,8 @@
 #define ZAY_COLOR_CLEAR(PANEL) \
     if(auto _ = (PANEL)._push_color_clear())
 
+#define ZAY_BLEND(PANEL, BLEND) \
+    if(auto _ = (PANEL)._push_blend(BLEND))
 #define ZAY_FONT(PANEL, ...) \
     if(auto _ = (PANEL)._push_font(__VA_ARGS__))
 #define ZAY_ZOOM(PANEL, ZOOM) \
@@ -274,6 +276,7 @@ namespace BOSS
         PanelState state(chars uiname = nullptr) const;
         Point toview(float x, float y) const;
         void test(UITestOrder order);
+        uint32 fboid() const;
 
     public:
         inline const float w() const
@@ -284,7 +287,7 @@ namespace BOSS
         {return m_stack_zoom[-1];}
 
     public:
-        enum StackType {ST_Null, ST_Pass, ST_Clip, ST_Color, ST_Font, ST_Zoom};
+        enum StackType {ST_Null, ST_Pass, ST_Clip, ST_Color, ST_Blend, ST_Font, ST_Zoom};
         class StackBinder
         {
             BOSS_DECLARE_NONCOPYABLE_INITIALIZED_CLASS(StackBinder, mPanel(rhs.mPanel))
@@ -298,6 +301,7 @@ namespace BOSS
                 {
                 case ST_Clip: mPanel->_pop_clip(); break;
                 case ST_Color: mPanel->_pop_color(); break;
+                case ST_Blend: mPanel->_pop_blend(); break;
                 case ST_Font: mPanel->_pop_font(); break;
                 case ST_Zoom: mPanel->_pop_zoom(); break;
                 }
@@ -321,12 +325,14 @@ namespace BOSS
         StackBinder _push_color(sint32 r, sint32 g, sint32 b, sint32 a);
         StackBinder _push_color(const Color& color);
         StackBinder _push_color_clear();
+        StackBinder _push_blend(BlendRole role);
         StackBinder _push_font(float size, chars name = nullptr);
         StackBinder _push_zoom(float zoom);
         StackBinder _push_pass();
     private:
         void _pop_clip();
         void _pop_color();
+        void _pop_blend();
         void _pop_font();
         void _pop_zoom();
 
@@ -350,6 +356,7 @@ namespace BOSS
         Clips m_stack_clip;
         Rects m_stack_scissor;
         Colors m_stack_color;
+        Array<BlendRole, datatype_pod_canmemcpy> m_stack_blend;
         Fonts m_stack_font;
         floats m_stack_zoom;
 

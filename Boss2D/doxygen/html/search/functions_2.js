@@ -28,7 +28,7 @@ var searchData=
   ['copiedbuffer',['CopiedBuffer',['../class_b_o_s_s_1_1_object.html#a7862ccf2123848df711853a629157635',1,'BOSS::Object']]],
   ['copy',['Copy',['../class_b_o_s_s_1_1_buffer.html#a153dee23e1c7cb161bb428a998c59703',1,'BOSS::Buffer::Copy()'],['../class_b_o_s_s_1_1_memory.html#aad68970f5d322a7d1d1989f4ca7862c7',1,'BOSS::Memory::Copy()']]],
   ['copyvptr',['CopyVPTR',['../class_b_o_s_s_1_1_memory.html#acbb0dded0571642cbd2f93eece78b9d0',1,'BOSS::Memory']]],
-  ['cos',['Cos',['../class_b_o_s_s_1_1_math.html#af2431231c8099fc272bb6cb030454ab2',1,'BOSS::Math']]],
+  ['cos',['Cos',['../class_b_o_s_s_1_1_math.html#ace01ddb98eb2d2f01bc7bceaf02dcd8d',1,'BOSS::Math']]],
   ['count',['Count',['../class_b_o_s_s_1_1_array.html#a58bb715c39af8feffa7be4f5a8cbb688',1,'BOSS::Array::Count()'],['../class_b_o_s_s_1_1_map.html#a74862cab710e20a40a62e3a2772b99ad',1,'BOSS::Map::Count()'],['../class_b_o_s_s_1_1_queue.html#a00736648b43a48fdfef1fefaa8c90028',1,'BOSS::Queue::Count()']]],
   ['countof',['CountOf',['../class_b_o_s_s_1_1_buffer.html#a9294938290f766be3645ae1142c907d3',1,'BOSS::Buffer']]],
   ['create',['Create',['../class_b_o_s_s_1_1_storage.html#a23479f425050b68d06d0dfc222e4f620',1,'BOSS::Storage::Create()'],['../class_b_o_s_s_1_1_tasking.html#a28436757a539207f58e06729f53ac6e5',1,'BOSS::Tasking::Create()'],['../class_b_o_s_s_1_1_platform_1_1_clock.html#a45b277897bcedf827fb633527138eb5d',1,'BOSS::Platform::Clock::Create()'],['../class_b_o_s_s_1_1_platform_1_1_server.html#a465cce21d20fc9e639abead85e5eaddf',1,'BOSS::Platform::Server::Create()'],['../class_b_o_s_s_1_1_platform_1_1_web.html#a08bcbe330261461a045fdc3eeeefb4a9',1,'BOSS::Platform::Web::Create()']]],

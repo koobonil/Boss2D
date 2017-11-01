@@ -54,14 +54,19 @@ namespace BOSS
         return sqrtf(v);
     }
 
-    float Math::Cos(const float v)
+    float Math::Cos(const float rad)
     {
-        return cosf(v);
+        return cosf(rad);
     }
 
-    float Math::Sin(const float v)
+    float Math::Sin(const float rad)
     {
-        return sinf(v);
+        return sinf(rad);
+    }
+
+    float Math::Tan(const float rad)
+    {
+        return tanf(rad);
     }
 
     float Math::Atan(const float x, const float y)

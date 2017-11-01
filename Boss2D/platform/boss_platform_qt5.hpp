@@ -98,6 +98,9 @@
         inline const QColor& color() const {return mColor;}
         inline void SetColor(uint08 r, uint08 g, uint08 b, uint08 a)
         {mColor.setRgb(r, g, b, a);}
+        inline const QPainter::CompositionMode& blend() const {return mBlend;}
+        inline void SetBlend(QPainter::CompositionMode blend)
+        {mBlend = blend;}
     private:
         static inline CanvasClass*& ST() {static CanvasClass* _ = nullptr; return _;}
     private:
@@ -109,6 +112,7 @@
         QRectF mSavedClipRect;
         QPainter mPainter;
         QColor mColor;
+        QPainter::CompositionMode mBlend;
     };
 
     class ViewAPI : public QObject
@@ -1420,6 +1424,7 @@
         }
 
     public:
+        inline uint32 id() const {return mFBO.handle();}
         inline sint32 width() const {return mFBO.width();}
         inline sint32 height() const {return mFBO.height();}
         inline QPainter* painter() {return &mCanvas.painter();}

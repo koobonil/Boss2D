@@ -5,7 +5,7 @@ var searchData=
   ['access',['Access',['../class_b_o_s_s_1_1_map.html#a3f0a8e8b1a43b60ce343d557f1e10dff',1,'BOSS::Map::Access(uint08 key) const'],['../class_b_o_s_s_1_1_map.html#a7777068ba9d933c62d24fda8f9ffbf93',1,'BOSS::Map::Access(chars key, sint32 length=-1) const'],['../class_b_o_s_s_1_1_map.html#a8398e76e819ed3500e110986ea29de14',1,'BOSS::Map::Access(wchars key, sint32 length=-1) const']]],
   ['accessbycallback',['AccessByCallback',['../class_b_o_s_s_1_1_map.html#abf462d2e7061875400be148428562982',1,'BOSS::Map']]],
   ['accessbyorder',['AccessByOrder',['../class_b_o_s_s_1_1_map.html#aeb783186aeb52f3f342280e9d8550ff5',1,'BOSS::Map']]],
-  ['add',['Add',['../class_b_o_s_s_1_1_string.html#a28e619b3378152e420995a6cccafa337',1,'BOSS::String']]],
+  ['add',['Add',['../class_b_o_s_s_1_1_string.html#a28e619b3378152e420995a6cccafa337',1,'BOSS::String::Add()'],['../class_b_o_s_s_1_1_w_string.html#a19b21d0d40e4a8bfa9233e35d35a5c98',1,'BOSS::WString::Add()']]],
   ['addaction',['AddAction',['../class_b_o_s_s_1_1_platform.html#ac4f07bcdcdbcbfc97f4f80f0624182f9',1,'BOSS::Platform']]],
   ['addbypath',['AddByPath',['../class_b_o_s_s_1_1_asset.html#a52e9d9ea161c1702ed0243e7410b986f',1,'BOSS::Asset']]],
   ['addnsec',['AddNsec',['../class_b_o_s_s_1_1_platform_1_1_clock.html#a6def9900555d3c19f76bfcae4eb5097f',1,'BOSS::Platform::Clock']]],

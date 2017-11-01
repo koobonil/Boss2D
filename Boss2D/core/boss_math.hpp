@@ -146,17 +146,24 @@ namespace BOSS
 
         /*!
         \brief 코사인 구하기
-        \param v : 인수
-        \return 코사인
+        \param rad : 라디안
+        \return 코사인값
         */
-        static float Cos(const float v);
+        static float Cos(const float rad);
 
         /*!
         \brief 사인 구하기
-        \param v : 인수
-        \return 사인
+        \param rad : 라디안
+        \return 사인값
         */
-        static float Sin(const float v);
+        static float Sin(const float rad);
+
+        /*!
+        \brief 탄젠트 구하기
+        \param rad : 라디안
+        \return 탄젠트값
+        */
+        static float Tan(const float rad);
 
         /*!
         \brief 아크탄젠트 구하기

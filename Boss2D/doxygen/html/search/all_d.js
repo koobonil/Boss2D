@@ -16,6 +16,7 @@ var searchData=
   ['max',['Max',['../class_b_o_s_s_1_1_math.html#a43fc751ea0334c785dd238af7b68572d',1,'BOSS::Math']]],
   ['maxf',['MaxF',['../class_b_o_s_s_1_1_math.html#a2797f24fd0716530a83d90a7d048baa0',1,'BOSS::Math']]],
   ['memory',['Memory',['../class_b_o_s_s_1_1_memory.html',1,'BOSS']]],
+  ['mergekorean',['MergeKorean',['../class_b_o_s_s_1_1_w_string.html#a6c3836248c34cc6a220bee19ff830136',1,'BOSS::WString']]],
   ['message',['Message',['../class_b_o_s_s_1_1_live_chat_service_1_1_message.html',1,'BOSS::LiveChatService']]],
   ['method',['Method',['../class_b_o_s_s_1_1_remote_1_1_method.html',1,'BOSS::Remote']]],
   ['microphone',['Microphone',['../class_b_o_s_s_1_1_platform_1_1_microphone.html',1,'BOSS::Platform']]],

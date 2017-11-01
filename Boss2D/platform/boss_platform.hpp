@@ -24,6 +24,7 @@ namespace BOSS
     enum UIEditType {UIET_String, UIET_Int, UIET_Float};
     enum UITestOrder {UITO_ScissorOn, UITO_ScissorOff};
     enum UIStack {UIS_PushPop, UIS_Push, UIS_Current, UIS_Pop};
+    enum BlendRole {BR_None, BR_Plus, BR_Multiply, BR_Screen};
     class ViewClass;
     class ViewManager;
     typedef void (*ProcedureCB)(payload);
@@ -587,6 +588,12 @@ namespace BOSS
             static void SetColor(uint08 r, uint08 g, uint08 b, uint08 a);
 
             /*!
+            \brief 블렌드지정
+            \param role : 블렌드방식
+            */
+            static void SetBlend(BlendRole role);
+
+            /*!
             \brief 폰트지정
             \param name : 폰트명
             \param size : 사이즈값
@@ -804,6 +811,13 @@ namespace BOSS
             \return 생성된 서피스
             */
             static id_surface CreateSurface(sint32 width, sint32 height);
+
+            /*!
+            \brief 서피스ID 얻기(OpenGLES의 FBO핸들)
+            \param surface : 서피스
+            \return 서피스ID
+            */
+            static uint32 GetSurfaceId(id_surface_read surface);
 
             /*!
             \brief 서피스 가로길이 얻기

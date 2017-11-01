@@ -15,14 +15,14 @@ namespace BOSS
         ~Backey();
 
     public:
-        void Render(ZayPanel& panel);
+        void Render(ZayPanel& panel, h_view view = h_view::null());
 
     private:
         static void DefaultButton(ZayPanel& panel, sint32 id, PanelState ps);
         static void DefaultSelector(ZayPanel& panel, chars letter, bool selected);
         void BeginSelector(sint32 id);
         void MoveSelector(float add_x, float add_y);
-        void EndSelector();
+        void EndSelector(h_view view);
         sint32 CalcLetterBy(sint32 id, float x, float y);
 
     private:
