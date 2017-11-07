@@ -159,7 +159,7 @@ namespace BOSS
 
     const bool Rect::ContactTest(const Rect rect) const
     {
-        return l < rect.r && t < rect.b && rect.l < r && rect.t < b;
+        return (l < rect.r && t < rect.b && rect.l < r && rect.t < b);
     }
 
     Rect Rect::Inflate(const float x, const float y) const

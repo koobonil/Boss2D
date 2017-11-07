@@ -25,16 +25,16 @@ namespace BOSS
 	    private: typedef Array<Line, datatype_pod_canmemcpy, 8> LineList;
 	    private: typedef Array<Points, datatype_class_nomemcpy, 8> PolygonList;
 
-        private: class Util;
+        public: class Util;
         public: class Path;
         public: class Map;
         public: class Hurdle;
         public: class GetPosition;
 
-        private: class Util
+        public: class Util
         {
             public: static inline const int GetClockwiseValue(const Point& Start, const Point& End, const Point& Src)
-	        {return (Start.x - End.x) * (Src.y - End.y) - (Start.y - End.y) * (Src.x - End.x);}
+	        {return ((Start.x - End.x) * (Src.y - End.y) - (Start.y - End.y) * (Src.x - End.x) < 0)? -1 : 1;}
             public: static const Point* GetDotByLineCross(const Point& DstB, const Point& DstE, const Point& SrcB, const Point& SrcE);
         };
 
@@ -166,7 +166,7 @@ namespace BOSS
 		    private: GetPosition();
 		    private: ~GetPosition();
 		    public: static const Point SubTarget(const Hurdle* hurdle, Path* path, const Point& curPos);
-		    public: static const Point ValidNext(const Hurdle* hurdle, const Point& curPos, const Point& nextPos);
+		    public: static bool GetValidNext(const Hurdle* hurdle, const Point& curPos, Point& nextPos);
 	    };
     };
 }

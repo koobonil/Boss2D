@@ -23,7 +23,7 @@
   <td id="projectlogo"><img alt="Logo" src="boss2d.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">API
-   &#160;<span id="projectnumber">1.0.4</span>
+   &#160;<span id="projectnumber">1.0.5</span>
    </div>
   </td>
  </tr>
@@ -85,9 +85,9 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a3073b4ee0105707fee0c695bedf0eed7"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_b_o_s_s_1_1_platform_1_1_graphics.html#a3073b4ee0105707fee0c695bedf0eed7">SetColor</a> (uint08 r, uint08 g, uint08 b, uint08 a)</td></tr>
 <tr class="memdesc:a3073b4ee0105707fee0c695bedf0eed7"><td class="mdescLeft">&#160;</td><td class="mdescRight">컬러지정  <a href="#a3073b4ee0105707fee0c695bedf0eed7">More...</a><br /></td></tr>
 <tr class="separator:a3073b4ee0105707fee0c695bedf0eed7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af68743b23641099c737095d80c8d998d"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_b_o_s_s_1_1_platform_1_1_graphics.html#af68743b23641099c737095d80c8d998d">SetBlend</a> (BlendRole role)</td></tr>
-<tr class="memdesc:af68743b23641099c737095d80c8d998d"><td class="mdescLeft">&#160;</td><td class="mdescRight">블렌드지정  <a href="#af68743b23641099c737095d80c8d998d">More...</a><br /></td></tr>
-<tr class="separator:af68743b23641099c737095d80c8d998d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2331d27408332cfd19d243ebc769cc82"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_b_o_s_s_1_1_platform_1_1_graphics.html#a2331d27408332cfd19d243ebc769cc82">SetMask</a> (MaskRole role)</td></tr>
+<tr class="memdesc:a2331d27408332cfd19d243ebc769cc82"><td class="mdescLeft">&#160;</td><td class="mdescRight">마스크지정  <a href="#a2331d27408332cfd19d243ebc769cc82">More...</a><br /></td></tr>
+<tr class="separator:a2331d27408332cfd19d243ebc769cc82"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4102a5d398f98c4995efb1f7cc2eb80f"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_b_o_s_s_1_1_platform_1_1_graphics.html#a4102a5d398f98c4995efb1f7cc2eb80f">SetFont</a> (chars name, float size)</td></tr>
 <tr class="memdesc:a4102a5d398f98c4995efb1f7cc2eb80f"><td class="mdescLeft">&#160;</td><td class="mdescRight">폰트지정  <a href="#a4102a5d398f98c4995efb1f7cc2eb80f">More...</a><br /></td></tr>
 <tr class="separator:a4102a5d398f98c4995efb1f7cc2eb80f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1736,40 +1736,6 @@ static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 
 </div>
 </div>
-<a id="af68743b23641099c737095d80c8d998d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af68743b23641099c737095d80c8d998d">&#9670;&nbsp;</a></span>SetBlend()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void BOSS::Platform::Graphics::SetBlend </td>
-          <td>(</td>
-          <td class="paramtype">BlendRole&#160;</td>
-          <td class="paramname"><em>role</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>블렌드지정 </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">role</td><td>: 블렌드방식 </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
 <a id="a3073b4ee0105707fee0c695bedf0eed7"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3073b4ee0105707fee0c695bedf0eed7">&#9670;&nbsp;</a></span>SetColor()</h2>
 
@@ -1868,6 +1834,40 @@ static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
   <table class="params">
     <tr><td class="paramname">name</td><td>: 폰트명 </td></tr>
     <tr><td class="paramname">size</td><td>: 사이즈값 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a2331d27408332cfd19d243ebc769cc82"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2331d27408332cfd19d243ebc769cc82">&#9670;&nbsp;</a></span>SetMask()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void BOSS::Platform::Graphics::SetMask </td>
+          <td>(</td>
+          <td class="paramtype">MaskRole&#160;</td>
+          <td class="paramname"><em>role</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>마스크지정 </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">role</td><td>: 마스크방식 </td></tr>
   </table>
   </dd>
 </dl>

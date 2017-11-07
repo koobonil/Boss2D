@@ -2,6 +2,7 @@
 #include "boss_image.hpp"
 
 #include <format/boss_bmp.hpp>
+#include <format/boss_png.hpp>
 #include <platform/boss_platform.hpp>
 
 namespace BOSS
@@ -52,6 +53,8 @@ namespace BOSS
         m_filepath = name;
         if(!m_filepath.Right(4).CompareNoCase(".bmp"))
             m_fileformat = Format::Bmp;
+        else if(!m_filepath.Right(4).CompareNoCase(".png"))
+            m_fileformat = Format::Png;
         else if(!m_filepath.Right(4).CompareNoCase(".jpg"))
             m_fileformat = Format::Jpg;
         else
@@ -151,6 +154,14 @@ namespace BOSS
             Asset::Close(ImageAsset);
             m_bitmap = Bmp::Clone((id_bitmap) BmpBuffer);
             Buffer::Free(BmpBuffer);
+        }
+        else if(m_fileformat == Format::Png)
+        {
+            buffer PngBuffer = Buffer::Alloc(BOSS_DBG ImageAssetFilesize);
+            Asset::Read(ImageAsset, (uint08*) PngBuffer, ImageAssetFilesize);
+            Asset::Close(ImageAsset);
+            m_bitmap = Png().ToBmp((bytes) PngBuffer, true);
+            Buffer::Free(PngBuffer);
         }
         else if(m_fileformat == Format::Jpg)
         {

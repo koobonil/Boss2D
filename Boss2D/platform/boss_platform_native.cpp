@@ -690,7 +690,7 @@
             ViewAPI::CurColor() = Color(r, g, b, a);
         }
 
-        void Platform::Graphics::SetBlend(BlendRole role)
+        void Platform::Graphics::SetMask(MaskRole role)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
 

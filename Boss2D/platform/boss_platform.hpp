@@ -24,7 +24,9 @@ namespace BOSS
     enum UIEditType {UIET_String, UIET_Int, UIET_Float};
     enum UITestOrder {UITO_ScissorOn, UITO_ScissorOff};
     enum UIStack {UIS_PushPop, UIS_Push, UIS_Current, UIS_Pop};
-    enum BlendRole {BR_None, BR_Plus, BR_Multiply, BR_Screen};
+    enum MaskRole {MR_SrcOver, MR_DstOver, MR_Clear, MR_Src, MR_Dst,
+        MR_SrcIn, MR_DstIn, MR_SrcOut, MR_DstOut,
+        MR_SrcAtop, MR_DstAtop, MR_Xor, MR_Default = MR_SrcOver};
     class ViewClass;
     class ViewManager;
     typedef void (*ProcedureCB)(payload);
@@ -588,10 +590,10 @@ namespace BOSS
             static void SetColor(uint08 r, uint08 g, uint08 b, uint08 a);
 
             /*!
-            \brief 블렌드지정
-            \param role : 블렌드방식
+            \brief 마스크지정
+            \param role : 마스크방식
             */
-            static void SetBlend(BlendRole role);
+            static void SetMask(MaskRole role);
 
             /*!
             \brief 폰트지정

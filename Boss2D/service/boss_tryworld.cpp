@@ -581,15 +581,27 @@ namespace BOSS
 		return curPos;
 	}
 
-	const Point TryWorld::GetPosition::ValidNext(const Hurdle* hurdle, const Point& curPos, const Point& nextPos)
+	bool TryWorld::GetPosition::GetValidNext(const Hurdle* hurdle, const Point& curPos, Point& nextPos)
 	{
+        Point ResultPos = nextPos;
+        float ResultDistance = -1;
 		for(int h = 0; h < hurdle->List.Count(); ++h)
-		for(int l = 0, lend = hurdle->List[h].Count(); l < lend; ++l)
+		for(int i = 0, iend = hurdle->List[h].Count(); i < iend; ++i)
 		{
-			const Point* Result = Util::GetDotByLineCross(hurdle->List[h][l], hurdle->List[h][(l + 1) % lend], curPos, nextPos);
-			if(Result && Util::GetClockwiseValue(hurdle->List[h][l], hurdle->List[h][(l + 1) % lend], curPos))
-				return *Result;
+            const Point& LineBegin = hurdle->List[h][i];
+            const Point& LineEnd = hurdle->List[h][(i + 1) % iend];
+            if(Util::GetClockwiseValue(LineBegin, LineEnd, curPos) < 0)
+			if(const Point* CurPos = Util::GetDotByLineCross(LineBegin, LineEnd, curPos, nextPos))
+            {
+                const float CurDistance = Math::Distance(curPos.x, curPos.y, CurPos->x, CurPos->y);
+                if(ResultDistance < 0 || CurDistance < ResultDistance)
+                {
+                    ResultPos = *CurPos;
+                    ResultDistance = CurDistance;
+                }
+            }
 		}
-		return nextPos;
+        nextPos = ResultPos;
+        return (0 <= ResultDistance);
 	}
 }

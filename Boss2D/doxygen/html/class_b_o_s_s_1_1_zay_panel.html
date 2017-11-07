@@ -23,7 +23,7 @@
   <td id="projectlogo"><img alt="Logo" src="boss2d.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">API
-   &#160;<span id="projectnumber">1.0.4</span>
+   &#160;<span id="projectnumber">1.0.5</span>
    </div>
   </td>
  </tr>
@@ -93,7 +93,7 @@ Public Types</h2></td></tr>
 <b>ST_Clip</b>, 
 <b>ST_Color</b>, 
 <br />
-&#160;&#160;<b>ST_Blend</b>, 
+&#160;&#160;<b>ST_Mask</b>, 
 <b>ST_Font</b>, 
 <b>ST_Zoom</b>
 <br />
@@ -225,9 +225,9 @@ const float&#160;</td><td class="memItemRight" valign="bottom"><b>zoom</b> () co
 <tr class="memitem:a01f774229530ff10a59cffcb84102a63"><td class="memItemLeft" align="right" valign="top"><a id="a01f774229530ff10a59cffcb84102a63"></a>
 <a class="el" href="class_b_o_s_s_1_1_zay_panel_1_1_stack_binder.html">StackBinder</a>&#160;</td><td class="memItemRight" valign="bottom"><b>_push_color_clear</b> ()</td></tr>
 <tr class="separator:a01f774229530ff10a59cffcb84102a63"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adb6a1c10eb4fc4fba21a440a1eb72c34"><td class="memItemLeft" align="right" valign="top"><a id="adb6a1c10eb4fc4fba21a440a1eb72c34"></a>
-<a class="el" href="class_b_o_s_s_1_1_zay_panel_1_1_stack_binder.html">StackBinder</a>&#160;</td><td class="memItemRight" valign="bottom"><b>_push_blend</b> (BlendRole role)</td></tr>
-<tr class="separator:adb6a1c10eb4fc4fba21a440a1eb72c34"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a94cdd1f0959852ce8444598815c0acfd"><td class="memItemLeft" align="right" valign="top"><a id="a94cdd1f0959852ce8444598815c0acfd"></a>
+<a class="el" href="class_b_o_s_s_1_1_zay_panel_1_1_stack_binder.html">StackBinder</a>&#160;</td><td class="memItemRight" valign="bottom"><b>_push_mask</b> (MaskRole role)</td></tr>
+<tr class="separator:a94cdd1f0959852ce8444598815c0acfd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0faf1c2a8cd625dd9b870fbd54f6b08c"><td class="memItemLeft" align="right" valign="top"><a id="a0faf1c2a8cd625dd9b870fbd54f6b08c"></a>
 <a class="el" href="class_b_o_s_s_1_1_zay_panel_1_1_stack_binder.html">StackBinder</a>&#160;</td><td class="memItemRight" valign="bottom"><b>_push_font</b> (float size, chars name=nullptr)</td></tr>
 <tr class="separator:a0faf1c2a8cd625dd9b870fbd54f6b08c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -273,9 +273,9 @@ void *&#160;</td><td class="memItemRight" valign="bottom"><b>m_ref_touch_collect
 <tr class="memitem:a3b005812723a6d888e751e6e5c102d84"><td class="memItemLeft" align="right" valign="top"><a id="a3b005812723a6d888e751e6e5c102d84"></a>
 <a class="el" href="class_b_o_s_s_1_1_array.html">Colors</a>&#160;</td><td class="memItemRight" valign="bottom"><b>m_stack_color</b></td></tr>
 <tr class="separator:a3b005812723a6d888e751e6e5c102d84"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aba3ca098ba441c54b586009278dbd910"><td class="memItemLeft" align="right" valign="top"><a id="aba3ca098ba441c54b586009278dbd910"></a>
-<a class="el" href="class_b_o_s_s_1_1_array.html">Array</a>&lt; BlendRole, datatype_pod_canmemcpy &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>m_stack_blend</b></td></tr>
-<tr class="separator:aba3ca098ba441c54b586009278dbd910"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac1b33348db6018c4e924fbcde55123a0"><td class="memItemLeft" align="right" valign="top"><a id="ac1b33348db6018c4e924fbcde55123a0"></a>
+<a class="el" href="class_b_o_s_s_1_1_array.html">Array</a>&lt; MaskRole, datatype_pod_canmemcpy &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>m_stack_mask</b></td></tr>
+<tr class="separator:ac1b33348db6018c4e924fbcde55123a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa3d338e8925e8b5072171de8ca7175b8"><td class="memItemLeft" align="right" valign="top"><a id="aa3d338e8925e8b5072171de8ca7175b8"></a>
 <a class="el" href="class_b_o_s_s_1_1_array.html">Fonts</a>&#160;</td><td class="memItemRight" valign="bottom"><b>m_stack_font</b></td></tr>
 <tr class="separator:aa3d338e8925e8b5072171de8ca7175b8"><td class="memSeparator" colspan="2">&#160;</td></tr>

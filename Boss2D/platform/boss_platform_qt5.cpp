@@ -25,7 +25,7 @@
         mSavedCanvas = nullptr;
         mSavedZoom = 1.0f;
         mPainter.setRenderHints(QPainter::Antialiasing | QPainter::HighQualityAntialiasing);
-        mBlend = QPainter::CompositionMode_SourceOver;
+        mMask = QPainter::CompositionMode_SourceOver;
     }
     CanvasClass::CanvasClass(QPaintDevice* device) : mIsTypeSurface(false)
     {
@@ -33,7 +33,7 @@
         mSavedCanvas = nullptr;
         mSavedZoom = 1.0f;
         mPainter.setRenderHints(QPainter::Antialiasing | QPainter::HighQualityAntialiasing);
-        mBlend = QPainter::CompositionMode_SourceOver;
+        mMask = QPainter::CompositionMode_SourceOver;
         BindCore(device);
     }
     CanvasClass::~CanvasClass()
@@ -900,15 +900,23 @@
             CanvasClass::get()->SetColor(r, g, b, a);
         }
 
-        void Platform::Graphics::SetBlend(BlendRole role)
+        void Platform::Graphics::SetMask(MaskRole role)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             switch(role)
             {
-            case BR_None: CanvasClass::get()->SetBlend(QPainter::CompositionMode_SourceOver); break;
-            case BR_Plus: CanvasClass::get()->SetBlend(QPainter::CompositionMode_Plus); break;
-            case BR_Multiply: CanvasClass::get()->SetBlend(QPainter::CompositionMode_Multiply); break;
-            case BR_Screen: CanvasClass::get()->SetBlend(QPainter::CompositionMode_Screen); break;
+            case MR_SrcOver: CanvasClass::get()->SetMask(QPainter::CompositionMode_SourceOver); break;
+            case MR_DstOver: CanvasClass::get()->SetMask(QPainter::CompositionMode_DestinationOver); break;
+            case MR_Clear: CanvasClass::get()->SetMask(QPainter::CompositionMode_Clear); break;
+            case MR_Src: CanvasClass::get()->SetMask(QPainter::CompositionMode_Source); break;
+            case MR_Dst: CanvasClass::get()->SetMask(QPainter::CompositionMode_Destination); break;
+            case MR_SrcIn: CanvasClass::get()->SetMask(QPainter::CompositionMode_SourceIn); break;
+            case MR_DstIn: CanvasClass::get()->SetMask(QPainter::CompositionMode_DestinationIn); break;
+            case MR_SrcOut: CanvasClass::get()->SetMask(QPainter::CompositionMode_SourceOut); break;
+            case MR_DstOut: CanvasClass::get()->SetMask(QPainter::CompositionMode_DestinationOut); break;
+            case MR_SrcAtop: CanvasClass::get()->SetMask(QPainter::CompositionMode_SourceAtop); break;
+            case MR_DstAtop: CanvasClass::get()->SetMask(QPainter::CompositionMode_DestinationAtop); break;
+            case MR_Xor: CanvasClass::get()->SetMask(QPainter::CompositionMode_Xor); break;
             }
         }
 
@@ -938,6 +946,7 @@
         void Platform::Graphics::FillRect(float x, float y, float w, float h)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
+            CanvasClass::get()->painter().setCompositionMode(CanvasClass::get()->mask());
             CanvasClass::get()->painter().fillRect(QRectF(x, y, w, h), CanvasClass::get()->color());
         }
 
@@ -946,6 +955,7 @@
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             CanvasClass::get()->painter().setPen(Qt::NoPen);
             CanvasClass::get()->painter().setBrush(QBrush(CanvasClass::get()->color()));
+            CanvasClass::get()->painter().setCompositionMode(CanvasClass::get()->mask());
             CanvasClass::get()->painter().drawEllipse(QRectF(x, y, w, h));
         }
 
@@ -964,6 +974,7 @@
 
             CanvasClass::get()->painter().setPen(Qt::NoPen);
             CanvasClass::get()->painter().setBrush(QBrush(CanvasClass::get()->color()));
+            CanvasClass::get()->painter().setCompositionMode(CanvasClass::get()->mask());
             CanvasClass::get()->painter().drawPolygon(NewPoint, Count);
             delete[] NewPoint;
         }
@@ -976,6 +987,7 @@
             NewPen.setJoinStyle(Qt::MiterJoin);
             CanvasClass::get()->painter().setPen(NewPen);
             CanvasClass::get()->painter().setBrush(Qt::NoBrush);
+            CanvasClass::get()->painter().setCompositionMode(CanvasClass::get()->mask());
             CanvasClass::get()->painter().drawRect(QRectF(x - thick / 2, y - thick / 2, w + thick, h + thick));
         }
 
@@ -984,6 +996,7 @@
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             CanvasClass::get()->painter().setPen(QPen(QBrush(CanvasClass::get()->color()), thick));
             CanvasClass::get()->painter().setBrush(Qt::NoBrush);
+            CanvasClass::get()->painter().setCompositionMode(CanvasClass::get()->mask());
             CanvasClass::get()->painter().drawLine(QPointF(begin.x, begin.y), QPointF(end.x, end.y));
         }
 
@@ -992,6 +1005,7 @@
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             CanvasClass::get()->painter().setPen(QPen(QBrush(CanvasClass::get()->color()), thick));
             CanvasClass::get()->painter().setBrush(Qt::NoBrush);
+            CanvasClass::get()->painter().setCompositionMode(CanvasClass::get()->mask());
             CanvasClass::get()->painter().drawEllipse(QRectF(x, y, w, h));
         }
 
@@ -1005,6 +1019,7 @@
 
             CanvasClass::get()->painter().setPen(QPen(QBrush(CanvasClass::get()->color()), thick));
             CanvasClass::get()->painter().setBrush(Qt::NoBrush);
+            CanvasClass::get()->painter().setCompositionMode(CanvasClass::get()->mask());
             CanvasClass::get()->painter().drawPath(NewPath);
         }
 
@@ -1023,6 +1038,7 @@
 
             CanvasClass::get()->painter().setPen(QPen(QBrush(CanvasClass::get()->color()), thick));
             CanvasClass::get()->painter().setBrush(Qt::NoBrush);
+            CanvasClass::get()->painter().setCompositionMode(CanvasClass::get()->mask());
             CanvasClass::get()->painter().drawPolyline(NewPoint, Count);
             delete[] NewPoint;
         }
@@ -1056,6 +1072,7 @@
 
             CanvasClass::get()->painter().setPen(QPen(QBrush(CanvasClass::get()->color()), thick));
             CanvasClass::get()->painter().setBrush(Qt::NoBrush);
+            CanvasClass::get()->painter().setCompositionMode(CanvasClass::get()->mask());
             CanvasClass::get()->painter().drawPath(NewPath);
         }
 
@@ -1267,13 +1284,14 @@
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             BOSS_ASSERT("image파라미터가 nullptr입니다", image);
-            CanvasClass::get()->painter().setCompositionMode(CanvasClass::get()->blend());
 
+            CanvasClass::get()->painter().setCompositionMode(CanvasClass::get()->mask());
             if(w == iw && h == ih)
                 CanvasClass::get()->painter().drawPixmap(QPoint((sint32) x, (sint32) y), *((const QPixmap*) image),
                     QRect((sint32) ix, (sint32) iy, (sint32) iw, (sint32) ih));
             else CanvasClass::get()->painter().drawPixmap(QRect((sint32) x, (sint32) y, (sint32) w, (sint32) h), *((const QPixmap*) image),
                 QRect((sint32) ix, (sint32) iy, (sint32) iw, (sint32) ih));
+
             // 아래 코드의 랜더링결과는 품질이 좋지 않음
             //if(w == iw && h == ih)
             //    ViewAPI::CurPainter()->drawPixmap(QPointF(x, y), *((const QPixmap*) image), QRectF(ix, iy, iw, ih));
@@ -1323,6 +1341,7 @@
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             CanvasClass::get()->painter().setPen(CanvasClass::get()->color());
             CanvasClass::get()->painter().setBrush(Qt::NoBrush);
+            CanvasClass::get()->painter().setCompositionMode(CanvasClass::get()->mask());
 
             const QString Text = QString::fromUtf8(string);
             if(elide != UIFE_None)
@@ -1343,6 +1362,7 @@
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             CanvasClass::get()->painter().setPen(CanvasClass::get()->color());
             CanvasClass::get()->painter().setBrush(Qt::NoBrush);
+            CanvasClass::get()->painter().setCompositionMode(CanvasClass::get()->mask());
 
             const QString Text = QString::fromWCharArray(string);
             if(elide != UIFE_None)
@@ -1455,11 +1475,15 @@
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             if(!surface) return;
 
+            auto OldOpacity = CanvasClass::get()->painter().opacity();
+            CanvasClass::get()->painter().setOpacity(Math::Min(128, CanvasClass::get()->color().alpha()) / 128.0f);
+            CanvasClass::get()->painter().setCompositionMode(CanvasClass::get()->mask());
             if(w == sw && h == sh)
                 CanvasClass::get()->painter().drawImage(QPoint((sint32) x, (sint32) y),
                     ((const SurfaceClass*) surface)->mLastImage, QRect((sint32) sx, (sint32) sy, (sint32) sw, (sint32) sh));
             else CanvasClass::get()->painter().drawImage(QRect((sint32) x, (sint32) y, (sint32) w, (sint32) h),
                 ((const SurfaceClass*) surface)->mLastImage, QRect((sint32) sx, (sint32) sy, (sint32) sw, (sint32) sh));
+            CanvasClass::get()->painter().setOpacity(OldOpacity);
         }
 
         id_image_read Platform::Graphics::GetImageFromSurface(id_surface_read surface)
