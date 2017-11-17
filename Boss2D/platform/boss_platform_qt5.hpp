@@ -1402,10 +1402,12 @@
         SurfaceClass() : mFBO(0, 0, QOpenGLFramebufferObjectFormat()), mDevice(0, 0)
         {
             BOSS_ASSERT("잘못된 시나리오입니다", false);
+            mSavedSurface = nullptr;
         }
         SurfaceClass(sint32 width, sint32 height, QOpenGLFramebufferObjectFormat* format)
             : mFBO(width, height, *format), mDevice(width, height)
         {
+            mSavedSurface = nullptr;
         }
         ~SurfaceClass()
         {
@@ -1432,16 +1434,46 @@
     public:
         void BindGraphics()
         {
+            BOSS_ASSERT("mSavedSurface는 nullptr이어야 합니다", !mSavedSurface);
+            mSavedSurface = ST();
             mCanvas.Bind(&mDevice);
             mFBO.bind();
+            ST() = this;
         }
         void UnbindGraphics()
         {
+            BOSS_ASSERT("SurfaceClass는 스택식으로 해제해야 합니다", ST() == this);
             mLastImage = mFBO.toImage();
             mCanvas.Unbind();
+            if(ST() = mSavedSurface)
+            {
+                mSavedSurface->mFBO.bind();
+                mSavedSurface = nullptr;
+            }
+        }
+
+    public:
+        static void LockForGL()
+        {
+            BOSS_ASSERT("STGL()는 nullptr이어야 합니다", !STGL());
+            STGL() = ST();
+            ST() = nullptr;
+        }
+        static void UnlockForGL()
+        {
+            BOSS_ASSERT("ST()는 nullptr이어야 합니다", !ST());
+            if(ST() = STGL())
+            {
+                STGL()->mFBO.bind();
+                STGL() = nullptr;
+            }
         }
 
     private:
+        static inline SurfaceClass*& ST() {static SurfaceClass* _ = nullptr; return _;}
+        static inline SurfaceClass*& STGL() {static SurfaceClass* _ = nullptr; return _;}
+    private:
+        SurfaceClass* mSavedSurface;
         QOpenGLFramebufferObject mFBO;
         QOpenGLPaintDevice mDevice;
         CanvasClass mCanvas;

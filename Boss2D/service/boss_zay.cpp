@@ -699,7 +699,7 @@ namespace BOSS
     {
         if(m_ref_surface)
             return Platform::Graphics::GetSurfaceId(m_ref_surface);
-        return 0;
+        return -1;
     }
 
     ZayPanel::StackBinder ZayPanel::_push_clip(float l, float t, float r, float b, bool doScissor)

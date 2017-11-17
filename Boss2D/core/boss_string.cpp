@@ -301,11 +301,18 @@ namespace BOSS
         va_end(Args);
 
         String Result;
-        Result.m_words.AtWherever(Size) = '\0';
-
-        va_start(Args, text);
-        boss_vsnprintf(Result.m_words.AtDumping(0, Size + 1), Size + 1, text, Args);
-        va_end(Args);
+        if(0 <= Size)
+        {
+            Result.m_words.AtWherever(Size) = '\0';
+            va_start(Args, text);
+            boss_vsnprintf(Result.m_words.AtDumping(0, Size + 1), Size + 1, text, Args);
+            va_end(Args);
+        }
+        else
+        {
+            BOSS_ASSERT("vsnprintf에서 text의 길이를 추산하지 못함", false);
+            Result = "-format error-";
+        }
         return Result;
     }
 

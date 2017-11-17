@@ -100,8 +100,8 @@ namespace BOSS
                 const TYPE* ECode[2] = {(const TYPE*) ECodeEM, (const TYPE*) ECodeEP};
                 const sint32 ESign = (source[(++Offset)++] == '+');
                 const sint32 EValue = GetInt(source, length, offset);
-                BOSS_ASSERT("E표현식이 float의 한계를 초과합니다", 0 <= EValue && EValue - ESign < ((sizeof(TYPE) == 4)? 38 : 308));
-                Result *= ECode[ESign][EValue - ESign];
+                const bool ESuccess = (0 <= EValue && EValue - ESign < ((sizeof(TYPE) == 4)? 38 : 308));
+                if(ESuccess) Result *= ECode[ESign][EValue - ESign];
             }
 
             if(offset) *offset = Offset;

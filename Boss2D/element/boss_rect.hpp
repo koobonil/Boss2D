@@ -33,6 +33,7 @@ namespace BOSS
 
         inline const float Width() const {return r - l;}
         inline const float Height() const {return b - t;}
+        inline const Point Center() const {return Point((r + l) / 2, (b + t) / 2);}
         inline const float CenterX() const {return (r + l) / 2;}
         inline const float CenterY() const {return (b + t) / 2;}
         const bool PtInRect(const Point point) const;

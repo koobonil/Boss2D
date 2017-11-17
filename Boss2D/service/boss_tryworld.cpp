@@ -175,10 +175,10 @@ namespace BOSS
 	void TryWorld::Map::CREATE_TRIANGLES(const Rect& boundBox, PolygonList& list)
 	{
 		for(int i = 0; i < list.Count(); ++i)
-		for(int j = 0, jend = list[i].Count(); j < jend; ++j)
+        for(int j = 0, jend = list[i].Dots.Count(); j < jend; ++j)
 		{
 			const int CurIndex = Dots.Count();
-			Dots.AtAdding() = list[i][j];
+            Dots.AtAdding() = list[i].Dots[j];
 			Lines.AtAdding().Set((i == list.Count() - 1)? linetype_bound : linetype_wall, CurIndex, CurIndex + ((j + 1) % jend) - j);
 		}
 		// 맵구성
@@ -368,7 +368,7 @@ namespace BOSS
         hurdle = nullptr;
 	}
 
-	void TryWorld::Hurdle::Add(Points& polygon, const bool isBoundLine)
+    void TryWorld::Hurdle::Add(int payload, Points& polygon, const bool isBoundLine)
 	{
 		BOSS_ASSERT("Object가 추가된 Hurdle은 Add를 지원하지 않습니다", ObjectBeginID == -1);
 		Rect Bound(polygon[0].x, polygon[0].y, polygon[0].x, polygon[0].y);
@@ -381,20 +381,25 @@ namespace BOSS
 		}
 		for(int i = List.Count() - 1; 0 <= i; --i)
 		{
-			const Points* Result = MERGE_POLYGON(List[i], polygon, Bound, isBoundLine);
+            const Points* Result = MERGE_POLYGON(List[i].Dots, polygon, Bound, isBoundLine);
 			if(Result)
 			{
                 polygon = *Result;
 				List.SubtractionSection(i);
 			}
 		}
-		List.AtAdding() = polygon;
+        auto& NewPolygon = List.AtAdding();
+        NewPolygon.Payload = payload;
+        NewPolygon.Dots = polygon;
 	}
 
-	void TryWorld::Hurdle::AddWithoutMerging(const Points& polygon)
+    void TryWorld::Hurdle::AddWithoutMerging(int payload, const Points& polygon)
 	{
-		if(ObjectBeginID == -1) ObjectBeginID = List.Count();
-		List.AtAdding() = polygon;
+        if(ObjectBeginID == -1)
+            ObjectBeginID = List.Count();
+        auto& NewPolygon = List.AtAdding();
+        NewPolygon.Payload = payload;
+        NewPolygon.Dots = polygon;
 	}
 
 	TryWorld::Map* TryWorld::Hurdle::BuildMap(const Rect& boundBox)
@@ -405,7 +410,7 @@ namespace BOSS
 		BoundPolygon.AtAdding() = Point(boundBox.l, boundBox.b);
 		BoundPolygon.AtAdding() = Point(boundBox.r, boundBox.b);
 		BoundPolygon.AtAdding() = Point(boundBox.r, boundBox.t);
-		Add(BoundPolygon, true);
+        Add(-1, BoundPolygon, true);
 		Map* Result = new Map();
 		Result->CREATE_TRIANGLES(boundBox, List);
 		return Result;
@@ -555,19 +560,20 @@ namespace BOSS
 				const Point& CurTarget = path->Dots[p];
 				for(int h = 0; !IsFindHurdle && h < hurdle->List.Count(); ++h)
 				{
+                    const auto& CurDots = hurdle->List[h].Dots;
 					// curPos를 둘러싼 오브젝트는 검사에서 제외
 					if(0 <= hurdle->ObjectBeginID && hurdle->ObjectBeginID <= h)
 					{
 						bool IsInHurdle = true;
-						for(int l = 0, lend = hurdle->List[h].Count(); IsInHurdle && l < lend; ++l)
-							if(0 < Util::GetClockwiseValue(hurdle->List[h][l], hurdle->List[h][(l + 1) % lend], curPos))
+                        for(int l = 0, lend = CurDots.Count(); IsInHurdle && l < lend; ++l)
+                            if(0 < Util::GetClockwiseValue(CurDots[l], CurDots[(l + 1) % lend], curPos))
 								IsInHurdle = false;
 						if(IsInHurdle) continue;
 					}
-					for(int l = 0, lend = hurdle->List[h].Count(); !IsFindHurdle && l < lend; ++l)
+                    for(int l = 0, lend = hurdle->List[h].Dots.Count(); !IsFindHurdle && l < lend; ++l)
 					{
-						IsFindHurdle = (nullptr != Util::GetDotByLineCross(hurdle->List[h][l], hurdle->List[h][(l + 1) % lend], curPos, CurTarget));
-						if(IsFindHurdle && !Util::GetClockwiseValue(hurdle->List[h][l], hurdle->List[h][(l + 1) % lend], curPos))
+                        IsFindHurdle = (nullptr != Util::GetDotByLineCross(CurDots[l], CurDots[(l + 1) % lend], curPos, CurTarget));
+                        if(IsFindHurdle && !Util::GetClockwiseValue(CurDots[l], CurDots[(l + 1) % lend], curPos))
 							IsFindHurdle = false;
 					}
 				}
@@ -581,27 +587,43 @@ namespace BOSS
 		return curPos;
 	}
 
-	bool TryWorld::GetPosition::GetValidNext(const Hurdle* hurdle, const Point& curPos, Point& nextPos)
+    const TryWorld::Polygon* TryWorld::GetPosition::GetValidNext(const Hurdle* hurdle, const Point& curPos, Point& nextPos, float distanceMin, Point* reflectPos)
 	{
+        const Polygon* Result = nullptr;
         Point ResultPos = nextPos;
-        float ResultDistance = -1;
+        float ResultDistance = distanceMin;
 		for(int h = 0; h < hurdle->List.Count(); ++h)
-		for(int i = 0, iend = hurdle->List[h].Count(); i < iend; ++i)
-		{
-            const Point& LineBegin = hurdle->List[h][i];
-            const Point& LineEnd = hurdle->List[h][(i + 1) % iend];
-            if(Util::GetClockwiseValue(LineBegin, LineEnd, curPos) < 0)
-			if(const Point* CurPos = Util::GetDotByLineCross(LineBegin, LineEnd, curPos, nextPos))
+        {
+            const auto& CurDots = hurdle->List[h].Dots;
+            for(int i = 0, iend = CurDots.Count(); i < iend; ++i)
             {
-                const float CurDistance = Math::Distance(curPos.x, curPos.y, CurPos->x, CurPos->y);
-                if(ResultDistance < 0 || CurDistance < ResultDistance)
+                const Point& LineBegin = CurDots[i];
+                const Point& LineEnd = CurDots[(i + 1) % iend];
+                if(Util::GetClockwiseValue(LineBegin, LineEnd, curPos) < 0)
+                if(const Point* CrossPos = Util::GetDotByLineCross(LineBegin, LineEnd, curPos, nextPos))
                 {
-                    ResultPos = *CurPos;
-                    ResultDistance = CurDistance;
+                    const float CurDistance = Math::Distance(curPos.x, curPos.y, CrossPos->x, CrossPos->y);
+                    if(ResultDistance < 0 || CurDistance < ResultDistance)
+                    {
+                        Result = &hurdle->List[h];
+                        ResultPos = *CrossPos;
+                        ResultDistance = CurDistance;
+                        if(reflectPos)
+                        {
+                            const float LineDx = LineEnd.x - LineBegin.x;
+                            const float LineDy = LineEnd.y - LineBegin.y;
+                            const float TValue = ((curPos.x - LineBegin.x) * LineDx + (curPos.y - LineBegin.y) * LineDy)
+                                / (LineDx * LineDx + LineDy * LineDy);
+                            const float NearX = LineBegin.x + TValue * LineDx;
+                            const float NearY = LineBegin.y + TValue * LineDy;
+                            reflectPos->x = curPos.x + (ResultPos.x - NearX) * 2;
+                            reflectPos->y = curPos.y + (ResultPos.y - NearY) * 2;
+                        }
+                    }
                 }
             }
-		}
+        }
         nextPos = ResultPos;
-        return (0 <= ResultDistance);
+        return Result;
 	}
 }

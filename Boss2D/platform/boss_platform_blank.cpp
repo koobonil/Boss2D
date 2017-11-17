@@ -44,7 +44,7 @@
 
         int main(int argc, char* argv[])
         {
-            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+            BOSS_ASSERT("This application will operate for library only.", false);
             return 0;
         }
     #endif
@@ -80,24 +80,21 @@
             OutputDebugStringW(L"************************************************************\n");
         #endif
 
-        if(Platform::Option::GetFlag("AssertPopup"))
-        {
-            #if BOSS_WINDOWS
-                WString AssertMessage = WString::Format(
-                    L"%s\n\n%s\t\t\n%s\t\t\n%s\t\t\n%s\t\t\n\n"
-                    L"(YES is Break, NO is Ignore)\t\t",
-                    (wchars) WString::FromChars(name),
-                    (wchars) WString::FromChars(AssertInfo[0]),
-                    (wchars) WString::FromChars(AssertInfo[1]),
-                    (wchars) WString::FromChars(AssertInfo[2]),
-                    (wchars) WString::FromChars(AssertInfo[3]));
-                switch(MessageBoxW(NULL, AssertMessage, L"ASSERT BREAK", MB_ICONWARNING | MB_ABORTRETRYIGNORE))
-                {
-                case IDABORT: return 0;
-                case IDIGNORE: return 1;
-                }
-            #endif
-        }
+        #if BOSS_WINDOWS
+            WString AssertMessage = WString::Format(
+                L"%s\n\n%s\t\t\n%s\t\t\n%s\t\t\n%s\t\t\n\n"
+                L"(YES is Break, NO is Ignore)\t\t",
+                (wchars) WString::FromChars(name),
+                (wchars) WString::FromChars(AssertInfo[0]),
+                (wchars) WString::FromChars(AssertInfo[1]),
+                (wchars) WString::FromChars(AssertInfo[2]),
+                (wchars) WString::FromChars(AssertInfo[3]));
+            switch(MessageBoxW(NULL, AssertMessage, L"ASSERT BREAK", MB_ICONWARNING | MB_ABORTRETRYIGNORE))
+            {
+            case IDABORT: return 0;
+            case IDIGNORE: return 1;
+            }
+        #endif
         return 2;
     }
 

@@ -61,6 +61,7 @@
     }
     void CanvasClass::BindCore(QPaintDevice* device)
     {
+        BOSS_ASSERT("mSavedCanvas는 nullptr이어야 합니다", !mSavedCanvas);
         if(mSavedCanvas = ST())
         {
             mSavedCanvas->mSavedZoom = mSavedCanvas->mPainter.matrix().m11();
@@ -83,6 +84,7 @@
             Platform::Graphics::SetZoom(mSavedCanvas->mSavedZoom);
             mSavedCanvas->mPainter.setFont(mSavedCanvas->mSavedFont);
             mSavedCanvas->mPainter.setClipRect(mSavedCanvas->mSavedClipRect);
+            mSavedCanvas = nullptr;
         }
     }
 
@@ -1405,6 +1407,7 @@
         void Platform::Graphics::BeginGL()
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
+            SurfaceClass::LockForGL();
             CanvasClass::get()->painter().beginNativePainting();
         }
 
@@ -1412,6 +1415,7 @@
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             CanvasClass::get()->painter().endNativePainting();
+            SurfaceClass::UnlockForGL();
         }
 
         id_surface Platform::Graphics::CreateSurface(sint32 width, sint32 height)

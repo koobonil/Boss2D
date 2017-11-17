@@ -8,6 +8,9 @@ namespace BOSS
     //! \brief 길찾기
     class TryWorld
     {
+        // Dot
+        private: typedef Array<Point, datatype_class_canmemcpy, 4> DotList;
+        // Line
         private: enum linetype {linetype_bound, linetype_space, linetype_wall};
 	    private: struct Line
 	    {
@@ -20,10 +23,17 @@ namespace BOSS
 			    DotA = dotA;
 			    DotB = dotB;
 		    }
-	    };
-	    private: typedef Array<Point, datatype_class_canmemcpy, 4> DotList;
+        };
 	    private: typedef Array<Line, datatype_pod_canmemcpy, 8> LineList;
-	    private: typedef Array<Points, datatype_class_nomemcpy, 8> PolygonList;
+        // Polygon
+        private: class Polygon
+        {
+            public: Polygon() {Payload = -1;}
+            public: ~Polygon() {}
+            public: int Payload;
+            public: DotList Dots;
+        };
+        private: typedef Array<Polygon, datatype_class_nomemcpy, 8> PolygonList;
 
         public: class Util;
         public: class Path;
@@ -155,8 +165,8 @@ namespace BOSS
 		    public: ~Hurdle();
 		    public: static Hurdle* Create(Hurdle* hurdle = nullptr);
 		    public: static void Release(Hurdle*& hurdle);
-		    public: void Add(Points& polygon, const bool isBoundLine = false);
-		    public: void AddWithoutMerging(const Points& polygon);
+            public: void Add(int payload, Points& polygon, const bool isBoundLine = false);
+            public: void AddWithoutMerging(int payload, const Points& polygon);
 		    public: Map* BuildMap(const Rect& boundBox);
 		    private: const Points* MERGE_POLYGON(const Points& Dst, const Points& Src, const Rect SrcBound, const bool IsBoundLine);
 	    };
@@ -166,7 +176,8 @@ namespace BOSS
 		    private: GetPosition();
 		    private: ~GetPosition();
 		    public: static const Point SubTarget(const Hurdle* hurdle, Path* path, const Point& curPos);
-		    public: static bool GetValidNext(const Hurdle* hurdle, const Point& curPos, Point& nextPos);
+            public: static const Polygon* GetValidNext(const Hurdle* hurdle, const Point& curPos, Point& nextPos,
+                float distanceMin = -1, Point* reflectPos = nullptr);
 	    };
     };
 }

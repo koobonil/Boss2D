@@ -27,7 +27,7 @@ var searchData=
   ['array_3c_20maskrole_2c_20datatype_5fpod_5fcanmemcpy_20_3e',['Array&lt; MaskRole, datatype_pod_canmemcpy &gt;',['../class_b_o_s_s_1_1_array.html',1,'BOSS']]],
   ['array_3c_20param_2c_20datatype_5fpod_5fcanmemcpy_2c_200_20_3e',['Array&lt; Param, datatype_pod_canmemcpy, 0 &gt;',['../class_b_o_s_s_1_1_array.html',1,'BOSS']]],
   ['array_3c_20point_2c_20datatype_5fclass_5fcanmemcpy_2c_204_20_3e',['Array&lt; Point, datatype_class_canmemcpy, 4 &gt;',['../class_b_o_s_s_1_1_array.html',1,'BOSS']]],
-  ['array_3c_20points_2c_20datatype_5fclass_5fnomemcpy_2c_208_20_3e',['Array&lt; Points, datatype_class_nomemcpy, 8 &gt;',['../class_b_o_s_s_1_1_array.html',1,'BOSS']]],
+  ['array_3c_20polygon_2c_20datatype_5fclass_5fnomemcpy_2c_208_20_3e',['Array&lt; Polygon, datatype_class_nomemcpy, 8 &gt;',['../class_b_o_s_s_1_1_array.html',1,'BOSS']]],
   ['array_3c_20queue_3c_20uint08s_20_3e_20_2a_2c_20datatype_5fpod_5fcanmemcpy_20_3e',['Array&lt; Queue&lt; uint08s &gt; *, datatype_pod_canmemcpy &gt;',['../class_b_o_s_s_1_1_array.html',1,'BOSS']]],
   ['array_3c_20rect_2c_20datatype_5fclass_5fcanmemcpy_20_3e',['Array&lt; Rect, datatype_class_canmemcpy &gt;',['../class_b_o_s_s_1_1_array.html',1,'BOSS']]],
   ['array_3c_20sint32_2c_20datatype_5fpod_5fcanmemcpy_20_3e',['Array&lt; sint32, datatype_pod_canmemcpy &gt;',['../class_b_o_s_s_1_1_array.html',1,'BOSS']]],

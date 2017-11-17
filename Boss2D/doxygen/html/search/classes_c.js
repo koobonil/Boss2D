@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['map',['Map',['../class_b_o_s_s_1_1_map.html',1,'BOSS::Map&lt; TYPE, ENDMARK &gt;'],['../class_b_o_s_s_1_1_try_world_1_1_map.html',1,'BOSS::TryWorld::Map']]],
+  ['map',['Map',['../class_b_o_s_s_1_1_try_world_1_1_map.html',1,'BOSS::TryWorld::Map'],['../class_b_o_s_s_1_1_map.html',1,'BOSS::Map&lt; TYPE, ENDMARK &gt;']]],
   ['map_3c_20boss_3a_3acontext_20_3e',['Map&lt; BOSS::Context &gt;',['../class_b_o_s_s_1_1_map.html',1,'BOSS']]],
   ['map_3c_20boss_3a_3alivechatdata_3a_3auserinfo_20_3e',['Map&lt; BOSS::LiveChatData::UserInfo &gt;',['../class_b_o_s_s_1_1_map.html',1,'BOSS']]],
   ['map_3c_20boss_3a_3amap_20_3e',['Map&lt; BOSS::Map &gt;',['../class_b_o_s_s_1_1_map.html',1,'BOSS']]],
