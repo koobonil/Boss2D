@@ -20,7 +20,7 @@ var searchData=
   ['removeimage',['RemoveImage',['../class_b_o_s_s_1_1_platform_1_1_graphics.html#af4733dee8ce14c07a0d3fb1cf5e9e0a5',1,'BOSS::Platform::Graphics']]],
   ['removesurface',['RemoveSurface',['../class_b_o_s_s_1_1_platform_1_1_graphics.html#a952c45dc6aabd732a8fb0f00556d1a1d',1,'BOSS::Platform::Graphics']]],
   ['rename',['Rename',['../class_b_o_s_s_1_1_platform_1_1_file.html#a3d8e095b172e4e3e091e0836c23b072a',1,'BOSS::Platform::File']]],
-  ['replace',['Replace',['../class_b_o_s_s_1_1_string.html#acd0db9e98263d0f0c9ea3cd980295f51',1,'BOSS::String']]],
+  ['replace',['Replace',['../class_b_o_s_s_1_1_string.html#acd0db9e98263d0f0c9ea3cd980295f51',1,'BOSS::String::Replace(char oldword, char newword)'],['../class_b_o_s_s_1_1_string.html#a222e6ae365ca21216d46baacb5e08f3a',1,'BOSS::String::Replace(chars oldtext, chars newtext)']]],
   ['reset',['Reset',['../class_b_o_s_s_1_1_map.html#a203a3f79ba68d1bc1c892bad2c0a4b26',1,'BOSS::Map']]],
   ['resetall',['ResetAll',['../class_b_o_s_s_1_1_buffer.html#a1c5ca479d65742d06f97d7bb950f4f81',1,'BOSS::Buffer']]],
   ['resetassetsremroot',['ResetAssetsRemRoot',['../class_b_o_s_s_1_1_platform_1_1_file.html#ad779dd1b9ff1137e97ca7616c5dc51c2',1,'BOSS::Platform::File']]],

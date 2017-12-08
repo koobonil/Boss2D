@@ -1368,7 +1368,7 @@ namespace BOSS
             return;
 
         Element& CurElement = m_map(uiname);
-        BOSS_ASSERT("동일한 uiname이 여러번 사용되고 있습니다", CurElement.m_updateid < m_updateid);
+        BOSS_ASSERT(String::Format("동일한 uiname(%s)이 여러번 사용되고 있습니다", uiname), CurElement.m_updateid < m_updateid);
         CurElement.m_updateid = m_updateid;
         CurElement.m_name = uiname;
         CurElement.m_rect.l = (sint32) (l * zoom);

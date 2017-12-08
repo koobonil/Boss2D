@@ -17,6 +17,8 @@ win32-msvc*: QMAKE_CFLAGS += /bigobj
 win32-msvc*: QMAKE_CXXFLAGS += /bigobj
 android: LIBS += -landroid
 ios|macx: LIBS += -framework CoreFoundation
+linux-g++: CONFIG += link_pkgconfig
+linux-g++: PKGCONFIG += gtk+-3.0
 
 INCLUDEPATH += ../../Boss2D/core
 INCLUDEPATH += ../../Boss2D

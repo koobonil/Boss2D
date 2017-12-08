@@ -6,6 +6,7 @@ var searchData=
   ['dirclass',['DirClass',['../class_dir_class.html',1,'']]],
   ['disconnect',['Disconnect',['../class_b_o_s_s_1_1_remote.html#a43dcbeb48a4aa0a82fb289ad531b122e',1,'BOSS::Remote::Disconnect()'],['../class_b_o_s_s_1_1_platform_1_1_socket.html#a0d6ebc57949161b8ae4f836fb6098d33',1,'BOSS::Platform::Socket::Disconnect()']]],
   ['distance',['Distance',['../class_b_o_s_s_1_1_math.html#a87efc650a98b40127edefe2da405e248',1,'BOSS::Math']]],
+  ['dot',['Dot',['../class_b_o_s_s_1_1_try_world_1_1_dot.html',1,'BOSS::TryWorld']]],
   ['drawbezier',['DrawBezier',['../class_b_o_s_s_1_1_platform_1_1_graphics.html#aa8ff4b4c4ed1628ebaeb5969af0b3ca7',1,'BOSS::Platform::Graphics']]],
   ['drawcircle',['DrawCircle',['../class_b_o_s_s_1_1_platform_1_1_graphics.html#a5a9f8d1589a7136820ff0c647b24eaf0',1,'BOSS::Platform::Graphics']]],
   ['drawimage',['DrawImage',['../class_b_o_s_s_1_1_platform_1_1_graphics.html#af579a180d75933d8120f1dbfb92933ff',1,'BOSS::Platform::Graphics']]],

@@ -241,6 +241,24 @@ namespace BOSS
         return *this;
     }
 
+    String& String::Replace(chars oldtext, chars newtext)
+    {
+        const String OldKey = oldtext;
+        const String NewKey = newtext;
+        const sint32 OldKeyLength = OldKey.Length();
+        const sint32 NewKeyLength = NewKey.Length();
+        sint32 Focus = 0;
+        while(0 <= (Focus = Find(Focus, OldKey)))
+        {
+            String NewString = Left(Focus);
+            NewString += newtext;
+            NewString += Right(Length() - (Focus + OldKeyLength));
+            operator=(ToReference(NewString));
+            Focus += NewKeyLength;
+        }
+        return *this;
+    }
+
     String& String::Add(chars other, sint32 length)
     {
         if(length == -1)

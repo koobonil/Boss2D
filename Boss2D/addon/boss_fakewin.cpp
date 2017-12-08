@@ -1196,7 +1196,11 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         _Stat->st_gid = 0;
         _Stat->st_rdev = 0;
         _Stat->st_size = GetSize;
-        #if BOSS_MAC_OSX || BOSS_IPHONE
+        #if BOSS_LINUX
+            _Stat->st_atim.tv_sec = WindowToEpoch(GetAccessTime / 10000) / 1000;
+            _Stat->st_mtim.tv_sec = WindowToEpoch(GetModifyTime / 10000) / 1000;
+            _Stat->st_ctim.tv_sec = WindowToEpoch(GetCreateTime / 10000) / 1000;
+        #elif BOSS_MAC_OSX || BOSS_IPHONE
             _Stat->st_atimespec.tv_sec = WindowToEpoch(GetAccessTime / 10000) / 1000;
             _Stat->st_mtimespec.tv_sec = WindowToEpoch(GetModifyTime / 10000) / 1000;
             _Stat->st_ctimespec.tv_sec = WindowToEpoch(GetCreateTime / 10000) / 1000;

@@ -47,6 +47,12 @@
     #define BOSS_WINDOWS 0
 #endif
 
+#if defined(__linux__)
+    #define BOSS_LINUX 1
+#else
+    #define BOSS_LINUX 0
+#endif
+
 #if defined(__APPLE__)
     #include <TargetConditionals.h>
     #if TARGET_OS_MAC && !TARGET_OS_IPHONE
@@ -70,7 +76,7 @@
     #define BOSS_ANDROID 0
 #endif
 
-#if (BOSS_WINDOWS + BOSS_MAC_OSX + BOSS_IPHONE + BOSS_ANDROID != 1)
+#if (BOSS_WINDOWS + BOSS_LINUX + BOSS_MAC_OSX + BOSS_IPHONE + BOSS_ANDROID != 1)
     #error Unknown platform
 #endif
 
@@ -81,7 +87,29 @@
 #endif
 
 // About type_t
-#if BOSS_MAC_OSX || BOSS_IPHONE
+#if BOSS_WINDOWS
+    #if BOSS_X64
+        typedef unsigned __int64 boss_size_t;
+        typedef __int64 boss_ssize_t;
+    #else
+        typedef unsigned int boss_size_t;
+        typedef int boss_ssize_t;
+    #endif
+    #ifndef __cplusplus
+        typedef unsigned short wchar_t;
+    #endif
+#elif BOSS_LINUX
+    #if BOSS_X64
+        typedef long unsigned int boss_size_t;
+        typedef long int boss_ssize_t;
+    #else
+        typedef unsigned int boss_size_t;
+        typedef int boss_ssize_t;
+    #endif
+    #ifndef __cplusplus
+        typedef unsigned short wchar_t;
+    #endif
+#elif BOSS_MAC_OSX || BOSS_IPHONE
     typedef unsigned long boss_size_t;
     typedef long boss_ssize_t;
     #ifndef __cplusplus
@@ -92,17 +120,6 @@
     typedef long int boss_ssize_t;
     #ifndef __cplusplus
         typedef unsigned int wchar_t;
-    #endif
-#elif BOSS_WINDOWS
-    #if BOSS_X64
-        typedef unsigned __int64 boss_size_t;
-        typedef __int64 boss_ssize_t;
-    #else
-        typedef unsigned int boss_size_t;
-        typedef int boss_ssize_t;
-    #endif
-    #ifndef __cplusplus
-        typedef unsigned short wchar_t;
     #endif
 #endif
 #define _SIZE_T_DEFINED
@@ -149,7 +166,7 @@
         }} while(0)
     #if BOSS_WINDOWS
         #define BOSS_DBG_BREAK do{__debugbreak();} while(0)
-    #elif BOSS_MAC_OSX || BOSS_IPHONE
+    #elif BOSS_LINUX || BOSS_MAC_OSX || BOSS_IPHONE
         #define BOSS_DBG_BREAK do{__builtin_trap();} while(0)
     #else
         #define BOSS_DBG_BREAK do{} while(0)

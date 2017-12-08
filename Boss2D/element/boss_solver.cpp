@@ -116,6 +116,8 @@ namespace BOSS
             case OperatorType::Multiply:  collector += " * "; break;
             case OperatorType::Divide:    collector += " / "; break;
             case OperatorType::Remainder: collector += " % "; break;
+            case OperatorType::Min: collector += " [min] "; break;
+            case OperatorType::Max: collector += " [max] "; break;
             }
             PrintOperand(mOperandR, collector);
         }
@@ -140,6 +142,8 @@ namespace BOSS
             case OperatorType::Multiply:  return mOperandL->result(0) * mOperandR->result(1);
             case OperatorType::Divide:    return mOperandL->result(0) / mOperandR->result(1);
             case OperatorType::Remainder: return Math::Mod(mOperandL->result(0), mOperandR->result(1));
+            case OperatorType::Min:       return Math::MinF(mOperandL->result(0), mOperandR->result(1));
+            case OperatorType::Max:       return Math::MaxF(mOperandL->result(0), mOperandR->result(1));
             }
             return zero;
         }
@@ -332,6 +336,20 @@ namespace BOSS
                 else if(*formula == '*') AddOperator(OperandFocus, OperatorType::Multiply, deep);
                 else if(*formula == '/') AddOperator(OperandFocus, OperatorType::Divide, deep);
                 else if(*formula == '%') AddOperator(OperandFocus, OperatorType::Remainder, deep);
+                else if(*formula == '[')
+                {
+                    if(!String::Compare("[min]", formula, 5))
+                    {
+                        AddOperator(OperandFocus, OperatorType::Min, deep);
+                        formula += 4;
+                    }
+                    else if(!String::Compare("[max]", formula, 5))
+                    {
+                        AddOperator(OperandFocus, OperatorType::Max, deep);
+                        formula += 4;
+                    }
+                    else continue;
+                }
                 else continue;
                 OperatorTurn = false;
             }

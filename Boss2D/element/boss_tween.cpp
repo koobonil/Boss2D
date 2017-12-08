@@ -10,7 +10,7 @@ namespace BOSS
     {
         Reset(value);
         m_updateCB = cb;
-        m_needWakeUp = false;
+        m_needRepaint = false;
     }
 
     Tween1D::Tween1D(chars uigroup_literal, Updater* neighbor, float value, TweenUpdateCB cb)
@@ -18,7 +18,7 @@ namespace BOSS
     {
         Reset(value);
         m_updateCB = cb;
-        m_needWakeUp = false;
+        m_needRepaint = false;
     }
 
     Tween1D::Tween1D(const Tween1D& rhs)
@@ -40,7 +40,7 @@ namespace BOSS
         m_timeStart = rhs.m_timeStart;
         m_timeEnd = rhs.m_timeEnd;
         m_updateCB = rhs.m_updateCB;
-        m_needWakeUp = (m_value != OldValue);
+        m_needRepaint = (m_value != OldValue);
         return *this;
     }
 
@@ -52,7 +52,7 @@ namespace BOSS
         m_valueEnd = value;
         m_timeStart = 0;
         m_timeEnd = 0;
-        m_needWakeUp = (m_value != OldValue);
+        m_needRepaint = (m_value != OldValue);
     }
 
     void Tween1D::MoveTo(float value, float second)
@@ -61,7 +61,7 @@ namespace BOSS
         m_valueEnd = value;
         m_timeStart = Platform::Utility::CurrentTimeMsec();
         m_timeEnd = m_timeStart + (uint64) (Math::MaxF(0, second) * 1000);
-        m_needWakeUp = (m_value != m_valueEnd);
+        m_needRepaint = (m_value != m_valueEnd);
     }
 
     void Tween1D::SetUpdateCB(TweenUpdateCB cb)
@@ -72,7 +72,7 @@ namespace BOSS
 
     bool Tween1D::UpdateForRender()
     {
-        m_needWakeUp = false;
+        m_needRepaint = false;
         const uint64 CurTime = Platform::Utility::CurrentTimeMsec();
         const float OldValue = m_value;
         if(m_timeEnd < CurTime) m_value = m_valueEnd;
@@ -84,8 +84,8 @@ namespace BOSS
 
     bool Tween1D::UpdateForTick()
     {
-        const bool Result = m_needWakeUp;
-        m_needWakeUp = false;
+        const bool Result = m_needRepaint;
+        m_needRepaint = false;
         return Result;
     }
 
@@ -93,12 +93,16 @@ namespace BOSS
         : Updater(neighbor)
     {
         m_curpath = nullptr;
+        m_lastmsec = 0;
+        m_needRepaint = false;
     }
 
     Tween2D::Tween2D(chars uigroup_literal, Updater* neighbor)
         : Updater(uigroup_literal, neighbor)
     {
         m_curpath = nullptr;
+        m_lastmsec = 0;
+        m_needRepaint = false;
     }
 
     Tween2D::Tween2D(const Tween2D& rhs)
@@ -132,6 +136,8 @@ namespace BOSS
             Buffer::Free(RemBuffer);
         m_lastpos.x = m_curpos.x;
         m_lastpos.y = m_curpos.y;
+        m_lastmsec = 0;
+        m_needRepaint = true;
     }
 
     class Tween2DPath
@@ -139,8 +145,8 @@ namespace BOSS
     public:
         Tween2DPath()
         {
-            m_count = 0;
-            m_step = 0;
+            m_begin_msec = 0;
+            m_period_msec = 0;
         }
         ~Tween2DPath()
         {
@@ -150,70 +156,67 @@ namespace BOSS
         {
             m_begin = rhs.m_begin;
             m_end = rhs.m_end;
-            m_count = rhs.m_count;
-            m_step = rhs.m_step;
+            m_begin_msec = rhs.m_begin_msec;
+            m_period_msec = rhs.m_period_msec;
             return *this;
         }
 
     public:
-        void Init(const Point& begin, const Point& end, float velocity)
+        void Init(const Point& begin, const Point& end, uint64 msec, sint32 period)
         {
             m_begin = begin;
             m_end = end;
-            m_count = Math::Max(1, (sint32) (Math::Distance(begin.x, begin.y, end.x, end.y) / velocity));
-            m_step = 0;
-        }
-
-        void Init(const Point& begin, const Point& end)
-        {
-            m_begin = begin;
-            m_end = end;
-            m_count = 1;
-            m_step = 0;
+            m_begin_msec = msec;
+            m_period_msec = period;
         }
 
         const Point NextStep(buffer& This)
         {
-            m_step++;
-            if(m_step == m_count)
+            const uint64 CurMsec = Platform::Utility::CurrentTimeMsec();
+            if(m_period_msec <= 0 || m_begin_msec + m_period_msec <= CurMsec)
             {
                 const Point SavedPos(m_end);
                 Buffer::Free(This);
                 This = nullptr;
                 return SavedPos;
             }
-            const float NewX = m_begin.x + (m_end.x - m_begin.x) * m_step / m_count;
-            const float NewY = m_begin.y + (m_end.y - m_begin.y) * m_step / m_count;
+            const float EndRate = Math::MaxF(0, (CurMsec - m_begin_msec) / (float) m_period_msec);
+            const float BeginRate = 1 - EndRate;
+            const float NewX = m_begin.x * BeginRate + m_end.x * EndRate;
+            const float NewY = m_begin.y * BeginRate + m_end.y * EndRate;
             return Point(NewX, NewY);
         }
 
     private:
         Point m_begin;
         Point m_end;
-        sint32 m_count;
-        sint32 m_step;
+        uint64 m_begin_msec;
+        sint32 m_period_msec;
     };
 
-    void Tween2D::MoveTo(float x, float y, float velocity)
+    void Tween2D::MoveTo(float x, float y, float second)
     {
+        if(m_pathes.Count() == 0)
+            m_lastmsec = Platform::Utility::CurrentTimeMsec();
+        const sint32 addmsec = (sint32) (second * 1000);
+
         Point NewPos = Point(x, y);
         Tween2DPath* NewPath = (Tween2DPath*) Buffer::Alloc<Tween2DPath, datatype_class_canmemcpy>(BOSS_DBG 1);
-        NewPath->Init(m_lastpos, NewPos, velocity);
+        NewPath->Init(m_lastpos, NewPos, m_lastmsec, addmsec);
         m_pathes.Enqueue((buffer) NewPath);
         m_lastpos = NewPos;
+        m_lastmsec += addmsec;
+        m_needRepaint = true;
     }
 
     void Tween2D::JumpTo(float x, float y)
     {
-        Point NewPos = Point(x, y);
-        Tween2DPath* NewPath = (Tween2DPath*) Buffer::Alloc<Tween2DPath, datatype_class_canmemcpy>(BOSS_DBG 1);
-        NewPath->Init(m_lastpos, NewPos);
-        m_pathes.Enqueue((buffer) NewPath);
-        m_lastpos = NewPos;
+        MoveTo(x, y, 0);
     }
 
     bool Tween2D::UpdateForRender()
     {
+        m_needRepaint = false;
         if(!m_curpath && !(m_curpath = m_pathes.Dequeue()))
             return false;
         Tween2DPath* CurPath = (Tween2DPath*) m_curpath;
@@ -223,7 +226,8 @@ namespace BOSS
 
     bool Tween2D::UpdateForTick()
     {
-        BOSS_ASSERT("차후 수정!!!", false);
-        return false;
+        const bool Result = m_needRepaint;
+        m_needRepaint = false;
+        return Result;
     }
 }

@@ -6,6 +6,11 @@
 
 #if BOSS_WINDOWS
     #include <windows.h>
+#elif BOSS_LINUX
+    #include <sys/stat.h>
+    #include <dirent.h>
+    #include <unistd.h>
+    #include <strings.h>
 #elif BOSS_MAC_OSX || BOSS_IPHONE
     #include <sys/stat.h>
     #include <dirent.h>
@@ -98,7 +103,7 @@ extern "C" int boss_snprintf(char* str, size_t n, const char* format, ...)
 
 extern "C" int boss_vsnprintf(char* str, size_t n, const char* format, boss_va_list args)
 {
-    #if BOSS_MAC_OSX || BOSS_IPHONE
+    #if BOSS_LINUX || BOSS_MAC_OSX || BOSS_IPHONE
         char* NewString = nullptr;
         const sint32 Size = vasprintf(&NewString, format, args);
 
@@ -128,7 +133,7 @@ extern "C" int boss_snwprintf(wchar_t* str, size_t n, const wchar_t* format, ...
 
 extern "C" int boss_vsnwprintf(wchar_t* str, size_t n, const wchar_t* format, boss_va_list args)
 {
-    #if BOSS_MAC_OSX || BOSS_IPHONE || BOSS_ANDROID
+    #if BOSS_LINUX || BOSS_MAC_OSX || BOSS_IPHONE || BOSS_ANDROID
         return vswprintf(str, n, format, args);
     #else
         return _vsnwprintf(str, n, format, args);
@@ -147,7 +152,7 @@ extern "C" int boss_strncmp(const char* str1, const char* str2, size_t maxcount)
 
 extern "C" int boss_stricmp(const char* str1, const char* str2)
 {
-    #if BOSS_MAC_OSX || BOSS_IPHONE || BOSS_ANDROID
+    #if BOSS_LINUX || BOSS_MAC_OSX || BOSS_IPHONE || BOSS_ANDROID
         return strcasecmp(str1, str2);
     #else
         return stricmp(str1, str2);
@@ -156,7 +161,7 @@ extern "C" int boss_stricmp(const char* str1, const char* str2)
 
 extern "C" int boss_strnicmp(const char* str1, const char* str2, size_t maxcount)
 {
-    #if BOSS_MAC_OSX || BOSS_IPHONE || BOSS_ANDROID
+    #if BOSS_LINUX || BOSS_MAC_OSX || BOSS_IPHONE || BOSS_ANDROID
         return strncasecmp(str1, str2, maxcount);
     #else
         return strnicmp(str1, str2, maxcount);
@@ -175,7 +180,7 @@ extern "C" int boss_wcsncmp(const wchar_t* str1, const wchar_t* str2, size_t max
 
 extern "C" int boss_wcsicmp(const wchar_t* str1, const wchar_t* str2)
 {
-    #if BOSS_MAC_OSX || BOSS_IPHONE || BOSS_ANDROID
+    #if BOSS_LINUX || BOSS_MAC_OSX || BOSS_IPHONE || BOSS_ANDROID
         return wcscasecmp(str1, str2);
     #else
         return _wcsicmp(str1, str2);
@@ -184,7 +189,7 @@ extern "C" int boss_wcsicmp(const wchar_t* str1, const wchar_t* str2)
 
 extern "C" int boss_wcsnicmp(const wchar_t* str1, const wchar_t* str2, size_t maxcount)
 {
-    #if BOSS_MAC_OSX || BOSS_IPHONE || BOSS_ANDROID
+    #if BOSS_LINUX || BOSS_MAC_OSX || BOSS_IPHONE || BOSS_ANDROID
         return wcsncasecmp(str1, str2, maxcount);
     #else
         return _wcsnicmp(str1, str2, maxcount);
@@ -215,6 +220,8 @@ public:
         {
             #if BOSS_WINDOWS
                 fclose((FILE*) mFilePointer);
+            #elif BOSS_LINUX
+                fclose((FILE*) mFilePointer);
             #elif BOSS_ANDROID
                 AAsset_close((AAsset*) mFilePointer);
             #elif BOSS_MAC_OSX || BOSS_IPHONE
@@ -240,6 +247,10 @@ public:
             if(mTypeAssets)
             {
                 #if BOSS_WINDOWS
+                    fseek((FILE*) mFilePointer, 0, SEEK_END);
+                    mFileSize = ftell((FILE*) mFilePointer);
+                    fseek((FILE*) mFilePointer, 0, SEEK_SET);
+                #elif BOSS_LINUX
                     fseek((FILE*) mFilePointer, 0, SEEK_END);
                     mFileSize = ftell((FILE*) mFilePointer);
                     fseek((FILE*) mFilePointer, 0, SEEK_SET);
@@ -271,6 +282,9 @@ public:
             if(mTypeAssets)
             {
                 #if BOSS_WINDOWS
+                    fread(mContent->AtDumping(0, mFileSize), 1, mFileSize, (FILE*) mFilePointer);
+                    fseek((FILE*) mFilePointer, 0, SEEK_SET);
+                #elif BOSS_LINUX
                     fread(mContent->AtDumping(0, mFileSize), 1, mFileSize, (FILE*) mFilePointer);
                     fseek((FILE*) mFilePointer, 0, SEEK_SET);
                 #elif BOSS_ANDROID
@@ -398,6 +412,11 @@ extern "C" void* boss_fopen(char const* filename, char const* mode)
         else if(!SaveFlag)
         {
             #if BOSS_WINDOWS
+                const String FilenameAtAssets = String("../assets") + &filename[7];
+                filename = FilenameAtAssets;
+                FILE* NewAssetsPointer = fopen(filename, "rb");
+                if(!NewAssetsPointer) return nullptr;
+            #elif BOSS_LINUX
                 const String FilenameAtAssets = String("../assets") + &filename[7];
                 filename = FilenameAtAssets;
                 FILE* NewAssetsPointer = fopen(filename, "rb");
@@ -592,12 +611,14 @@ public:
         #if BOSS_WINDOWS
             FindClose((HANDLE) mDirHandle);
             delete (WIN32_FIND_DATAW*) mDirPointer;
+        #elif BOSS_LINUX
+            closedir((DIR*) mDirHandle);
+        #elif BOSS_MAC_OSX || BOSS_IPHONE
+            closedir((DIR*) mDirHandle);
         #elif BOSS_ANDROID
             if(mTypeAssets)
                 AAssetDir_close((AAssetDir*) mDirHandle);
             else closedir((DIR*) mDirHandle);
-        #elif BOSS_MAC_OSX || BOSS_IPHONE
-            closedir((DIR*) mDirHandle);
         #else
             #error 준비되지 않은 플랫폼입니다
         #endif
@@ -633,19 +654,15 @@ extern "C" void* boss_opendir(const char* dirname)
                 delete NewFindFileData;
                 return nullptr;
             }
-        #elif BOSS_ANDROID
+        #elif BOSS_LINUX
+            const String ParentPath = ".";
             String DirnameAtAssets = &dirname[8]; // "assets:/"
             if(2 < DirnameAtAssets.Length() && DirnameAtAssets[-3] == '/' && DirnameAtAssets[-2] == '*')
                 DirnameAtAssets.Sub(2);
             dirname = DirnameAtAssets;
-            AAssetDir* NewDirHandle = AAssetManager_openDir(GetAAssetManager(), dirname);
+            DIR* NewDirHandle = opendir((chars) (ParentPath + '/' + dirname));
             if(!NewDirHandle) return nullptr;
-            chars NewFindFileData = AAssetDir_getNextFileName(NewDirHandle);
-            if(!NewFindFileData)
-            {
-                AAssetDir_close(NewDirHandle);
-                return nullptr;
-            }
+            void* NewFindFileData = nullptr;
         #elif BOSS_MAC_OSX || BOSS_IPHONE
             CFURLRef ResourceURL = CFBundleCopyResourcesDirectoryURL(CFBundleGetMainBundle());
             #if BOSS_MAC_OSX
@@ -664,6 +681,19 @@ extern "C" void* boss_opendir(const char* dirname)
             DIR* NewDirHandle = opendir((chars) (ParentPath + '/' + dirname));
             if(!NewDirHandle) return nullptr;
             void* NewFindFileData = nullptr;
+        #elif BOSS_ANDROID
+            String DirnameAtAssets = &dirname[8]; // "assets:/"
+            if(2 < DirnameAtAssets.Length() && DirnameAtAssets[-3] == '/' && DirnameAtAssets[-2] == '*')
+                DirnameAtAssets.Sub(2);
+            dirname = DirnameAtAssets;
+            AAssetDir* NewDirHandle = AAssetManager_openDir(GetAAssetManager(), dirname);
+            if(!NewDirHandle) return nullptr;
+            chars NewFindFileData = AAssetDir_getNextFileName(NewDirHandle);
+            if(!NewFindFileData)
+            {
+                AAssetDir_close(NewDirHandle);
+                return nullptr;
+            }
         #else
             #error 준비되지 않은 플랫폼입니다
         #endif
@@ -685,7 +715,7 @@ extern "C" void* boss_opendir(const char* dirname)
                 delete NewFindFileData;
                 return nullptr;
             }
-        #elif BOSS_ANDROID
+        #elif BOSS_LINUX
             if(dirname[0] == 'Q' && dirname[1] == ':')
                 dirname += 2;
             String DirnameAtAssets = dirname;
@@ -696,6 +726,16 @@ extern "C" void* boss_opendir(const char* dirname)
             if(!NewDirHandle) return nullptr;
             void* NewFindFileData = nullptr;
         #elif BOSS_MAC_OSX || BOSS_IPHONE
+            if(dirname[0] == 'Q' && dirname[1] == ':')
+                dirname += 2;
+            String DirnameAtAssets = dirname;
+            if(2 < DirnameAtAssets.Length() && DirnameAtAssets[-3] == '/' && DirnameAtAssets[-2] == '*')
+                DirnameAtAssets.Sub(2);
+            dirname = DirnameAtAssets;
+            DIR* NewDirHandle = opendir(dirname);
+            if(!NewDirHandle) return nullptr;
+            void* NewFindFileData = nullptr;
+        #elif BOSS_ANDROID
             if(dirname[0] == 'Q' && dirname[1] == ':')
                 dirname += 2;
             String DirnameAtAssets = dirname;
@@ -731,6 +771,20 @@ extern "C" void* boss_readdir(void* dir)
                 CurDir->mNextFlag = FindNextFileW((HANDLE) CurDir->mDirHandle, (WIN32_FIND_DATAW*) CurDir->mDirPointer);
                 return (void*)(chars) CurDir->mLastFilePath;
             }
+        #elif BOSS_LINUX
+            struct dirent* CurDirEnt = readdir((DIR*) CurDir->mDirHandle);
+            if(CurDirEnt)
+            {
+                CurDir->mLastFilePath = CurDirEnt->d_name;
+                return (void*)(chars) CurDir->mLastFilePath;
+            }
+        #elif BOSS_MAC_OSX || BOSS_IPHONE
+            struct dirent* CurDirEnt = readdir((DIR*) CurDir->mDirHandle);
+            if(CurDirEnt)
+            {
+                CurDir->mLastFilePath = CurDirEnt->d_name;
+                return (void*)(chars) CurDir->mLastFilePath;
+            }
         #elif BOSS_ANDROID
             if(CurDir->mTypeAssets)
             {
@@ -750,13 +804,6 @@ extern "C" void* boss_readdir(void* dir)
                     CurDir->mLastFilePath = CurDirEnt->d_name;
                     return (void*)(chars) CurDir->mLastFilePath;
                 }
-            }
-        #elif BOSS_MAC_OSX || BOSS_IPHONE
-            struct dirent* CurDirEnt = readdir((DIR*) CurDir->mDirHandle);
-            if(CurDirEnt)
-            {
-                CurDir->mLastFilePath = CurDirEnt->d_name;
-                return (void*)(chars) CurDir->mLastFilePath;
             }
         #else
             #error 준비되지 않은 플랫폼입니다

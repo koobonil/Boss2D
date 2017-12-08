@@ -220,12 +220,20 @@ namespace BOSS
         sint32 Find(sint32 index, const String& key) const;
 
         /*!
-        \brief 치환
+        \brief 캐릭터치환
         \param oldword : 찾을 캐릭터
         \param newword : 바꿀 캐릭터
         \return 자기 객체
         */
         String& Replace(char oldword, char newword);
+
+        /*!
+        \brief 텍스트치환
+        \param oldtext : 찾을 텍스트
+        \param newtext : 바꿀 텍스트
+        \return 자기 객체
+        */
+        String& Replace(chars oldtext, chars newtext);
 
         /*!
         \brief 추가(네이티브 스트링으로부터)

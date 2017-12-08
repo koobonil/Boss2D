@@ -39,7 +39,7 @@ namespace BOSS
         uint64 m_timeStart;
         uint64 m_timeEnd;
         TweenUpdateCB m_updateCB;
-        bool m_needWakeUp;
+        bool m_needRepaint;
     };
     typedef Array<Tween1D> Tween1Ds;
 
@@ -61,7 +61,7 @@ namespace BOSS
     public:
         void Reset(float x, float y);
         void ResetPathes();
-        void MoveTo(float x, float y, float velocity);
+        void MoveTo(float x, float y, float second);
         void JumpTo(float x, float y);
 
     protected:
@@ -73,6 +73,8 @@ namespace BOSS
         buffer m_curpath;
         Point m_curpos;
         Point m_lastpos;
+        uint64 m_lastmsec;
+        bool m_needRepaint;
     };
     typedef Array<Tween2D> Tween2Ds;
 }

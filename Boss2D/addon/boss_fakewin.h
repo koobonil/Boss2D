@@ -163,7 +163,9 @@
     #define u_short USHORT
     typedef unsigned int u_int;
     typedef int errno_t;
-    typedef unsigned short mode_t;
+    #if !BOSS_LINUX
+        typedef unsigned short mode_t;
+    #endif
     typedef unsigned int _dev_t;
     typedef unsigned short _ino_t;
     typedef long _off_t;

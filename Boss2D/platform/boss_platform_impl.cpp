@@ -7,6 +7,8 @@
     #pragma comment(lib, "comdlg32.lib")
     #pragma comment(lib, "ole32.lib")
     #pragma comment(lib, "shell32.lib")
+#elif BOSS_LINUX
+    #include <gtk/gtk.h>
 #elif BOSS_ANDROID
     #include <sys/sysinfo.h>
 #endif
@@ -520,8 +522,89 @@ namespace BOSS
                         if(shortpath) *shortpath = String::FromWChars(Platform::File::GetShortName(ResultPath));
                     }
                     CoUninitialize();
+                #elif BOSS_LINUX
+                    auto NewDialog = gtk_file_chooser_dialog_new(title, nullptr,
+                        (isdir)? GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER : GTK_FILE_CHOOSER_ACTION_SAVE,
+                        "_Cancel", GTK_RESPONSE_CANCEL, "_OK", GTK_RESPONSE_ACCEPT, nullptr);
+                    if(gtk_dialog_run(GTK_DIALOG(NewDialog)) == GTK_RESPONSE_ACCEPT)
+                        Result = true;
+
+                    if(Result)
+                    {
+                        auto CurChooser = GTK_FILE_CHOOSER(NewDialog);
+                        auto NewFilename = gtk_file_chooser_get_filename(CurChooser);
+                        path = NewFilename;
+                        if(shortpath) *shortpath = String::FromWChars(
+                            Platform::File::GetShortName(WString::FromChars(NewFilename)));
+                        g_free(NewFilename);
+                    }
+                    gtk_widget_destroy(NewDialog);
                 #endif
                 return Result;
+            }
+
+            sint32 Popup_MessageDialog(chars title, chars text, DialogButtonType type)
+            {
+                #if BOSS_WINDOWS
+                #elif BOSS_LINUX
+                    GtkMessageType MessageType = GTK_MESSAGE_INFO; // DBT_OK
+                    GtkButtonsType ButtonsType = GTK_BUTTONS_OK;
+                    switch(type)
+                    {
+                    case DBT_YES_NO:
+                        MessageType = GTK_MESSAGE_QUESTION;
+                        ButtonsType = GTK_BUTTONS_YES_NO;
+                        break;
+                    case DBT_OK_CANCEL:
+                        MessageType = GTK_MESSAGE_INFO;
+                        ButtonsType = GTK_BUTTONS_OK_CANCEL;
+                        break;
+                    case DBT_OK_CANCEL_IGNORE:
+                        MessageType = GTK_MESSAGE_WARNING;
+                        ButtonsType = GTK_BUTTONS_OK_CANCEL;
+                        break;
+                    }
+
+                    auto NewDialog = gtk_message_dialog_new(nullptr,
+                        GTK_DIALOG_DESTROY_WITH_PARENT, MessageType, ButtonsType, text);
+                    gtk_window_set_title(GTK_WINDOW(NewDialog), title);
+                    gint Result = gtk_dialog_run(GTK_DIALOG(NewDialog));
+                    gtk_widget_destroy(GTK_WIDGET(NewDialog));
+                    switch(type)
+                    {
+                    case DBT_YES_NO:
+                        switch(Result)
+                        {
+                        case GTK_RESPONSE_YES:
+                            return 0;
+                        case GTK_RESPONSE_NO:
+                            return 1;
+                        }
+                        break;
+                    case DBT_OK:
+                    case DBT_OK_CANCEL:
+                        switch(Result)
+                        {
+                        case GTK_RESPONSE_OK:
+                            return 0;
+                        case GTK_RESPONSE_CANCEL:
+                            return 1;
+                        }
+                        break;
+                    case DBT_OK_CANCEL_IGNORE:
+                        switch(Result)
+                        {
+                        case GTK_RESPONSE_OK:
+                            return 0;
+                        case GTK_RESPONSE_CANCEL:
+                            return 1;
+                        case GTK_RESPONSE_DELETE_EVENT:
+                            return 2;
+                        }
+                        break;
+                    }
+                #endif
+                return -1;
             }
 
             void Popup_WebBrowserDialog(String url)

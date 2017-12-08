@@ -164,11 +164,11 @@ namespace BOSS
 
     Rect Rect::Inflate(const float x, const float y) const
     {
-        return Rect(*this).operator+=(Point(x, y));
+        return Rect(*this).operator+=(Size(x, y));
     }
 
     Rect Rect::Deflate(const float x, const float y) const
     {
-        return Rect(*this).operator-=(Point(x, y));
+        return Rect(*this).operator-=(Size(x, y));
     }
 }

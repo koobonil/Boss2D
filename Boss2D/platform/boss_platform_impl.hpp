@@ -42,6 +42,7 @@ namespace BOSS
             payload Option_GetOptionPayload(chars name);
             Strings Option_GetOptionPayloadNames();
             bool Popup_FileDialog(String& path, String* shortpath, chars title, bool isdir);
+            sint32 Popup_MessageDialog(chars title, chars text, DialogButtonType type);
             void Popup_WebBrowserDialog(String url);
             WString File_GetDirName(wchars itemname, wchar_t badslash, wchar_t goodslash);
             WString File_GetShortName(wchars itemname);

@@ -27,6 +27,7 @@ namespace BOSS
     enum MaskRole {MR_SrcOver, MR_DstOver, MR_Clear, MR_Src, MR_Dst,
         MR_SrcIn, MR_DstIn, MR_SrcOut, MR_DstOut,
         MR_SrcAtop, MR_DstAtop, MR_Xor, MR_Default = MR_SrcOver};
+    enum DialogButtonType {DBT_YES_NO, DBT_OK, DBT_OK_CANCEL, DBT_OK_CANCEL_IGNORE};
     class ViewClass;
     class ViewManager;
     typedef void (*ProcedureCB)(payload);
@@ -278,6 +279,8 @@ namespace BOSS
             \return 유효성(확인버튼이 아닌 종료는 무효)
             */
             static bool FileDialog(String& path, String* shortpath, chars title, bool isdir = false);
+
+            static sint32 MessageDialog(chars title, chars text, DialogButtonType type = DBT_OK);
 
             /*!
             \brief 웹브라우저 다이얄로그

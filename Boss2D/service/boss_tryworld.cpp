@@ -6,9 +6,9 @@ namespace BOSS
     ////////////////////////////////////////////////////////////////////////////////
     // TryWorld::Util
     ////////////////////////////////////////////////////////////////////////////////
-    const Point* TryWorld::Util::GetDotByLineCross(const Point& DstB, const Point& DstE, const Point& SrcB, const Point& SrcE)
+    const TryWorld::Dot* TryWorld::Util::GetDotByLineCross(const Dot& DstB, const Dot& DstE, const Dot& SrcB, const Dot& SrcE)
     {
-        static Point Result;
+        static Dot Result;
 		if(Math::MaxF(SrcB.x, SrcE.x) < Math::MinF(DstB.x, DstE.x)
 		|| Math::MaxF(DstB.x, DstE.x) < Math::MinF(SrcB.x, SrcE.x)
 		|| Math::MaxF(SrcB.y, SrcE.y) < Math::MinF(DstB.y, DstE.y)
@@ -129,12 +129,12 @@ namespace BOSS
         map = nullptr;
 	}
 
-	TryWorld::Path* TryWorld::Map::BuildPath(const Point& beginPos, const Point& endPos, const int step, int* score)
+	TryWorld::Path* TryWorld::Map::BuildPath(const Dot& beginPos, const Dot& endPos, const int step, int* score)
 	{
 		Triangle* ClearNode = &Top;
 		while(ClearNode = ClearNode->Next)
 		{
-			ClearNode->WayDot = Point(0, 0);
+			ClearNode->WayDot = Dot(0, 0);
 			ClearNode->WayBack = nullptr;
 			ClearNode->DistanceSum = 0;
 		}
@@ -156,11 +156,11 @@ namespace BOSS
 					// 중간정점 삽입
 					if(0 < step)
 					{
-						const Point DotA = Result->Dots[-1];
-						const Point DotB = CurTriangle->WayDot;
+						const Dot DotA = Result->Dots[-1];
+						const Dot DotB = CurTriangle->WayDot;
 						const int Distance = Math::Sqrt(Math::Pow(DotB.x - DotA.x) + Math::Pow(DotB.y - DotA.y));
 						for(int f = step; f < Distance; f += step)
-							Result->Dots.AtAdding() = Point((DotA.x * (Distance - f) + DotB.x * f) / Distance, (DotA.y * (Distance - f) + DotB.y * f) / Distance);
+							Result->Dots.AtAdding() = Dot((DotA.x * (Distance - f) + DotB.x * f) / Distance, (DotA.y * (Distance - f) + DotB.y * f) / Distance);
 					}
 					Result->Dots.AtAdding() = CurTriangle->WayDot;
 					CurTriangle = CurTriangle->WayBack;
@@ -276,7 +276,7 @@ namespace BOSS
 		return -1;
 	}
 
-	TryWorld::Map::Triangle* TryWorld::Map::FIND_PICK_TRIANGLE(const Point& pos)
+	TryWorld::Map::Triangle* TryWorld::Map::FIND_PICK_TRIANGLE(const Dot& pos)
 	{
 		Triangle* Node = &Top;
 		while(Node = Node->Next)
@@ -310,13 +310,13 @@ namespace BOSS
 		return nullptr;
 	}
 
-	bool TryWorld::Map::PATH_FIND(Triangle* focus, const Triangle* target, const Point& endPos)
+	bool TryWorld::Map::PATH_FIND(Triangle* focus, const Triangle* target, const Dot& endPos)
 	{
 		if(target == focus) return true;
 		bool Result = false;
-		const Point DotAB = (DISTANCE(focus->WayDot, Dots[focus->DotA]) < DISTANCE(focus->WayDot, Dots[focus->DotB]))? DOT_AB_SIDE_A(*focus) : DOT_AB_SIDE_B(*focus);
-		const Point DotAC = (DISTANCE(focus->WayDot, Dots[focus->DotA]) < DISTANCE(focus->WayDot, Dots[focus->DotC]))? DOT_AC_SIDE_A(*focus) : DOT_AC_SIDE_C(*focus);
-		const Point DotBC = (DISTANCE(focus->WayDot, Dots[focus->DotB]) < DISTANCE(focus->WayDot, Dots[focus->DotC]))? DOT_BC_SIDE_B(*focus) : DOT_BC_SIDE_C(*focus);
+		const Dot DotAB = (DISTANCE(focus->WayDot, Dots[focus->DotA]) < DISTANCE(focus->WayDot, Dots[focus->DotB]))? DOT_AB_SIDE_A(*focus) : DOT_AB_SIDE_B(*focus);
+		const Dot DotAC = (DISTANCE(focus->WayDot, Dots[focus->DotA]) < DISTANCE(focus->WayDot, Dots[focus->DotC]))? DOT_AC_SIDE_A(*focus) : DOT_AC_SIDE_C(*focus);
+		const Dot DotBC = (DISTANCE(focus->WayDot, Dots[focus->DotB]) < DISTANCE(focus->WayDot, Dots[focus->DotC]))? DOT_BC_SIDE_B(*focus) : DOT_BC_SIDE_C(*focus);
 		const int DistanceAB = DISTANCE(focus->WayDot, DotAB) + ((target == focus->LinkAB)? DISTANCE(DotAB, endPos) : 0);
 		const int DistanceAC = DISTANCE(focus->WayDot, DotAC) + ((target == focus->LinkAC)? DISTANCE(DotAC, endPos) : 0);
 		const int DistanceBC = DISTANCE(focus->WayDot, DotBC) + ((target == focus->LinkBC)? DISTANCE(DotBC, endPos) : 0);
@@ -368,7 +368,7 @@ namespace BOSS
         hurdle = nullptr;
 	}
 
-    void TryWorld::Hurdle::Add(int payload, Points& polygon, const bool isBoundLine)
+    void TryWorld::Hurdle::Add(DotList& polygon, const bool isBoundLine)
 	{
 		BOSS_ASSERT("Object가 추가된 Hurdle은 Add를 지원하지 않습니다", ObjectBeginID == -1);
 		Rect Bound(polygon[0].x, polygon[0].y, polygon[0].x, polygon[0].y);
@@ -381,7 +381,7 @@ namespace BOSS
 		}
 		for(int i = List.Count() - 1; 0 <= i; --i)
 		{
-            const Points* Result = MERGE_POLYGON(List[i].Dots, polygon, Bound, isBoundLine);
+            const DotList* Result = MERGE_POLYGON(List[i].Dots, polygon, Bound, isBoundLine);
 			if(Result)
 			{
                 polygon = *Result;
@@ -389,34 +389,32 @@ namespace BOSS
 			}
 		}
         auto& NewPolygon = List.AtAdding();
-        NewPolygon.Payload = payload;
         NewPolygon.Dots = polygon;
 	}
 
-    void TryWorld::Hurdle::AddWithoutMerging(int payload, const Points& polygon)
+    void TryWorld::Hurdle::AddWithoutMerging(const DotList& polygon)
 	{
         if(ObjectBeginID == -1)
             ObjectBeginID = List.Count();
         auto& NewPolygon = List.AtAdding();
-        NewPolygon.Payload = payload;
         NewPolygon.Dots = polygon;
 	}
 
 	TryWorld::Map* TryWorld::Hurdle::BuildMap(const Rect& boundBox)
 	{
 		BOSS_ASSERT("Object가 추가된 Hurdle은 BuildMap을 지원하지 않습니다", ObjectBeginID == -1);
-		Points BoundPolygon;
-		BoundPolygon.AtAdding() = Point(boundBox.l, boundBox.t);
-		BoundPolygon.AtAdding() = Point(boundBox.l, boundBox.b);
-		BoundPolygon.AtAdding() = Point(boundBox.r, boundBox.b);
-		BoundPolygon.AtAdding() = Point(boundBox.r, boundBox.t);
-        Add(-1, BoundPolygon, true);
+		DotList BoundPolygon;
+		BoundPolygon.AtAdding() = Dot(boundBox.l, boundBox.t);
+		BoundPolygon.AtAdding() = Dot(boundBox.l, boundBox.b);
+		BoundPolygon.AtAdding() = Dot(boundBox.r, boundBox.b);
+		BoundPolygon.AtAdding() = Dot(boundBox.r, boundBox.t);
+        Add(BoundPolygon, true);
 		Map* Result = new Map();
 		Result->CREATE_TRIANGLES(boundBox, List);
 		return Result;
 	}
 
-	const Points* TryWorld::Hurdle::MERGE_POLYGON(const Points& Dst, const Points& Src, const Rect SrcBound, const bool IsBoundLine)
+	const TryWorld::DotList* TryWorld::Hurdle::MERGE_POLYGON(const DotList& Dst, const DotList& Src, const Rect SrcBound, const bool IsBoundLine)
 	{
 		// 한계검사
 		bool IsL = true, IsT = true, IsR = true, IsB = true;
@@ -434,22 +432,22 @@ namespace BOSS
 		if(IsL || IsT || IsR || IsB) return nullptr;
 
 		// 교차검사 수집데이터(최소한 Dst의 0번 정점은 Src에 포함되지 않아야 함)
-		static Points CollectDstB;
-		static Points CollectDstE;
+		static DotList CollectDstB;
+		static DotList CollectDstE;
 		int CollectDstLength = Dst.Count();
-        Memory::Copy(CollectDstB.AtDumping(0, CollectDstLength), &Dst[0], sizeof(Point) * CollectDstLength);
-		Memory::Copy(CollectDstE.AtDumping(0, CollectDstLength), &Dst[1], sizeof(Point) * (CollectDstLength - 1));
+        Memory::Copy(CollectDstB.AtDumping(0, CollectDstLength), &Dst[0], sizeof(Dot) * CollectDstLength);
+		Memory::Copy(CollectDstE.AtDumping(0, CollectDstLength), &Dst[1], sizeof(Dot) * (CollectDstLength - 1));
 		CollectDstE.At(CollectDstLength - 1) = Dst[0];
-		static Points CollectSrcB;
-		static Points CollectSrcE;
+		static DotList CollectSrcB;
+		static DotList CollectSrcE;
 		int CollectSrcLength = Src.Count();
-		Memory::Copy(CollectSrcB.AtDumping(0, CollectSrcLength), &Src[0], sizeof(Point) * CollectSrcLength);
-		Memory::Copy(CollectSrcE.AtDumping(0, CollectSrcLength), &Src[1], sizeof(Point) * (CollectSrcLength - 1));
+		Memory::Copy(CollectSrcB.AtDumping(0, CollectSrcLength), &Src[0], sizeof(Dot) * CollectSrcLength);
+		Memory::Copy(CollectSrcE.AtDumping(0, CollectSrcLength), &Src[1], sizeof(Dot) * (CollectSrcLength - 1));
 		CollectSrcE.At(CollectSrcLength - 1) = Src[0];
 		for(int d = 0; d < CollectDstLength; ++d)
 		for(int s = 0; s < CollectSrcLength; ++s)
 		{
-			const Point* CrossDot = nullptr;
+			const Dot* CrossDot = nullptr;
 			if(CrossDot = Util::GetDotByLineCross(CollectDstB[d], CollectDstE[d], CollectSrcB[s], CollectSrcE[s]))
 			{
 				if((CrossDot->x != CollectDstB[d].x || CrossDot->y != CollectDstB[d].y)
@@ -469,11 +467,11 @@ namespace BOSS
 		if(CollectDstLength == Dst.Count())
 			return nullptr;
 
-        static Points Result;
+        static DotList Result;
         Result.SubtractionAll();
 		if(IsBoundLine)
 		{
-			Result.AtAdding() = Point(0, 0);
+			Result.AtAdding() = Dot(0, 0);
 			for(int d = 0; d < CollectDstLength; ++d)
 			{
 				if(CollectDstB[d].x <= SrcBound.l) continue;
@@ -505,7 +503,7 @@ namespace BOSS
 					break;
 				}
 			BOSS_ASSERT("계산상 오류입니다", DstIndex != -1 || SrcIndex != -1);
-			Point SelectedDot;
+			Dot SelectedDot;
 			if(DstIndex != -1 && SrcIndex != -1 && 1 < Result.Count())
 			{
 				const float PrevAngle = Math::Atan(Result[-2].x - Result[-1].x, Result[-2].y - Result[-1].y);
@@ -557,7 +555,7 @@ namespace BOSS
 			for(int p = DotBegin; p < path->Dots.Count(); ++p)
 			{
 				bool IsFindHurdle = false;
-				const Point& CurTarget = path->Dots[p];
+				const Dot& CurTarget = path->Dots[p];
 				for(int h = 0; !IsFindHurdle && h < hurdle->List.Count(); ++h)
 				{
                     const auto& CurDots = hurdle->List[h].Dots;
@@ -580,32 +578,35 @@ namespace BOSS
 				if(!IsFindHurdle)
                 {
                     path->DotFocus = path->Dots.Count() - 1 - p;
-                    return CurTarget;
+                    return Point(CurTarget.x, CurTarget.y);
                 }
 			}
         }
 		return curPos;
 	}
 
-    const TryWorld::Polygon* TryWorld::GetPosition::GetValidNext(const Hurdle* hurdle, const Point& curPos, Point& nextPos, float distanceMin, Point* reflectPos)
+    const TryWorld::Dot** TryWorld::GetPosition::GetValidNext(const Hurdle* hurdle, const Point& curPos, Point& nextPos, float distanceMin, Point* reflectPos)
 	{
-        const Polygon* Result = nullptr;
-        Point ResultPos = nextPos;
+        static const Dot* ResultArray[2] = {nullptr, nullptr};
+        const Dot** Result = nullptr;
+        Dot ResultPos = nextPos;
         float ResultDistance = distanceMin;
 		for(int h = 0; h < hurdle->List.Count(); ++h)
         {
             const auto& CurDots = hurdle->List[h].Dots;
             for(int i = 0, iend = CurDots.Count(); i < iend; ++i)
             {
-                const Point& LineBegin = CurDots[i];
-                const Point& LineEnd = CurDots[(i + 1) % iend];
+                const Dot& LineBegin = CurDots[i];
+                const Dot& LineEnd = CurDots[(i + 1) % iend];
                 if(Util::GetClockwiseValue(LineBegin, LineEnd, curPos) < 0)
-                if(const Point* CrossPos = Util::GetDotByLineCross(LineBegin, LineEnd, curPos, nextPos))
+                if(const Dot* CrossPos = Util::GetDotByLineCross(LineBegin, LineEnd, curPos, nextPos))
                 {
                     const float CurDistance = Math::Distance(curPos.x, curPos.y, CrossPos->x, CrossPos->y);
                     if(ResultDistance < 0 || CurDistance < ResultDistance)
                     {
-                        Result = &hurdle->List[h];
+                        ResultArray[0] = &LineBegin;
+                        ResultArray[1] = &LineEnd;
+                        Result = ResultArray;
                         ResultPos = *CrossPos;
                         ResultDistance = CurDistance;
                         if(reflectPos)
@@ -623,7 +624,7 @@ namespace BOSS
                 }
             }
         }
-        nextPos = ResultPos;
+        nextPos = Point(ResultPos.x, ResultPos.y);
         return Result;
 	}
 }

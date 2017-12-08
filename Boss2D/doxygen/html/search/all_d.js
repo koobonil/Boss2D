@@ -1,7 +1,7 @@
 var searchData=
 [
   ['makecp949',['MakeCp949',['../class_b_o_s_s_1_1_w_string.html#ad4e13462d4821b91f7e5a51a153ba0f7',1,'BOSS::WString']]],
-  ['map',['Map',['../class_b_o_s_s_1_1_try_world_1_1_map.html',1,'BOSS::TryWorld::Map'],['../class_b_o_s_s_1_1_map.html',1,'BOSS::Map&lt; TYPE, ENDMARK &gt;'],['../class_b_o_s_s_1_1_map.html#a6a03dc8fe769a43fada1fd5645ef321b',1,'BOSS::Map::Map()'],['../class_b_o_s_s_1_1_map.html#aefce2234300cd309ba18e4bbf54d8d53',1,'BOSS::Map::Map(const Map &amp;rhs)'],['../class_b_o_s_s_1_1_map.html#a4d0d2ee1a5f39ce8bc3e4484c465f004',1,'BOSS::Map::Map(sint32)']]],
+  ['map',['Map',['../class_b_o_s_s_1_1_map.html',1,'BOSS::Map&lt; TYPE, ENDMARK &gt;'],['../class_b_o_s_s_1_1_try_world_1_1_map.html',1,'BOSS::TryWorld::Map'],['../class_b_o_s_s_1_1_map.html#a6a03dc8fe769a43fada1fd5645ef321b',1,'BOSS::Map::Map()'],['../class_b_o_s_s_1_1_map.html#aefce2234300cd309ba18e4bbf54d8d53',1,'BOSS::Map::Map(const Map &amp;rhs)'],['../class_b_o_s_s_1_1_map.html#a4d0d2ee1a5f39ce8bc3e4484c465f004',1,'BOSS::Map::Map(sint32)']]],
   ['map_3c_20boss_3a_3acontext_20_3e',['Map&lt; BOSS::Context &gt;',['../class_b_o_s_s_1_1_map.html',1,'BOSS']]],
   ['map_3c_20boss_3a_3alivechatdata_3a_3auserinfo_20_3e',['Map&lt; BOSS::LiveChatData::UserInfo &gt;',['../class_b_o_s_s_1_1_map.html',1,'BOSS']]],
   ['map_3c_20boss_3a_3amap_20_3e',['Map&lt; BOSS::Map &gt;',['../class_b_o_s_s_1_1_map.html',1,'BOSS']]],

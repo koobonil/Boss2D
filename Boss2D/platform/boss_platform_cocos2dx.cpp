@@ -418,13 +418,16 @@
 
         bool Platform::Popup::FileDialog(String& path, String* shortpath, chars title, bool isdir)
         {
-            BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
             return PlatformImpl::Wrap::Popup_FileDialog(path, shortpath, title, isdir);
+        }
+
+        sint32 Platform::Popup::MessageDialog(chars title, chars text, DialogButtonType type)
+        {
+            return PlatformImpl::Wrap::Popup_MessageDialog(title, text, type);
         }
 
         void Platform::Popup::WebBrowserDialog(String url)
         {
-            BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
             return PlatformImpl::Wrap::Popup_WebBrowserDialog(url);
         }
 

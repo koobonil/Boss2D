@@ -12,6 +12,16 @@
     #define BOSS_API_FUNC(PACK, TYPE, FUNC) \
         extern "C" __declspec(dllexport) TYPE PACK##_##FUNC
     #define BOSS_API_ENV nullptr
+#elif BOSS_LINUX
+    #define BOSS_API(PACK, TYPE, FUNC, ...) \
+        static autorun API_##PACK##_##FUNC = CollectForPlatform(#TYPE, #FUNC, #PACK "_" #FUNC, #__VA_ARGS__); \
+        BOSS_API_FUNC(PACK, TYPE, FUNC)(__VA_ARGS__)
+    #define BOSS_API_VOID(PACK, TYPE, FUNC) \
+        static autorun API_##PACK##_##FUNC = CollectForPlatform(#TYPE, #FUNC, #PACK "_" #FUNC, "void"); \
+        BOSS_API_FUNC(PACK, TYPE, FUNC)()
+    #define BOSS_API_FUNC(PACK, TYPE, FUNC) \
+        extern "C" __attribute__((visibility("default"))) TYPE PACK##_##FUNC
+    #define BOSS_API_ENV nullptr
 #elif BOSS_ANDROID
     #define BOSS_API(PACK, TYPE, FUNC, ...) \
         static autorun API_##PACK##_##FUNC = CollectForPlatform(#TYPE, #FUNC, "Java_com_" #PACK "_" #FUNC, #__VA_ARGS__); \
