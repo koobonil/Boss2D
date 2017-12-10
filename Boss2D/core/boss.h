@@ -164,9 +164,9 @@
         case 0: BOSS_DBG_BREAK; break; \
         case 1: IsIgnore = 1; break; \
         }} while(0)
-    #if BOSS_WINDOWS
+    #if BOSS_WINDOWS && defined(_MSC_VER)
         #define BOSS_DBG_BREAK do{__debugbreak();} while(0)
-    #elif BOSS_LINUX || BOSS_MAC_OSX || BOSS_IPHONE
+    #elif BOSS_WINDOWS || BOSS_LINUX || BOSS_MAC_OSX || BOSS_IPHONE
         #define BOSS_DBG_BREAK do{__builtin_trap();} while(0)
     #else
         #define BOSS_DBG_BREAK do{} while(0)

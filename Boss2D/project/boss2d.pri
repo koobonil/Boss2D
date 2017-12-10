@@ -7,7 +7,7 @@ QT += multimedia
 QT += bluetooth
 !ios: QT += serialport
 android: QT += androidextras
-win32: QT += webenginewidgets
+win32-msvc*: QT += webenginewidgets
 
 CONFIG += c++11
 CONFIG += mobility

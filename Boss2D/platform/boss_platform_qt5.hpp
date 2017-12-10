@@ -19,7 +19,7 @@
     #include <QGLShaderProgram>
 
     #include <QtBluetooth>
-    #if BOSS_WINDOWS
+    #if BOSS_WINDOWS && defined(_MSC_VER)
         #pragma warning(disable:4068) // "알 수 없는 pragma입니다."
         #include <setupapi.h>
         #include <devguid.h>
@@ -44,7 +44,7 @@
     #include <QAudioProbe>
     #include <QAudioDeviceInfo>
 
-    #if BOSS_WINDOWS
+    #if BOSS_WINDOWS && defined(_MSC_VER)
         #include <QWebEngineView>
     #endif
 
@@ -1767,7 +1767,7 @@
         }
     };
 
-    #if !BOSS_WINDOWS
+    #if !BOSS_WINDOWS || !defined(_MSC_VER)
         class WebViewPrivate : public QObject
         {
             Q_OBJECT
@@ -2003,7 +2003,7 @@
         }
     };
 
-    #if BOSS_WINDOWS
+    #if BOSS_WINDOWS && defined(_MSC_VER)
         class BluetoothAgentForWindows
         {
         private:

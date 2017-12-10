@@ -759,12 +759,12 @@
         }
 
         static sint32 gHotKeyCode = -1;
-        #if BOSS_WINDOWS
+        #if BOSS_WINDOWS && defined(_MSC_VER)
             static HHOOK gHookForHotKey = NULL;
         #endif
         sint32 Platform::Utility::LastHotKey()
         {
-            #if BOSS_WINDOWS
+            #if BOSS_WINDOWS && defined(_MSC_VER)
                 if(!gHookForHotKey)
                     gHookForHotKey = SetWindowsHookEx(WH_KEYBOARD_LL,
                         [](int nCode, WPARAM wParam, LPARAM lParam)->LRESULT
