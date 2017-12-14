@@ -723,19 +723,7 @@ namespace BOSS
     {
         if(auto CurBinder = _push_clip(l, t, r, b, doScissor))
         {
-            if(auto CurCollector = (TouchCollector*) m_ref_touch_collector)
-            {
-                const Clip& LastClip = m_stack_clip[-1];
-                const float& LastZoom = m_stack_zoom[-1];
-                CurCollector->mTouchRects.AtAdding() =
-                    TouchRect::Create(uiname, LastClip.l, LastClip.t, LastClip.r, LastClip.b, LastZoom, cb, hoverpass);
-            }
-            else if(auto CurTouch = (ZayView::Touch*) m_ref_touch)
-            {
-                const Clip& LastClip = m_stack_clip[-1];
-                const float& LastZoom = m_stack_zoom[-1];
-                CurTouch->update(uiname, LastClip.l, LastClip.t, LastClip.r, LastClip.b, LastZoom, cb, hoverpass);
-            }
+            _add_ui(uiname, cb, hoverpass);
             return StackBinder(ToReference(CurBinder));
         }
         return StackBinder(this);
@@ -769,19 +757,7 @@ namespace BOSS
     {
         if(auto CurBinder = _push_clip_by_child(ix, iy, xcount, ycount, doScissor))
         {
-            if(auto CurCollector = (TouchCollector*) m_ref_touch_collector)
-            {
-                const Clip& LastClip = m_stack_clip[-1];
-                const float& LastZoom = m_stack_zoom[-1];
-                CurCollector->mTouchRects.AtAdding() =
-                    TouchRect::Create(uiname, LastClip.l, LastClip.t, LastClip.r, LastClip.b, LastZoom, cb, hoverpass);
-            }
-            else if(auto CurTouch = (ZayView::Touch*) m_ref_touch)
-            {
-                const Clip& LastClip = m_stack_clip[-1];
-                const float& LastZoom = m_stack_zoom[-1];
-                CurTouch->update(uiname, LastClip.l, LastClip.t, LastClip.r, LastClip.b, LastZoom, cb, hoverpass);
-            }
+            _add_ui(uiname, cb, hoverpass);
             return StackBinder(ToReference(CurBinder));
         }
         return StackBinder(this);
@@ -909,6 +885,28 @@ namespace BOSS
         const float& LastZoom = m_stack_zoom[-1];
         Platform::Graphics::SetZoom(LastZoom);
         _pop_clip();
+    }
+
+    void ZayPanel::_add_ui(chars uiname, SubGestureCB cb, bool hoverpass)
+    {
+        if(uiname && uiname[0])
+        {
+            Clip LastClip = m_stack_clip[-1];
+            const Rect& LastScissor = m_stack_scissor[-1];
+            LastClip.l = Math::MaxF(LastClip.l, LastScissor.l);
+            LastClip.t = Math::MaxF(LastClip.t, LastScissor.t);
+            LastClip.r = Math::MinF(LastClip.r, LastScissor.r);
+            LastClip.b = Math::MinF(LastClip.b, LastScissor.b);
+            if(0 < LastClip.Width() && 0 < LastClip.Height())
+            {
+                const float& LastZoom = m_stack_zoom[-1];
+                if(auto CurCollector = (TouchCollector*) m_ref_touch_collector)
+                    CurCollector->mTouchRects.AtAdding() =
+                        TouchRect::Create(uiname, LastClip.l, LastClip.t, LastClip.r, LastClip.b, LastZoom, cb, hoverpass);
+                else if(auto CurTouch = (ZayView::Touch*) m_ref_touch)
+                    CurTouch->update(uiname, LastClip.l, LastClip.t, LastClip.r, LastClip.b, LastZoom, cb, hoverpass);
+            }
+        }
     }
 
     bool ZayPanel::_push_scissor(float l, float t, float r, float b)

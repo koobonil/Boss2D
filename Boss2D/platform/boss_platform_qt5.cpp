@@ -1973,7 +1973,7 @@
             if(0 < PlatformImpl::Core::g_AssetsRoot.Length())
                 return PlatformImpl::Core::g_AssetsRoot;
 
-            #if BOSS_WINDOWS
+            #if BOSS_WINDOWS || BOSS_LINUX
                 PlatformImpl::Core::g_AssetsRoot = "../assets/";
                 const String AssetsPathA = String::Format("%s/..", QCoreApplication::applicationDirPath().replace('\\', '/').toUtf8().constData());
                 if(Platform::File::ExistForDir(AssetsPathA + "/assets"))
@@ -2002,7 +2002,7 @@
             if(0 < PlatformImpl::Core::g_AssetsRemRoot.Length())
                 return PlatformImpl::Core::g_AssetsRemRoot;
 
-            #if BOSS_WINDOWS
+            #if BOSS_WINDOWS || BOSS_LINUX
                 QString RootQ = "..";
                 const String AssetsPathA = String::Format("%s/..", QCoreApplication::applicationDirPath().replace('\\', '/').toUtf8().constData());
                 if(Platform::File::ExistForDir(AssetsPathA + "/assets"))

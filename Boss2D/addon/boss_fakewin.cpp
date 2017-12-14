@@ -1196,11 +1196,7 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         _Stat->st_gid = 0;
         _Stat->st_rdev = 0;
         _Stat->st_size = GetSize;
-        #if BOSS_LINUX
-            _Stat->st_atim.tv_sec = WindowToEpoch(GetAccessTime / 10000) / 1000;
-            _Stat->st_mtim.tv_sec = WindowToEpoch(GetModifyTime / 10000) / 1000;
-            _Stat->st_ctim.tv_sec = WindowToEpoch(GetCreateTime / 10000) / 1000;
-        #elif BOSS_MAC_OSX || BOSS_IPHONE
+        #if BOSS_MAC_OSX || BOSS_IPHONE
             _Stat->st_atimespec.tv_sec = WindowToEpoch(GetAccessTime / 10000) / 1000;
             _Stat->st_mtimespec.tv_sec = WindowToEpoch(GetModifyTime / 10000) / 1000;
             _Stat->st_ctimespec.tv_sec = WindowToEpoch(GetCreateTime / 10000) / 1000;
@@ -1455,53 +1451,55 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         }
     #endif
 
-    namespace std
-    {
-        #undef ifstream
-        boss_fakewin_ifstream::boss_fakewin_ifstream(const char* filename, ios_base::openmode mode)
+    #if !BOSS_LINUX
+        namespace std
         {
-            std::string modeStr("r");
-            printf("Open file (read): %s\n", filename);
-            if (mode & ios_base::binary)
-                modeStr += "b";
-
-            f = boss_fakewin_fopen(filename, modeStr.c_str());
-            if (f == NULL)
+            #undef ifstream
+            boss_fakewin_ifstream::boss_fakewin_ifstream(const char* filename, ios_base::openmode mode)
             {
-                printf("Can't open file: %s\n", filename);
-                return;
-            }
+                std::string modeStr("r");
+                printf("Open file (read): %s\n", filename);
+                if (mode & ios_base::binary)
+                    modeStr += "b";
 
-            boss_fakewin_fseek(f, 0, SEEK_END);
-            size_t sz = boss_fakewin_ftell(f);
-            if (sz > 0)
-            {
-                char* buf = (char*) malloc(sz);
-                boss_fakewin_fseek(f, 0, SEEK_SET);
-                if (boss_fakewin_fread(buf, 1, sz, f) == sz)
+                f = boss_fakewin_fopen(filename, modeStr.c_str());
+                if (f == NULL)
                 {
-                    this->str(std::string(buf, sz).c_str());
+                    printf("Can't open file: %s\n", filename);
+                    return;
                 }
-                free(buf);
+
+                boss_fakewin_fseek(f, 0, SEEK_END);
+                size_t sz = boss_fakewin_ftell(f);
+                if (sz > 0)
+                {
+                    char* buf = (char*) malloc(sz);
+                    boss_fakewin_fseek(f, 0, SEEK_SET);
+                    if (boss_fakewin_fread(buf, 1, sz, f) == sz)
+                    {
+                        this->str(std::string(buf, sz).c_str());
+                    }
+                    free(buf);
+                }
+            }
+
+            boss_fakewin_ifstream::~boss_fakewin_ifstream()
+            {
+                close();
+            }
+
+            bool boss_fakewin_ifstream::is_open() const
+            {
+                return f != NULL;
+            }
+
+            void boss_fakewin_ifstream::close()
+            {
+                if (f)
+                    boss_fakewin_fclose(f);
+                f = NULL;
+                this->str("");
             }
         }
-
-        boss_fakewin_ifstream::~boss_fakewin_ifstream()
-        {
-            close();
-        }
-
-        bool boss_fakewin_ifstream::is_open() const
-        {
-            return f != NULL;
-        }
-
-        void boss_fakewin_ifstream::close()
-        {
-            if (f)
-                boss_fakewin_fclose(f);
-            f = NULL;
-            this->str("");
-        }
-    }
+    #endif
 #endif

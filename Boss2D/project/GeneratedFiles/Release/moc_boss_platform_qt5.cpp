@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'boss_platform_qt5.hpp'
 **
-** Created by: The Qt Meta Object Compiler version 67 (Qt 5.9.3)
+** Created by: The Qt Meta Object Compiler version 67 (Qt 5.9.1)
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
@@ -12,7 +12,7 @@
 #if !defined(Q_MOC_OUTPUT_REVISION)
 #error "The header file 'boss_platform_qt5.hpp' doesn't include <QObject>."
 #elif Q_MOC_OUTPUT_REVISION != 67
-#error "This file was generated using the moc from 5.9.3. It"
+#error "This file was generated using the moc from 5.9.1. It"
 #error "cannot be used with the include files from this version of Qt."
 #error "(The moc has changed too much.)"
 #endif
@@ -77,7 +77,7 @@ void *ViewAPI::qt_metacast(const char *_clname)
 {
     if (!_clname) return nullptr;
     if (!strcmp(_clname, qt_meta_stringdata_ViewAPI.stringdata0))
-        return static_cast<void*>(this);
+        return static_cast<void*>(const_cast< ViewAPI*>(this));
     return QObject::qt_metacast(_clname);
 }
 
@@ -143,7 +143,7 @@ void *GenericView::qt_metacast(const char *_clname)
 {
     if (!_clname) return nullptr;
     if (!strcmp(_clname, qt_meta_stringdata_GenericView.stringdata0))
-        return static_cast<void*>(this);
+        return static_cast<void*>(const_cast< GenericView*>(this));
     return QFrame::qt_metacast(_clname);
 }
 
@@ -209,7 +209,7 @@ void *MainViewGL::qt_metacast(const char *_clname)
 {
     if (!_clname) return nullptr;
     if (!strcmp(_clname, qt_meta_stringdata_MainViewGL.stringdata0))
-        return static_cast<void*>(this);
+        return static_cast<void*>(const_cast< MainViewGL*>(this));
     return QGLWidget::qt_metacast(_clname);
 }
 
@@ -275,7 +275,7 @@ void *MainViewMDI::qt_metacast(const char *_clname)
 {
     if (!_clname) return nullptr;
     if (!strcmp(_clname, qt_meta_stringdata_MainViewMDI.stringdata0))
-        return static_cast<void*>(this);
+        return static_cast<void*>(const_cast< MainViewMDI*>(this));
     return QMdiArea::qt_metacast(_clname);
 }
 
@@ -354,7 +354,7 @@ void *MainWindow::qt_metacast(const char *_clname)
 {
     if (!_clname) return nullptr;
     if (!strcmp(_clname, qt_meta_stringdata_MainWindow.stringdata0))
-        return static_cast<void*>(this);
+        return static_cast<void*>(const_cast< MainWindow*>(this));
     return QMainWindow::qt_metacast(_clname);
 }
 
@@ -431,7 +431,7 @@ void *EditTracker::qt_metacast(const char *_clname)
 {
     if (!_clname) return nullptr;
     if (!strcmp(_clname, qt_meta_stringdata_EditTracker.stringdata0))
-        return static_cast<void*>(this);
+        return static_cast<void*>(const_cast< EditTracker*>(this));
     return QLineEdit::qt_metacast(_clname);
 }
 
@@ -512,7 +512,7 @@ void *ListTracker::qt_metacast(const char *_clname)
 {
     if (!_clname) return nullptr;
     if (!strcmp(_clname, qt_meta_stringdata_ListTracker.stringdata0))
-        return static_cast<void*>(this);
+        return static_cast<void*>(const_cast< ListTracker*>(this));
     return QListWidget::qt_metacast(_clname);
 }
 
@@ -589,7 +589,7 @@ void *ThreadClass::qt_metacast(const char *_clname)
 {
     if (!_clname) return nullptr;
     if (!strcmp(_clname, qt_meta_stringdata_ThreadClass.stringdata0))
-        return static_cast<void*>(this);
+        return static_cast<void*>(const_cast< ThreadClass*>(this));
     return QThread::qt_metacast(_clname);
 }
 
@@ -694,7 +694,7 @@ void *TCPAgent::qt_metacast(const char *_clname)
 {
     if (!_clname) return nullptr;
     if (!strcmp(_clname, qt_meta_stringdata_TCPAgent.stringdata0))
-        return static_cast<void*>(this);
+        return static_cast<void*>(const_cast< TCPAgent*>(this));
     return QTcpServer::qt_metacast(_clname);
 }
 
@@ -771,7 +771,7 @@ void *WebViewPrivate::qt_metacast(const char *_clname)
 {
     if (!_clname) return nullptr;
     if (!strcmp(_clname, qt_meta_stringdata_WebViewPrivate.stringdata0))
-        return static_cast<void*>(this);
+        return static_cast<void*>(const_cast< WebViewPrivate*>(this));
     return QObject::qt_metacast(_clname);
 }
 
@@ -875,7 +875,7 @@ void *BluetoothAgentPrivate::qt_metacast(const char *_clname)
 {
     if (!_clname) return nullptr;
     if (!strcmp(_clname, qt_meta_stringdata_BluetoothAgentPrivate.stringdata0))
-        return static_cast<void*>(this);
+        return static_cast<void*>(const_cast< BluetoothAgentPrivate*>(this));
     return QObject::qt_metacast(_clname);
 }
 
@@ -979,7 +979,7 @@ void *CameraSurface::qt_metacast(const char *_clname)
 {
     if (!_clname) return nullptr;
     if (!strcmp(_clname, qt_meta_stringdata_CameraSurface.stringdata0))
-        return static_cast<void*>(this);
+        return static_cast<void*>(const_cast< CameraSurface*>(this));
     return QAbstractVideoSurface::qt_metacast(_clname);
 }
 
@@ -1082,7 +1082,7 @@ void *MicrophoneClass::qt_metacast(const char *_clname)
 {
     if (!_clname) return nullptr;
     if (!strcmp(_clname, qt_meta_stringdata_MicrophoneClass.stringdata0))
-        return static_cast<void*>(this);
+        return static_cast<void*>(const_cast< MicrophoneClass*>(this));
     return QAudioProbe::qt_metacast(_clname);
 }
 

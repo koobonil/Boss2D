@@ -279,12 +279,16 @@ namespace BOSS
         uint32 fboid() const;
 
     public:
+        inline const float zoom() const
+        {return m_stack_zoom[-1];}
         inline const float w() const
         {return m_clipped_width;}
         inline const float h() const
         {return m_clipped_height;}
-        inline const float zoom() const
-        {return m_stack_zoom[-1];}
+        inline const float screen_w() const
+        {return m_stack_clip[0].Width();}
+        inline const float screen_h() const
+        {return m_stack_clip[0].Height();}
 
     public:
         enum StackType {ST_Null, ST_Pass, ST_Clip, ST_Color, ST_Mask, ST_Font, ST_Zoom};
@@ -335,6 +339,7 @@ namespace BOSS
         void _pop_mask();
         void _pop_font();
         void _pop_zoom();
+        void _add_ui(chars uiname, SubGestureCB cb, bool hoverpass);
 
     private:
         bool _push_scissor(float l, float t, float r, float b);

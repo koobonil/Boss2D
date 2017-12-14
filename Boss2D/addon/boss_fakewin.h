@@ -3,7 +3,7 @@
 
 #pragma warning(disable:4005) // macro redefinition
 
-#if !defined(_MSC_VER) || (_MSC_VER < 1900)
+#if !BOSS_LINUX && (!defined(_MSC_VER) || (_MSC_VER < 1900))
     #define snprintf(...) boss_snprintf(__VA_ARGS__)
 #endif
 #define WIN32
@@ -140,6 +140,7 @@
     typedef unsigned int SOCKET;
     typedef USHORT ADDRESS_FAMILY;
     typedef int socklen_t;
+    #define __socklen_t_defined
     typedef HANDLE HWND;
     typedef HANDLE HLOCAL;
     typedef HINSTANCE HMODULE;
@@ -183,7 +184,10 @@
     #if !BOSS_MAC_OSX && !BOSS_IPHONE
         #include <malloc.h>
     #endif
-    #if BOSS_MAC_OSX || BOSS_IPHONE || BOSS_ANDROID
+    #if BOSS_LINUX
+        #include <sys/types.h>
+        #include <sys/socket.h>
+    #elif BOSS_MAC_OSX || BOSS_IPHONE || BOSS_ANDROID
         #include <sys/select.h>
     #endif
     #if BOSS_WINDOWS
@@ -195,7 +199,7 @@
     #include <fcntl.h>
 
     #ifdef __cplusplus
-        #if !BOSS_MAC_OSX && !BOSS_IPHONE
+        #if !BOSS_LINUX && !BOSS_MAC_OSX && !BOSS_IPHONE
             #include <iostream>
             #include <fstream>
             #include <sstream>
@@ -423,7 +427,7 @@
     #undef st_atime
     #undef st_mtime
     #undef st_ctime
-    #if BOSS_WINDOWS
+    #if BOSS_WINDOWS || BOSS_LINUX
         struct boss_fakewin_stat64 {
             _dev_t     st_dev;
             _ino_t     st_ino;
@@ -571,64 +575,66 @@
     #endif
 
     #ifdef __cplusplus
-        namespace std
-        {
-            #define ifstream boss_fakewin_ifstream
-            class boss_fakewin_ifstream : public stringstream
+        #if !BOSS_LINUX
+            namespace std
             {
-                FILE* f;
-            public:
-                boss_fakewin_ifstream(const char* filename, ios_base::openmode mode = ios_base::in);
-                ~boss_fakewin_ifstream();
-                bool is_open() const;
-                void close();
-            };
-        }
+                #define ifstream boss_fakewin_ifstream
+                class boss_fakewin_ifstream : public stringstream
+                {
+                    FILE* f;
+                public:
+                    boss_fakewin_ifstream(const char* filename, ios_base::openmode mode = ios_base::in);
+                    ~boss_fakewin_ifstream();
+                    bool is_open() const;
+                    void close();
+                };
+            }
+        #endif
     #endif
 
     #define WINAPI
     #define _inline
     #define __cdecl
-    #define _MAX_PATH                       260
-    #define _MAX_FNAME                      256
-    #define VER_MINORVERSION                0x0000001
-    #define VER_MAJORVERSION                0x0000002
-    #define VER_BUILDNUMBER                 0x0000004
-    #define VER_PLATFORMID                  0x0000008
-    #define VER_SERVICEPACKMINOR            0x0000010
-    #define VER_SERVICEPACKMAJOR            0x0000020
-    #define VER_SUITENAME                   0x0000040
-    #define VER_PRODUCT_TYPE                0x0000080
-    #define VER_EQUAL                       1
-    #define VER_GREATER                     2
-    #define VER_GREATER_EQUAL               3
-    #define VER_LESS                        4
-    #define VER_LESS_EQUAL                  5
-    #define VER_AND                         6
-    #define VER_OR                          7
-    #define VER_CONDITION_MASK              7
-    #define VER_NUM_BITS_PER_CONDITION_MASK 3
+    #define _MAX_PATH                        260
+    #define _MAX_FNAME                       256
+    #define VER_MINORVERSION                 0x0000001
+    #define VER_MAJORVERSION                 0x0000002
+    #define VER_BUILDNUMBER                  0x0000004
+    #define VER_PLATFORMID                   0x0000008
+    #define VER_SERVICEPACKMINOR             0x0000010
+    #define VER_SERVICEPACKMAJOR             0x0000020
+    #define VER_SUITENAME                    0x0000040
+    #define VER_PRODUCT_TYPE                 0x0000080
+    #define VER_EQUAL                        1
+    #define VER_GREATER                      2
+    #define VER_GREATER_EQUAL                3
+    #define VER_LESS                         4
+    #define VER_LESS_EQUAL                   5
+    #define VER_AND                          6
+    #define VER_OR                           7
+    #define VER_CONDITION_MASK               7
+    #define VER_NUM_BITS_PER_CONDITION_MASK  3
     #define VER_SET_CONDITION(_m_, _t_, _c_)
-    #define MAX_PATH                        260
-    #define _TRUNCATE                       ((size_t) -1)
-    #define INVALID_HANDLE_VALUE            ((HANDLE) -1)
-    #define INVALID_SOCKET                  ((SOCKET) ~0)
-    #define STD_INPUT_HANDLE                ((DWORD) -10)
-    #define SOCKET_ERROR                    (-1)
-    #define AF_UNSPEC                       0
-    #define AF_INET                         2
-    #define AF_INET6                        23
-    #define SOCK_STREAM                     1
-    #define IPPROTO_IP                      0
-    #define IPPROTO_ICMP                    1
-    #define IPPROTO_TCP                     6
-    #define IPPROTO_UDP                     17
-    #define WSADESCRIPTION_LEN              256
-    #define WSASYS_STATUS_LEN               128
-    #define FORMAT_MESSAGE_ALLOCATE_BUFFER 0x00000100
-    #define FORMAT_MESSAGE_IGNORE_INSERTS  0x00000200
-    #define FORMAT_MESSAGE_FROM_HMODULE    0x00000800
-    #define FORMAT_MESSAGE_FROM_SYSTEM     0x00001000
+    #define MAX_PATH                         260
+    #define _TRUNCATE                        ((size_t) -1)
+    #define INVALID_HANDLE_VALUE             ((HANDLE) -1)
+    #define INVALID_SOCKET                   ((SOCKET) ~0)
+    #define STD_INPUT_HANDLE                 ((DWORD) -10)
+    #define SOCKET_ERROR                     (-1)
+    #define AF_UNSPEC                        0
+    #define AF_INET                          2
+    #define AF_INET6                         23
+    #define SOCK_STREAM                      1
+    #define IPPROTO_IP                       0
+    #define IPPROTO_ICMP                     1
+    #define IPPROTO_TCP                      6
+    #define IPPROTO_UDP                      17
+    #define WSADESCRIPTION_LEN               256
+    #define WSASYS_STATUS_LEN                128
+    #define FORMAT_MESSAGE_ALLOCATE_BUFFER   0x00000100
+    #define FORMAT_MESSAGE_IGNORE_INSERTS    0x00000200
+    #define FORMAT_MESSAGE_FROM_HMODULE      0x00000800
+    #define FORMAT_MESSAGE_FROM_SYSTEM       0x00001000
     #define ERROR_FILE_NOT_FOUND             2L
     #define ERROR_ACCESS_DENIED              5L
     #define ERROR_INVALID_HANDLE             6L
@@ -643,129 +649,147 @@
     #define WM_COPYDATA                      0x004A
     #define SOL_SOCKET                       0xffff
     #define SO_ERROR                         0x1007
+    #define SO_KEEPALIVE                     0x0008
+    #define SOCK_DGRAM                       2
     #define WSAEINTR                         10004L
     #define WSAEINVAL                        10022L
     #define WSAEFAULT                        10014L
     #define WSAEWOULDBLOCK                   10035L
+    #define WSAEINPROGRESS                   10036L
     #define WSAENOTSOCK                      10038L
-    #define WSA_NOT_ENOUGH_MEMORY   (ERROR_NOT_ENOUGH_MEMORY)
-    #define MB_OK                       0x00000000L
-    #define MB_ICONHAND                 0x00000010L
-    #define MB_ICONERROR                MB_ICONHAND
-    #define MB_PRECOMPOSED            0x00000001  // use precomposed chars
-    #define MB_COMPOSITE              0x00000002  // use composite chars
-    #define MB_USEGLYPHCHARS          0x00000004  // use glyph chars, not ctrl chars
-    #define MB_ERR_INVALID_CHARS      0x00000008  // error for invalid chars
-    #define WC_ERR_INVALID_CHARS      0x00000080
-    #define IOCPARM_MASK    0x7f            /* parameters must be < 128 bytes */
-    #define IOC_IN          0x80000000      /* copy in parameters */
-    #define _IOW(x,y,t)     (IOC_IN|(((long)sizeof(t)&IOCPARM_MASK)<<16)|((x)<<8)|(y))
-    #define FIONBIO         _IOW('f', 126, u_long) /* set/clear non-blocking i/o */
+    #define WSAEAFNOSUPPORT                  10047L
+    #define WSAEADDRINUSE                    10048L
+    #define WSAEADDRNOTAVAIL                 10049L
+    #define WSAENETDOWN                      10050L
+    #define WSAENETRESET                     10052L
+    #define WSAECONNABORTED                  10053L
+    #define WSAECONNRESET                    10054L
+    #define WSAEISCONN                       10056L
+    #define WSAENOTCONN                      10057L
+    #define WSAESHUTDOWN                     10058L
+    #define WSAETIMEDOUT                     10060L
+    #define WSAHOST_NOT_FOUND                11001L
+    #define WSA_NOT_ENOUGH_MEMORY            (ERROR_NOT_ENOUGH_MEMORY)
+    #define IOC_VENDOR                       0x18000000
+    #define EAI_MEMORY                       (ERROR_NOT_ENOUGH_MEMORY)
+    #define EAI_NODATA                       WSAHOST_NOT_FOUND
+    #define MB_OK                            0x00000000L
+    #define MB_ICONHAND                      0x00000010L
+    #define MB_ICONERROR                     MB_ICONHAND
+    #define MB_PRECOMPOSED                   0x00000001  // use precomposed chars
+    #define MB_COMPOSITE                     0x00000002  // use composite chars
+    #define MB_USEGLYPHCHARS                 0x00000004  // use glyph chars, not ctrl chars
+    #define MB_ERR_INVALID_CHARS             0x00000008  // error for invalid chars
+    #define WC_ERR_INVALID_CHARS             0x00000080
+    #define IOCPARM_MASK                     0x7f            /* parameters must be < 128 bytes */
+    #define IOC_IN                           0x80000000      /* copy in parameters */
+    #define _IOW(x,y,t)                      (IOC_IN|(((long)sizeof(t)&IOCPARM_MASK)<<16)|((x)<<8)|(y))
+    #define FIONBIO                          _IOW('f', 126, u_long) /* set/clear non-blocking i/o */
     #define LANG_NEUTRAL                     0x00
-    #define SUBLANG_DEFAULT                             0x01    // user default
+    #define SUBLANG_DEFAULT                  0x01    // user default
     #define READ_CONTROL                     (0x00020000L)
     #define STANDARD_RIGHTS_READ             (READ_CONTROL)
     #define SYNCHRONIZE                      (0x00100000L)
-    #define KEY_QUERY_VALUE         (0x0001)
-    #define KEY_ENUMERATE_SUB_KEYS  (0x0008)
-    #define KEY_NOTIFY              (0x0010)
-    #define KEY_READ                ((STANDARD_RIGHTS_READ|KEY_QUERY_VALUE|KEY_ENUMERATE_SUB_KEYS|KEY_NOTIFY) & (~SYNCHRONIZE))
-    #define REG_SZ                      ( 1 )
-    #define HKEY_CURRENT_USER                   (( HKEY ) (ULONG_PTR)((LONG)0x80000001) )
-    #define HKEY_LOCAL_MACHINE                  (( HKEY ) (ULONG_PTR)((LONG)0x80000002) )
-    #define PAGE_READWRITE         0x04
-    #define PAGE_READONLY          0x02
-    #define SECTION_MAP_WRITE            0x0002
-    #define SECTION_MAP_READ             0x0004
-    #define FILE_MAP_WRITE      SECTION_MAP_WRITE
-    #define FILE_MAP_READ       SECTION_MAP_READ
-    #define MAXIMUM_REPARSE_DATA_BUFFER_SIZE      ( 16 * 1024 )
+    #define KEY_QUERY_VALUE                  (0x0001)
+    #define KEY_ENUMERATE_SUB_KEYS           (0x0008)
+    #define KEY_NOTIFY                       (0x0010)
+    #define KEY_READ                         ((STANDARD_RIGHTS_READ|KEY_QUERY_VALUE|KEY_ENUMERATE_SUB_KEYS|KEY_NOTIFY) & (~SYNCHRONIZE))
+    #define REG_SZ                           ( 1 )
+    #define HKEY_CURRENT_USER                (( HKEY ) (ULONG_PTR)((LONG)0x80000001) )
+    #define HKEY_LOCAL_MACHINE               (( HKEY ) (ULONG_PTR)((LONG)0x80000002) )
+    #define PAGE_READWRITE                   0x04
+    #define PAGE_READONLY                    0x02
+    #define SECTION_MAP_WRITE                0x0002
+    #define SECTION_MAP_READ                 0x0004
+    #define FILE_MAP_WRITE                   SECTION_MAP_WRITE
+    #define FILE_MAP_READ                    SECTION_MAP_READ
+    #define MAXIMUM_REPARSE_DATA_BUFFER_SIZE ( 16 * 1024 )
     #define GENERIC_READ                     (0x80000000L)
-    #define OPEN_EXISTING       3
-    #define IO_REPARSE_TAG_MOUNT_POINT              (0xA0000003L)
-    #define FILE_SHARE_READ                 0x00000001
-    #define FILE_SHARE_WRITE                0x00000002
-    #define FILE_SHARE_DELETE               0x00000004
-    #define FILE_ATTRIBUTE_READONLY             0x00000001
-    #define FILE_ATTRIBUTE_HIDDEN               0x00000002
-    #define FILE_ATTRIBUTE_DIRECTORY            0x00000010
-    #define FILE_ATTRIBUTE_REPARSE_POINT        0x00000400
-    #define FILE_FLAG_OPEN_REPARSE_POINT    0x00200000
-    #define FILE_FLAG_BACKUP_SEMANTICS      0x02000000
-    #define INVALID_FILE_ATTRIBUTES ((DWORD)-1)
-    #define S_IFDIR            0x4000          /* directory */
-    #define S_IFREG            0x8000          /* regular */
-    #define S_IREAD            0x0100          /* read permission, owner */
-    #define S_IWRITE           0x0080          /* write permission, owner */
-    #define MOVEFILE_REPLACE_EXISTING       0x00000001
-    #define MOVEFILE_COPY_ALLOWED           0x00000002
-    #define INFINITE            0xFFFFFFFF  // Infinite timeout
-    #define STATUS_WAIT_0       ((DWORD) 0x00000000L)
-    #define WAIT_OBJECT_0       ((STATUS_WAIT_0 ) + 0)
-    #define FALSE               0
-    #define TRUE                1
-    #define CP_ACP                    0
-    #define CP_UTF8             65001
-    #define UOI_NAME        2
-    #define O_BINARY       0x8000
-    #define O_NOINHERIT    0x0080
-    #define O_TEMPORARY    0x0040  /* temporary file bit */
-    #define O_RDONLY       0x0000
-    #define O_WRONLY       0x0001  /* open for writing only */
-    #define O_RDWR         0x0002
-    #define O_APPEND       0x0008  /* writes done at eof */
-    #define O_CREAT        0x0100  /* create and open file */
-    #define O_TRUNC        0x0200  /* open and truncate */
-    #define    O_EXCL         0x0400    /* Open only if the file does not exist. */
-    #define    O_UNKNOWN      0x0800
-    #define O_TEXT         0x4000
-    #define O_CLOEXEC      0x80000
-    #define _O_BINARY      O_BINARY
-    #define _O_NOINHERIT   O_NOINHERIT
-    #define _O_TEMPORARY   O_TEMPORARY
-    #define _O_RDONLY      O_RDONLY
-    #define _O_WRONLY      O_WRONLY
-    #define _O_RDWR        O_RDWR
-    #define _O_APPEND      O_APPEND
-    #define _O_CREAT       O_CREAT
-    #define _O_TRUNC       O_TRUNC
-    #define    _O_EXCL        O_EXCL
-    #define    _O_UNKNOWN     O_UNKNOWN
-    #define _O_TEXT        O_TEXT
-    #define _O_CLOEXEC     O_CLOEXEC
-    #define _SS_MAXSIZE 128                 // Maximum size
-    #define _SS_ALIGNSIZE (sizeof(__int64)) // Desired alignment
-    #define _SS_PAD1SIZE (_SS_ALIGNSIZE - sizeof (short))
-    #define _SS_PAD2SIZE (_SS_MAXSIZE - (sizeof (short) + _SS_PAD1SIZE + _SS_ALIGNSIZE))
-    #define MAKEWORD(a, b)      ((WORD)(((BYTE)(((DWORD_PTR)(a)) & 0xff)) | ((WORD)((BYTE)(((DWORD_PTR)(b)) & 0xff))) << 8))
-    #define MAKELONG(a, b)      ((LONG)(((WORD)(((DWORD_PTR)(a)) & 0xffff)) | ((DWORD)((WORD)(((DWORD_PTR)(b)) & 0xffff))) << 16))
-    #define LOWORD(l)           ((WORD)(((DWORD_PTR)(l)) & 0xffff))
-    #define HIWORD(l)           ((WORD)((((DWORD_PTR)(l)) >> 16) & 0xffff))
-    #define LOBYTE(w)           ((BYTE)(((DWORD_PTR)(w)) & 0xff))
-    #define HIBYTE(w)           ((BYTE)((((DWORD_PTR)(w)) >> 8) & 0xff))
-    #define MAKELANGID(p, s)    ((((WORD)(s)) << 10) | (WORD)(p))
-    #define PRIMARYLANGID(lgid) ((WORD)(lgid) & 0x3ff)
-    #define SUBLANGID(lgid)     ((WORD)(lgid) >> 10)
-    #define _T(STR) STR
-    #define ANYSIZE_ARRAY 1
-    #define MAX_PROTOCOL_CHAIN 7
-    #define WSAPROTOCOL_LEN  255
-    #define BI_RGB        0L
-    #define BI_RLE8       1L
-    #define BI_RLE4       2L
-    #define BI_BITFIELDS  3L
-    #define BI_JPEG       4L
-    #define BI_PNG        5L
-    #define DIB_RGB_COLORS      0 /* color table in RGBs */
-    #define DIB_PAL_COLORS      1 /* color table in palette indices */
-    #define CREATE_BREAKAWAY_FROM_JOB         0x01000000
-    #define CREATE_PRESERVE_CODE_AUTHZ_LEVEL  0x02000000
-    #define CREATE_DEFAULT_ERROR_MODE         0x04000000
-    #define CREATE_NO_WINDOW                  0x08000000
-    #define DEBUG_PROCESS                     0x00000001
-    #define DEBUG_ONLY_THIS_PROCESS           0x00000002
-    #define CREATE_SUSPENDED                  0x00000004
-    #define DETACHED_PROCESS                  0x00000008
+    #define OPEN_EXISTING                    3
+    #define IO_REPARSE_TAG_MOUNT_POINT       (0xA0000003L)
+    #define FILE_SHARE_READ                  0x00000001
+    #define FILE_SHARE_WRITE                 0x00000002
+    #define FILE_SHARE_DELETE                0x00000004
+    #define FILE_ATTRIBUTE_READONLY          0x00000001
+    #define FILE_ATTRIBUTE_HIDDEN            0x00000002
+    #define FILE_ATTRIBUTE_DIRECTORY         0x00000010
+    #define FILE_ATTRIBUTE_REPARSE_POINT     0x00000400
+    #define FILE_FLAG_OPEN_REPARSE_POINT     0x00200000
+    #define FILE_FLAG_BACKUP_SEMANTICS       0x02000000
+    #define INVALID_FILE_ATTRIBUTES          ((DWORD)-1)
+    #define S_IFDIR                          0x4000          /* directory */
+    #define S_IFREG                          0x8000          /* regular */
+    #define S_IREAD                          0x0100          /* read permission, owner */
+    #define S_IWRITE                         0x0080          /* write permission, owner */
+    #define MOVEFILE_REPLACE_EXISTING        0x00000001
+    #define MOVEFILE_COPY_ALLOWED            0x00000002
+    #define INFINITE                         0xFFFFFFFF  // Infinite timeout
+    #define STATUS_WAIT_0                    ((DWORD) 0x00000000L)
+    #define WAIT_OBJECT_0                    ((STATUS_WAIT_0 ) + 0)
+    #define FALSE                            0
+    #define TRUE                             1
+    #define CP_ACP                           0
+    #define CP_UTF8                          65001
+    #define UOI_NAME                         2
+    #define O_BINARY                         0x8000
+    #define O_NOINHERIT                      0x0080
+    #define O_TEMPORARY                      0x0040  /* temporary file bit */
+    #define O_RDONLY                         0x0000
+    #define O_WRONLY                         0x0001  /* open for writing only */
+    #define O_RDWR                           0x0002
+    #define O_APPEND                         0x0008  /* writes done at eof */
+    #define O_CREAT                          0x0100  /* create and open file */
+    #define O_TRUNC                          0x0200  /* open and truncate */
+    #define O_EXCL                           0x0400    /* Open only if the file does not exist. */
+    #define O_UNKNOWN                        0x0800
+    #define O_TEXT                           0x4000
+    #define O_CLOEXEC                        0x80000
+    #define _O_BINARY                        O_BINARY
+    #define _O_NOINHERIT                     O_NOINHERIT
+    #define _O_TEMPORARY                     O_TEMPORARY
+    #define _O_RDONLY                        O_RDONLY
+    #define _O_WRONLY                        O_WRONLY
+    #define _O_RDWR                          O_RDWR
+    #define _O_APPEND                        O_APPEND
+    #define _O_CREAT                         O_CREAT
+    #define _O_TRUNC                         O_TRUNC
+    #define _O_EXCL                          O_EXCL
+    #define _O_UNKNOWN                       O_UNKNOWN
+    #define _O_TEXT                          O_TEXT
+    #define _O_CLOEXEC                       O_CLOEXEC
+    #define _SS_MAXSIZE                      128                 // Maximum size
+    #define _SS_ALIGNSIZE                    (sizeof(__int64)) // Desired alignment
+    #define _SS_PAD1SIZE                     (_SS_ALIGNSIZE - sizeof (short))
+    #define _SS_PAD2SIZE                     (_SS_MAXSIZE - (sizeof (short) + _SS_PAD1SIZE + _SS_ALIGNSIZE))
+    #define MAKEWORD(a, b)                   ((WORD)(((BYTE)(((DWORD_PTR)(a)) & 0xff)) | ((WORD)((BYTE)(((DWORD_PTR)(b)) & 0xff))) << 8))
+    #define MAKELONG(a, b)                   ((LONG)(((WORD)(((DWORD_PTR)(a)) & 0xffff)) | ((DWORD)((WORD)(((DWORD_PTR)(b)) & 0xffff))) << 16))
+    #define LOWORD(l)                        ((WORD)(((DWORD_PTR)(l)) & 0xffff))
+    #define HIWORD(l)                        ((WORD)((((DWORD_PTR)(l)) >> 16) & 0xffff))
+    #define LOBYTE(w)                        ((BYTE)(((DWORD_PTR)(w)) & 0xff))
+    #define HIBYTE(w)                        ((BYTE)((((DWORD_PTR)(w)) >> 8) & 0xff))
+    #define MAKELANGID(p, s)                 ((((WORD)(s)) << 10) | (WORD)(p))
+    #define PRIMARYLANGID(lgid)              ((WORD)(lgid) & 0x3ff)
+    #define SUBLANGID(lgid)                  ((WORD)(lgid) >> 10)
+    #define _T(STR)                          STR
+    #define ANYSIZE_ARRAY                    1
+    #define MAX_PROTOCOL_CHAIN               7
+    #define WSAPROTOCOL_LEN                  255
+    #define BI_RGB                           0L
+    #define BI_RLE8                          1L
+    #define BI_RLE4                          2L
+    #define BI_BITFIELDS                     3L
+    #define BI_JPEG                          4L
+    #define BI_PNG                           5L
+    #define DIB_RGB_COLORS                   0 /* color table in RGBs */
+    #define DIB_PAL_COLORS                   1 /* color table in palette indices */
+    #define CREATE_BREAKAWAY_FROM_JOB        0x01000000
+    #define CREATE_PRESERVE_CODE_AUTHZ_LEVEL 0x02000000
+    #define CREATE_DEFAULT_ERROR_MODE        0x04000000
+    #define CREATE_NO_WINDOW                 0x08000000
+    #define DEBUG_PROCESS                    0x00000001
+    #define DEBUG_ONLY_THIS_PROCESS          0x00000002
+    #define CREATE_SUSPENDED                 0x00000004
+    #define DETACHED_PROCESS                 0x00000008
 
     typedef struct tagCOPYDATASTRUCT {
         ULONG_PTR dwData;
@@ -853,7 +877,7 @@
         };
     } SCOPE_ID, *PSCOPE_ID;
 
-    typedef struct sockaddr {
+    typedef struct boss_fakewin_sockaddr {
         #if (_WIN32_WINNT < 0x0600)
             u_short sa_family;
         #else
@@ -861,15 +885,17 @@
         #endif //(_WIN32_WINNT < 0x0600)
         CHAR sa_data[14];                   // Up to 14 bytes of direct address.
     } SOCKADDR, *PSOCKADDR, *LPSOCKADDR;
+    #define sockaddr boss_fakewin_sockaddr
 
-    struct sockaddr_in {
+    struct boss_fakewin_sockaddr_in {
         short   sin_family;
         u_short sin_port;
         struct  in_addr sin_addr;
         char    sin_zero[8];
     };
+    #define sockaddr_in boss_fakewin_sockaddr_in
 
-    typedef struct sockaddr_storage {
+    typedef struct boss_fakewin_sockaddr_storage {
         ADDRESS_FAMILY ss_family;      // address family
         CHAR __ss_pad1[_SS_PAD1SIZE];  // 6 byte pad, this is to make
                                         //   implementation specific pad up to
@@ -881,6 +907,7 @@
                                         //   ss_family, __ss_pad1, and
                                         //   __ss_align fields is 112
     } SOCKADDR_STORAGE_LH, *PSOCKADDR_STORAGE_LH, *LPSOCKADDR_STORAGE_LH;
+    #define sockaddr_storage boss_fakewin_sockaddr_storage
 
     typedef struct _FILETIME {
         DWORD dwLowDateTime;
@@ -1118,7 +1145,7 @@
         char*         s_proto;
     } SERVENT, *PSERVENT, *LPSERVENT;
 
-    typedef struct addrinfo {
+    typedef struct boss_fakewin_addrinfo {
         struct hostent *ai_hostent;
         struct servent *ai_servent;
         struct sockaddr_in ai_addr_in;
@@ -1128,8 +1155,13 @@
         int ai_socktype;
         int ai_protocol;
         long ai_port;
-        struct addrinfo *ai_next;
+        struct boss_fakewin_addrinfo *ai_next;
+        #if BOSS_LINUX
+            int ai_flags;
+            char* ai_canonname;
+        #endif
     } ADDRINFOA, *PADDRINFOA;
+    #define addrinfo boss_fakewin_addrinfo
 
     typedef struct _WSAPROTOCOLCHAIN {
         int   ChainLen;

@@ -158,7 +158,7 @@
 #  include <sys/poll.h>
 #endif
 
-#if BOSS_MAC_OSX || BOSS_IPHONE
+#if BOSS_LINUX || BOSS_MAC_OSX || BOSS_IPHONE
     #define CURL_SIZEOF_LONG           8
     #define CURL_TYPEOF_CURL_SOCKLEN_T int
     #define CURL_SIZEOF_CURL_SOCKLEN_T 4
