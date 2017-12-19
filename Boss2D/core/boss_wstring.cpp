@@ -205,8 +205,8 @@ namespace BOSS
 
     WString::WString(wchars rhs, sint32 length) : m_words(BlankString())
     {
-        BOSS_ASSERT("정상적인 파라미터가 아닙니다", rhs && -1 <= length);
-        if(*rhs != L'\0' && length != 0)
+        BOSS_ASSERT("정상적인 파라미터가 아닙니다", -1 <= length);
+        if(rhs && *rhs != L'\0' && length != 0)
         {
             if(length == -1)
                 operator=(rhs);

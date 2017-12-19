@@ -31,8 +31,8 @@ namespace BOSS
 
     String::String(chars rhs, sint32 length) : m_words(BlankString()), m_findmap(sint32s::Null())
     {
-        BOSS_ASSERT("정상적인 파라미터가 아닙니다", rhs && -1 <= length);
-        if(*rhs != '\0' && length != 0)
+        BOSS_ASSERT("정상적인 파라미터가 아닙니다", -1 <= length);
+        if(rhs && *rhs != '\0' && length != 0)
         {
             if(length == -1)
                 operator=(rhs);

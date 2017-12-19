@@ -355,12 +355,12 @@ namespace BOSS
                 if(option == SO_NeedCopy)
                 {
                     BOSS_ASSERT("SO_NeedCopy모드에서 length인수는 -1값이 될 수 없습니다", length != -1);
-                    BOSS_ASSERT("SO_NeedCopy모드에서 src인수는 null문자로 끝나야 합니다", src[length] == '\0');
                     m_buffer = Buffer::Alloc(BOSS_DBG length + 1);
-                    Memory::Copy(m_buffer, src, length + 1);
+                    Memory::Copy(m_buffer, src, length);
+                    ((char*) m_buffer)[length] = '\0';
                 }
                 else m_string = src;
-                m_length = length; // PSO_OnlyReference의 경우 -1값도 가능
+                m_length = length; // SO_OnlyReference의 경우 -1값도 가능
             }
 
             inline chars GetString() const

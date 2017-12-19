@@ -2104,7 +2104,7 @@
 
             CurSocketBox->m_socket->disconnectFromHost();
             const bool Result = (CurSocketBox->m_socket->state() == QAbstractSocket::UnconnectedState ||
-                    CurSocketBox->m_socket->waitForDisconnected(timeout));
+                CurSocketBox->m_socket->waitForDisconnected(timeout));
 
             BOSS_TRACE("Disconnect()%s", Result? "" : " - Failed");
             return Result;

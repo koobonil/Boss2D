@@ -88,17 +88,12 @@
     <ClCompile Include="..\service\boss_camera360service.cpp" />
     <ClCompile Include="..\service\boss_livechatservice.cpp" />
     <ClCompile Include="..\service\boss_oauth2service.cpp" />
+    <ClCompile Include="..\service\boss_parasource.cpp" />
     <ClCompile Include="..\service\boss_streamingservice.cpp" />
     <ClCompile Include="..\service\boss_tryworld.cpp" />
     <ClCompile Include="..\service\boss_zay.cpp" />
-    <ClCompile Include="GeneratedFiles\Debug\moc_boss_platform_qt5.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_boss_platform_qt5.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_boss_platform_qt5.cpp" />
+    <ClCompile Include="GeneratedFiles\Release\moc_boss_platform_qt5.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\addon\boss_addon_aac.hpp" />
@@ -168,17 +163,6 @@
     <ClInclude Include="..\platform\boss_platform_cocos2dx.hpp" />
     <ClInclude Include="..\platform\boss_platform_impl.hpp" />
     <ClInclude Include="..\platform\boss_platform_native.hpp" />
-    <ClInclude Include="..\service\boss_asyncfilemanager.hpp" />
-    <ClInclude Include="..\service\boss_backey.hpp" />
-    <ClInclude Include="..\service\boss_batchbuilder.hpp" />
-    <ClInclude Include="..\service\boss_boxr.hpp" />
-    <ClInclude Include="..\service\boss_brii.hpp" />
-    <ClInclude Include="..\service\boss_camera360service.hpp" />
-    <ClInclude Include="..\service\boss_livechatservice.hpp" />
-    <ClInclude Include="..\service\boss_oauth2service.hpp" />
-    <ClInclude Include="..\service\boss_streamingservice.hpp" />
-    <ClInclude Include="..\service\boss_tryworld.hpp" />
-    <ClInclude Include="..\service\boss_zay.hpp" />
     <CustomBuild Include="..\platform\boss_platform_qt5.hpp">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing boss_platform_qt5.hpp...</Message>
@@ -197,6 +181,18 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DWIN32 -DNDEBUG -DQT_DLL -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQT_MULTIMEDIA_LIB -DQT_BLUETOOTH_LIB -DQT_SERIALPORT_LIB -DQT_WEBENGINEWIDGETS_LIB -DBOSS_NDEBUG=1 -DQT_NO_DEBUG "-D$(NOINHERIT)\." "-I$(SolutionDir)..\source" "-I.\..\..\Boss2D\core" "-I.\..\..\Boss2D" "-I$(QTDIR)\include" "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtNetwork" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWidgets" "-I$(QTDIR)\include\QtMultimedia" "-I$(QTDIR)\include\QtBluetooth" "-I$(QTDIR)\include\QtSerialPort" "-I$(QTDIR)\include\QtWebEngineWidgets" "-I.\GeneratedFiles" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(NOINHERIT)\."</Command>
     </CustomBuild>
+    <ClInclude Include="..\service\boss_asyncfilemanager.hpp" />
+    <ClInclude Include="..\service\boss_backey.hpp" />
+    <ClInclude Include="..\service\boss_batchbuilder.hpp" />
+    <ClInclude Include="..\service\boss_boxr.hpp" />
+    <ClInclude Include="..\service\boss_brii.hpp" />
+    <ClInclude Include="..\service\boss_camera360service.hpp" />
+    <ClInclude Include="..\service\boss_livechatservice.hpp" />
+    <ClInclude Include="..\service\boss_oauth2service.hpp" />
+    <ClInclude Include="..\service\boss_parasource.hpp" />
+    <ClInclude Include="..\service\boss_streamingservice.hpp" />
+    <ClInclude Include="..\service\boss_tryworld.hpp" />
+    <ClInclude Include="..\service\boss_zay.hpp" />
     <ClInclude Include="..\platform\win32\glew.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

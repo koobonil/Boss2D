@@ -516,7 +516,7 @@ namespace BOSS
             }
             dst += "\r\n";
         }
-        else if(m_valueOffset)
+        else if(m_valueOffset && *m_valueOffset)
         {
             for(sint32 i = 0; i < tab; ++i)
                 dst += '\t';
