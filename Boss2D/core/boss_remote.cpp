@@ -384,7 +384,7 @@ private:
         }
 
         // 수신처리
-        while(client.m_isConnected && 4 < Platform::Socket::RecvAvailable(client.m_id))
+        while(client.m_isConnected && 4 < Platform::Socket::RecvAvailable(client.m_id, 1))
         {
             sint32 PacketSize = 0;
             Platform::Socket::Recv(client.m_id, (uint08*) &PacketSize, 4);

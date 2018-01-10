@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include <boss.hpp>
+#include <service/boss_zay.hpp>
 
 namespace BOSS
 {
@@ -8,22 +8,48 @@ namespace BOSS
     class ParaSource
     {
     public:
-        ParaSource();
-        ~ParaSource();
+        class View
+        {
+        public:
+            View();
+            virtual ~View();
+
+        public:
+            void Init(chars script);
+            virtual ZayPanel::SubRenderCB GetRenderer();
+
+        protected:
+            id_tasking mTasking;
+            Image mImage;
+            uint64 mLoadingMsec;
+        };
 
     public:
-        void SetContact(chars domain, uint16 port, sint32 timeout = 5000);
-        bool GetFile(uint08s& file, chars path, chars args = nullptr);
-        bool GetJson(Contexts& jsons, chars path, chars args = nullptr);
+        enum Type {IIS, NaverCafe};
+
+    public:
+        ParaSource(Type type);
+        ~ParaSource();
 
     public:
         inline chars GetLastError() const {return mLastError;}
 
-    private:
-        bool HTTPQuery(chars path, chars args);
+    public:
+        void SetContact(chars domain, uint16 port, sint32 timeout = 5000);
+        bool GetFile(uint08s& file, chars path, chars args = nullptr);
+        bool GetJson(Context& json, chars path, chars args = nullptr);
+        bool GetJsons(Contexts& jsons, chars path, chars args = nullptr);
+        bool GetLastSpecialJson(Context& json);
 
     private:
-        chararray mResponseText;
+        typedef bool (*JsonLoaderCB)(payload data, chars content, sint32 length);
+        bool LoadJsons(JsonLoaderCB cb, payload data, chars path, chars args);
+        bool HTTPQuery(chars path, chars args);
+        bool SetLastError(chars message);
+
+    private:
+        const Type mType;
+        chararray mResponseData;
         ContactPool* mLastContact;
         String mLastError;
     };

@@ -1,30 +1,52 @@
 ﻿#include <platform/boss_platform.hpp>
 #include "boss_parasource.hpp"
 
+#include <functional>
+
 namespace BOSS
 {
     class ContactPool
     {
-    public:
+    private:
         typedef Map<ContactPool> ContactPoolMap;
         typedef Map<ContactPoolMap> ContactPoolMapMap;
-        class ST
+        typedef Map<ContactPoolMapMap> ContactPoolMapMapMap;
+        class STClass
         {
-            static ContactPoolMapMap _;
         public:
-            static ContactPool& GetContact(chars domain, uint16 port) {return _(domain)[port];}
-            static bool RemoveContact(chars domain, uint16 port)
-            {
-                if(auto Domain = _.Access(domain))
-                if(Domain->Remove(port))
-                {
-                    if(Domain->Count() == 0)
-                        _.Remove(domain);
-                    return true;
-                }
-                return false;
-            }
+            STClass() {m_mutex = Mutex::Open();}
+            ~STClass() {Mutex::Close(m_mutex);}
+        public:
+            ContactPoolMapMapMap m_mapmapmap;
+            id_mutex m_mutex;
         };
+        static inline STClass& ST() {static STClass _; return _;}
+
+    public:
+        static ContactPool& GetContact(chars domain, uint16 port)
+        {
+            Mutex::Lock(ST().m_mutex);
+            const uint64 ThreadID = Platform::Utility::CurrentThreadID();
+            ContactPool* Ptr = &ST().m_mapmapmap[ThreadID](domain)[port];
+            Mutex::Unlock(ST().m_mutex);
+            return *Ptr;
+        }
+        static bool RemoveContact(chars domain, uint16 port)
+        {
+            bool Result = false;
+            Mutex::Lock(ST().m_mutex);
+            const uint64 ThreadID = Platform::Utility::CurrentThreadID();
+            if(auto Thread = ST().m_mapmapmap.Access(ThreadID))
+            if(auto Domain = Thread->Access(domain))
+            if(Domain->Remove(port))
+            {
+                Result = true;
+                if(Domain->Count() == 0)
+                    ST().m_mapmapmap.Remove(domain);
+            }
+            Mutex::Unlock(ST().m_mutex);
+            return Result;
+        }
 
     public:
         ContactPool() {mConnected = false; mSocket = nullptr; mPort = 0; mTimeOut = 0;}
@@ -59,46 +81,55 @@ namespace BOSS
         bool Send(chars data, sint32 size)
         {
             if(!Connect()) return false;
-            while(mConnected && 0 < size)
+            sint32 SendSize = size;
+            while(0 < SendSize)
             {
-                auto Result = Platform::Socket::Send(mSocket, (bytes) data, Math::Min(4096, size), mTimeOut);
-                if(Result < 0)
-                    mConnected = false;
+                const sint32 SendResult = Platform::Socket::Send(mSocket, (bytes) data, SendSize, mTimeOut);
+                if(SendResult < 0) return (mConnected = false);
                 else
                 {
-                    data += Result;
-                    size -= Result;
+                    data += SendResult;
+                    SendSize -= SendResult;
                 }
             }
-            return mConnected;
+            return true;
         }
         bool Recv(chararray& data)
         {
             if(!Connect()) return false;
-            sint32 Result1 = Platform::Socket::RecvAvailable(mSocket);
-            if(Result1 < 0)
-                mConnected = false;
-            else
+            uint08 RecvBuffer[4096];
+            const sint32 RecvSize = Platform::Socket::Recv(mSocket, RecvBuffer, 4096, mTimeOut);
+            if(RecvSize < 0) return (mConnected = (RecvSize == -10035));
+            else if(0 < RecvSize)
+                Memory::Copy(data.AtDumpingAdded(RecvSize), RecvBuffer, RecvSize);
+            return true;
+        }
+        typedef std::function<bool()> RecvLoopCB;
+        bool RecvLoop(chararray& data, RecvLoopCB cb)
+        {
+            sint32 LastResponseCount = data.Count();
+            uint64 LastResponseTimeMsec = Platform::Utility::CurrentTimeMsec();
+            while(Recv(data))
             {
-                char* NewData = data.AtDumpingAdded(Result1);
-                while(mConnected && 0 < Result1)
+                if(cb()) return true;
+                if(LastResponseCount < data.Count())
                 {
-                    const sint32 Result2 = Platform::Socket::Recv(mSocket, (uint08*) NewData, Result1, mTimeOut);
-                    if(Result2 == -10035) continue;
-                    if(Result2 < 0)
-                        mConnected = false;
-                    else
-                    {
-                        NewData += Result2;
-                        Result1 -= Result2;
-                    }
+                    LastResponseCount = data.Count();
+                    LastResponseTimeMsec = Platform::Utility::CurrentTimeMsec();
+                }
+                else if(isTimeOut(LastResponseTimeMsec))
+                {
+                    Disconnect();
+                    return false;
                 }
             }
-            return mConnected;
+            return false;
         }
 
     public:
         inline chars domain() const {return mDomain;}
+        inline bool isTimeOut(uint64 msec) const
+        {return (mTimeOut < Platform::Utility::CurrentTimeMsec() - msec);}
 
     private:
         bool mConnected;
@@ -117,21 +148,29 @@ namespace BOSS
         Array<Cookie> mCookies;
         Map<Cookie*> mCookieMap;
     };
-    ContactPool::ContactPoolMapMap ContactPool::ST::_;
 
     class CachePool
     {
-    public:
+    private:
         typedef Array<CachePool> CachePoolArray;
-        class ST
+        class STClass
         {
-            static CachePoolArray _;
         public:
-            static CachePool& Add() {return _.AtAdding();}
-            static CachePool& Get(sint32 i) {return _.AtWherever(i);}
-            static void Remove(sint32 i) {_.SubtractionSection(i);}
-            static sint32 Count() {return _.Count();}
+            STClass() {m_mutex = Mutex::Open();}
+            ~STClass() {Mutex::Close(m_mutex);}
+        public:
+            CachePoolArray m_array;
+            id_mutex m_mutex;
         };
+        static inline STClass& ST() {static STClass _; return _;}
+
+    public:
+        static void Lock() {Mutex::Lock(ST().m_mutex);}
+        static void Unlock() {Mutex::Unlock(ST().m_mutex);}
+        static CachePool& Add() {return ST().m_array.AtAdding();}
+        static CachePool& Get(sint32 i) {return ST().m_array.AtWherever(i);}
+        static void Remove(sint32 i) {ST().m_array.SubtractionSection(i);}
+        static sint32 Count() {return ST().m_array.Count();}
 
     public:
         CachePool() {mSize = 0; mDate = 0;}
@@ -142,9 +181,142 @@ namespace BOSS
         uint64 mSize;
         uint64 mDate;
     };
-    CachePool::CachePoolArray CachePool::ST::_;
 
-    ParaSource::ParaSource()
+    ////////////////////////////////////////////////////////////////////////////////
+    // ParaSource::View
+    ////////////////////////////////////////////////////////////////////////////////
+    ParaSource::View::View()
+    {
+        mTasking = nullptr;
+        mLoadingMsec = 0;
+    }
+
+    ParaSource::View::~View()
+    {
+        Tasking::Release(mTasking);
+    }
+
+    void ParaSource::View::Init(chars script)
+    {
+        if(!mTasking)
+        {
+            String Script = script;
+            // <a href...> 코드의 제거
+            sint32 APos = 0;
+            while((APos = Script.Find(0, "<")) != -1)
+            {
+                const sint32 APosEnd = Script.Find(APos + 1, ">");
+                if(APosEnd != -1)
+                    Script = Script.Left(APos) + Script.Right(Script.Length() - 1 - APosEnd);
+            }
+            chars ScriptPtr = Script;
+
+            // 파싱
+            sint32 NamePos = Script.Find(0, "[name]");
+            String Name;
+            if(NamePos != -1)
+            {
+                NamePos += 6; // [name]
+                while(ScriptPtr[NamePos] == ' ') NamePos++;
+                while(ScriptPtr[NamePos] != ' ' && ScriptPtr[NamePos] != '\0' && ScriptPtr[NamePos] != '[')
+                    Name += ScriptPtr[NamePos++];
+            }
+            sint32 UrlPos = Script.Find(0, "[url]");
+            String Url;
+            if(UrlPos != -1)
+            {
+                UrlPos += 5; // [url]
+                while(ScriptPtr[UrlPos] == ' ') UrlPos++;
+                while(ScriptPtr[UrlPos] != ' ' && ScriptPtr[UrlPos] != '\0' && ScriptPtr[UrlPos] != '[')
+                    Url += ScriptPtr[UrlPos++];
+            }
+            // 로딩
+            if(0 < Name.Length() && 0 < Url.Length())
+            {
+                const String AssetName = "paraview/" + Name;
+                // 태스킹을 통한 캐시화
+                if(Asset::Exist(AssetName) == roottype_null)
+                {
+                    Strings* NewStrings = (Strings*) Buffer::Alloc<Strings>(BOSS_DBG 1);
+                    NewStrings->AtAdding() = AssetName;
+                    NewStrings->AtAdding() = Url;
+                    mTasking = Tasking::Create(
+                        [](buffer& self, Queue<buffer>& query, Queue<buffer>& answer, id_common common)->sint32
+                        {
+                            const Strings& CurStrings = *((Strings*) self);
+                            if(!String::CompareNoCase(CurStrings[1], "http://", 7))
+                            {
+                                const String Url = CurStrings[1].Right(CurStrings[1].Length() - 7);
+                                sint32 SlashPos = Url.Find(0, '/');
+                                if(SlashPos != -1)
+                                {
+                                    ParaSource Source(ParaSource::IIS);
+                                    Source.SetContact(Url.Left(SlashPos), 80);
+                                    uint08s Data;
+                                    if(Source.GetFile(Data, Url.Right(Url.Length() - 1 - SlashPos)))
+                                    {
+                                        id_asset NewAsset = Asset::OpenForWrite(CurStrings[0], true);
+                                        Asset::Write(NewAsset, &Data[0], Data.Count());
+                                        Asset::Close(NewAsset);
+                                        answer.Enqueue((buffer)(id_cloned_share) CurStrings[0]);
+                                    }
+                                }
+                            }
+                            return -1;
+                        }, (buffer) NewStrings);
+                }
+                // 캐시에서 로딩
+                else if(mImage.SetName(AssetName).Load())
+                    mLoadingMsec = Platform::Utility::CurrentTimeMsec() - 1000;
+            }
+        }
+    }
+
+    ZayPanel::SubRenderCB ParaSource::View::GetRenderer()
+    {
+        return ZAY_RENDER_PN(p, n, this)
+        {
+            if(mImage.HasBitmap())
+            {
+                uint64 CurMsec = Platform::Utility::CurrentTimeMsec();
+                if(CurMsec < mLoadingMsec + 1000)
+                {
+                    const sint32 Opacity = 128 - 128 * Math::Clamp(mLoadingMsec + 1000 - CurMsec, 0, 1000) / 1000;
+                    ZAY_RGBA(p, 128, 128, 128, Opacity)
+                        p.stretch(mImage, true);
+                }
+                else p.stretch(mImage, true);
+            }
+            else if(mTasking)
+            {
+                // 태스킹후 캐시에서 로딩
+                if(buffer Buffer = Tasking::GetAnswer(mTasking))
+                {
+                    const String AssetName((id_cloned_share) Buffer);
+                    if(Asset::Exist(AssetName) != roottype_null)
+                    {
+                        if(mImage.SetName(AssetName).Load())
+                            mLoadingMsec = Platform::Utility::CurrentTimeMsec();
+                    }
+                }
+            }
+        };
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // ParaSource
+    ////////////////////////////////////////////////////////////////////////////////
+    static const String gCommentText = "/CommentView.nhn?";
+    static const String gJsonBeginText = "#json begin";
+    static const String gJsonEndText = "#json end";
+    static const String gArticleText = "//cafe.naver.com/ArticleRead.nhn?";
+    static const String gEndCodeText = "\r\n\r\n";
+    static const String gContentLengthText = "Content-Length:";
+    static const String gConnectionText = "Connection: keep-alive";
+    static const String gTransferEncodingText = "Transfer-Encoding:";
+    static const String gSetCookieText = "Set-Cookie:";
+
+    ParaSource::ParaSource(Type type) : mType(type)
     {
         mLastContact = nullptr;
     }
@@ -155,51 +327,151 @@ namespace BOSS
 
     void ParaSource::SetContact(chars domain, uint16 port, sint32 timeout)
     {
-        mLastContact = &ContactPool::ST::GetContact(domain, port);
+        mLastContact = &ContactPool::GetContact(domain, port);
         mLastContact->InitForFirstTime(domain, port, timeout);
     }
 
     bool ParaSource::GetFile(uint08s& file, chars path, chars args)
     {
         if(!HTTPQuery(path, args)) return false;
-        const sint32 BinarySize = mResponseText.Count() - 1;
-        Memory::Copy(file.AtDumpingAdded(BinarySize), &mResponseText[0], BinarySize);
+        const sint32 ResponseCount = mResponseData.Count();
+        Memory::Copy(file.AtDumpingAdded(ResponseCount), &mResponseData[0], ResponseCount);
         return true;
     }
 
-    bool ParaSource::GetJson(Contexts& jsons, chars path, chars args)
+    bool ParaSource::GetJson(Context& json, chars path, chars args)
+    {
+        return LoadJsons([](payload data, chars content, sint32 length)->bool
+            {
+                Context* Json = (Context*) data;
+                Json->LoadJson(SO_NeedCopy, content, length);
+                return false;
+            }, &json, path, args);
+    }
+
+    bool ParaSource::GetJsons(Contexts& jsons, chars path, chars args)
+    {
+        return LoadJsons([](payload data, chars content, sint32 length)->bool
+            {
+                Contexts* Jsons = (Contexts*) data;
+                auto& NewJson = Jsons->AtAdding();
+                NewJson.LoadJson(SO_NeedCopy, content, length);
+                return true;
+            }, &jsons, path, args);
+    }
+
+    bool ParaSource::GetLastSpecialJson(Context& json)
+    {
+        if(mType == NaverCafe)
+        {
+            const String SourcePage(&mResponseData[0], mResponseData.Count());
+            // CommentText의 검색
+            sint32 Pos = SourcePage.Find(0, gCommentText);
+            if(Pos != -1)
+            {
+                sint32 PosBegin = Pos + gCommentText.Length();
+                sint32 PosEnd = PosBegin;
+                while(SourcePage[PosEnd] != '\'') PosEnd++;
+                // Args의 구성
+                String Args(&mResponseData[PosBegin], PosEnd - PosBegin);
+                while(true)
+                {
+                    const sint32 ArgBegin = Args.Find(0, '{');
+                    const sint32 ArgEnd = Args.Find(0, '}');
+                    if(ArgBegin != -1 && ArgBegin < ArgEnd)
+                    {
+                        const String ArgText(((chars) Args) + ArgBegin + 1, ArgEnd - ArgBegin - 1);
+                        const String FindText = String::Format("name=\"%s\" value=\"", (chars) ArgText);
+                        sint32 FindPos = SourcePage.Find(0, FindText);
+                        if(FindPos != -1)
+                        {
+                            sint32 FindPosBegin = FindPos + FindText.Length();
+                            sint32 FindPosEnd = FindPosBegin;
+                            while(SourcePage[FindPosEnd] != '\"') FindPosEnd++;
+                            String FindResult(&mResponseData[FindPosBegin], FindPosEnd - FindPosBegin);
+                            Args.Replace(String(((chars) Args) + ArgBegin, ArgEnd - ArgBegin + 1), FindResult);
+                        }
+                        else return SetLastError("Comment-Text is broken.");
+                    }
+                    else break;
+                }
+                // 쿼리
+                if(HTTPQuery("CommentView.nhn", Args))
+                {
+                    json.LoadJson(SO_NeedCopy, &mResponseData[0], mResponseData.Count());
+                    return true;
+                }
+            }
+            return SetLastError("Comment-Text not found.");
+        }
+        return false;
+    }
+
+    bool ParaSource::LoadJsons(JsonLoaderCB cb, payload data, chars path, chars args)
     {
         if(!HTTPQuery(path, args)) return false;
-        static const String JsonBeginText = "#json begin";
-        static const String JsonEndText = "#json end";
+        if(mType == NaverCafe)
+        {
+            const String SourcePage(&mResponseData[0], mResponseData.Count());
+            // ArticleText의 검색
+            sint32 Pos = SourcePage.Find(0, gArticleText);
+            if(Pos != -1)
+            {
+                sint32 PosBegin = Pos + gArticleText.Length();
+                sint32 PosEnd = PosBegin;
+                while(SourcePage[PosEnd] != '\"') PosEnd++;
+                // 쿼리
+                String Args(((chars) SourcePage) + PosBegin, PosEnd - PosBegin);
+                Args += "&page=1&boardtype=L&referrerAllArticles=true";
+                if(!HTTPQuery("ArticleRead.nhn", Args))
+                    return false;
+            }
+            else return SetLastError("Article-Text not found.");
+        }
 
-        const String TextData(mResponseText);
+        bool Result = false;
+        const String TextData(&mResponseData[0], mResponseData.Count());
         sint32 OldPos = 0, BeginPos = 0;
-        while((BeginPos = TextData.Find(OldPos, JsonBeginText)) != -1)
+        while((BeginPos = TextData.Find(OldPos, gJsonBeginText)) != -1)
         {
             BeginPos += 11; // "#json begin"
-            const sint32 EndPos = TextData.Find(BeginPos, JsonEndText);
+            const sint32 EndPos = TextData.Find(BeginPos, gJsonEndText);
             if(BeginPos < EndPos)
             {
                 String FileName;
-                while(mResponseText[++BeginPos] != ')') // "("
-                    FileName += mResponseText[BeginPos];
+                while(mResponseData[++BeginPos] != ')') // "("
+                    FileName += mResponseData[BeginPos];
                 BOSS_TRACE("ParaSource.GetJson(%s)", (chars) FileName);
-                auto& NewJson = jsons.AtAdding();
-                NewJson.LoadJson(SO_NeedCopy, &mResponseText[BeginPos + 1], EndPos - (BeginPos + 1));
+
+                chars ContentPtr = &mResponseData[BeginPos + 1];
+                sint32 ContentLength = EndPos - (BeginPos + 1);
+                chararray ContentBuffer;
+                if(mType == NaverCafe)
+                {
+                    for(sint32 i = 0; i < ContentLength; ++i)
+                    {
+                        if(ContentPtr[i] != '<')
+                            ContentBuffer.AtAdding() = ContentPtr[i];
+                        else while(ContentPtr[++i] != '>');
+                    }
+                    ContentPtr = &ContentBuffer[0];
+                    ContentLength = ContentBuffer.Count();
+                }
+
+                if(!cb(data, ContentPtr, ContentLength))
+                    return true;
                 OldPos = EndPos + 9; // "#json end"
+                Result = true;
             }
         }
-        return true;
+        return Result;
     }
 
     bool ParaSource::HTTPQuery(chars path, chars args)
     {
+        mResponseData.SubtractionAll();
         if(!mLastContact)
-        {
-            mLastError = "You need to call by SetContact() first.";
-            return false;
-        }
+            return SetLastError("You need to call by SetContact() first.");
 
         // 쿠키모음
         String AllCookies;
@@ -212,7 +484,7 @@ namespace BOSS
         }
         AllCookies += "\r\n";
 
-        // 쿼리제작
+        // 쿼리전송
         const bool HasArgs = (args && *args);
         const String RequestText = String::Format(
             "GET /%s%s%s HTTP/1.1\r\n"
@@ -223,101 +495,138 @@ namespace BOSS
             "Host: %s\r\n"
             "Connection: Keep-Alive\r\n"
             "%s", path, (HasArgs)? "?" : "", (HasArgs)? args : "", mLastContact->domain(), (chars) AllCookies);
-
-        // 쿼리전송
         if(!mLastContact->Send(RequestText, RequestText.Length()))
-        {
-            mLastError = "Failed sending for HTTP request.";
-            return false;
-        }
-        else Platform::Utility::Sleep(0, false);
+            return SetLastError("Failed sending for HTTP request.");
 
         sint32 EndCodePos = -1;
-        sint32 ContentLength = 0;
+        sint32 ContentLength = -1;
         bool KeepAlive = false;
+        bool Chunked = false;
 
-        // HTTP헤더수신
-        static chararray HttpData;
-        HttpData.SubtractionAll();
-        while(mLastContact->Recv(HttpData))
-        {
-            static const String EndCodeText = "\r\n\r\n";
-            static const String ContentLengthText = "Content-Length:";
-            static const String ConnectionText = "Connection: keep-alive";
-            static const String SetCookieText = "Set-Cookie:";
-            HttpData.AtAdding() = '\0';
-            const String TextData(HttpData);
-            EndCodePos = TextData.Find(0, EndCodeText);
-            if(EndCodePos != -1)
+        // HTTP헤더 수신
+        chararray HttpData;
+        String HttpText;
+        if(mLastContact->RecvLoop(HttpData,
+            [&]()->bool
             {
-                EndCodePos += 4; // "\r\n\r\n"
-                // ContentLength체크
-                auto ContentLengthPos = TextData.Find(0, ContentLengthText);
-                if(ContentLengthPos != -1)
+                if(0 < HttpData.Count())
                 {
-                    ContentLengthPos += 15; // "Content-Length:"
-                    while(HttpData[ContentLengthPos] == ' ') ContentLengthPos++;
-                    ContentLength = Parser::GetInt(&HttpData[ContentLengthPos]);
-                }
-                // Connection체크
-                auto ConnectionPos = TextData.Find(0, ConnectionText);
-                if(ConnectionPos != -1)
-                    KeepAlive = true;
-                // SetCookie체크
-                sint32 CurCookiePos = 0, NextCookiePos = 0;
-                while((NextCookiePos = TextData.Find(CurCookiePos, SetCookieText)) != -1)
-                {
-                    CurCookiePos = NextCookiePos + 11; // "Set-Cookie:"
-                    String NewName, NewValue;
-                    while(TextData[CurCookiePos] == ' ') CurCookiePos++;
-                    while(TextData[CurCookiePos] != '=') NewName += TextData[CurCookiePos++];
-                    while(TextData[CurCookiePos] != '\r') NewValue += TextData[CurCookiePos++];
-                    if(auto OldCookie = mLastContact->mCookieMap.Access(NewName))
-                        (*OldCookie)->mValue = NewValue;
-                    else
+                    HttpText = String(&HttpData[0], HttpData.Count());
+                    EndCodePos = HttpText.Find(0, gEndCodeText);
+                    if(EndCodePos != -1)
                     {
-                        auto& NewCookie = mLastContact->mCookies.AtAdding();
-                        NewCookie.mName = NewName;
-                        NewCookie.mValue = NewValue;
-                        mLastContact->mCookieMap(NewName) = &NewCookie;
+                        EndCodePos += 4; // "\r\n\r\n"
+                        return true;
                     }
                 }
-                HttpData.SubtractionOne();
-                break;
-            }
-            HttpData.SubtractionOne();
-            Platform::Utility::Sleep(1, false);
-        }
-        if(EndCodePos == -1)
+                return false;
+            }))
         {
-            mLastError = "Failed receive HTTP header.";
-            return false;
+            // ContentLength체크
+            auto ContentLengthPos = HttpText.Find(0, gContentLengthText);
+            if(ContentLengthPos != -1)
+            {
+                ContentLengthPos += 15; // "Content-Length:"
+                while(HttpText[ContentLengthPos] == ' ') ContentLengthPos++;
+                ContentLength = Parser::GetInt(((chars) HttpText) + ContentLengthPos);
+            }
+            // Connection체크
+            KeepAlive = (HttpText.Find(0, gConnectionText) != -1);
+            // TransferEncoding체크
+            auto TransferEncodingPos = HttpText.Find(0, gTransferEncodingText);
+            if(TransferEncodingPos != -1)
+            {
+                TransferEncodingPos += 18; // "Transfer-Encoding:"
+                String EncodingCode;
+                while(HttpText[TransferEncodingPos] == ' ') TransferEncodingPos++;
+                while(boss_isalnum(HttpText[TransferEncodingPos])) EncodingCode += HttpText[TransferEncodingPos++];
+                if(!EncodingCode.Compare("chunked")) Chunked = true;
+                else BOSS_ASSERT("알 수 없는 TransferEncoding입니다", false);
+            }
+            // SetCookie체크
+            sint32 CurCookiePos = 0, NextCookiePos = 0;
+            while((NextCookiePos = HttpText.Find(CurCookiePos, gSetCookieText)) != -1)
+            {
+                CurCookiePos = NextCookiePos + 11; // "Set-Cookie:"
+                String NewName, NewValue;
+                while(HttpText[CurCookiePos] == ' ') CurCookiePos++;
+                while(HttpText[CurCookiePos] != '=') NewName += HttpText[CurCookiePos++];
+                while(HttpText[CurCookiePos] != '\r') NewValue += HttpText[CurCookiePos++];
+                if(auto OldCookie = mLastContact->mCookieMap.Access(NewName))
+                    (*OldCookie)->mValue = NewValue;
+                else
+                {
+                    auto& NewCookie = mLastContact->mCookies.AtAdding();
+                    NewCookie.mName = NewName;
+                    NewCookie.mValue = NewValue;
+                    mLastContact->mCookieMap(NewName) = &NewCookie;
+                }
+            }
+        }
+        else return SetLastError("Failed receive HTTP header.");
+
+        // HTTP데이터 수신(기존)
+        const sint32 CopyLen = HttpData.Count() - EndCodePos;
+        if(0 < CopyLen) Memory::Copy(mResponseData.AtDumpingAdded(CopyLen), &HttpData.At(EndCodePos), CopyLen);
+        const bool NeedMoreRecv = (Chunked)? (mResponseData.Count() < 5 || !!Memory::Compare(&mResponseData[-5], "0\r\n\r\n", 5))
+            : (mResponseData.Count() < ContentLength);
+        // HTTP데이터 수신(추가분)
+        if(NeedMoreRecv)
+        {
+            if(Chunked)
+            {
+                if(!mLastContact->RecvLoop(mResponseData,
+                    [&]()->bool {return (5 <= mResponseData.Count() && !Memory::Compare(&mResponseData[-5], "0\r\n\r\n", 5));}))
+                    return SetLastError("Failed receive HTTP data.");
+            }
+            else
+            {
+                if(!mLastContact->RecvLoop(mResponseData,
+                    [&]()->bool {return (ContentLength <= mResponseData.Count());}))
+                    return SetLastError("Failed receive HTTP data.");
+            }
         }
 
-        // HTTP데이터수신
-        bool Success = false;
-        mResponseText.SubtractionAll();
-        const sint32 CopyLen = HttpData.Count() - EndCodePos;
-        Memory::Copy(mResponseText.AtDumping(0, CopyLen), &HttpData.At(EndCodePos), CopyLen);
-        while(mLastContact->Recv(mResponseText))
+        // HTTP데이터 후가공
+        if(Chunked)
         {
-            if(mResponseText.Count() == ContentLength)
+            chararray NewResponseData;
+            chars ChunkPtr = &mResponseData[0];
+            sint32 LastChunkSize = 0;
+            for(sint32 i = 0, iend = mResponseData.Count(); i < iend; ++i)
             {
-                Success = true;
-                break;
+                const char CurChar = ChunkPtr[i];
+                if('0' <= CurChar && CurChar <= '9') LastChunkSize = LastChunkSize * 16 + (CurChar - '0');
+                else if('a' <= CurChar && CurChar <= 'f') LastChunkSize = LastChunkSize * 16 + 10 + (CurChar - 'a');
+                else if('A' <= CurChar && CurChar <= 'F') LastChunkSize = LastChunkSize * 16 + 10 + (CurChar - 'A');
+                else
+                {
+                    if(0 < LastChunkSize)
+                        Memory::Copy(NewResponseData.AtDumpingAdded(LastChunkSize), &ChunkPtr[i + 2], LastChunkSize);
+                    i += LastChunkSize + 4 - 1;
+                    LastChunkSize = 0;
+                }
             }
-            else if(5 <= mResponseText.Count() && !Memory::Compare(&mResponseText[-5], "0\r\n\r\n", 5))
-            {
-                mResponseText.SubtractionSection(mResponseText.Count() - 5, 5);
-                Success = true;
-                break;
-            }
-            Platform::Utility::Sleep(1, false);
+            mResponseData = ToReference(NewResponseData);
         }
+        else if(ContentLength < mResponseData.Count())
+            mResponseData.SubtractionSection(ContentLength, mResponseData.Count() - ContentLength);
 
         if(!KeepAlive) mLastContact->Disconnect();
-        if(Success) mResponseText.AtAdding() = '\0';
-        else mLastError = "Failed receive HTTP data.";
-        return Success;
+        if(mResponseData.Count() == 0)
+            return SetLastError("HTTP data is too small.");
+        return true;
+    }
+
+    bool ParaSource::SetLastError(chars message)
+    {
+        BOSS_TRACE("ParaSource(error:%s)", message);
+        mLastError = message;
+        mLastContact->Disconnect();
+        #if !BOSS_NDEBUG
+            if(0 < mResponseData.Count())
+                String(&mResponseData[0], mResponseData.Count()).ToFile("parasource_error.txt");
+        #endif
+        return false;
     }
 }

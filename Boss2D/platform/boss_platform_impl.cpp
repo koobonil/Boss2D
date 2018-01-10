@@ -433,6 +433,38 @@ namespace BOSS
                 return Result;
             }
 
+            static Map<String> g_OptionTextMap;
+            static StaticalMutexClass g_OptionTextMutex;
+            void Option_SetOptionText(chars name, chars text)
+            {
+                g_OptionTextMutex.Lock();
+                g_OptionTextMap(name) = text;
+                g_OptionTextMutex.Unlock();
+            }
+
+            chars Option_GetOptionText(chars name)
+            {
+                g_OptionTextMutex.Lock();
+                String* Result = g_OptionTextMap.Access(name);
+                g_OptionTextMutex.Unlock();
+                return (Result)? *Result : "";
+            }
+
+            Strings Option_GetOptionTextNames()
+            {
+                Strings Result;
+                payload Param = (payload) &Result;
+                g_OptionTextMutex.Lock();
+                g_OptionTextMap.AccessByCallback(
+                    [](const MapPath* path, const String* data, payload param)->void
+                    {
+                        Strings& Result = *((Strings*) param);
+                        Result.AtAdding() = &path->GetPath()[0];
+                    }, Param);
+                g_OptionTextMutex.Unlock();
+                return Result;
+            }
+
             static Map<payload> g_OptionPayloadMap;
             static StaticalMutexClass g_OptionPayloadMutex;
             void Option_SetOptionPayload(chars name, payload data)

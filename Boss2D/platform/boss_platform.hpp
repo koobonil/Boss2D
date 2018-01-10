@@ -548,6 +548,26 @@ namespace BOSS
             static Strings GetFlagNames();
 
             /*!
+            \brief 옵션텍스트 설정하기
+            \param name : 텍스트명
+            \param text : 텍스트값
+            */
+            static void SetText(chars name, chars text);
+
+            /*!
+            \brief 옵션텍스트 얻어오기
+            \param name : 텍스트명
+            \return 텍스트값(디폴트값은 "")
+            */
+            static chars GetText(chars name);
+
+            /*!
+            \brief 옵션텍스트 리스팅
+            \return 존재하는 모든 텍스트명들
+            */
+            static Strings GetTextNames();
+
+            /*!
             \brief 옵션페이로드 설정하기
             \param name : 페이로드명
             \param data : 데이터주소
@@ -563,7 +583,7 @@ namespace BOSS
 
             /*!
             \brief 옵션페이로드 리스팅
-            \return 존재하는 모든 페이로드명
+            \return 존재하는 모든 페이로드명들
             */
             static Strings GetPayloadNames();
         };
@@ -1260,10 +1280,11 @@ namespace BOSS
             /*!
             \brief 대기중인 읽기용 버퍼조사
             \param socket : 소켓ID
+            \param timeout : 타임아웃
             \return 읽을 수 있는 길이
             \see Recv
             */
-            static sint32 RecvAvailable(id_socket socket);
+            static sint32 RecvAvailable(id_socket socket, sint32 timeout);
 
             /*!
             \brief 소켓읽기

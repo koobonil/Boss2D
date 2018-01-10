@@ -38,6 +38,9 @@ namespace BOSS
             void Option_SetOptionFlag(chars name, bool flag);
             bool Option_GetOptionFlag(chars name);
             Strings Option_GetOptionFlagNames();
+            void Option_SetOptionText(chars name, chars text);
+            chars Option_GetOptionText(chars name);
+            Strings Option_GetOptionTextNames();
             void Option_SetOptionPayload(chars name, payload data);
             payload Option_GetOptionPayload(chars name);
             Strings Option_GetOptionPayloadNames();

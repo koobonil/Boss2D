@@ -643,7 +643,7 @@
         }
 
         ////////////////////////////////////////////////////////////////////////////////
-        // CLOCK
+        // OPTION
         ////////////////////////////////////////////////////////////////////////////////
         void Platform::Option::SetFlag(chars name, bool flag)
         {
@@ -658,6 +658,21 @@
         Strings Platform::Option::GetFlagNames()
         {
             return PlatformImpl::Wrap::Option_GetOptionFlagNames();
+        }
+
+        void Platform::Option::SetText(chars name, chars text)
+        {
+            PlatformImpl::Wrap::Option_SetOptionText(name, text);
+        }
+
+        chars Platform::Option::GetText(chars name)
+        {
+            return PlatformImpl::Wrap::Option_GetOptionText(name);
+        }
+
+        Strings Platform::Option::GetTextNames()
+        {
+            return PlatformImpl::Wrap::Option_GetOptionTextNames();
         }
 
         void Platform::Option::SetPayload(chars name, payload data)
@@ -1345,7 +1360,7 @@
             return false;
         }
 
-        sint32 Platform::Socket::RecvAvailable(id_socket socket)
+        sint32 Platform::Socket::RecvAvailable(id_socket socket, sint32 timeout)
         {
             BOSS_ASSERT("Further development is needed.", false);
             return -1;

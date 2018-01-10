@@ -211,6 +211,9 @@
     ////////////////////////////////////////////////////////////////////////////////
     // String
     ////////////////////////////////////////////////////////////////////////////////
+    int boss_isalpha(int c);
+    int boss_isdigit(int c);
+    int boss_isalnum(int c);
     double boss_atof(const char* str);
     size_t boss_strlen(const char* str);
     size_t boss_wcslen(const wchar_t* str);

@@ -253,7 +253,7 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
 
         sint32 Result = 0;
         for(sint32 i = 0, iend = readfds->fd_count; i < iend; ++i)
-            Result += !!Platform::Socket::RecvAvailable((id_socket) readfds->fd_array[i]);
+            Result += !!Platform::Socket::RecvAvailable((id_socket) readfds->fd_array[i], 1);
         return Result;
     }
 

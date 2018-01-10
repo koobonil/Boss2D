@@ -854,7 +854,7 @@
         }
 
         ////////////////////////////////////////////////////////////////////////////////
-        // CLOCK
+        // OPTION
         ////////////////////////////////////////////////////////////////////////////////
         void Platform::Option::SetFlag(chars name, bool flag)
         {
@@ -869,6 +869,21 @@
         Strings Platform::Option::GetFlagNames()
         {
             return PlatformImpl::Wrap::Option_GetOptionFlagNames();
+        }
+
+        void Platform::Option::SetText(chars name, chars text)
+        {
+            PlatformImpl::Wrap::Option_SetOptionText(name, text);
+        }
+
+        chars Platform::Option::GetText(chars name)
+        {
+            return PlatformImpl::Wrap::Option_GetOptionText(name);
+        }
+
+        Strings Platform::Option::GetTextNames()
+        {
+            return PlatformImpl::Wrap::Option_GetOptionTextNames();
         }
 
         void Platform::Option::SetPayload(chars name, payload data)
@@ -1291,16 +1306,14 @@
             BOSS_ASSERT("image파라미터가 nullptr입니다", image);
 
             CanvasClass::get()->painter().setCompositionMode(CanvasClass::get()->mask());
-            if(w == iw && h == ih)
-                CanvasClass::get()->painter().drawPixmap(QPoint((sint32) x, (sint32) y), *((const QPixmap*) image),
-                    QRect((sint32) ix, (sint32) iy, (sint32) iw, (sint32) ih));
-            else CanvasClass::get()->painter().drawPixmap(QRect((sint32) x, (sint32) y, (sint32) w, (sint32) h), *((const QPixmap*) image),
-                QRect((sint32) ix, (sint32) iy, (sint32) iw, (sint32) ih));
+            //if(w == iw && h == ih) CanvasClass::get()->painter().drawPixmap(QPoint((sint32) x, (sint32) y), *((const QPixmap*) image),
+            //    QRect((sint32) ix, (sint32) iy, (sint32) iw, (sint32) ih));
+            //else CanvasClass::get()->painter().drawPixmap(QRect((sint32) x, (sint32) y, (sint32) w, (sint32) h),
+            //    *((const QPixmap*) image), QRect((sint32) ix, (sint32) iy, (sint32) iw, (sint32) ih));
 
-            // 아래 코드의 랜더링결과는 품질이 좋지 않음
-            //if(w == iw && h == ih)
-            //    ViewAPI::CurPainter()->drawPixmap(QPointF(x, y), *((const QPixmap*) image), QRectF(ix, iy, iw, ih));
-            //else ViewAPI::CurPainter()->drawPixmap(QRectF(x, y, w, h + 0.5f), *((const QPixmap*) image), QRectF(ix, iy, iw, ih));
+            if(w == iw && h == ih)
+                CanvasClass::get()->painter().drawPixmap(QPointF(x, y), *((const QPixmap*) image), QRectF(ix, iy, iw, ih));
+            else CanvasClass::get()->painter().drawPixmap(QRectF(x, y, w, h), *((const QPixmap*) image), QRectF(ix, iy, iw, ih));
         }
 
         static Qt::Alignment _ExchangeAlignment(UIFontAlign align)
@@ -2048,29 +2061,68 @@
         class SocketBox
         {
         public:
-            SocketBox() {m_socket = nullptr;}
+            SocketBox() : m_threadId(Platform::Utility::CurrentThreadID()) {m_socket = nullptr;}
             ~SocketBox() {delete m_socket;}
         public:
+            const uint64 m_threadId;
             QAbstractSocket* m_socket;
+
+        private:
+            class STClass
+            {
+            public:
+                STClass() {m_lastId = 0; m_mutex = Mutex::Open();}
+                ~STClass() {Mutex::Close(m_mutex);}
+            public:
+                Map<SocketBox> m_map;
+                ublock m_lastId;
+                id_mutex m_mutex;
+            };
+            static inline STClass& ST() {static STClass _; return _;}
+
+        public:
+            static SocketBox& Create(id_socket& result)
+            {
+                Mutex::Lock(ST().m_mutex);
+                SocketBox* Ptr = &ST().m_map[++ST().m_lastId];
+                result = (id_socket) AnyTypeToPtr(ST().m_lastId);
+                Mutex::Unlock(ST().m_mutex);
+                return *Ptr;
+            }
+            static SocketBox* Access(id_socket id)
+            {
+                Mutex::Lock(ST().m_mutex);
+                SocketBox* Ptr = ST().m_map.Access(PtrToUint64(id));
+                BOSS_ASSERT("id_socket는 생성한 스레드에서만 접근할 수 있습니다",
+                    !Ptr || Ptr->m_threadId == Platform::Utility::CurrentThreadID());
+                Mutex::Unlock(ST().m_mutex);
+                return Ptr;
+            }
+            static void Remove(id_socket id)
+            {
+                Mutex::Lock(ST().m_mutex);
+                ST().m_map.Remove(PtrToUint64(id));
+                Mutex::Unlock(ST().m_mutex);
+            }
         };
-        static Map<SocketBox> SocketMap;
-        static ublock LastSocketID = 0;
 
         id_socket Platform::Socket::OpenForTcp()
         {
-            SocketMap[++LastSocketID].m_socket = new QTcpSocket();
-            return (id_socket) AnyTypeToPtr(LastSocketID);
+            id_socket Result = nullptr;
+            SocketBox::Create(Result).m_socket = new QTcpSocket();
+            return Result;
         }
 
         id_socket Platform::Socket::OpenForUdp()
         {
-            SocketMap[++LastSocketID].m_socket = new QUdpSocket();
-            return (id_socket) AnyTypeToPtr(LastSocketID);
+            id_socket Result = nullptr;
+            SocketBox::Create(Result).m_socket = new QUdpSocket();
+            return Result;
         }
 
         bool Platform::Socket::Close(id_socket socket, sint32 timeout)
         {
-            SocketBox* CurSocketBox = SocketMap.Access(PtrToUint64(socket));
+            SocketBox* CurSocketBox = SocketBox::Access(socket);
             if(!CurSocketBox) return false;
 
             bool Result = (CurSocketBox->m_socket->error() == QAbstractSocket::UnknownSocketError);
@@ -2080,63 +2132,54 @@
                 Result &= (CurSocketBox->m_socket->state() == QAbstractSocket::UnconnectedState ||
                     CurSocketBox->m_socket->waitForDisconnected(timeout));
             }
-
-            SocketMap.Remove(PtrToUint64(socket));
+            SocketBox::Remove(socket);
             return Result;
         }
 
         bool Platform::Socket::Connect(id_socket socket, chars domain, uint16 port, sint32 timeout)
         {
-            SocketBox* CurSocketBox = SocketMap.Access(PtrToUint64(socket));
+            SocketBox* CurSocketBox = SocketBox::Access(socket);
             if(!CurSocketBox) return false;
 
             CurSocketBox->m_socket->connectToHost(QString::fromUtf8(domain), port);
             const bool Result = CurSocketBox->m_socket->waitForConnected(timeout);
-
             BOSS_TRACE("Connect(%s)%s", domain, Result? "" : " - Failed");
             return Result;
         }
 
         bool Platform::Socket::Disconnect(id_socket socket, sint32 timeout)
         {
-            SocketBox* CurSocketBox = SocketMap.Access(PtrToUint64(socket));
+            SocketBox* CurSocketBox = SocketBox::Access(socket);
             if(!CurSocketBox) return false;
 
-            CurSocketBox->m_socket->disconnectFromHost();
+            CurSocketBox->m_socket->abort();
             const bool Result = (CurSocketBox->m_socket->state() == QAbstractSocket::UnconnectedState ||
                 CurSocketBox->m_socket->waitForDisconnected(timeout));
-
             BOSS_TRACE("Disconnect()%s", Result? "" : " - Failed");
             return Result;
         }
 
-        sint32 Platform::Socket::RecvAvailable(id_socket socket)
+        sint32 Platform::Socket::RecvAvailable(id_socket socket, sint32 timeout)
         {
-            SocketBox* CurSocketBox = SocketMap.Access(PtrToUint64(socket));
-            if(!CurSocketBox) return -1;
+            SocketBox* CurSocketBox = SocketBox::Access(socket);
+            if(!CurSocketBox || !CurSocketBox->m_socket->isValid()) return -1;
 
-            return CurSocketBox->m_socket->bytesAvailable();
+            if(CurSocketBox->m_socket->waitForReadyRead(timeout))
+                return CurSocketBox->m_socket->bytesAvailable();
+            return 0;
         }
 
         sint32 Platform::Socket::Recv(id_socket socket, uint08* data, sint32 size, sint32 timeout)
         {
-            SocketBox* CurSocketBox = SocketMap.Access(PtrToUint64(socket));
-            if(!CurSocketBox) return -1;
+            SocketBox* CurSocketBox = SocketBox::Access(socket);
+            if(!CurSocketBox || !CurSocketBox->m_socket->isValid()) return -1;
 
-            if(CurSocketBox->m_socket->bytesAvailable() < size &&
+            if(CurSocketBox->m_socket->bytesAvailable() == 0 &&
                 !CurSocketBox->m_socket->waitForReadyRead(timeout))
             {
-                const sint32 AvailabledSize = Math::Min(size, CurSocketBox->m_socket->bytesAvailable());
-                if(0 < AvailabledSize)
-                {
-                    const sint32 Result = CurSocketBox->m_socket->read((char*) data, AvailabledSize);
-                    BOSS_TRACE("Recv(%d)%s", Result, (0 <= Result)? "" : " - Failed");
-                    return Result;
-                }
                 BOSS_TRACE("Recv(-10035) - WSAEWOULDBLOCK");
                 return -10035; // WSAEWOULDBLOCK
             }
-
             const sint32 Result = CurSocketBox->m_socket->read((char*) data, size);
             BOSS_TRACE("Recv(%d)%s", Result, (0 <= Result)? "" : " - Failed");
             return Result;
@@ -2144,8 +2187,8 @@
 
         sint32 Platform::Socket::Send(id_socket socket, bytes data, sint32 size, sint32 timeout)
         {
-            SocketBox* CurSocketBox = SocketMap.Access(PtrToUint64(socket));
-            if(!CurSocketBox) return -1;
+            SocketBox* CurSocketBox = SocketBox::Access(socket);
+            if(!CurSocketBox || !CurSocketBox->m_socket->isValid()) return -1;
 
             if(CurSocketBox->m_socket->write((chars) data, size) < size ||
                 !CurSocketBox->m_socket->waitForBytesWritten(timeout))
@@ -2153,7 +2196,6 @@
                 BOSS_TRACE("Send(-1) - Failed");
                 return -1;
             }
-
             BOSS_TRACE("Send(%d)", size);
             return size;
         }

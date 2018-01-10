@@ -141,13 +141,14 @@
     static autorun _ = ZayView::_makefunc(true, "" NAME, OnCommand, OnNotify, \
         OnGesture, OnRender, _Bind, _Alloc, _Free);
 
-// UI제스처 콜백함수
+// UI 제스처/랜더 콜백함수
 #define ZAY_GESTURE_T(TYPE, ...)                       [__VA_ARGS__](ZayObject*, chars, GestureType TYPE, sint32, sint32)->void
 #define ZAY_GESTURE_TXY(TYPE, X, Y, ...)               [__VA_ARGS__](ZayObject*, chars, GestureType TYPE, sint32 X, sint32 Y)->void
 #define ZAY_GESTURE_NT(NAME, TYPE, ...)                [__VA_ARGS__](ZayObject*, chars NAME, GestureType TYPE, sint32, sint32)->void
 #define ZAY_GESTURE_NTXY(NAME, TYPE, X, Y, ...)        [__VA_ARGS__](ZayObject*, chars NAME, GestureType TYPE, sint32 X, sint32 Y)->void
 #define ZAY_GESTURE_VNT(VIEW, NAME, TYPE, ...)         [__VA_ARGS__](ZayObject* VIEW, chars NAME, GestureType TYPE, sint32, sint32)->void
 #define ZAY_GESTURE_VNTXY(VIEW, NAME, TYPE, X, Y, ...) [__VA_ARGS__](ZayObject* VIEW, chars NAME, GestureType TYPE, sint32 X, sint32 Y)->void
+#define ZAY_RENDER_PN(PANEL, NAME, ...)                [__VA_ARGS__](ZayPanel& PANEL, chars NAME)->void
 
 namespace BOSS
 {
@@ -246,6 +247,7 @@ namespace BOSS
         typedef void (*GestureCB)(GestureType, sint32, sint32);
         typedef std::function<void(ZayObject*, chars, GestureType, sint32, sint32)> SubGestureCB;
         typedef void (*RenderCB)(ZayPanel&);
+        typedef std::function<void(ZayPanel&, chars)> SubRenderCB;
 
     public:
         ZayPanel(float width, float height, const buffer touch);
@@ -615,6 +617,7 @@ namespace BOSS
         const String m_viewclass;
         ZayObject* m_class;
         buffer m_touch;
+        bool m_event_lock;
         bool m_agreed_quit;
     };
 }

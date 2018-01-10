@@ -23,6 +23,12 @@
 
 extern "C"
 {
+    #if BOSS_WINDOWS || BOSS_LINUX
+        extern int isalpha(int);
+        extern int isdigit(int);
+        extern int isalnum(int);
+    #endif
+
     #if BOSS_ANDROID
         extern double strtod(const char*, char**);
     #else
@@ -72,6 +78,21 @@ extern "C"
 ////////////////////////////////////////////////////////////////////////////////
 // String
 ////////////////////////////////////////////////////////////////////////////////
+
+extern "C" int boss_isalpha(int c)
+{
+    return isalpha(c);
+}
+
+extern "C" int boss_isdigit(int c)
+{
+    return isdigit(c);
+}
+
+extern "C" int boss_isalnum(int c)
+{
+    return isalnum(c);
+}
 
 extern "C" double boss_atof(const char* str)
 {

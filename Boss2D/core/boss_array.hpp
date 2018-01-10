@@ -137,6 +137,7 @@ namespace BOSS
         */
         TYPE* AtDumpingAdded(sint32 length)
         {
+            BOSS_ASSERT("length는 1이상이어야 합니다", 1 <= length);
             const sint32 index = share->count();
             share = Share::CopyOnWrite(share, index + length);
             return &share->At<TYPE>(index);

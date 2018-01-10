@@ -2,6 +2,7 @@
 #include <platform/boss_platform.hpp>
 #include <element/boss_point.hpp>
 #include <element/boss_rect.hpp>
+#include <functional>
 
 namespace BOSS
 {
@@ -38,9 +39,10 @@ namespace BOSS
         // Polygon
         private: class Polygon
         {
-            public: Polygon() {}
+            public: Polygon() {Enable = false;}
             public: ~Polygon() {}
-            public: DotList Dots;
+            public: bool Enable;
+            public: DotList DotArray;
         };
         private: typedef Array<Polygon, datatype_class_nomemcpy, 8> PolygonList;
 
@@ -94,11 +96,12 @@ namespace BOSS
 			    private: int DotA;
 			    private: int DotB;
 			    private: int DotC;
-			    private: Triangle* LinkAB;
-			    private: Triangle* LinkAC;
-			    private: Triangle* LinkBC;
+                private: Triangle* LinkAB;
+                private: Triangle* LinkAC;
+                private: Triangle* LinkBC;
 			    private: Dot WayDot;
 			    private: Triangle* WayBack;
+                private: int ObjectScore;
 			    private: int DistanceSum;
 			    private: Triangle* Next;
 
@@ -115,6 +118,7 @@ namespace BOSS
 				    LinkBC = nullptr;
 				    WayDot = Dot(0, 0);
 				    WayBack = nullptr;
+                    ObjectScore = -1;
 				    DistanceSum = 0;
 				    Next = nullptr;
 			    }
@@ -138,36 +142,46 @@ namespace BOSS
 			    }
 		    } Top;
 
-		    private: Map();
+            private: Map();
 		    public: ~Map();
 		    public: static void Release(Map*& map);
-		    public: Path* BuildPath(const Dot& beginPos, const Dot& endPos, const int step = 0, int* score = nullptr);
-		    private: void CREATE_TRIANGLES(const Rect& boundBox, PolygonList& list);
+            public: typedef std::function<int(const Dot&, const Dot&, const Dot&)> ScoreCB;
+            public: Path* CreatePath(const int step);
+            public: Path* BuildPath(const Dot& beginPos, const Dot& endPos, const int step = 0, int* score = nullptr, ScoreCB cb = nullptr);
+            private: void CREATE_TRIANGLES(PolygonList& list);
 		    private: void MAPPING(Triangle* focus, Triangle* parent, linetype type, int dotA, int dotB);
-		    private: bool IS_INCLUDE_ANY_DOT_BY(int dotA, int dotB, int dotC);
-		    private: bool IS_CROSSING_ANY_LINE_BY(int dotA, int dotB);
-		    private: int FIND_LINE_ID(int dotA, int dotB);
-		    private: Triangle* FIND_PICK_TRIANGLE(const Dot& pos);
-		    private: Triangle* FIND_SAME_TRIANGLE(int dotA, int dotB, Triangle* parent);
-		    private: bool PATH_FIND(Triangle* focus, const Triangle* target, const Dot& endPos);
+            private: bool IS_INCLUDE_ANY_DOT_BY(int dotA, int dotB, int dotC) const;
+            private: bool IS_CROSSING_ANY_LINE_BY(int dotA, int dotB) const;
+            private: int FIND_LINE_ID(int dotA, int dotB) const;
+            private: Triangle* FIND_PICK_TRIANGLE(const Dot& pos);
+            private: Triangle* FIND_SAME_TRIANGLE(int dotA, int dotB, Triangle* parent);
+            private: bool PATH_FIND(Triangle* focus, const Triangle* target, const Dot& endPos, ScoreCB cb) const;
 
-		    private: inline const int R_SIDE1(const int dotA, const int dotB, const int dotC)
+            private: inline const int R_SIDE1(const int dotA, const int dotB, const int dotC) const
 		    {return ((Dots[dotA].x - Dots[dotB].x) * (Dots[dotC].y - Dots[dotB].y) - (Dots[dotA].y - Dots[dotB].y) * (Dots[dotC].x - Dots[dotB].x));}
-		    private: inline const int R_SIDE2(const int dotA, const int dotB, const Dot& C)
+            private: inline const int R_SIDE2(const int dotA, const int dotB, const Dot& C) const
 		    {return ((Dots[dotA].x - Dots[dotB].x) * (C.y - Dots[dotB].y) - (Dots[dotA].y - Dots[dotB].y) * (C.x - Dots[dotB].x));}
-		    private: inline const int DISTANCE(const Dot& A, const Dot& B) {return Math::Sqrt(Math::Pow(A.x - B.x) + Math::Pow(A.y - B.y));}
-		    private: inline const Dot DOT_AB_SIDE_A(const Triangle& t) {return Dot((Dots[t.DotA].x * 2 + Dots[t.DotB].x) / 3, (Dots[t.DotA].y * 2 + Dots[t.DotB].y) / 3);}
-		    private: inline const Dot DOT_AC_SIDE_A(const Triangle& t) {return Dot((Dots[t.DotA].x * 2 + Dots[t.DotC].x) / 3, (Dots[t.DotA].y * 2 + Dots[t.DotC].y) / 3);}
-		    private: inline const Dot DOT_BC_SIDE_B(const Triangle& t) {return Dot((Dots[t.DotB].x * 2 + Dots[t.DotC].x) / 3, (Dots[t.DotB].y * 2 + Dots[t.DotC].y) / 3);}
-		    private: inline const Dot DOT_AB_SIDE_B(const Triangle& t) {return Dot((Dots[t.DotA].x + Dots[t.DotB].x * 2) / 3, (Dots[t.DotA].y + Dots[t.DotB].y * 2) / 3);}
-		    private: inline const Dot DOT_AC_SIDE_C(const Triangle& t) {return Dot((Dots[t.DotA].x + Dots[t.DotC].x * 2) / 3, (Dots[t.DotA].y + Dots[t.DotC].y * 2) / 3);}
-		    private: inline const Dot DOT_BC_SIDE_C(const Triangle& t) {return Dot((Dots[t.DotB].x + Dots[t.DotC].x * 2) / 3, (Dots[t.DotB].y + Dots[t.DotC].y * 2) / 3);}
+            private: inline const int DISTANCE(const Dot& A, const Dot& B) const
+            {return Math::Sqrt(Math::Pow(A.x - B.x) + Math::Pow(A.y - B.y));}
+            private: inline const Dot DOT_AB_SIDE_A(const Triangle& t) const
+            {return Dot((Dots[t.DotA].x * 2 + Dots[t.DotB].x) / 3, (Dots[t.DotA].y * 2 + Dots[t.DotB].y) / 3);}
+            private: inline const Dot DOT_AC_SIDE_A(const Triangle& t) const
+            {return Dot((Dots[t.DotA].x * 2 + Dots[t.DotC].x) / 3, (Dots[t.DotA].y * 2 + Dots[t.DotC].y) / 3);}
+            private: inline const Dot DOT_BC_SIDE_B(const Triangle& t) const
+            {return Dot((Dots[t.DotB].x * 2 + Dots[t.DotC].x) / 3, (Dots[t.DotB].y * 2 + Dots[t.DotC].y) / 3);}
+            private: inline const Dot DOT_AB_SIDE_B(const Triangle& t) const
+            {return Dot((Dots[t.DotA].x + Dots[t.DotB].x * 2) / 3, (Dots[t.DotA].y + Dots[t.DotB].y * 2) / 3);}
+            private: inline const Dot DOT_AC_SIDE_C(const Triangle& t) const
+            {return Dot((Dots[t.DotA].x + Dots[t.DotC].x * 2) / 3, (Dots[t.DotA].y + Dots[t.DotC].y * 2) / 3);}
+            private: inline const Dot DOT_BC_SIDE_C(const Triangle& t) const
+            {return Dot((Dots[t.DotB].x + Dots[t.DotC].x * 2) / 3, (Dots[t.DotB].y + Dots[t.DotC].y * 2) / 3);}
 	    };
 
 	    public: class Hurdle
 	    {
 		    friend class GetPosition;
 		    private: PolygonList List;
+            private: bool BuildFlag;
 		    private: int ObjectBeginID;
 
 		    private: Hurdle();
@@ -184,9 +198,9 @@ namespace BOSS
 	    {
 		    private: GetPosition();
 		    private: ~GetPosition();
-		    public: static const Point SubTarget(const Hurdle* hurdle, Path* path, const Point& curPos);
-            public: static const Dot** GetValidNext(const Hurdle* hurdle, const Point& curPos, Point& nextPos,
-                float distanceMin = -1, Point* reflectPos = nullptr);
+            public: static bool SubTarget(const Hurdle* hurdle, Path* path, const Point& curPos, Point& targetPos);
+            public: static const Dot** GetValidNext(const Hurdle* hurdle, const Point& curPos, const Point& nextPos,
+                Point& resultPos, Point& reflectPos, float distanceMin = -1);
 	    };
     };
 }
