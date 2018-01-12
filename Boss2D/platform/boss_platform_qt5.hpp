@@ -9,6 +9,7 @@
 
     #include <QtWidgets>
     #include <QMainWindow>
+    #include <QSoundEffect>
     #include <QHostInfo>
     #include <QTcpSocket>
     #include <QUdpSocket>
@@ -1597,6 +1598,34 @@
         ClockClass* m_prev;
         ClockClass* m_next;
         sint64 m_laptime;
+    };
+
+    class SoundClass
+    {
+    public:
+        SoundClass(chars filename, bool loop)
+        {
+            m_eff = new QSoundEffect();
+            m_eff->setSource(QUrl::fromLocalFile(filename));
+            if(loop) m_eff->setLoopCount(QSoundEffect::Infinite);
+        }
+        ~SoundClass()
+        {
+            delete m_eff;
+        }
+
+    public:
+        void Play()
+        {
+            if(m_eff) m_eff->play();
+        }
+        void Stop()
+        {
+            if(m_eff) m_eff->stop();
+        }
+
+    private:
+        QSoundEffect* m_eff;
     };
 
     class TCPPeerData : public QObjectUserData

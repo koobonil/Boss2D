@@ -34,6 +34,7 @@ namespace BOSS
         namespace Wrap
         {
             void AddWindowProcedure(WindowEvent event, ProcedureCB cb, payload data);
+            chars Utility_GetOSName();
             sint64 Utility_CurrentAvailableMemory(sint64* totalbytes);
             void Option_SetOptionFlag(chars name, bool flag);
             bool Option_GetOptionFlag(chars name);

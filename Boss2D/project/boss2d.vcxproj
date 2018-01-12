@@ -92,8 +92,14 @@
     <ClCompile Include="..\service\boss_streamingservice.cpp" />
     <ClCompile Include="..\service\boss_tryworld.cpp" />
     <ClCompile Include="..\service\boss_zay.cpp" />
-    <ClCompile Include="GeneratedFiles\Debug\moc_boss_platform_qt5.cpp" />
-    <ClCompile Include="GeneratedFiles\Release\moc_boss_platform_qt5.cpp" />
+    <ClCompile Include="GeneratedFiles\Debug\moc_boss_platform_qt5.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_boss_platform_qt5.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\addon\boss_addon_aac.hpp" />

@@ -407,6 +407,12 @@ namespace BOSS
             static void GetCursorPos(point64& pos);
 
             /*!
+            \brief OS명칭 얻기
+            \return OS명칭
+            */
+            static chars GetOSName();
+
+            /*!
             \brief OS의 가용메모리현황
             \param totalbytes : 전체 메모리양(바이트단위)
             \return 사용 가능한 메모리양(바이트단위)
@@ -1226,6 +1232,65 @@ namespace BOSS
             \return 경로
             */
             static const String& RootForData();
+        };
+
+        ////////////////////////////////////////////////////////////////////////////////
+        //! \brief 사운드지원
+        ////////////////////////////////////////////////////////////////////////////////
+        class Sound
+        {
+        public:
+            /*!
+            \brief 사운드열기
+            \param filename : 파일명
+            \param loop : 루프방식여부
+            \param fade_msec : 페이드시간(밀리초)
+            \return 사운드ID
+            \see Close
+            */
+            static id_sound Open(chars filename, bool loop = false, sint32 fade_msec = 0);
+
+            /*!
+            \brief 사운드닫기
+            \param sound : 사운드ID
+            \see Open
+            */
+            static void Close(id_sound sound);
+
+            /*!
+            \brief 전체볼륨지정
+            \param volume : 볼륨크기(0.0f~1.0f)
+            \param fade_msec : 페이드시간(밀리초)
+            */
+            static void SetVolume(float volume, sint32 fade_msec = 0);
+
+            /*!
+            \brief 사운드출력
+            \param sound : 사운드ID
+            \param volume_rate : 전체볼륨에 곱해질 배수값
+            */
+            static void Play(id_sound sound, float volume_rate = 1.0f);
+
+            /*!
+            \brief 사운드중단
+            \param sound : 사운드ID
+            */
+            static void Stop(id_sound sound);
+
+            /*!
+            \brief 현재 플레이되고 있는 사운드중단
+            */
+            static void StopAll();
+
+            /*!
+            \brief 현재 플레이되고 있는 사운드일시정지
+            */
+            static void PauseAll();
+
+            /*!
+            \brief 현재 일시정지되고 있는 사운드재개
+            */
+            static void ResumeAll();
         };
 
         ////////////////////////////////////////////////////////////////////////////////

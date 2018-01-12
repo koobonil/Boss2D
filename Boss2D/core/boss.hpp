@@ -264,6 +264,7 @@ inline void operator delete[](void*, sblock) {}
 namespace BOSS
 {
     BOSS_DECLARE_ID(id_file);
+    BOSS_DECLARE_ID(id_sound);
     BOSS_DECLARE_ID(id_socket);
     BOSS_DECLARE_ID(id_server);
     BOSS_DECLARE_ID(id_bluetooth);

@@ -738,6 +738,11 @@
             pos.y = CursorPos.y();
         }
 
+        chars Platform::Utility::GetOSName()
+        {
+            return PlatformImpl::Wrap::Utility_GetOSName();
+        }
+
         sint64 Platform::Utility::CurrentAvailableMemory(sint64* totalbytes)
         {
             return PlatformImpl::Wrap::Utility_CurrentAvailableMemory(totalbytes);
@@ -2053,6 +2058,52 @@
             Result = (RootQ + "/").toUtf8().constData();
             BOSS_TRACE("Platform::File::RootForData() ==> \"%s\"", (chars) Result);
             return Result;
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // SOUND
+        ////////////////////////////////////////////////////////////////////////////////
+        id_sound Platform::Sound::Open(chars filename, bool loop, sint32 fade_msec)
+        {
+            BOSS_ASSERT("해당 사운드파일이 존재하지 않습니다", Platform::File::Exist(filename));
+            SoundClass* NewSound = new SoundClass(filename, loop);
+            return (id_sound) NewSound;
+        }
+
+        void Platform::Sound::Close(id_sound sound)
+        {
+            SoundClass* OldSound = (SoundClass*) sound;
+            delete OldSound;
+        }
+
+        void Platform::Sound::SetVolume(float volume, sint32 fade_msec)
+        {
+        }
+
+        void Platform::Sound::Play(id_sound sound, float volume_rate)
+        {
+            SoundClass* CurSound = (SoundClass*) sound;
+            if(!CurSound) return;
+            CurSound->Play();
+        }
+
+        void Platform::Sound::Stop(id_sound sound)
+        {
+            SoundClass* CurSound = (SoundClass*) sound;
+            if(!CurSound) return;
+            CurSound->Stop();
+        }
+
+        void Platform::Sound::StopAll()
+        {
+        }
+
+        void Platform::Sound::PauseAll()
+        {
+        }
+
+        void Platform::Sound::ResumeAll()
+        {
         }
 
         ////////////////////////////////////////////////////////////////////////////////

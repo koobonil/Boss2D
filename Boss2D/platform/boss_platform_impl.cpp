@@ -347,6 +347,23 @@ namespace BOSS
                 NewProcedure.mData = data;
             }
 
+            chars Utility_GetOSName()
+            {
+                #if BOSS_WINDOWS
+                    return "WINDOWS";
+                #elif BOSS_LINUX
+                    return "UBUNTU";
+                #elif BOSS_MAC_OSX
+                    return "OSX";
+                #elif BOSS_IPHONE
+                    return "IOS";
+                #elif BOSS_ANDROID
+                    return "ANDROID";
+                #else
+                    return "UNKNOWN";
+                #endif
+            }
+
             sint64 Utility_CurrentAvailableMemory(sint64* totalbytes)
             {
                 #if BOSS_WINDOWS

@@ -488,6 +488,11 @@
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
         }
 
+        chars Platform::Utility::GetOSName()
+        {
+            return PlatformImpl::Wrap::Utility_GetOSName();
+        }
+
         sint64 Platform::Utility::CurrentAvailableMemory(sint64* totalbytes)
         {
             return PlatformImpl::Wrap::Utility_CurrentAvailableMemory(totalbytes);
@@ -1197,6 +1202,50 @@
             static String Result = "";
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
             return Result;
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // SOUND
+        ////////////////////////////////////////////////////////////////////////////////
+        id_sound Platform::Sound::Open(chars filename, bool loop, sint32 fade_msec)
+        {
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+            return nullptr;
+        }
+
+        void Platform::Sound::Close(id_sound sound)
+        {
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+        }
+
+        void Platform::Sound::SetVolume(float volume, sint32 fade_msec)
+        {
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+        }
+
+        void Platform::Sound::Play(id_sound sound, float volume_rate)
+        {
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+        }
+
+        void Platform::Sound::Stop(id_sound sound)
+        {
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+        }
+
+        void Platform::Sound::StopAll()
+        {
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+        }
+
+        void Platform::Sound::PauseAll()
+        {
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+        }
+
+        void Platform::Sound::ResumeAll()
+        {
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
         }
 
         ////////////////////////////////////////////////////////////////////////////////
