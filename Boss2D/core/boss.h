@@ -47,7 +47,7 @@
     #define BOSS_WINDOWS 0
 #endif
 
-#if defined(__linux__)
+#if defined(__linux__) && !defined(ANDROID)
     #define BOSS_LINUX 1
 #else
     #define BOSS_LINUX 0

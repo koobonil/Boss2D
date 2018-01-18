@@ -560,7 +560,11 @@
 
         void Platform::Popup::WebBrowserDialog(String url)
         {
-            return PlatformImpl::Wrap::Popup_WebBrowserDialog(url);
+            #if BOSS_WINDOWS
+                PlatformImpl::Wrap::Popup_WebBrowserDialog(url);
+            #else
+                QDesktopServices::openUrl(QUrl((chars) url, QUrl::TolerantMode));
+            #endif
         }
 
         bool Platform::Popup::OpenEditTracker(String& text, UIEditType type, sint32 l, sint32 t, sint32 r, sint32 b)
@@ -948,6 +952,11 @@
         void Platform::Graphics::SetFont(chars name, float size)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
+            #if BOSS_IPHONE
+                size *= 1.5f;
+            #elif BOSS_ANDROID
+                size *= 0.5f;
+            #endif
             CanvasClass::get()->painter().setFont(QFont(name, (sint32) size));
         }
 
@@ -2504,12 +2513,8 @@
         ////////////////////////////////////////////////////////////////////////////////
         Strings Platform::Bluetooth::GetAllUuids(chars service_uuid, sint32 timeout, String* spec)
         {
-            // service_uuid는 Windows10에서 일반적 블루투스가 아닐 경우
-            // 설정창의 "Bluetooth 및 기타 디바이스"에서 추가버튼을 눌러
-            // 수동으로 연결해주고 장치관리자의 해당 속성의 "자세히"에서
-            // "버스 관련"이라는 항목의 하위 UUID중에서 확인가능.
-            // 또는 아이폰에 블루투스터미널 앱깔아서 확인가능.
-            return BluetoothAgentClass::ST().ReloadAllUuids(service_uuid, timeout, spec);
+            BOSS_ASSERT("Further development is needed.", false);
+            return Strings();
         }
 
         id_bluetooth Platform::Bluetooth::Open(chars uuid)

@@ -183,127 +183,6 @@ namespace BOSS
     };
 
     ////////////////////////////////////////////////////////////////////////////////
-    // ParaSource::View
-    ////////////////////////////////////////////////////////////////////////////////
-    ParaSource::View::View()
-    {
-        mTasking = nullptr;
-        mLoadingMsec = 0;
-    }
-
-    ParaSource::View::~View()
-    {
-        Tasking::Release(mTasking);
-    }
-
-    void ParaSource::View::Init(chars script)
-    {
-        if(!mTasking)
-        {
-            String Script = script;
-            // <a href...> 코드의 제거
-            sint32 APos = 0;
-            while((APos = Script.Find(0, "<")) != -1)
-            {
-                const sint32 APosEnd = Script.Find(APos + 1, ">");
-                if(APosEnd != -1)
-                    Script = Script.Left(APos) + Script.Right(Script.Length() - 1 - APosEnd);
-            }
-            chars ScriptPtr = Script;
-
-            // 파싱
-            sint32 NamePos = Script.Find(0, "[name]");
-            String Name;
-            if(NamePos != -1)
-            {
-                NamePos += 6; // [name]
-                while(ScriptPtr[NamePos] == ' ') NamePos++;
-                while(ScriptPtr[NamePos] != ' ' && ScriptPtr[NamePos] != '\0' && ScriptPtr[NamePos] != '[')
-                    Name += ScriptPtr[NamePos++];
-            }
-            sint32 UrlPos = Script.Find(0, "[url]");
-            String Url;
-            if(UrlPos != -1)
-            {
-                UrlPos += 5; // [url]
-                while(ScriptPtr[UrlPos] == ' ') UrlPos++;
-                while(ScriptPtr[UrlPos] != ' ' && ScriptPtr[UrlPos] != '\0' && ScriptPtr[UrlPos] != '[')
-                    Url += ScriptPtr[UrlPos++];
-            }
-            // 로딩
-            if(0 < Name.Length() && 0 < Url.Length())
-            {
-                const String AssetName = "paraview/" + Name;
-                // 태스킹을 통한 캐시화
-                if(Asset::Exist(AssetName) == roottype_null)
-                {
-                    Strings* NewStrings = (Strings*) Buffer::Alloc<Strings>(BOSS_DBG 1);
-                    NewStrings->AtAdding() = AssetName;
-                    NewStrings->AtAdding() = Url;
-                    mTasking = Tasking::Create(
-                        [](buffer& self, Queue<buffer>& query, Queue<buffer>& answer, id_common common)->sint32
-                        {
-                            const Strings& CurStrings = *((Strings*) self);
-                            if(!String::CompareNoCase(CurStrings[1], "http://", 7))
-                            {
-                                const String Url = CurStrings[1].Right(CurStrings[1].Length() - 7);
-                                sint32 SlashPos = Url.Find(0, '/');
-                                if(SlashPos != -1)
-                                {
-                                    ParaSource Source(ParaSource::IIS);
-                                    Source.SetContact(Url.Left(SlashPos), 80);
-                                    uint08s Data;
-                                    if(Source.GetFile(Data, Url.Right(Url.Length() - 1 - SlashPos)))
-                                    {
-                                        id_asset NewAsset = Asset::OpenForWrite(CurStrings[0], true);
-                                        Asset::Write(NewAsset, &Data[0], Data.Count());
-                                        Asset::Close(NewAsset);
-                                        answer.Enqueue((buffer)(id_cloned_share) CurStrings[0]);
-                                    }
-                                }
-                            }
-                            return -1;
-                        }, (buffer) NewStrings);
-                }
-                // 캐시에서 로딩
-                else if(mImage.SetName(AssetName).Load())
-                    mLoadingMsec = Platform::Utility::CurrentTimeMsec() - 1000;
-            }
-        }
-    }
-
-    ZayPanel::SubRenderCB ParaSource::View::GetRenderer()
-    {
-        return ZAY_RENDER_PN(p, n, this)
-        {
-            if(mImage.HasBitmap())
-            {
-                uint64 CurMsec = Platform::Utility::CurrentTimeMsec();
-                if(CurMsec < mLoadingMsec + 1000)
-                {
-                    const sint32 Opacity = 128 - 128 * Math::Clamp(mLoadingMsec + 1000 - CurMsec, 0, 1000) / 1000;
-                    ZAY_RGBA(p, 128, 128, 128, Opacity)
-                        p.stretch(mImage, true);
-                }
-                else p.stretch(mImage, true);
-            }
-            else if(mTasking)
-            {
-                // 태스킹후 캐시에서 로딩
-                if(buffer Buffer = Tasking::GetAnswer(mTasking))
-                {
-                    const String AssetName((id_cloned_share) Buffer);
-                    if(Asset::Exist(AssetName) != roottype_null)
-                    {
-                        if(mImage.SetName(AssetName).Load())
-                            mLoadingMsec = Platform::Utility::CurrentTimeMsec();
-                    }
-                }
-            }
-        };
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////
     // ParaSource
     ////////////////////////////////////////////////////////////////////////////////
     static const String gCommentText = "/CommentView.nhn?";
@@ -628,5 +507,182 @@ namespace BOSS
                 String(&mResponseData[0], mResponseData.Count()).ToFile("parasource_error.txt");
         #endif
         return false;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // ParaAsset
+    ////////////////////////////////////////////////////////////////////////////////
+    ParaAsset::ParaAsset()
+    {
+        mTasking = nullptr;
+    }
+
+    ParaAsset::~ParaAsset()
+    {
+        Tasking::Release(mTasking);
+    }
+
+    void ParaAsset::Init(chars script)
+    {
+        BOSS_ASSERT("Init는 한번만 가능합니다", !mTasking);
+        if(mTasking) return;
+
+        String Script = script;
+        // <a href...> 코드의 제거
+        sint32 APos = 0;
+        while((APos = Script.Find(0, "<")) != -1)
+        {
+            const sint32 APosEnd = Script.Find(APos + 1, ">");
+            if(APosEnd != -1)
+                Script = Script.Left(APos) + Script.Right(Script.Length() - 1 - APosEnd);
+        }
+        chars ScriptPtr = Script;
+
+        // 파싱
+        sint32 NamePos = Script.Find(0, "[name]");
+        String Name;
+        if(NamePos != -1)
+        {
+            NamePos += 6; // [name]
+            while(ScriptPtr[NamePos] == ' ') NamePos++;
+            while(ScriptPtr[NamePos] != ' ' && ScriptPtr[NamePos] != '\0' && ScriptPtr[NamePos] != '[')
+                Name += ScriptPtr[NamePos++];
+        }
+        sint32 UrlPos = Script.Find(0, "[url]");
+        String Url;
+        if(UrlPos != -1)
+        {
+            UrlPos += 5; // [url]
+            while(ScriptPtr[UrlPos] == ' ') UrlPos++;
+            while(ScriptPtr[UrlPos] != ' ' && ScriptPtr[UrlPos] != '\0' && ScriptPtr[UrlPos] != '[')
+                Url += ScriptPtr[UrlPos++];
+        }
+        // 로딩
+        if(0 < Name.Length() && 0 < Url.Length())
+        {
+            const String AssetName = "paraasset/" + Name;
+            // 태스킹을 통한 캐시화
+            if(Asset::Exist(AssetName) == roottype_null)
+            {
+                Strings* NewStrings = (Strings*) Buffer::Alloc<Strings>(BOSS_DBG 1);
+                NewStrings->AtAdding() = AssetName;
+                NewStrings->AtAdding() = Url;
+                mTasking = Tasking::Create(
+                    [](buffer& self, Queue<buffer>& query, Queue<buffer>& answer, id_common common)->sint32
+                    {
+                        const Strings& CurStrings = *((Strings*) self);
+                        if(!String::CompareNoCase(CurStrings[1], "http://", 7))
+                        {
+                            const String Url = CurStrings[1].Right(CurStrings[1].Length() - 7);
+                            sint32 SlashPos = Url.Find(0, '/');
+                            if(SlashPos != -1)
+                            {
+                                ParaSource Source(ParaSource::IIS);
+                                Source.SetContact(Url.Left(SlashPos), 80);
+                                uint08s Data;
+                                if(Source.GetFile(Data, Url.Right(Url.Length() - 1 - SlashPos)))
+                                {
+                                    id_asset NewAsset = Asset::OpenForWrite(CurStrings[0], true);
+                                    Asset::Write(NewAsset, &Data[0], Data.Count());
+                                    Asset::Close(NewAsset);
+                                    answer.Enqueue((buffer)(id_cloned_share) CurStrings[0]);
+                                }
+                            }
+                        }
+                        return -1;
+                    }, (buffer) NewStrings);
+            }
+            // 캐시에서 로딩
+            else InitForCache(AssetName);
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // ParaJson
+    ////////////////////////////////////////////////////////////////////////////////
+    ParaJson::ParaJson()
+    {
+        mContext = nullptr;
+    }
+
+    ParaJson::~ParaJson()
+    {
+        delete mContext;
+    }
+
+    Context* ParaJson::GetContext()
+    {
+        if(!mContext && mTasking)
+        {
+            // 태스킹후 캐시에서 로딩
+            if(buffer Buffer = Tasking::GetAnswer(mTasking))
+            {
+                const String AssetName((id_cloned_share) Buffer);
+                if(Asset::Exist(AssetName) != roottype_null)
+                {
+                    const String JsonText = String::FromFile(AssetName);
+                    mContext = new Context();
+                    mContext->LoadJson(SO_NeedCopy, JsonText, JsonText.Length());
+                }
+            }
+        }
+        return mContext;
+    }
+
+    void ParaJson::InitForCache(chars assetname)
+    {
+        const String JsonText = String::FromFile(assetname);
+        mContext = new Context();
+        mContext->LoadJson(SO_NeedCopy, JsonText, JsonText.Length());
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // ParaView
+    ////////////////////////////////////////////////////////////////////////////////
+    ParaView::ParaView()
+    {
+        mLoadingMsec = 0;
+    }
+
+    ParaView::~ParaView()
+    {
+
+    }
+
+    ZayPanel::SubRenderCB ParaView::GetRenderer()
+    {
+        return ZAY_RENDER_PN(p, n, this)
+        {
+            if(mImage.HasBitmap())
+            {
+                uint64 CurMsec = Platform::Utility::CurrentTimeMsec();
+                if(CurMsec < mLoadingMsec + 1000)
+                {
+                    const sint32 Opacity = 128 - 128 * Math::Clamp(mLoadingMsec + 1000 - CurMsec, 0, 1000) / 1000;
+                    ZAY_RGBA(p, 128, 128, 128, Opacity)
+                        p.stretch(mImage, true);
+                }
+                else p.stretch(mImage, true);
+            }
+            else if(mTasking)
+            {
+                // 태스킹후 캐시에서 로딩
+                if(buffer Buffer = Tasking::GetAnswer(mTasking))
+                {
+                    const String AssetName((id_cloned_share) Buffer);
+                    if(Asset::Exist(AssetName) != roottype_null)
+                    {
+                        if(mImage.SetName(AssetName).Load())
+                            mLoadingMsec = Platform::Utility::CurrentTimeMsec();
+                    }
+                }
+            }
+        };
+    }
+
+    void ParaView::InitForCache(chars assetname)
+    {
+        if(mImage.SetName(assetname).Load())
+            mLoadingMsec = Platform::Utility::CurrentTimeMsec() - 1000;
     }
 }

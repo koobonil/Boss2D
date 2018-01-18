@@ -8,23 +8,6 @@ namespace BOSS
     class ParaSource
     {
     public:
-        class View
-        {
-        public:
-            View();
-            virtual ~View();
-
-        public:
-            void Init(chars script);
-            virtual ZayPanel::SubRenderCB GetRenderer();
-
-        protected:
-            id_tasking mTasking;
-            Image mImage;
-            uint64 mLoadingMsec;
-        };
-
-    public:
         enum Type {IIS, NaverCafe};
 
     public:
@@ -52,5 +35,54 @@ namespace BOSS
         chararray mResponseData;
         ContactPool* mLastContact;
         String mLastError;
+    };
+
+    class ParaAsset
+    {
+    public:
+        ParaAsset();
+        virtual ~ParaAsset();
+
+    public:
+        void Init(chars script);
+
+    protected:
+        virtual void InitForCache(chars assetname) = 0;
+
+    protected:
+        id_tasking mTasking;
+    };
+
+    class ParaJson : public ParaAsset
+    {
+    public:
+        ParaJson();
+        ~ParaJson() override;
+
+    public:
+        virtual Context* GetContext();
+
+    private:
+        void InitForCache(chars assetname) override;
+
+    protected:
+        Context* mContext;
+    };
+
+    class ParaView : public ParaAsset
+    {
+    public:
+        ParaView();
+        ~ParaView() override;
+
+    public:
+        virtual ZayPanel::SubRenderCB GetRenderer();
+
+    private:
+        void InitForCache(chars assetname) override;
+
+    protected:
+        Image mImage;
+        uint64 mLoadingMsec;
     };
 }

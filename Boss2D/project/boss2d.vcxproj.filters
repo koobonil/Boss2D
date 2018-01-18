@@ -518,4 +518,7 @@
       <Filter>Boss2D\platform</Filter>
     </CustomBuild>
   </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="boss2d.natvis" />
+  </ItemGroup>
 </Project>

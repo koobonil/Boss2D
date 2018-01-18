@@ -594,8 +594,7 @@ namespace BOSS
 
             sint32 Popup_MessageDialog(chars title, chars text, DialogButtonType type)
             {
-                #if BOSS_WINDOWS
-                #elif BOSS_LINUX
+                #if BOSS_LINUX
                     GtkMessageType MessageType = GTK_MESSAGE_INFO; // DBT_OK
                     GtkButtonsType ButtonsType = GTK_BUTTONS_OK;
                     switch(type)

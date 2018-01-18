@@ -427,7 +427,7 @@
     #undef st_atime
     #undef st_mtime
     #undef st_ctime
-    #if BOSS_WINDOWS || BOSS_LINUX
+    #if BOSS_WINDOWS || BOSS_LINUX || BOSS_ANDROID
         struct boss_fakewin_stat64 {
             _dev_t     st_dev;
             _ino_t     st_ino;

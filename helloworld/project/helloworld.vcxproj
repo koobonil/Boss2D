@@ -1,237 +1,338 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|x64">
-      <Configuration>Release</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{A29C5794-04A0-34AA-AB01-C5ECFAB9FB07}</ProjectGuid>
+    <RootNamespace>helloworld</RootNamespace>
+    <Keyword>Qt4VSv1.0</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <PlatformToolset>v141</PlatformToolset>
+    <OutputDirectory>release\</OutputDirectory>
+    <ATLMinimizesCRunTimeLibraryUsage>false</ATLMinimizesCRunTimeLibraryUsage>
+    <CharacterSet>NotSet</CharacterSet>
+    <ConfigurationType>Application</ConfigurationType>
+    <IntermediateDirectory>release\</IntermediateDirectory>
+    <PrimaryOutput>helloworld</PrimaryOutput>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <PlatformToolset>v141</PlatformToolset>
+    <OutputDirectory>debug\</OutputDirectory>
+    <ATLMinimizesCRunTimeLibraryUsage>false</ATLMinimizesCRunTimeLibraryUsage>
+    <CharacterSet>NotSet</CharacterSet>
+    <ConfigurationType>Application</ConfigurationType>
+    <IntermediateDirectory>debug\</IntermediateDirectory>
+    <PrimaryOutput>helloworld</PrimaryOutput>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">helloworld</TargetName>
+    <IgnoreImportLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</IgnoreImportLibrary>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">helloworld</TargetName>
+    <IgnoreImportLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</IgnoreImportLibrary>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>.;..\..\Boss2D\core;..\..\Boss2D;..\source;$(QTDIR)\include;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWebEngineWidgets;$(QTDIR)\include\QtPrintSupport;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtMultimedia;$(QTDIR)\include\QtWebEngineCore;$(QTDIR)\include\QtQuick;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWebChannel;$(QTDIR)\include\QtQml;$(QTDIR)\include\QtNetwork;$(QTDIR)\include\QtBluetooth;$(QTDIR)\include\QtSerialPort;$(QTDIR)\include\QtPositioning;$(QTDIR)\include\QtCore;release;\include;$(QTDIR)\mkspecs\win32-msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>-Zc:rvalueCast -Zc:inline -Zc:strictStrings -Zc:throwingNew -Zc:referenceBinding /bigobj %(AdditionalOptions)</AdditionalOptions>
+      <AssemblerListingLocation>release\</AssemblerListingLocation>
+      <BrowseInformation>false</BrowseInformation>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <Optimization>MaxSpeed</Optimization>
+      <PreprocessorDefinitions>_WINDOWS;UNICODE;_UNICODE;WIN32;WIN64;BOSS_NDEBUG=1;QT_NO_DEBUG;QT_OPENGL_LIB;QT_WEBENGINEWIDGETS_LIB;QT_PRINTSUPPORT_LIB;QT_WIDGETS_LIB;QT_MULTIMEDIA_LIB;QT_WEBENGINECORE_LIB;QT_QUICK_LIB;QT_GUI_LIB;QT_WEBCHANNEL_LIB;QT_QML_LIB;QT_NETWORK_LIB;QT_BLUETOOTH_LIB;QT_SERIALPORT_LIB;QT_POSITIONING_LIB;QT_CORE_LIB;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessToFile>false</PreprocessToFile>
+      <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>$(QTDIR)\lib\qtmain.lib;shell32.lib;$(QTDIR)\lib\Qt5OpenGL.lib;$(QTDIR)\lib\Qt5WebEngineWidgets.lib;$(QTDIR)\lib\Qt5PrintSupport.lib;$(QTDIR)\lib\Qt5Widgets.lib;$(QTDIR)\lib\Qt5Multimedia.lib;$(QTDIR)\lib\Qt5WebEngineCore.lib;$(QTDIR)\lib\Qt5Quick.lib;$(QTDIR)\lib\Qt5Gui.lib;$(QTDIR)\lib\Qt5WebChannel.lib;$(QTDIR)\lib\Qt5Qml.lib;$(QTDIR)\lib\Qt5Network.lib;$(QTDIR)\lib\Qt5Bluetooth.lib;$(QTDIR)\lib\Qt5SerialPort.lib;$(QTDIR)\lib\Qt5Positioning.lib;$(QTDIR)\lib\Qt5Core.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(QTDIR)\lib;C:\utils\my_sql\my_sql\lib;C:\utils\postgresql\pgsql\lib;$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>"/MANIFESTDEPENDENCY:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' publicKeyToken='6595b64144ccf1df' language='*' processorArchitecture='*'" %(AdditionalOptions)</AdditionalOptions>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreImportLibrary>true</IgnoreImportLibrary>
+      <LinkIncremental>false</LinkIncremental>
+      <OutputFile>$(OutDir)\helloworld.exe</OutputFile>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <SubSystem>Windows</SubSystem>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+    </Link>
+    <Midl>
+      <DefaultCharType>Unsigned</DefaultCharType>
+      <EnableErrorChecks>None</EnableErrorChecks>
+      <WarningLevel>0</WarningLevel>
+    </Midl>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_WINDOWS;UNICODE;_UNICODE;WIN32;WIN64;BOSS_NDEBUG=1;QT_NO_DEBUG;QT_OPENGL_LIB;QT_WEBENGINEWIDGETS_LIB;QT_PRINTSUPPORT_LIB;QT_WIDGETS_LIB;QT_MULTIMEDIA_LIB;QT_WEBENGINECORE_LIB;QT_QUICK_LIB;QT_GUI_LIB;QT_WEBCHANNEL_LIB;QT_QML_LIB;QT_NETWORK_LIB;QT_BLUETOOTH_LIB;QT_SERIALPORT_LIB;QT_POSITIONING_LIB;QT_CORE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>.;..\..\Boss2D\core;..\..\Boss2D;..\source;$(QTDIR)\include;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWebEngineWidgets;$(QTDIR)\include\QtPrintSupport;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtMultimedia;$(QTDIR)\include\QtWebEngineCore;$(QTDIR)\include\QtQuick;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWebChannel;$(QTDIR)\include\QtQml;$(QTDIR)\include\QtNetwork;$(QTDIR)\include\QtBluetooth;$(QTDIR)\include\QtSerialPort;$(QTDIR)\include\QtPositioning;$(QTDIR)\include\QtCore;debug;\include;$(QTDIR)\mkspecs\win32-msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>-Zc:rvalueCast -Zc:inline -Zc:strictStrings -Zc:throwingNew -Zc:referenceBinding /bigobj %(AdditionalOptions)</AdditionalOptions>
+      <AssemblerListingLocation>debug\</AssemblerListingLocation>
+      <BrowseInformation>false</BrowseInformation>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_WINDOWS;UNICODE;_UNICODE;WIN32;WIN64;BOSS_NDEBUG=0;QT_OPENGL_LIB;QT_WEBENGINEWIDGETS_LIB;QT_PRINTSUPPORT_LIB;QT_WIDGETS_LIB;QT_MULTIMEDIA_LIB;QT_WEBENGINECORE_LIB;QT_QUICK_LIB;QT_GUI_LIB;QT_WEBCHANNEL_LIB;QT_QML_LIB;QT_NETWORK_LIB;QT_BLUETOOTH_LIB;QT_SERIALPORT_LIB;QT_POSITIONING_LIB;QT_CORE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessToFile>false</PreprocessToFile>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>$(QTDIR)\lib\qtmaind.lib;shell32.lib;$(QTDIR)\lib\Qt5OpenGLd.lib;$(QTDIR)\lib\Qt5WebEngineWidgetsd.lib;$(QTDIR)\lib\Qt5PrintSupportd.lib;$(QTDIR)\lib\Qt5Widgetsd.lib;$(QTDIR)\lib\Qt5Multimediad.lib;$(QTDIR)\lib\Qt5WebEngineCored.lib;$(QTDIR)\lib\Qt5Quickd.lib;$(QTDIR)\lib\Qt5Guid.lib;$(QTDIR)\lib\Qt5WebChanneld.lib;$(QTDIR)\lib\Qt5Qmld.lib;$(QTDIR)\lib\Qt5Networkd.lib;$(QTDIR)\lib\Qt5Bluetoothd.lib;$(QTDIR)\lib\Qt5SerialPortd.lib;$(QTDIR)\lib\Qt5Positioningd.lib;$(QTDIR)\lib\Qt5Cored.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(QTDIR)\lib;C:\utils\my_sql\my_sql\lib;C:\utils\postgresql\pgsql\lib;$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>"/MANIFESTDEPENDENCY:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' publicKeyToken='6595b64144ccf1df' language='*' processorArchitecture='*'" %(AdditionalOptions)</AdditionalOptions>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreImportLibrary>true</IgnoreImportLibrary>
+      <OutputFile>$(OutDir)\helloworld.exe</OutputFile>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <SubSystem>Windows</SubSystem>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+    </Link>
+    <Midl>
+      <DefaultCharType>Unsigned</DefaultCharType>
+      <EnableErrorChecks>None</EnableErrorChecks>
+      <WarningLevel>0</WarningLevel>
+    </Midl>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_WINDOWS;UNICODE;_UNICODE;WIN32;WIN64;BOSS_NDEBUG=0;QT_OPENGL_LIB;QT_WEBENGINEWIDGETS_LIB;QT_PRINTSUPPORT_LIB;QT_WIDGETS_LIB;QT_MULTIMEDIA_LIB;QT_WEBENGINECORE_LIB;QT_QUICK_LIB;QT_GUI_LIB;QT_WEBCHANNEL_LIB;QT_QML_LIB;QT_NETWORK_LIB;QT_BLUETOOTH_LIB;QT_SERIALPORT_LIB;QT_POSITIONING_LIB;QT_CORE_LIB;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Boss2D\platform\android\OpenGLES_Functions.cpp" />
+    <ClCompile Include="..\..\Boss2D\core\boss.cpp" />
+    <ClCompile Include="..\..\Boss2D\core\boss_addon.cpp" />
+    <ClCompile Include="..\..\Boss2D\addon\boss_addon_aac.cpp" />
+    <ClCompile Include="..\..\Boss2D\addon\boss_addon_alpr.cpp" />
+    <ClCompile Include="..\..\Boss2D\addon\boss_addon_curl.cpp" />
+    <ClCompile Include="..\..\Boss2D\addon\boss_addon_git.cpp" />
+    <ClCompile Include="..\..\Boss2D\addon\boss_addon_h264.cpp" />
+    <ClCompile Include="..\..\Boss2D\addon\boss_addon_jpg.cpp" />
+    <ClCompile Include="..\..\Boss2D\addon\boss_addon_tesseract.cpp" />
+    <ClCompile Include="..\..\Boss2D\addon\boss_addon_zip.cpp" />
+    <ClCompile Include="..\..\Boss2D\core\boss_asset.cpp" />
+    <ClCompile Include="..\..\Boss2D\service\boss_asyncfilemanager.cpp" />
+    <ClCompile Include="..\..\Boss2D\service\boss_backey.cpp" />
+    <ClCompile Include="..\..\Boss2D\service\boss_batchbuilder.cpp" />
+    <ClCompile Include="..\..\Boss2D\format\boss_bmp.cpp" />
+    <ClCompile Include="..\..\Boss2D\service\boss_boxr.cpp" />
+    <ClCompile Include="..\..\Boss2D\service\boss_brii.cpp" />
+    <ClCompile Include="..\..\Boss2D\core\boss_buffer.cpp" />
+    <ClCompile Include="..\..\Boss2D\service\boss_camera360service.cpp" />
+    <ClCompile Include="..\..\Boss2D\element\boss_clip.cpp" />
+    <ClCompile Include="..\..\Boss2D\element\boss_color.cpp" />
+    <ClCompile Include="..\..\Boss2D\core\boss_context.cpp" />
+    <ClCompile Include="..\..\Boss2D\addon\boss_fakewin.cpp" />
+    <ClCompile Include="..\..\Boss2D\format\boss_flv.cpp" />
+    <ClCompile Include="..\..\Boss2D\element\boss_font.cpp" />
+    <ClCompile Include="..\..\Boss2D\element\boss_image.cpp" />
+    <ClCompile Include="..\..\Boss2D\addon\boss_integration_curl-7.51.0.c" />
+    <ClCompile Include="..\..\Boss2D\addon\boss_integration_fdk-aac-0.1.4.cpp" />
+    <ClCompile Include="..\..\Boss2D\addon\boss_integration_libgit2-0.22.2.c" />
+    <ClCompile Include="..\..\Boss2D\addon\boss_integration_libssh2-1.6.0.c" />
+    <ClCompile Include="..\..\Boss2D\addon\boss_integration_openalpr-2.3.0.cpp" />
+    <ClCompile Include="..\..\Boss2D\addon\boss_integration_opencv-3.1.0.cpp" />
+    <ClCompile Include="..\..\Boss2D\addon\boss_integration_opencv-3.1.0_3rdparty_libjpeg.c" />
+    <ClCompile Include="..\..\Boss2D\addon\boss_integration_openh264-1.6.0.cpp" />
+    <ClCompile Include="..\..\Boss2D\addon\boss_integration_openssl-1.1.0c.c" />
+    <ClCompile Include="..\..\Boss2D\addon\boss_integration_rtmpdump-2.4.c" />
+    <ClCompile Include="..\..\Boss2D\addon\boss_integration_tesseract-3.04.01.cpp" />
+    <ClCompile Include="..\..\Boss2D\core\boss_library.cpp" />
+    <ClCompile Include="..\..\Boss2D\service\boss_livechatservice.cpp" />
+    <ClCompile Include="..\..\Boss2D\core\boss_math.cpp" />
+    <ClCompile Include="..\..\Boss2D\element\boss_matrix.cpp" />
+    <ClCompile Include="..\..\Boss2D\core\boss_memory.cpp" />
+    <ClCompile Include="..\..\Boss2D\core\boss_mutex.cpp" />
+    <ClCompile Include="..\..\Boss2D\service\boss_oauth2service.cpp" />
+    <ClCompile Include="..\..\Boss2D\service\boss_parasource.cpp" />
+    <ClCompile Include="..\..\Boss2D\core\boss_parser.cpp" />
+    <ClCompile Include="..\..\Boss2D\platform\boss_platform_blank.cpp" />
+    <ClCompile Include="..\..\Boss2D\platform\boss_platform_cocos2dx.cpp" />
+    <ClCompile Include="..\..\Boss2D\platform\boss_platform_impl.cpp" />
+    <ClCompile Include="..\..\Boss2D\platform\boss_platform_native.cpp" />
+    <ClCompile Include="..\..\Boss2D\platform\boss_platform_qt5.cpp" />
+    <ClCompile Include="..\..\Boss2D\format\boss_png.cpp" />
+    <ClCompile Include="..\..\Boss2D\element\boss_point.cpp" />
+    <ClCompile Include="..\..\Boss2D\core\boss_profile.cpp" />
+    <ClCompile Include="..\..\Boss2D\element\boss_rect.cpp" />
+    <ClCompile Include="..\..\Boss2D\core\boss_remote.cpp" />
+    <ClCompile Include="..\..\Boss2D\core\boss_share.cpp" />
+    <ClCompile Include="..\..\Boss2D\element\boss_size.cpp" />
+    <ClCompile Include="..\..\Boss2D\element\boss_solver.cpp" />
+    <ClCompile Include="..\..\Boss2D\core\boss_storage.cpp" />
+    <ClCompile Include="..\..\Boss2D\service\boss_streamingservice.cpp" />
+    <ClCompile Include="..\..\Boss2D\core\boss_string.cpp" />
+    <ClCompile Include="..\..\Boss2D\core\boss_tasking.cpp" />
+    <ClCompile Include="..\..\Boss2D\service\boss_tryworld.cpp" />
+    <ClCompile Include="..\..\Boss2D\element\boss_tween.cpp" />
+    <ClCompile Include="..\..\Boss2D\core\boss_updater.cpp" />
+    <ClCompile Include="..\..\Boss2D\element\boss_vector.cpp" />
+    <ClCompile Include="..\..\Boss2D\core\boss_view.cpp" />
+    <ClCompile Include="..\..\Boss2D\core\boss_wstring.cpp" />
+    <ClCompile Include="..\..\Boss2D\service\boss_zay.cpp" />
+    <ClCompile Include="..\..\Boss2D\format\boss_zen.cpp" />
+    <ClCompile Include="..\source\helloworld.cpp" />
+    <ClCompile Include="..\source\main.cpp" />
+    <ClCompile Include="..\source\r.cpp" />
+    <ClCompile Include="GeneratedFiles\Debug\moc_boss_platform_qt5.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_boss_platform_qt5.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\common\windows\main.aps" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="..\common\windows\main.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="..\common\windows\main.rc" />
-  </ItemGroup>
-  <ItemGroup>
+    <ClInclude Include="..\..\Boss2D\platform\android\OpenGLES_Functions.h" />
+    <ClInclude Include="..\..\Boss2D\core\boss.h" />
+    <ClInclude Include="..\..\Boss2D\core\boss.hpp" />
+    <ClInclude Include="..\..\Boss2D\core\boss_addon.hpp" />
+    <ClInclude Include="..\..\Boss2D\addon\boss_addon_aac.hpp" />
+    <ClInclude Include="..\..\Boss2D\addon\boss_addon_alpr.hpp" />
+    <ClInclude Include="..\..\Boss2D\addon\boss_addon_curl.hpp" />
+    <ClInclude Include="..\..\Boss2D\addon\boss_addon_git.hpp" />
+    <ClInclude Include="..\..\Boss2D\addon\boss_addon_h264.hpp" />
+    <ClInclude Include="..\..\Boss2D\addon\boss_addon_jpg.hpp" />
+    <ClInclude Include="..\..\Boss2D\addon\boss_addon_tesseract.hpp" />
+    <ClInclude Include="..\..\Boss2D\addon\boss_addon_zip.hpp" />
+    <ClInclude Include="..\..\Boss2D\core\boss_array.hpp" />
+    <ClInclude Include="..\..\Boss2D\core\boss_asset.hpp" />
+    <ClInclude Include="..\..\Boss2D\service\boss_asyncfilemanager.hpp" />
+    <ClInclude Include="..\..\Boss2D\service\boss_backey.hpp" />
+    <ClInclude Include="..\..\Boss2D\service\boss_batchbuilder.hpp" />
+    <ClInclude Include="..\..\Boss2D\format\boss_bmp.hpp" />
+    <ClInclude Include="..\..\Boss2D\service\boss_boxr.hpp" />
+    <ClInclude Include="..\..\Boss2D\service\boss_brii.hpp" />
+    <ClInclude Include="..\..\Boss2D\core\boss_buffer.hpp" />
+    <ClInclude Include="..\..\Boss2D\service\boss_camera360service.hpp" />
+    <ClInclude Include="..\..\Boss2D\element\boss_clip.hpp" />
+    <ClInclude Include="..\..\Boss2D\element\boss_color.hpp" />
     <ClInclude Include="..\source\boss_config.h" />
+    <ClInclude Include="..\..\Boss2D\core\boss_context.hpp" />
+    <ClInclude Include="..\..\Boss2D\core\boss_counter.hpp" />
+    <ClInclude Include="..\..\Boss2D\addon\boss_fakewin.h" />
+    <ClInclude Include="..\..\Boss2D\format\boss_flv.hpp" />
+    <ClInclude Include="..\..\Boss2D\element\boss_font.hpp" />
+    <ClInclude Include="..\..\Boss2D\element\boss_image.hpp" />
+    <ClInclude Include="..\..\Boss2D\addon\boss_integration_curl-7.51.0.h" />
+    <ClInclude Include="..\..\Boss2D\addon\boss_integration_fdk-aac-0.1.4.h" />
+    <ClInclude Include="..\..\Boss2D\addon\boss_integration_libgit2-0.22.2.h" />
+    <ClInclude Include="..\..\Boss2D\addon\boss_integration_libssh2-1.6.0.h" />
+    <ClInclude Include="..\..\Boss2D\addon\boss_integration_openalpr-2.3.0.h" />
+    <ClInclude Include="..\..\Boss2D\addon\boss_integration_opencv-3.1.0.h" />
+    <ClInclude Include="..\..\Boss2D\addon\boss_integration_opencv-3.1.0_3rdparty_libjpeg.h" />
+    <ClInclude Include="..\..\Boss2D\addon\boss_integration_openh264-1.6.0.h" />
+    <ClInclude Include="..\..\Boss2D\addon\boss_integration_openssl-1.1.0c.h" />
+    <ClInclude Include="..\..\Boss2D\addon\boss_integration_rtmpdump-2.4.h" />
+    <ClInclude Include="..\..\Boss2D\addon\boss_integration_tesseract-3.04.01.h" />
+    <ClInclude Include="..\..\Boss2D\core\boss_library.hpp" />
+    <ClInclude Include="..\..\Boss2D\service\boss_livechatservice.hpp" />
+    <ClInclude Include="..\..\Boss2D\core\boss_map.hpp" />
+    <ClInclude Include="..\..\Boss2D\core\boss_math.hpp" />
+    <ClInclude Include="..\..\Boss2D\element\boss_matrix.hpp" />
+    <ClInclude Include="..\..\Boss2D\core\boss_memory.hpp" />
+    <ClInclude Include="..\..\Boss2D\core\boss_mutex.hpp" />
+    <ClInclude Include="..\..\Boss2D\service\boss_oauth2service.hpp" />
+    <ClInclude Include="..\..\Boss2D\core\boss_object.hpp" />
+    <ClInclude Include="..\..\Boss2D\service\boss_parasource.hpp" />
+    <ClInclude Include="..\..\Boss2D\core\boss_parser.hpp" />
+    <ClInclude Include="..\..\Boss2D\platform\boss_platform.hpp" />
+    <ClInclude Include="..\..\Boss2D\platform\boss_platform_blank.hpp" />
+    <ClInclude Include="..\..\Boss2D\platform\boss_platform_cocos2dx.hpp" />
+    <ClInclude Include="..\..\Boss2D\platform\boss_platform_impl.hpp" />
+    <ClInclude Include="..\..\Boss2D\platform\boss_platform_native.hpp" />
+    <CustomBuild Include="..\..\Boss2D\platform\boss_platform_qt5.hpp">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -D_WINDOWS -DUNICODE -D_UNICODE -DWIN32 -DWIN64 -DBOSS_NDEBUG=1 -DQT_NO_DEBUG -DQT_OPENGL_LIB -DQT_WEBENGINEWIDGETS_LIB -DQT_PRINTSUPPORT_LIB -DQT_WIDGETS_LIB -DQT_MULTIMEDIA_LIB -DQT_WEBENGINECORE_LIB -DQT_QUICK_LIB -DQT_GUI_LIB -DQT_WEBCHANNEL_LIB -DQT_QML_LIB -DQT_NETWORK_LIB -DQT_BLUETOOTH_LIB -DQT_SERIALPORT_LIB -DQT_POSITIONING_LIB -DQT_CORE_LIB -DNDEBUG "-I." "-I.\..\..\Boss2D\core" "-I.\..\..\Boss2D" "-I.\..\source" "-I$(QTDIR)\include" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWebEngineWidgets" "-I$(QTDIR)\include\QtPrintSupport" "-I$(QTDIR)\include\QtWidgets" "-I$(QTDIR)\include\QtMultimedia" "-I$(QTDIR)\include\QtWebEngineCore" "-I$(QTDIR)\include\QtQuick" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtANGLE" "-I$(QTDIR)\include\QtWebChannel" "-I$(QTDIR)\include\QtQml" "-I$(QTDIR)\include\QtNetwork" "-I$(QTDIR)\include\QtBluetooth" "-I$(QTDIR)\include\QtSerialPort" "-I$(QTDIR)\include\QtPositioning" "-I$(QTDIR)\include\QtCore" "-I.\release" "-I\include" "-I$(QTDIR)\mkspecs\win32-msvc"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing boss_platform_qt5.hpp...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -D_WINDOWS -DUNICODE -D_UNICODE -DWIN32 -DWIN64 -DBOSS_NDEBUG=0 -DQT_OPENGL_LIB -DQT_WEBENGINEWIDGETS_LIB -DQT_PRINTSUPPORT_LIB -DQT_WIDGETS_LIB -DQT_MULTIMEDIA_LIB -DQT_WEBENGINECORE_LIB -DQT_QUICK_LIB -DQT_GUI_LIB -DQT_WEBCHANNEL_LIB -DQT_QML_LIB -DQT_NETWORK_LIB -DQT_BLUETOOTH_LIB -DQT_SERIALPORT_LIB -DQT_POSITIONING_LIB -DQT_CORE_LIB "-I." "-I.\..\..\Boss2D\core" "-I.\..\..\Boss2D" "-I.\..\source" "-I$(QTDIR)\include" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWebEngineWidgets" "-I$(QTDIR)\include\QtPrintSupport" "-I$(QTDIR)\include\QtWidgets" "-I$(QTDIR)\include\QtMultimedia" "-I$(QTDIR)\include\QtWebEngineCore" "-I$(QTDIR)\include\QtQuick" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtANGLE" "-I$(QTDIR)\include\QtWebChannel" "-I$(QTDIR)\include\QtQml" "-I$(QTDIR)\include\QtNetwork" "-I$(QTDIR)\include\QtBluetooth" "-I$(QTDIR)\include\QtSerialPort" "-I$(QTDIR)\include\QtPositioning" "-I$(QTDIR)\include\QtCore" "-I.\debug" "-I\include" "-I$(QTDIR)\mkspecs\win32-msvc"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing boss_platform_qt5.hpp...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+    </CustomBuild>
+    <ClInclude Include="..\..\Boss2D\format\boss_png.hpp" />
+    <ClInclude Include="..\..\Boss2D\element\boss_point.hpp" />
+    <ClInclude Include="..\..\Boss2D\core\boss_profile.hpp" />
+    <ClInclude Include="..\..\Boss2D\core\boss_queue.hpp" />
+    <ClInclude Include="..\..\Boss2D\element\boss_rect.hpp" />
+    <ClInclude Include="..\..\Boss2D\core\boss_remote.hpp" />
+    <ClInclude Include="..\..\Boss2D\core\boss_share.hpp" />
+    <ClInclude Include="..\..\Boss2D\element\boss_size.hpp" />
+    <ClInclude Include="..\..\Boss2D\element\boss_solver.hpp" />
+    <ClInclude Include="..\..\Boss2D\core\boss_storage.hpp" />
+    <ClInclude Include="..\..\Boss2D\service\boss_streamingservice.hpp" />
+    <ClInclude Include="..\..\Boss2D\core\boss_string.hpp" />
+    <ClInclude Include="..\..\Boss2D\core\boss_tasking.hpp" />
+    <ClInclude Include="..\..\Boss2D\service\boss_tryworld.hpp" />
+    <ClInclude Include="..\..\Boss2D\element\boss_tween.hpp" />
+    <ClInclude Include="..\..\Boss2D\core\boss_updater.hpp" />
+    <ClInclude Include="..\..\Boss2D\element\boss_vector.hpp" />
+    <ClInclude Include="..\..\Boss2D\core\boss_view.hpp" />
+    <ClInclude Include="..\..\Boss2D\core\boss_wstring.hpp" />
+    <ClInclude Include="..\..\Boss2D\service\boss_zay.hpp" />
+    <ClInclude Include="..\..\Boss2D\format\boss_zen.hpp" />
+    <ClInclude Include="..\..\Boss2D\platform\win32\glew.h" />
     <ClInclude Include="..\source\helloworld.hpp" />
     <ClInclude Include="..\source\r.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\source\helloworld.cpp" />
-    <ClCompile Include="..\source\main.cpp" />
-    <ClCompile Include="..\source\r.cpp" />
+    <CustomBuild Include="debug\moc_predefs.h.cbt">
+      <FileType>Document</FileType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\mkspecs\features\data\dummy.cpp;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">cl -Bx"$(QTDIR)\bin\qmake.exe" -nologo -Zc:wchar_t -FS -Zc:rvalueCast -Zc:inline -Zc:strictStrings -Zc:throwingNew -Zc:referenceBinding /bigobj -Zi -MDd -W0 -E $(QTDIR)\mkspecs\features\data\dummy.cpp 2&gt;NUL &gt;debug\moc_predefs.h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generate moc_predefs.h</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">debug\moc_predefs.h;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="release\moc_predefs.h.cbt">
+      <FileType>Document</FileType>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\mkspecs\features\data\dummy.cpp;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">cl -Bx"$(QTDIR)\bin\qmake.exe" -nologo -Zc:wchar_t -FS -Zc:rvalueCast -Zc:inline -Zc:strictStrings -Zc:throwingNew -Zc:referenceBinding /bigobj -O2 -MD -W0 -E $(QTDIR)\mkspecs\features\data\dummy.cpp 2&gt;NUL &gt;release\moc_predefs.h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generate moc_predefs.h</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">release\moc_predefs.h;%(Outputs)</Outputs>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </CustomBuild>
   </ItemGroup>
-  <PropertyGroup Label="Globals">
-    <ProjectGuid>{818981C0-B21E-4B29-A9DB-524C242226A6}</ProjectGuid>
-    <Keyword>Qt4VSv1.0</Keyword>
-  </PropertyGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v140</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v140</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v140</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v140</PlatformToolset>
-  </PropertyGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings">
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\Boss2D\project\boss2d.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\Boss2D\project\boss2d.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\Boss2D\project\boss2d.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\Boss2D\project\boss2d.props" />
-  </ImportGroup>
-  <PropertyGroup Label="UserMacros" />
-  <PropertyGroup>
-    <_ProjectFileVersion>12.0.21005.1</_ProjectFileVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-    <IncludePath>$(IncludePath);</IncludePath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-    <IncludePath>$(IncludePath);</IncludePath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-    <IncludePath>$(IncludePath);</IncludePath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-    <IncludePath>$(IncludePath);</IncludePath>
-  </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <ClCompile>
-      <PreprocessorDefinitions>WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <Optimization>Disabled</Optimization>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PrecompiledHeaderFile>
-      </PrecompiledHeaderFile>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem>
-      <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\[boss2d]\bin\$(PlatformTarget)\$(Configuration);$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
-      <UACExecutionLevel>AsInvoker</UACExecutionLevel>
-    </Link>
-    <PostBuildEvent>
-      <Command>xcopy "$(OutDir)$(ProjectName).*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
-
-xcopy "$(ProjectDir)..\..\dependency\msvc_$(PlatformToolset)\$(PlatformTarget)\*.*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
-
-"$(QTDIR)\bin\windeployqt.exe" "..\bin_$(Configuration)$(PlatformArchitecture)\$(TargetFileName)"</Command>
-    </PostBuildEvent>
-    <PreBuildEvent>
-      <Command>if not exist "..\bin_$(Configuration)$(PlatformArchitecture)" md "..\bin_$(Configuration)$(PlatformArchitecture)"</Command>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ClCompile>
-      <PreprocessorDefinitions>WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <Optimization>Disabled</Optimization>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PrecompiledHeaderFile>
-      </PrecompiledHeaderFile>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem>
-      <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\[boss2d]\bin\$(PlatformTarget)\$(Configuration);$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
-      <UACExecutionLevel>AsInvoker</UACExecutionLevel>
-    </Link>
-    <PostBuildEvent>
-      <Command>xcopy "$(OutDir)$(ProjectName).*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
-
-xcopy "$(ProjectDir)..\..\dependency\msvc_$(PlatformToolset)\$(PlatformTarget)\*.*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
-
-"$(QTDIR)\bin\windeployqt.exe" "..\bin_$(Configuration)$(PlatformArchitecture)\$(TargetFileName)"</Command>
-    </PostBuildEvent>
-    <PreBuildEvent>
-      <Command>if not exist "..\bin_$(Configuration)$(PlatformArchitecture)" md "..\bin_$(Configuration)$(PlatformArchitecture)"</Command>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ClCompile>
-      <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <DebugInformationFormat />
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PrecompiledHeaderFile>
-      </PrecompiledHeaderFile>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem>
-      <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\[boss2d]\bin\$(PlatformTarget)\$(Configuration);$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <GenerateDebugInformation>false</GenerateDebugInformation>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
-      <UACExecutionLevel>AsInvoker</UACExecutionLevel>
-    </Link>
-    <PostBuildEvent>
-      <Command>xcopy "$(OutDir)$(ProjectName).*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
-
-xcopy "$(ProjectDir)..\..\dependency\msvc_$(PlatformToolset)\$(PlatformTarget)\*.*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
-
-"$(QTDIR)\bin\windeployqt.exe" "..\bin_$(Configuration)$(PlatformArchitecture)\$(TargetFileName)"</Command>
-    </PostBuildEvent>
-    <PreBuildEvent>
-      <Command>if not exist "..\bin_$(Configuration)$(PlatformArchitecture)" md "..\bin_$(Configuration)$(PlatformArchitecture)"</Command>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile>
-      <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <DebugInformationFormat>
-      </DebugInformationFormat>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PrecompiledHeaderFile>
-      </PrecompiledHeaderFile>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem>
-      <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\[boss2d]\bin\$(PlatformTarget)\$(Configuration);$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <GenerateDebugInformation>false</GenerateDebugInformation>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
-      <UACExecutionLevel>AsInvoker</UACExecutionLevel>
-    </Link>
-    <PostBuildEvent>
-      <Command>xcopy "$(OutDir)$(ProjectName).*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
-
-xcopy "$(ProjectDir)..\..\dependency\msvc_$(PlatformToolset)\$(PlatformTarget)\*.*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
-
-"$(QTDIR)\bin\windeployqt.exe" "..\bin_$(Configuration)$(PlatformArchitecture)\$(TargetFileName)"</Command>
-    </PostBuildEvent>
-    <PreBuildEvent>
-      <Command>if not exist "..\bin_$(Configuration)$(PlatformArchitecture)" md "..\bin_$(Configuration)$(PlatformArchitecture)"</Command>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties MocDir=".\GeneratedFiles\$(ConfigurationName)" UicDir=".\GeneratedFiles" RccDir=".\GeneratedFiles" lupdateOptions="" lupdateOnBuild="0" lreleaseOptions="" Qt5Version_x0020_Win32="msvc2015" Qt5Version_x0020_x64="msvc2015_64" MocOptions="" />
+      <UserProperties UicDir=".\GeneratedFiles" RccDir=".\GeneratedFiles" Qt5Version_x0020_x64="msvc2017_64" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>

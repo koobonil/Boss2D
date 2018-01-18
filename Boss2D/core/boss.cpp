@@ -23,7 +23,7 @@
 
 extern "C"
 {
-    #if BOSS_WINDOWS || BOSS_LINUX
+    #if BOSS_WINDOWS || BOSS_LINUX || BOSS_ANDROID
         extern int isalpha(int);
         extern int isdigit(int);
         extern int isalnum(int);
