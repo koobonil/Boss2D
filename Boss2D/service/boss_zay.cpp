@@ -464,14 +464,15 @@ namespace BOSS
         const Clip& LastClip = m_stack_clip[-1];
         if(visible)
         {
+            static const sint32 PixelScale = Platform::Utility::GetPixelScale();
             const float XRate = LastClip.Width() / image.GetWidth();
             const float YRate = LastClip.Height() / image.GetHeight();
             const float DstX = -image.L() * XRate;
             const float DstY = -image.T() * YRate;
             const float DstWidth = image.GetImageWidth() * XRate;
             const float DstHeight = image.GetImageHeight() * YRate;
-            const sint32 ImageWidth = (rebuild)? ((sint32) DstWidth) : image.GetImageWidth();
-            const sint32 ImageHeight = (rebuild)? ((sint32) DstHeight) : image.GetImageHeight();
+            const sint32 ImageWidth = (rebuild)? ((sint32) DstWidth) * PixelScale : image.GetImageWidth();
+            const sint32 ImageHeight = (rebuild)? ((sint32) DstHeight) * PixelScale : image.GetImageHeight();
 
             const Color& LastColor = m_stack_color[-1];
             Platform::Graphics::DrawImage(image.GetImage(LastColor, ImageWidth, ImageHeight),

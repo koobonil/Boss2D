@@ -12,6 +12,7 @@ namespace BOSS
 
     public:
         ParaSource(Type type);
+        ParaSource(chars domain);
         ~ParaSource();
 
     public:
@@ -31,7 +32,7 @@ namespace BOSS
         bool SetLastError(chars message);
 
     private:
-        const Type mType;
+        Type mType;
         chararray mResponseData;
         ContactPool* mLastContact;
         String mLastError;

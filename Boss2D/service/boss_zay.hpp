@@ -219,6 +219,9 @@ namespace BOSS
         void resizeForced(sint32 w = -1, sint32 h = -1);
         bool getResizingValue(sint32& w, sint32& h);
 
+	public:
+		virtual void on_event(const String& name, GestureType type) {}
+
     public:
         inline h_view view() const
         {return m_view;}

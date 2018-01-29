@@ -556,14 +556,15 @@
             BOSS_ASSERT("Further development is needed.", false);
         }
 
+        sint32 Platform::Utility::GetPixelScale()
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return 1;
+        }
+
         chars Platform::Utility::GetOSName()
         {
             return PlatformImpl::Wrap::Utility_GetOSName();
-        }
-
-        sint64 Platform::Utility::CurrentAvailableMemory(sint64* totalbytes)
-        {
-            return PlatformImpl::Wrap::Utility_CurrentAvailableMemory(totalbytes);
         }
 
         void Platform::Utility::Threading(ThreadCB cb, payload data)
@@ -580,6 +581,11 @@
         uint64 Platform::Utility::CurrentTimeMsec()
         {
             return (uint64) cocos2d::utils::getTimeInMilliseconds();
+        }
+
+        sint64 Platform::Utility::CurrentAvailableMemory(sint64* totalbytes)
+        {
+            return PlatformImpl::Wrap::Utility_CurrentAvailableMemory(totalbytes);
         }
 
         sint32 Platform::Utility::LastHotKey()

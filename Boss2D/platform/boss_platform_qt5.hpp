@@ -1398,6 +1398,7 @@
         SurfaceClass(sint32 width, sint32 height, QOpenGLFramebufferObjectFormat* format)
             : mFBO(width, height, *format), mDevice(width, height)
         {
+            BOSS_ASSERT("FBO생성에 실패하였습니다", mFBO.isValid());
             mSavedSurface = nullptr;
         }
         ~SurfaceClass()

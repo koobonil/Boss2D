@@ -407,17 +407,18 @@ namespace BOSS
             static void GetCursorPos(point64& pos);
 
             /*!
-            \brief OS명칭 얻기
-            \return OS명칭
+            \brief 픽셀크기 얻기
+            \return 픽셀크기(1, 2, 3...)
             */
-            static chars GetOSName();
+            static sint32 GetPixelScale();
 
             /*!
             \brief OS의 가용메모리현황
             \param totalbytes : 전체 메모리양(바이트단위)
-            \return 사용 가능한 메모리양(바이트단위)
+            \brief OS명칭 얻기
+            \return OS명칭
             */
-            static sint64 CurrentAvailableMemory(sint64* totalbytes = nullptr);
+            static chars GetOSName();
 
             /*!
             \brief 특정 콜백함수를 스레드방식으로 실행
@@ -437,6 +438,13 @@ namespace BOSS
             \return 현재시간(ms)
             */
             static uint64 CurrentTimeMsec();
+
+            /*!
+            \brief OS의 가용메모리현황
+            \param totalbytes : 전체 메모리양(바이트단위)
+            \return 사용 가능한 메모리양(바이트단위)
+            */
+            static sint64 CurrentAvailableMemory(sint64* totalbytes = nullptr);
 
             /*!
             \brief 마지막 핫키를 반환(비워짐)

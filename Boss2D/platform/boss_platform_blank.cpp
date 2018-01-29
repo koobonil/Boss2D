@@ -488,14 +488,15 @@
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
         }
 
+        sint32 Platform::Utility::GetPixelScale()
+        {
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+            return 1;
+        }
+
         chars Platform::Utility::GetOSName()
         {
             return PlatformImpl::Wrap::Utility_GetOSName();
-        }
-
-        sint64 Platform::Utility::CurrentAvailableMemory(sint64* totalbytes)
-        {
-            return PlatformImpl::Wrap::Utility_CurrentAvailableMemory(totalbytes);
         }
 
         void Platform::Utility::Threading(ThreadCB cb, payload data)
@@ -513,6 +514,11 @@
         {
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
             return EpochToWindow(0);
+        }
+
+        sint64 Platform::Utility::CurrentAvailableMemory(sint64* totalbytes)
+        {
+            return PlatformImpl::Wrap::Utility_CurrentAvailableMemory(totalbytes);
         }
 
         sint32 Platform::Utility::LastHotKey()

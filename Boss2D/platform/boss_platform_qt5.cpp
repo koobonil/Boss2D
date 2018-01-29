@@ -742,14 +742,16 @@
             pos.y = CursorPos.y();
         }
 
+        sint32 Platform::Utility::GetPixelScale()
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", g_window);
+            if(!g_window) return 1;
+            return g_window->devicePixelRatio();
+        }
+
         chars Platform::Utility::GetOSName()
         {
             return PlatformImpl::Wrap::Utility_GetOSName();
-        }
-
-        sint64 Platform::Utility::CurrentAvailableMemory(sint64* totalbytes)
-        {
-            return PlatformImpl::Wrap::Utility_CurrentAvailableMemory(totalbytes);
         }
 
         void Platform::Utility::Threading(ThreadCB cb, payload data)
@@ -765,6 +767,11 @@
         uint64 Platform::Utility::CurrentTimeMsec()
         {
             return EpochToWindow(QDateTime::currentMSecsSinceEpoch());
+        }
+
+        sint64 Platform::Utility::CurrentAvailableMemory(sint64* totalbytes)
+        {
+            return PlatformImpl::Wrap::Utility_CurrentAvailableMemory(totalbytes);
         }
 
         static sint32 gHotKeyCode = -1;
@@ -952,10 +959,9 @@
         void Platform::Graphics::SetFont(chars name, float size)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
-            #if BOSS_IPHONE
-                size *= 1.5f;
-            #elif BOSS_ANDROID
-                size *= 0.5f;
+            #if BOSS_IPHONE | BOSS_ANDROID
+                static const sint32 PixelScale = Platform::Utility::GetPixelScale();
+                size *= 0.5f * PixelScale;
             #endif
             CanvasClass::get()->painter().setFont(QFont(name, (sint32) size));
         }
@@ -1453,16 +1459,16 @@
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data);
             if(!g_data->getGLWidget()) return nullptr;
             
-            #if BOSS_IPHONE | BOSS_ANDROID
-                #define GL_RGBA32F_ARB 0x8814
-            #endif
-
             QOpenGLFramebufferObjectFormat SurfaceFormat;
             SurfaceFormat.setSamples(4);
             SurfaceFormat.setMipmap(false);
             SurfaceFormat.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
             SurfaceFormat.setTextureTarget(GL_TEXTURE_2D);
-            SurfaceFormat.setInternalTextureFormat(GL_RGBA32F_ARB);
+            #if BOSS_IPHONE | BOSS_ANDROID
+                SurfaceFormat.setInternalTextureFormat(GL_RGBA8);
+            #else
+                SurfaceFormat.setInternalTextureFormat(GL_RGBA32F_ARB);
+            #endif
 
             buffer NewSurface = Buffer::AllocNoConstructorOnce<SurfaceClass>(BOSS_DBG 1);
             BOSS_CONSTRUCTOR(NewSurface, 0, SurfaceClass, width, height, &SurfaceFormat);
@@ -2061,7 +2067,7 @@
                 Root.Replace(':', '\0');
                 QString RootQ = (chars) Root;
             #else
-                QString RootQ = QStandardPaths::standardLocations(QStandardPaths::PicturesLocation).value(0);
+                QString RootQ = QStandardPaths::standardLocations(QStandardPaths::DataLocation).value(0);
             #endif
             if(!QFileInfo(RootQ).exists()) QDir().mkdir(RootQ);
             Result = (RootQ + "/").toUtf8().constData();

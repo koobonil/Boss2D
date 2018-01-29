@@ -4,7 +4,6 @@ QT += network
 QT += opengl
 QT += widgets
 QT += multimedia
-QT += bluetooth
 !ios: QT += serialport
 android: QT += androidextras
 win32-msvc*: QT += webenginewidgets

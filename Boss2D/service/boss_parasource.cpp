@@ -200,6 +200,14 @@ namespace BOSS
         mLastContact = nullptr;
     }
 
+    ParaSource::ParaSource(chars domain)
+    {
+        if(!String::CompareNoCase(domain, "cafe.naver.com"))
+            mType = NaverCafe;
+        else mType = IIS;
+        mLastContact = nullptr;
+    }
+
     ParaSource::~ParaSource()
     {
     }
@@ -243,42 +251,45 @@ namespace BOSS
     {
         if(mType == NaverCafe)
         {
-            const String SourcePage(&mResponseData[0], mResponseData.Count());
-            // CommentText의 검색
-            sint32 Pos = SourcePage.Find(0, gCommentText);
-            if(Pos != -1)
+            if(0 < mResponseData.Count())
             {
-                sint32 PosBegin = Pos + gCommentText.Length();
-                sint32 PosEnd = PosBegin;
-                while(SourcePage[PosEnd] != '\'') PosEnd++;
-                // Args의 구성
-                String Args(&mResponseData[PosBegin], PosEnd - PosBegin);
-                while(true)
+                const String SourcePage(&mResponseData[0], mResponseData.Count());
+                // CommentText의 검색
+                sint32 Pos = SourcePage.Find(0, gCommentText);
+                if(Pos != -1)
                 {
-                    const sint32 ArgBegin = Args.Find(0, '{');
-                    const sint32 ArgEnd = Args.Find(0, '}');
-                    if(ArgBegin != -1 && ArgBegin < ArgEnd)
+                    sint32 PosBegin = Pos + gCommentText.Length();
+                    sint32 PosEnd = PosBegin;
+                    while(SourcePage[PosEnd] != '\'') PosEnd++;
+                    // Args의 구성
+                    String Args(&mResponseData[PosBegin], PosEnd - PosBegin);
+                    while(true)
                     {
-                        const String ArgText(((chars) Args) + ArgBegin + 1, ArgEnd - ArgBegin - 1);
-                        const String FindText = String::Format("name=\"%s\" value=\"", (chars) ArgText);
-                        sint32 FindPos = SourcePage.Find(0, FindText);
-                        if(FindPos != -1)
+                        const sint32 ArgBegin = Args.Find(0, '{');
+                        const sint32 ArgEnd = Args.Find(0, '}');
+                        if(ArgBegin != -1 && ArgBegin < ArgEnd)
                         {
-                            sint32 FindPosBegin = FindPos + FindText.Length();
-                            sint32 FindPosEnd = FindPosBegin;
-                            while(SourcePage[FindPosEnd] != '\"') FindPosEnd++;
-                            String FindResult(&mResponseData[FindPosBegin], FindPosEnd - FindPosBegin);
-                            Args.Replace(String(((chars) Args) + ArgBegin, ArgEnd - ArgBegin + 1), FindResult);
+                            const String ArgText(((chars) Args) + ArgBegin + 1, ArgEnd - ArgBegin - 1);
+                            const String FindText = String::Format("name=\"%s\" value=\"", (chars) ArgText);
+                            sint32 FindPos = SourcePage.Find(0, FindText);
+                            if(FindPos != -1)
+                            {
+                                sint32 FindPosBegin = FindPos + FindText.Length();
+                                sint32 FindPosEnd = FindPosBegin;
+                                while(SourcePage[FindPosEnd] != '\"') FindPosEnd++;
+                                String FindResult(&mResponseData[FindPosBegin], FindPosEnd - FindPosBegin);
+                                Args.Replace(String(((chars) Args) + ArgBegin, ArgEnd - ArgBegin + 1), FindResult);
+                            }
+                            else return SetLastError("Comment-Text is broken.");
                         }
-                        else return SetLastError("Comment-Text is broken.");
+                        else break;
                     }
-                    else break;
-                }
-                // 쿼리
-                if(HTTPQuery("CommentView.nhn", Args))
-                {
-                    json.LoadJson(SO_NeedCopy, &mResponseData[0], mResponseData.Count());
-                    return true;
+                    // 쿼리
+                    if(HTTPQuery("CommentView.nhn", Args))
+                    {
+                        json.LoadJson(SO_NeedCopy, &mResponseData[0], mResponseData.Count());
+                        return true;
+                    }
                 }
             }
             return SetLastError("Comment-Text not found.");
@@ -585,7 +596,7 @@ namespace BOSS
                                     id_asset NewAsset = Asset::OpenForWrite(CurStrings[0], true);
                                     Asset::Write(NewAsset, &Data[0], Data.Count());
                                     Asset::Close(NewAsset);
-                                    answer.Enqueue((buffer)(id_cloned_share) CurStrings[0]);
+                                    answer.Enqueue(((Share*)(id_share) CurStrings[0])->CopiedBuffer());
                                 }
                             }
                         }
@@ -617,7 +628,7 @@ namespace BOSS
             // 태스킹후 캐시에서 로딩
             if(buffer Buffer = Tasking::GetAnswer(mTasking))
             {
-                const String AssetName((id_cloned_share) Buffer);
+                const String AssetName((id_cloned_share) Share::Create(Buffer));
                 if(Asset::Exist(AssetName) != roottype_null)
                 {
                     const String JsonText = String::FromFile(AssetName);
@@ -669,7 +680,7 @@ namespace BOSS
                 // 태스킹후 캐시에서 로딩
                 if(buffer Buffer = Tasking::GetAnswer(mTasking))
                 {
-                    const String AssetName((id_cloned_share) Buffer);
+                    const String AssetName((id_cloned_share) Share::Create(Buffer));
                     if(Asset::Exist(AssetName) != roottype_null)
                     {
                         if(mImage.SetName(AssetName).Load())
