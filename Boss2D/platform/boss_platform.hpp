@@ -413,8 +413,6 @@ namespace BOSS
             static sint32 GetPixelScale();
 
             /*!
-            \brief OS의 가용메모리현황
-            \param totalbytes : 전체 메모리양(바이트단위)
             \brief OS명칭 얻기
             \return OS명칭
             */
