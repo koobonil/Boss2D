@@ -265,11 +265,11 @@ namespace BOSS
         String Right(sint32 length) const;
 
         /*!
-        \brief 파일로 저장
+        \brief 어셋으로 저장
         \param filename : 파일명
         \return 성공여부
         */
-        bool ToFile(chars filename) const;
+        bool ToAsset(chars filename) const;
 
     public:
         /*!
@@ -281,12 +281,12 @@ namespace BOSS
         static String Format(chars text, ...);
 
         /*!
-        \brief 파일로드식 객체생성
+        \brief 어셋로드식 객체생성
         \param filename : 파일명
         \param assetpath : 우선탐색용 패스
         \return 객체
         */
-        static String FromFile(chars filename, id_assetpath_read assetpath = nullptr);
+        static String FromAsset(chars filename, id_assetpath_read assetpath = nullptr);
 
         /*!
         \brief 컨버팅식 객체생성

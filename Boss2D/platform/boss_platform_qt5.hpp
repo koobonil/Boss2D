@@ -1777,13 +1777,22 @@
 
         bool SendPacket(int peerid, const void* buffer, sint32 buffersize)
         {
-            QTcpSocket* Peer = Peers[peerid];
-            if(!Peer)
+            if(QTcpSocket* Peer = Peers[peerid])
+                return (Peer->write((chars) buffer, buffersize) == buffersize);
+            Peers.Remove(peerid);
+            return false;
+        }
+
+        bool KickPeer(int peerid)
+        {
+            if(QTcpSocket* Peer = Peers[peerid])
             {
+                Peer->disconnectFromHost();
                 Peers.Remove(peerid);
-                return false;
+                PacketQueue.Enqueue(new TCPPacket(packettype_kicked, peerid, 0));
+                return true;
             }
-            return (Peer->write((chars) buffer, buffersize) == buffersize);
+            return false;
         }
     };
 

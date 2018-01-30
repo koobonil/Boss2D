@@ -1466,6 +1466,14 @@ namespace BOSS
             \return 성공여부
             */
             static bool SendToPeer(id_server server, sint32 peerid, const void* buffer, sint32 buffersize);
+
+            /*!
+            \brief 특정 송신자를 접속해제
+            \param server : 서버ID
+            \param peerid : 송신자ID
+            \return 성공여부
+            */
+            static bool KickPeer(id_server server, sint32 peerid);
         };
 
         ////////////////////////////////////////////////////////////////////////////////

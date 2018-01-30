@@ -2,7 +2,7 @@
 #include <platform/boss_platform.hpp>
 #include <service/boss_zay.hpp>
 
-#include <r.hpp>
+#include <resource.hpp>
 
 void PlatformInit()
 {
@@ -12,7 +12,7 @@ void PlatformInit()
     Platform::SetWindowName("Hello World");
     Platform::SetWindowView("helloworldView");
 
-    String InfoString = String::FromFile("windowinfo.json");
+    String InfoString = String::FromAsset("windowinfo.json");
     if(0 < InfoString.Length())
     {
         Context Info(ST_Json, SO_OnlyReference, InfoString, InfoString.Length());
@@ -21,14 +21,14 @@ void PlatformInit()
     }
     else Platform::SetWindowSize(640, 480);
 
-    String AtlasInfoString = String::FromFile("atlasinfo.json");
+    String AtlasInfoString = String::FromAsset("atlasinfo.json");
     Context AtlasInfo(ST_Json, SO_OnlyReference, AtlasInfoString, AtlasInfoString.Length());
     R::SetAtlasDir("image");
     R::AddAtlas("ui_atlaskey.png", "atlas.png", AtlasInfo);
     if(R::IsAtlasUpdated())
         R::RebuildAll();
 
-	Platform::AddWindowProcedure(WE_Tick,
+    Platform::AddWindowProcedure(WE_Tick,
         [](payload data)->void
         {
             static uint64 LastUpdateCheckTime = Platform::Utility::CurrentTimeMsec();
@@ -55,9 +55,9 @@ void PlatformQuit()
     Info.At("y").Set(String::FromInteger(WindowRect.t));
     Info.At("w").Set(String::FromInteger(WindowRect.r - WindowRect.l));
     Info.At("h").Set(String::FromInteger(WindowRect.b - WindowRect.t));
-    Info.SaveJson().ToFile("windowinfo.json");
+    Info.SaveJson().ToAsset("windowinfo.json");
 
     Context AtlasInfo;
     R::SaveAtlas(AtlasInfo);
-    AtlasInfo.SaveJson().ToFile("atlasinfo.json");
+    AtlasInfo.SaveJson().ToAsset("atlasinfo.json");
 }

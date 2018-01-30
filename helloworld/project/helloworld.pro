@@ -10,8 +10,8 @@ HEADERS += ../source/boss_config.h
 SOURCES += ../source/helloworld.cpp
 HEADERS += ../source/helloworld.hpp
 SOURCES += ../source/main.cpp
-SOURCES += ../source/r.cpp
-HEADERS += ../source/r.hpp
+SOURCES += ../source/resource.cpp
+HEADERS += ../source/resource.hpp
 
 ASSETS_IMAGE.files += ../assets/image
 ASSETS_IMAGE.path = /assets
@@ -27,9 +27,9 @@ android{
 
 ios|macx{
     QMAKE_BUNDLE_DATA += ASSETS_IMAGE
-    QMAKE_BUNDLE_DATA += MAIN_ICON
+    QMAKE_BUNDLE_DATA += PLIST_RESOURCE
     QMAKE_INFO_PLIST = $$PWD/../common/ios/Info.plist
-    MAIN_ICON.files += $$PWD/../common/ios/res/icon.icns
-    ios: MAIN_ICON.path = /
-    macx: MAIN_ICON.path = /Contents/Resources
+    PLIST_RESOURCE.files += $$PWD/../common/ios/res/icon.icns
+    ios: PLIST_RESOURCE.path = /
+    macx: PLIST_RESOURCE.path = /Contents/Resources
 }

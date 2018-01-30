@@ -515,7 +515,7 @@ namespace BOSS
         mLastContact->Disconnect();
         #if !BOSS_NDEBUG
             if(0 < mResponseData.Count())
-                String(&mResponseData[0], mResponseData.Count()).ToFile("parasource_error.txt");
+                String(&mResponseData[0], mResponseData.Count()).ToAsset("parasource_error.txt");
         #endif
         return false;
     }
@@ -631,7 +631,7 @@ namespace BOSS
                 const String AssetName((id_cloned_share) Share::Create(Buffer));
                 if(Asset::Exist(AssetName) != roottype_null)
                 {
-                    const String JsonText = String::FromFile(AssetName);
+                    const String JsonText = String::FromAsset(AssetName);
                     mContext = new Context();
                     mContext->LoadJson(SO_NeedCopy, JsonText, JsonText.Length());
                 }
@@ -642,7 +642,7 @@ namespace BOSS
 
     void ParaJson::InitForCache(chars assetname)
     {
-        const String JsonText = String::FromFile(assetname);
+        const String JsonText = String::FromAsset(assetname);
         mContext = new Context();
         mContext->LoadJson(SO_NeedCopy, JsonText, JsonText.Length());
     }

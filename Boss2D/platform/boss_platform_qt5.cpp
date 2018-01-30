@@ -2129,6 +2129,23 @@
         public:
             SocketBox() : m_threadId(Platform::Utility::CurrentThreadID()) {m_socket = nullptr;}
             ~SocketBox() {delete m_socket;}
+
+        public:
+            bool CheckState(chars name)
+            {
+                if(!m_socket->isValid())
+                {
+                    BOSS_TRACE("%s(-1) - Socket is broken", name);
+                    return false;
+                }
+                if(m_socket->state() == QAbstractSocket::UnconnectedState)
+                {
+                    BOSS_TRACE("%s(-1) - Socket is unconnected", name);
+                    return false;
+                }
+                return true;
+            }
+
         public:
             const uint64 m_threadId;
             QAbstractSocket* m_socket;
@@ -2228,7 +2245,8 @@
         sint32 Platform::Socket::RecvAvailable(id_socket socket, sint32 timeout)
         {
             SocketBox* CurSocketBox = SocketBox::Access(socket);
-            if(!CurSocketBox || !CurSocketBox->m_socket->isValid()) return -1;
+            if(!CurSocketBox || !CurSocketBox->CheckState("RecvAvailable"))
+                return -1;
 
             if(CurSocketBox->m_socket->waitForReadyRead(timeout))
                 return CurSocketBox->m_socket->bytesAvailable();
@@ -2238,7 +2256,8 @@
         sint32 Platform::Socket::Recv(id_socket socket, uint08* data, sint32 size, sint32 timeout)
         {
             SocketBox* CurSocketBox = SocketBox::Access(socket);
-            if(!CurSocketBox || !CurSocketBox->m_socket->isValid()) return -1;
+            if(!CurSocketBox || !CurSocketBox->CheckState("Recv"))
+                return -1;
 
             if(CurSocketBox->m_socket->bytesAvailable() == 0 &&
                 !CurSocketBox->m_socket->waitForReadyRead(timeout))
@@ -2254,7 +2273,8 @@
         sint32 Platform::Socket::Send(id_socket socket, bytes data, sint32 size, sint32 timeout)
         {
             SocketBox* CurSocketBox = SocketBox::Access(socket);
-            if(!CurSocketBox || !CurSocketBox->m_socket->isValid()) return -1;
+            if(!CurSocketBox || !CurSocketBox->CheckState("Send"))
+                return -1;
 
             if(CurSocketBox->m_socket->write((chars) data, size) < size ||
                 !CurSocketBox->m_socket->waitForBytesWritten(timeout))
@@ -2443,6 +2463,13 @@
         {
             if(TCPAgent* CurAgent = (TCPAgent*) server)
                 return CurAgent->SendPacket(peerid, buffer, buffersize);
+            return false;
+        }
+
+        bool Platform::Server::KickPeer(id_server server, sint32 peerid)
+        {
+            if(TCPAgent* CurAgent = (TCPAgent*) server)
+                return CurAgent->KickPeer(peerid);
             return false;
         }
 

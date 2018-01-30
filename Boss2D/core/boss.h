@@ -10,7 +10,9 @@
     - platform그룹: 하이브리드 환경제공
     - service그룹: 서비스레이어 기능제공
 \section developer 개발자
-    - FinalBossBehindTheDoor
+    - FinalBossBehindTheDoor Inc.
+\section contact 연락처
+    - robonex@finalbossbehindthedoor.com
 */
 
 // About disable warning

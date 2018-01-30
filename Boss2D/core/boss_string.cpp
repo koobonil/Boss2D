@@ -300,7 +300,7 @@ namespace BOSS
         return String(&m_words[-length - 1], length);
     }
 
-    bool String::ToFile(chars filename) const
+    bool String::ToAsset(chars filename) const
     {
         if(id_asset TextAsset = Asset::OpenForWrite(filename, true))
         {
@@ -334,7 +334,7 @@ namespace BOSS
         return Result;
     }
 
-    String String::FromFile(chars filename, id_assetpath_read assetpath)
+    String String::FromAsset(chars filename, id_assetpath_read assetpath)
     {
         id_asset_read TextAsset = Asset::OpenForRead(filename, assetpath);
         if(!TextAsset) return String();

@@ -1564,6 +1564,12 @@
             return false;
         }
 
+        bool Platform::Server::KickPeer(id_server server, sint32 peerid)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return false;
+        }
+
         ////////////////////////////////////////////////////////////////////////////////
         // WEB
         ////////////////////////////////////////////////////////////////////////////////

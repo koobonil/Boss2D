@@ -16,6 +16,14 @@ namespace BOSS
         operator=(rhs);
     }
 
+    Rect::Rect(const rect128& rhs)
+    {
+        l = rhs.l;
+        t = rhs.t;
+        r = rhs.r;
+        b = rhs.b;
+    }
+
     Rect::Rect(const Point point, const Size size)
     {
         l = point.x;

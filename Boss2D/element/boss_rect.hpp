@@ -10,6 +10,7 @@ namespace BOSS
     public:
         Rect();
         Rect(const Rect& rhs);
+        Rect(const rect128& rhs);
         Rect(const Point point, const Size size);
         Rect(const Point point1, const Point point2);
         Rect(float l, float t, float r, float b);

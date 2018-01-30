@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -20,7 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{EF5C0617-444B-4C79-8273-CEC642C286D1}</ProjectGuid>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="..\addon\boss_addon_aac.cpp" />
@@ -92,6 +92,7 @@
     <ClCompile Include="..\service\boss_camera360service.cpp" />
     <ClCompile Include="..\service\boss_livechatservice.cpp" />
     <ClCompile Include="..\service\boss_oauth2service.cpp" />
+    <ClCompile Include="..\service\boss_parasource.cpp" />
     <ClCompile Include="..\service\boss_streamingservice.cpp" />
     <ClCompile Include="..\service\boss_tryworld.cpp" />
     <ClCompile Include="..\service\boss_zay.cpp" />
@@ -165,6 +166,7 @@
     <ClInclude Include="..\platform\boss_platform_impl.hpp" />
     <ClInclude Include="..\platform\boss_platform_native.hpp" />
     <ClInclude Include="..\platform\boss_platform_qt5.hpp" />
+    <ClInclude Include="..\platform\win32\glew.h" />
     <ClInclude Include="..\service\boss_asyncfilemanager.hpp" />
     <ClInclude Include="..\service\boss_backey.hpp" />
     <ClInclude Include="..\service\boss_batchbuilder.hpp" />
@@ -173,30 +175,30 @@
     <ClInclude Include="..\service\boss_camera360service.hpp" />
     <ClInclude Include="..\service\boss_livechatservice.hpp" />
     <ClInclude Include="..\service\boss_oauth2service.hpp" />
+    <ClInclude Include="..\service\boss_parasource.hpp" />
     <ClInclude Include="..\service\boss_streamingservice.hpp" />
     <ClInclude Include="..\service\boss_tryworld.hpp" />
     <ClInclude Include="..\service\boss_zay.hpp" />
-    <ClInclude Include="..\platform\win32\glew.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />

@@ -1436,6 +1436,12 @@
             return false;
         }
 
+        bool Platform::Server::KickPeer(id_server server, sint32 peerid)
+        {
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+            return false;
+        }
+
         ////////////////////////////////////////////////////////////////////////////////
         // WEB
         ////////////////////////////////////////////////////////////////////////////////
