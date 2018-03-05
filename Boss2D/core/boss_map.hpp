@@ -37,7 +37,7 @@ namespace BOSS
     class Map
     {
     public:
-        typedef void (*AccessCB)(const MapPath*, const TYPE*, payload);
+        typedef void (*AccessCB)(const MapPath*, TYPE*, payload);
 
     public:
         /*!

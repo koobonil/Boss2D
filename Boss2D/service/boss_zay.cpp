@@ -1018,7 +1018,7 @@ namespace BOSS
     void ZayView::DirtyAllSurfaces()
     {
         TouchCollector::STMAP().AccessByCallback(
-            [](const MapPath*, const TouchCollector* collector, payload param)->void
+            [](const MapPath*, TouchCollector* collector, payload param)->void
             {
                 collector->mDirty = true;
             }, nullptr);

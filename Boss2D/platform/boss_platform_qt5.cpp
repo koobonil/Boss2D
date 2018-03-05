@@ -478,7 +478,7 @@
             if(auto Views = View::Search(viewclass, SC_Search))
             {
                 struct Payload {chars topic; id_share in;} Param = {topic, in};
-                Views->AccessByCallback([](const MapPath*, const h_view* view, payload param)->void
+                Views->AccessByCallback([](const MapPath*, h_view* view, payload param)->void
                 {
                     const Payload* Param = (const Payload*) param;
                     ((ViewAPI*) view->get())->sendNotify(Param->topic, Param->in, nullptr);
@@ -493,7 +493,7 @@
             if(auto Views = View::Search(nullptr, SC_Search))
             {
                 struct Payload {PassCB cb; payload data; bool canceled;} Param = {cb, data, false};
-                Views->AccessByCallback([](const MapPath*, const h_view* view, payload param)->void
+                Views->AccessByCallback([](const MapPath*, h_view* view, payload param)->void
                 {
                     Payload* Param = (Payload*) param;
                     if(Param->canceled) return;
@@ -507,7 +507,7 @@
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
             if(auto Views = View::Search(nullptr, SC_Search))
             {
-                Views->AccessByCallback([](const MapPath*, const h_view* view, payload param)->void
+                Views->AccessByCallback([](const MapPath*, h_view* view, payload param)->void
                 {
                     ((ViewAPI*) view->get())->dirtyAndUpdate();
                 }, nullptr);
@@ -959,9 +959,15 @@
         void Platform::Graphics::SetFont(chars name, float size)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
-            #if BOSS_IPHONE | BOSS_ANDROID
+            #if BOSS_MAC_OSX
                 static const sint32 PixelScale = Platform::Utility::GetPixelScale();
-                size *= 0.5f * PixelScale;
+                size *= 1.2f * PixelScale;
+            #elif BOSS_IPHONE
+                static const sint32 PixelScale = Platform::Utility::GetPixelScale();
+                size *= 0.4f * PixelScale;
+            #elif BOSS_ANDROID
+                static const sint32 PixelScale = Platform::Utility::GetPixelScale();
+                size *= 0.475f * PixelScale;
             #endif
             CanvasClass::get()->painter().setFont(QFont(name, (sint32) size));
         }
@@ -2046,6 +2052,9 @@
                     if(Platform::File::ExistForDir(AssetsPathB + "/assets"))
                         RootQ = AssetsPathB;
                 }
+            #elif BOSS_MAC_OSX
+                QString RootQ = QCoreApplication::applicationDirPath().replace('\\', '/');
+                RootQ += "/../../../..";
             #else
                 QString RootQ = QStandardPaths::standardLocations(QStandardPaths::DataLocation).value(0).replace('\\', '/');
                 if(!QFileInfo(RootQ).exists()) QDir().mkdir(RootQ);

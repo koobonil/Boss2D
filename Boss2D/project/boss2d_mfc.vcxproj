@@ -95,6 +95,7 @@
     <ClCompile Include="..\service\boss_parasource.cpp" />
     <ClCompile Include="..\service\boss_streamingservice.cpp" />
     <ClCompile Include="..\service\boss_tryworld.cpp" />
+    <ClCompile Include="..\service\boss_typolar.cpp" />
     <ClCompile Include="..\service\boss_zay.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -178,6 +179,7 @@
     <ClInclude Include="..\service\boss_parasource.hpp" />
     <ClInclude Include="..\service\boss_streamingservice.hpp" />
     <ClInclude Include="..\service\boss_tryworld.hpp" />
+    <ClInclude Include="..\service\boss_typolar.hpp" />
     <ClInclude Include="..\service\boss_zay.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

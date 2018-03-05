@@ -63,6 +63,7 @@ namespace BOSS
         void ResetPathes();
         void MoveTo(float x, float y, float second);
         void JumpTo(float x, float y);
+        bool IsArrived();
 
     protected:
         virtual bool UpdateForRender() override;

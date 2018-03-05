@@ -214,6 +214,11 @@ namespace BOSS
         MoveTo(x, y, 0);
     }
 
+    bool Tween2D::IsArrived()
+    {
+        return (!m_curpath && m_pathes.Count() == 0);
+    }
+
     bool Tween2D::UpdateForRender()
     {
         m_needRepaint = false;

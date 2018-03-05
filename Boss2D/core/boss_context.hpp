@@ -46,20 +46,6 @@ namespace BOSS
         void Clear();
 
         /*!
-        \brief Bin바이너리를 로드
-        \param src : Bin바이너리
-        \return 성공여부
-        */
-        bool LoadBin(bytes src);
-
-        /*!
-        \brief Bin바이너리로 세이브
-        \param dst : 결과배열(기존배열에 추가할 경우)
-        \return Bin바이너리
-        */
-        uint08s SaveBin(uint08s dst = uint08s::Null()) const;
-
-        /*!
         \brief Json소스를 파싱하여 로드(buffer)
         \param src : Json소스
         \return 성공여부
@@ -104,6 +90,27 @@ namespace BOSS
         \return Xml소스
         */
         String SaveXml(String dst = String()) const;
+
+        /*!
+        \brief Bin바이너리를 로드
+        \param src : Bin바이너리
+        \return 성공여부
+        */
+        bool LoadBin(bytes src);
+
+        /*!
+        \brief Bin바이너리로 세이브
+        \param dst : 결과배열(기존배열에 추가할 경우)
+        \return Bin바이너리
+        */
+        uint08s SaveBin(uint08s dst = uint08s::Null()) const;
+
+        /*!
+        \brief Prm소스를 파싱하여 로드(chars)
+        \param src : Prm소스
+        \return 성공여부
+        */
+        bool LoadPrm(chars src, sint32 length = -1);
 
         /*!
         \brief 키-밸류 매칭에 의한 수집
@@ -317,24 +324,24 @@ namespace BOSS
 
     private:
         Context* InitSource(Context* anyparent);
+        // Json
+        bool LoadJsonCore(chars src);
+        void SaveJsonCore(sint32 tab, String name, String& dst, bool indexable, bool lastchild) const;
+        static void SaveJsonCoreCB(const MapPath* path, Context* data, payload param);
+        // Xml
+        bool LoadXmlCore(chars src);
+        void SaveXmlCore(sint32 tab, String name, String& dst) const;
+        static void SaveXmlCoreCB(const MapPath* path, Context* data, payload param);
         // Bin
         static const String& GetBinHeader();
         bytes LoadBinCore(bytes src);
         void SaveBinCore(uint08s& dst, const String& name = String()) const;
-        // Json
-        bool LoadJsonCore(chars src);
-        void SaveJsonCore(sint32 tab, String name, String& dst, bool indexable, bool lastchild) const;
-        static void SaveJsonCoreCB(const MapPath* path, const Context* data, payload param);
-        // Xml
-        bool LoadXmlCore(chars src);
-        void SaveXmlCore(sint32 tab, String name, String& dst) const;
-        static void SaveXmlCoreCB(const MapPath* path, const Context* data, payload param);
         // Collect
         void CollectCore(const Context* parent, chars key, chars value, const sint32 length, CollectedContexts* result, CollectOption option) const;
-        static void CollectCoreCB(const MapPath* path, const Context* data, payload param);
+        static void CollectCoreCB(const MapPath* path, Context* data, payload param);
         // Debug
         void DebugPrintCore(sint32 tab, String name, bool indexable) const;
-        static void DebugPrintCoreCB(const MapPath* path, const Context* data, payload param);
+        static void DebugPrintCoreCB(const MapPath* path, Context* data, payload param);
 
     private:
         class StringSource

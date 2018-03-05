@@ -9,7 +9,8 @@
 
     #include <QtWidgets>
     #include <QMainWindow>
-    #include <QSoundEffect>
+    #include <QMediaPlayer>
+    #include <QMediaPlaylist>
     #include <QHostInfo>
     #include <QTcpSocket>
     #include <QUdpSocket>
@@ -1596,27 +1597,37 @@
     public:
         SoundClass(chars filename, bool loop)
         {
-            m_eff = new QSoundEffect();
-            m_eff->setSource(QUrl::fromLocalFile(filename));
-            if(loop) m_eff->setLoopCount(QSoundEffect::Infinite);
+            m_player = new QMediaPlayer();
+            m_playlist = nullptr;
+            if(loop)
+            {
+                m_playlist = new QMediaPlaylist();
+                m_playlist->addMedia(QUrl::fromLocalFile(filename));
+                m_playlist->setPlaybackMode(QMediaPlaylist::Loop);
+                m_player->setPlaylist(m_playlist);
+            }
+            else m_player->setMedia(QUrl::fromLocalFile(filename));
+            m_player->setVolume(100);
         }
         ~SoundClass()
         {
-            delete m_eff;
+            delete m_player;
+            delete m_playlist;
         }
 
     public:
         void Play()
         {
-            if(m_eff) m_eff->play();
+            m_player->play();
         }
         void Stop()
         {
-            if(m_eff) m_eff->stop();
+            m_player->stop();
         }
 
     private:
-        QSoundEffect* m_eff;
+        QMediaPlayer* m_player;
+        QMediaPlaylist* m_playlist;
     };
 
     class TCPPeerData : public QObjectUserData

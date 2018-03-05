@@ -9,11 +9,16 @@ namespace BOSS
     const TryWorld::Dot* TryWorld::Util::GetDotByLineCross(const Dot& DstB, const Dot& DstE, const Dot& SrcB, const Dot& SrcE)
     {
         static Dot Result;
-		if(Math::MaxF(SrcB.x, SrcE.x) < Math::MinF(DstB.x, DstE.x)
-		|| Math::MaxF(DstB.x, DstE.x) < Math::MinF(SrcB.x, SrcE.x)
-		|| Math::MaxF(SrcB.y, SrcE.y) < Math::MinF(DstB.y, DstE.y)
-		|| Math::MaxF(DstB.y, DstE.y) < Math::MinF(SrcB.y, SrcE.y))
-			return nullptr;
+        // 최대최소평가
+        const float DstMinX = Math::MinF(DstB.x, DstE.x), SrcMaxX = Math::MaxF(SrcB.x, SrcE.x);
+		if(DstMinX > SrcMaxX) return nullptr;
+        const float DstMaxX = Math::MaxF(DstB.x, DstE.x), SrcMinX = Math::MinF(SrcB.x, SrcE.x);
+		if(DstMaxX < SrcMinX) return nullptr;
+        const float DstMinY = Math::MinF(DstB.y, DstE.y), SrcMaxY = Math::MaxF(SrcB.y, SrcE.y);
+		if(DstMinY > SrcMaxY) return nullptr;
+        const float DstMaxY = Math::MaxF(DstB.y, DstE.y), SrcMinY = Math::MinF(SrcB.y, SrcE.y);
+		if(DstMaxY < SrcMinY) return nullptr;
+
 		const int ResultA1 = GetClockwiseValue(DstB, DstE, SrcB);
 		const int ResultB1 = GetClockwiseValue(DstB, DstE, SrcE);
 		const int ResultA2 = GetClockwiseValue(SrcB, SrcE, DstB);
@@ -24,52 +29,20 @@ namespace BOSS
 			// 수직
 			if(DstB.x == DstE.x && SrcB.x == SrcE.x)
 			{
-				Result.x = DstB.x;
-				if(DstB.y < DstE.y)
-				{
-					const bool IsInSrcB = (DstB.y <= SrcB.y && SrcB.y <= DstE.y);
-					const bool IsInSrcE = (DstB.y <= SrcE.y && SrcE.y <= DstE.y);
-					if(IsInSrcB && IsInSrcE)
-						Result.y = (SrcB.y < SrcE.y)? SrcB.y : SrcE.y;
-					else if(IsInSrcB) Result.y = SrcB.y;
-					else if(IsInSrcE) Result.y = SrcE.y;
-					else Result.y = (SrcB.y < SrcE.y)? DstB.y : DstE.y;
-				}
-				else
-				{
-					const bool IsInSrcB = (DstE.y <= SrcB.y && SrcB.y <= DstB.y);
-					const bool IsInSrcE = (DstE.y <= SrcE.y && SrcE.y <= DstB.y);
-					if(IsInSrcB && IsInSrcE)
-						Result.y = (SrcB.y < SrcE.y)? SrcE.y : SrcB.y;
-					else if(IsInSrcB) Result.y = SrcB.y;
-					else if(IsInSrcE) Result.y = SrcE.y;
-					else Result.y = (SrcB.y < SrcE.y)? DstE.y : DstB.y;
-				}
+                if(DstMinY <= SrcB.y && SrcB.y <= DstMaxY)
+                    Result = SrcB;
+                else if(DstMinY <= SrcE.y && SrcE.y <= DstMaxY)
+                    Result = SrcE;
+                else Result = DstB;
 			}
 			// 수평
 			else if(DstB.y == DstE.y && SrcB.y == SrcE.y)
 			{
-				Result.y = DstB.y;
-				if(DstB.x < DstE.x)
-				{
-					const bool IsInSrcB = (DstB.x <= SrcB.x && SrcB.x <= DstE.x);
-					const bool IsInSrcE = (DstB.x <= SrcE.x && SrcE.x <= DstE.x);
-					if(IsInSrcB && IsInSrcE)
-						Result.x = (SrcB.x < SrcE.x)? SrcB.x : SrcE.x;
-					else if(IsInSrcB) Result.x = SrcB.x;
-					else if(IsInSrcE) Result.x = SrcE.x;
-					else Result.x = (SrcB.x < SrcE.x)? DstB.x : DstE.x;
-				}
-				else
-				{
-					const bool IsInSrcB = (DstE.x <= SrcB.x && SrcB.x <= DstB.x);
-					const bool IsInSrcE = (DstE.x <= SrcE.x && SrcE.x <= DstB.x);
-					if(IsInSrcB && IsInSrcE)
-						Result.x = (SrcB.x < SrcE.x)? SrcE.x : SrcB.x;
-					else if(IsInSrcB) Result.x = SrcB.x;
-					else if(IsInSrcE) Result.x = SrcE.x;
-					else Result.x = (SrcB.x < SrcE.x)? DstE.x : DstB.x;
-				}
+                if(DstMinX <= SrcB.x && SrcB.x <= DstMaxX)
+                    Result = SrcB;
+                else if(DstMinX <= SrcE.x && SrcE.x <= DstMaxX)
+                    Result = SrcE;
+                else Result = DstB;
 			}
 			// 직교
 			else if(DstB.x == DstE.x && SrcB.y == SrcE.y)
@@ -82,10 +55,11 @@ namespace BOSS
 				Result.x = SrcB.x;
 				Result.y = DstB.y;
 			}
-			// 꼭지점닿음
-			else if((DstB.x == SrcB.x && DstB.y == SrcB.y) || (DstE.x == SrcE.x && DstE.y == SrcE.y)
-				|| (DstB.x == SrcE.x && DstB.y == SrcE.y) || (DstE.x == SrcB.x && DstE.y == SrcB.y))
-				return nullptr;
+			// 꼭지점
+            else if((DstB.x == SrcB.x && DstB.y == SrcB.y) || (DstB.x == SrcE.x && DstB.y == SrcE.y))
+                Result = DstB;
+            else if((DstE.x == SrcE.x && DstE.y == SrcE.y) || (DstE.x == SrcB.x && DstE.y == SrcB.y))
+                Result = DstE;
 			else
 			{
 				// 직선A
@@ -110,6 +84,47 @@ namespace BOSS
 			return &Result;
 		}
 		return nullptr;
+    }
+
+    bool TryWorld::Util::PtInPolygon(const DotList& Polygon, const Dot& Pt)
+    {
+        int LeftSideCount = 0;
+        for(int i = 0, iend = Polygon.Count(); i < iend; ++i)
+        {
+            const auto& LineB = Polygon[i];
+            const auto& LineE = Polygon[(i + 1) % iend];
+            if(LineB.y == LineE.y) // 수평선처리
+            {
+                if(LineB.y == Pt.y && Math::MinF(LineB.x, LineE.x) <= Pt.x && Pt.x <= Math::MaxF(LineB.x, LineE.x))
+                    return true;
+            }
+            else if(Math::MinF(LineB.y, LineE.y) < Pt.y && Pt.y <= Math::MaxF(LineB.y, LineE.y))
+            {
+                const int CWValue = GetClockwiseValue(LineB, LineE, Pt);
+                if(CWValue == 0) return true;
+                else if(((LineB.y < LineE.y)? CWValue : -CWValue) < 0)
+                    LeftSideCount++;
+            }
+        }
+        return LeftSideCount & 1; // Pt보다 좌측점이 홀수면 폴리곤안쪽
+    }
+
+    bool TryWorld::Util::PtInPolyLine(const DotList& Polygon, const Dot& Pt)
+    {
+        for(int i = 0, iend = Polygon.Count(); i < iend; ++i)
+        {
+            const auto& LineB = Polygon[i];
+            const auto& LineE = Polygon[(i + 1) % iend];
+            if(GetClockwiseValue(LineB, LineE, Pt) == 0)
+            {
+                if(Pt.x < Math::MinF(LineB.x, LineE.x)) continue;
+                if(Pt.x > Math::MaxF(LineB.x, LineE.x)) continue;
+                if(Pt.y < Math::MinF(LineB.y, LineE.y)) continue;
+                if(Pt.y > Math::MaxF(LineB.y, LineE.y)) continue;
+                return true;
+            }
+        }
+        return false;
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -146,7 +161,7 @@ namespace BOSS
 		}
         Triangle* Begin = FIND_PICK_TRIANGLE(beginPos);
         Triangle* End = FIND_PICK_TRIANGLE(endPos);
-		if(Begin)
+		if(Begin && End)
 		{
 			Begin->WayDot = beginPos;
 			Begin->WayBack = (Triangle*) -1;
@@ -178,7 +193,7 @@ namespace BOSS
 		return nullptr;
 	}
 
-    void TryWorld::Map::CREATE_TRIANGLES(PolygonList& list)
+    bool TryWorld::Map::MAPPING(PolygonList& list)
 	{
 		for(int i = 0; i < list.Count(); ++i)
         for(int j = 0, jend = list[i].DotArray.Count(); j < jend; ++j)
@@ -191,13 +206,17 @@ namespace BOSS
                 Lines.AtAdding().Set(linetype_bound, CurIndex, CurIndex + ((j + 1) % jend) - j);
             else Lines.AtAdding().Set(linetype_wall, CurIndex, CurIndex + ((j + 1) % jend) - j);
         }
-		// 맵구성
-		MAPPING(Top.INSERT_FIRST(), nullptr, linetype_bound, 0, 1);
+		if(!CREATE_TRIANGLES(Top.INSERT_FIRST(), nullptr, linetype_bound, Dots.Count() - 2, Dots.Count() - 1))
+        {
+            Top.DELETE_FIRST();
+            return false;
+        }
+        return true;
 	}
 
-	void TryWorld::Map::MAPPING(Triangle* focus, Triangle* parent, linetype type, int dotA, int dotB)
+	bool TryWorld::Map::CREATE_TRIANGLES(Triangle* focus, Triangle* parent, linetype type, int dotA, int dotB)
 	{
-		for(int dotC = 0; dotC < Dots.Count(); dotC++)
+		for(int dotC = 0; dotC < Dots.Count(); ++dotC)
 		{
 			// 점C의 조건
 			if(!parent) {if(dotC == dotA || dotC == dotB) continue;}
@@ -217,17 +236,44 @@ namespace BOSS
 				focus->DotB = dotB;
 				focus->DotC = dotC;
 				// 선추가
-				if(LineAC == -1) Lines.AtAdding().Set(linetype_space, focus->DotA, focus->DotC);
-				if(LineBC == -1) Lines.AtAdding().Set(linetype_space, focus->DotB, focus->DotC);
+                int IndexLineAC = -1;
+                int IndexLineBC = -1;
+				if(LineAC == -1)
+                {
+                    IndexLineAC = Lines.Count();
+                    Lines.AtAdding().Set(linetype_space, focus->DotA, focus->DotC);
+                }
+				if(LineBC == -1)
+                {
+                    IndexLineBC = Lines.Count();
+                    Lines.AtAdding().Set(linetype_space, focus->DotB, focus->DotC);
+                }
 				// 연결되는 삼각형정보
 				focus->LinkAB = parent;
 				if(focus->TypeAC != linetype_bound && !(focus->LinkAC = FIND_SAME_TRIANGLE(focus->DotA, focus->DotC, focus)))
-					MAPPING(focus->LinkAC = Top.INSERT_FIRST(), focus, focus->TypeAC, focus->DotA, focus->DotC);
+                {
+                    if(!CREATE_TRIANGLES(focus->LinkAC = Top.INSERT_FIRST(), focus, focus->TypeAC, focus->DotA, focus->DotC))
+                    {
+                        focus->TypeAC = linetype_wall;
+                        focus->LinkAC = Top.DELETE_FIRST();
+                        if(IndexLineAC != -1)
+                            Lines.At(IndexLineAC).Set(linetype_wall, focus->DotA, focus->DotC);
+                    }
+                }
 				if(focus->TypeBC != linetype_bound && !(focus->LinkBC = FIND_SAME_TRIANGLE(focus->DotB, focus->DotC, focus)))
-					MAPPING(focus->LinkBC = Top.INSERT_FIRST(), focus, focus->TypeBC, focus->DotB, focus->DotC);
-				return;
+                {
+					if(!CREATE_TRIANGLES(focus->LinkBC = Top.INSERT_FIRST(), focus, focus->TypeBC, focus->DotB, focus->DotC))
+                    {
+                        focus->TypeBC = linetype_wall;
+                        focus->LinkBC = Top.DELETE_FIRST();
+                        if(IndexLineBC != -1)
+                            Lines.At(IndexLineBC).Set(linetype_wall, focus->DotB, focus->DotC);
+                    }
+                }
+				return true;
 			}
 		}
+        return false;
 	}
 
     bool TryWorld::Map::IS_INCLUDE_ANY_DOT_BY(int dotA, int dotB, int dotC) const
@@ -238,7 +284,7 @@ namespace BOSS
 			dotB = dotC;
 			dotC = Swap;
 		}
-		for(int i = 0; i < Dots.Count(); i++)
+		for(int i = 0; i < Dots.Count(); ++i)
 		{
 			if(i == dotA || i == dotB || i == dotC) continue;
 			if(R_SIDE1(dotA, dotB, i) < 0 || R_SIDE1(dotB, dotC, i) < 0 || R_SIDE1(dotC, dotA, i) < 0)
@@ -291,6 +337,7 @@ namespace BOSS
         Triangle* Node = &Top;
 		while(Node = Node->Next)
 		{
+            BOSS_ASSERT("잘못된 시나리오입니다", Node->DotA != -1 && Node->DotB != -1 && Node->DotC != -1);
 			if(R_SIDE1(Node->DotA, Node->DotB, Node->DotC) < 0)
 			{
 				if(0 < R_SIDE2(Node->DotA, Node->DotB, pos)
@@ -312,6 +359,7 @@ namespace BOSS
         Triangle* Node = &Top;
 		while(Node = Node->Next)
 		{
+            BOSS_ASSERT("잘못된 시나리오입니다", Node->DotA != -1 && Node->DotB != -1 && Node->DotC != -1);
 			if(Node == parent) continue;
 			if((dotA == Node->DotA || dotA == Node->DotB || dotA == Node->DotC)
 				&& (dotB == Node->DotA || dotB == Node->DotB || dotB == Node->DotC))
@@ -366,7 +414,6 @@ namespace BOSS
     TryWorld::Hurdle::Hurdle()
 	{
         BuildFlag = false;
-        ObjectBeginID = -1;
 	}
 
 	TryWorld::Hurdle::~Hurdle()
@@ -376,7 +423,16 @@ namespace BOSS
 	TryWorld::Hurdle* TryWorld::Hurdle::Create(Hurdle* hurdle)
 	{
 		Hurdle* Result = new Hurdle();
-		if(hurdle) Result->List = hurdle->List;
+		if(hurdle)
+        {
+            Result->BuildFlag = hurdle->BuildFlag;
+            Result->List = hurdle->List;
+            if(Result->BuildFlag)
+            {
+                Result->BuildFlag = false;
+                Result->List.SubtractionOne();
+            }
+        }
 		return Result;
 	}
 
@@ -386,35 +442,28 @@ namespace BOSS
         hurdle = nullptr;
 	}
 
-    void TryWorld::Hurdle::Add(DotList& polygon, const bool isBoundLine)
+    bool TryWorld::Hurdle::Add(DotList& polygon, bool error_test)
 	{
-		BOSS_ASSERT("Object가 추가된 Hurdle은 Add를 지원하지 않습니다", ObjectBeginID == -1);
-		Rect Bound(polygon[0].x, polygon[0].y, polygon[0].x, polygon[0].y);
-		for(int i = 1, iend = polygon.Count(); i < iend; ++i)
-		{
-			Bound.l = Math::MinF(Bound.l, polygon[i].x);
-			Bound.t = Math::MinF(Bound.t, polygon[i].y);
-			Bound.r = Math::MaxF(Bound.r, polygon[i].x);
-			Bound.b = Math::MaxF(Bound.b, polygon[i].y);
-		}
+		bool TestResult = true;
 		for(int i = List.Count() - 1; 0 <= i; --i)
 		{
-            const DotList* Result = MERGE_POLYGON(List[i].DotArray, polygon, Bound, isBoundLine);
+            bool GetError = false;
+            const DotList* Result = MERGE_POLYGON(List[i].DotArray, polygon, (error_test)? &GetError : nullptr);
 			if(Result)
 			{
                 polygon = *Result;
 				List.SubtractionSection(i);
 			}
+            TestResult &= !GetError;
 		}
         auto& NewPolygon = List.AtAdding();
         NewPolygon.Enable = (2 < polygon.Count());
         NewPolygon.DotArray = polygon;
+        return TestResult;
 	}
 
     void TryWorld::Hurdle::AddWithoutMerging(const DotList& polygon)
 	{
-        if(ObjectBeginID == -1)
-            ObjectBeginID = List.Count();
         auto& NewPolygon = List.AtAdding();
         NewPolygon.Enable = (2 < polygon.Count());
         NewPolygon.DotArray = polygon;
@@ -422,141 +471,207 @@ namespace BOSS
 
 	TryWorld::Map* TryWorld::Hurdle::BuildMap(const Rect& boundBox)
 	{
-        BOSS_ASSERT("Hurdle은 한번만 빌드할 수 있습니다", !BuildFlag);
-        if(BuildFlag) return nullptr;
+        if(BuildFlag)
+            List.SubtractionOne();
+        else BuildFlag = true;
 
-        BuildFlag = true;
-		BOSS_ASSERT("Object가 추가된 Hurdle은 BuildMap을 지원하지 않습니다", ObjectBeginID == -1);
 		DotList BoundPolygon;
 		BoundPolygon.AtAdding() = Dot(boundBox.l, boundBox.t);
 		BoundPolygon.AtAdding() = Dot(boundBox.l, boundBox.b);
 		BoundPolygon.AtAdding() = Dot(boundBox.r, boundBox.b);
 		BoundPolygon.AtAdding() = Dot(boundBox.r, boundBox.t);
-        Add(BoundPolygon, true);
+        AddWithoutMerging(BoundPolygon);
 		Map* Result = new Map();
-        Result->CREATE_TRIANGLES(List);
+        if(!Result->MAPPING(List))
+        {
+            delete Result;
+            return nullptr;
+        }
 		return Result;
 	}
 
-	const TryWorld::DotList* TryWorld::Hurdle::MERGE_POLYGON(const DotList& Dst, const DotList& Src, const Rect SrcBound, const bool IsBoundLine)
+	const TryWorld::DotList* TryWorld::Hurdle::MERGE_POLYGON(const DotList& dst, const DotList& src, bool* error)
 	{
-		// 한계검사
-		bool IsL = true, IsT = true, IsR = true, IsB = true;
-		int BestDstI = -1;
-		for(int i = 0; i < Dst.Count(); ++i)
-		{
-			if(IsL) IsL &= (Dst[i].x < SrcBound.l);
-			if(IsT) IsT &= (Dst[i].y < SrcBound.t);
-			if(IsR) IsR &= (Dst[i].x > SrcBound.r);
-			if(IsB) IsB &= (Dst[i].y > SrcBound.b);
-			if(!IsBoundLine && BestDstI == -1 && (Dst[i].x < SrcBound.l || Dst[i].y < SrcBound.t))
-				BestDstI = i;
-		}
-		BOSS_ASSERT("Src는 Dst의 우측하단에 위치하여야 안전합니다", IsBoundLine || BestDstI != -1);
-		if(IsL || IsT || IsR || IsB) return nullptr;
+        const Dot* Dst = &dst[0];
+        const Dot* Src = &src[0];
+        // Src의 바깥에 존재하는 Dst점 찾기
+        int DstBegin = -1;
+        for(int d = 0, dend = dst.Count(); d < dend; ++d)
+        {
+            if(!Util::PtInPolygon(src, Dst[d]))
+            {
+                DstBegin = d;
+                break;
+            }
+        }
+        if(DstBegin == -1)
+            return nullptr;
 
-		// 교차검사 수집데이터(최소한 Dst의 0번 정점은 Src에 포함되지 않아야 함)
-		static DotList CollectDstB;
-		static DotList CollectDstE;
-		int CollectDstLength = Dst.Count();
-        Memory::Copy(CollectDstB.AtDumping(0, CollectDstLength), &Dst[0], sizeof(Dot) * CollectDstLength);
-		Memory::Copy(CollectDstE.AtDumping(0, CollectDstLength), &Dst[1], sizeof(Dot) * (CollectDstLength - 1));
-		CollectDstE.At(CollectDstLength - 1) = Dst[0];
-		static DotList CollectSrcB;
-		static DotList CollectSrcE;
-		int CollectSrcLength = Src.Count();
-		Memory::Copy(CollectSrcB.AtDumping(0, CollectSrcLength), &Src[0], sizeof(Dot) * CollectSrcLength);
-		Memory::Copy(CollectSrcE.AtDumping(0, CollectSrcLength), &Src[1], sizeof(Dot) * (CollectSrcLength - 1));
-		CollectSrcE.At(CollectSrcLength - 1) = Src[0];
-		for(int d = 0; d < CollectDstLength; ++d)
-		for(int s = 0; s < CollectSrcLength; ++s)
-		{
-			const Dot* CrossDot = nullptr;
-			if(CrossDot = Util::GetDotByLineCross(CollectDstB[d], CollectDstE[d], CollectSrcB[s], CollectSrcE[s]))
-			{
-				if((CrossDot->x != CollectDstB[d].x || CrossDot->y != CollectDstB[d].y)
-					&& (CrossDot->x != CollectDstE[d].x || CrossDot->y != CollectDstE[d].y))
-				{
-					CollectDstE.AtWherever(CollectDstLength) = CollectDstE[d];
-					CollectDstB.AtWherever(CollectDstLength++) = (CollectDstE.At(d) = *CrossDot);
-				}
-				if((CrossDot->x != CollectSrcB[s].x || CrossDot->y != CollectSrcB[s].y)
-					&& (CrossDot->x != CollectSrcE[s].x || CrossDot->y != CollectSrcE[s].y))
-				{
-					CollectSrcE.AtWherever(CollectSrcLength) = CollectSrcE[s];
-					CollectSrcB.AtWherever(CollectSrcLength++) = (CollectSrcE.At(s) = *CrossDot);
-				}
-			}
-		}
-		if(CollectDstLength == Dst.Count())
-			return nullptr;
+        // 교점캐시
+        struct CrossDotCache
+        {
+            int status; // 0: 미실시, -1: 교점없음, 1:교점있음
+            float x;
+            float y;
+            Dot ToDot() const {return Dot(x, y);}
+            bool SameTest(const CrossDotCache& other) {return SameTest(x, y, other.x, other.y);}
+            static bool SameTest(float x1, float y1, float x2, float y2)
+            {
+                if(x1 == x2 && y1 == y2) return true;
+                const float dist_x = x1 - x2;
+                const float dist_y = y1 - y2;
+                if(dist_x > 0.0001) return false;
+                if(dist_x < -0.0001) return false;
+                if(dist_y > 0.0001) return false;
+                if(dist_y < -0.0001) return false;
+                return true;
+            }
+        };
+        static Array<CrossDotCache, datatype_pod_canmemcpy_zeroset> CrossDotCaches;
+        CrossDotCaches.SubtractionAll();
+        auto CrossDots = CrossDotCaches.AtDumpingAdded(dst.Count() * src.Count());
+        #define READY_CROSSDOT(DOTNAME, DSTB, DSTE, SRCB, SRCE) \
+            do { \
+                if(DOTNAME.status == 0) \
+                { \
+                    const Dot* CrossResult = Util::GetDotByLineCross(DSTB, DSTE, SRCB, SRCE); \
+                    if(CrossResult) \
+                    { \
+                        DOTNAME.status = 1; \
+                        DOTNAME.x = CrossResult->x; \
+                        DOTNAME.y = CrossResult->y; \
+                    } \
+                    else DOTNAME.status = -1; \
+                } \
+            } while(false)
 
-        static DotList Result;
-        Result.SubtractionAll();
-		if(IsBoundLine)
-		{
-			Result.AtAdding() = Dot(0, 0);
-			for(int d = 0; d < CollectDstLength; ++d)
-			{
-				if(CollectDstB[d].x <= SrcBound.l) continue;
-				if(CollectDstB[d].y <= SrcBound.t) continue;
-				if(CollectDstB[d].x >= SrcBound.r) continue;
-				if(CollectDstB[d].y >= SrcBound.b) continue;
-				Result.At(0) = CollectDstB[d];
-				break;
-			}
-			BOSS_ASSERT("계산상 오류입니다", Result[0].x != 0 || Result[0].y != 0);
-		}
-		else Result.AtAdding() = Dst[BestDstI];
-		do
-		{
-			int DstIndex = -1;
-			for(int d = 0; d < CollectDstLength; ++d)
-				if(Result[-1].x == CollectDstB[d].x && Result[-1].y == CollectDstB[d].y
-					&& (CollectDstB[d].x != CollectDstE[d].x || CollectDstB[d].y != CollectDstE[d].y))
-				{
-					DstIndex = d;
-					break;
-				}
-			int SrcIndex = -1;
-			for(int s = 0; s < CollectSrcLength; ++s)
-				if(Result[-1].x == CollectSrcB[s].x && Result[-1].y == CollectSrcB[s].y
-					&& (CollectSrcB[s].x != CollectSrcE[s].x || CollectSrcB[s].y != CollectSrcE[s].y))
-				{
-					SrcIndex = s;
-					break;
-				}
-			BOSS_ASSERT("계산상 오류입니다", DstIndex != -1 || SrcIndex != -1);
-			Dot SelectedDot;
-			if(DstIndex != -1 && SrcIndex != -1 && 1 < Result.Count())
-			{
-				const float PrevAngle = Math::Atan(Result[-2].x - Result[-1].x, Result[-2].y - Result[-1].y);
-				const float NextAngleDst = Math::Atan(CollectDstE[DstIndex].x - Result[-1].x, CollectDstE[DstIndex].y - Result[-1].y);
-				const float NextAngleSrc = Math::Atan(CollectSrcE[SrcIndex].x - Result[-1].x, CollectSrcE[SrcIndex].y - Result[-1].y);
-				if(NextAngleDst < NextAngleSrc)
-				{
-					if(NextAngleDst < PrevAngle && PrevAngle < NextAngleSrc)
-						SelectedDot = CollectSrcE[SrcIndex];
-					else SelectedDot = CollectDstE[DstIndex];
-				}
-				else
-				{
-					if(NextAngleSrc < PrevAngle && PrevAngle < NextAngleDst)
-						SelectedDot = CollectDstE[DstIndex];
-					else SelectedDot = CollectSrcE[SrcIndex];
-				}
-			}
-			else if(DstIndex != -1)
-				SelectedDot = CollectDstE[DstIndex];
-			else SelectedDot = CollectSrcE[SrcIndex];
-			if(1 < Result.Count() && ((Result[-2].x == SelectedDot.x && Result[-1].x == SelectedDot.x)
-				|| (Result[-2].y == SelectedDot.y && Result[-1].y == SelectedDot.y)))
-				Result.At(-1) = SelectedDot;
-			else Result.AtAdding() = SelectedDot;
-		}
-		while(Result[-1].x != Result[0].x || Result[-1].y != Result[0].y);
-        Result.SubtractionOne();
-		return &Result;
+        // 시작교차점 검색
+        for(int d = DstBegin, dend = dst.Count(); d < dend; ++d)
+        {
+            const Dot& DstB = Dst[d];
+            const Dot& DstE = Dst[(d + 1) % dend];
+		    for(int s = 0, send = src.Count(); s < send; ++s)
+		    {
+                const Dot& SrcB = Src[s];
+                const Dot& SrcE = Src[(s + 1) % send];
+                CrossDotCache& CrossDot = CrossDots[d + s * dend];
+                READY_CROSSDOT(CrossDot, DstB, DstE, SrcB, SrcE);
+			    if(CrossDot.status == 1)
+                {
+                    // 한 선분에 다수의 교차점이 발생시 대처
+                    bool TestResult = true;
+                    float DstDistance = -1, SrcDistance = -1;
+                    for(int s2 = s + 1; s2 < send; ++s2)
+                    {
+                        const Dot& Src2B = Src[s2];
+                        const Dot& Src2E = Src[(s2 + 1) % send];
+                        CrossDotCache& CrossDotForDist = CrossDots[d + s2 * dend];
+                        READY_CROSSDOT(CrossDotForDist, DstB, DstE, Src2B, Src2E);
+                        if(CrossDotForDist.status == 1)
+                        {
+                            if(CrossDot.SameTest(CrossDotForDist))
+                            {
+                                if(SrcDistance < 0)
+                                    SrcDistance = Math::Distance(SrcB.x, SrcB.y, CrossDot.x, CrossDot.y);
+                                const float SrcDistance2 = Math::Distance(Src2B.x, Src2B.y, CrossDotForDist.x, CrossDotForDist.y);
+                                if(SrcDistance > SrcDistance2)
+                                {
+                                    TestResult = false;
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                if(DstDistance < 0)
+                                    DstDistance = Math::Distance(DstB.x, DstB.y, CrossDot.x, CrossDot.y);
+                                const float DstDistance2 = Math::Distance(DstB.x, DstB.y, CrossDotForDist.x, CrossDotForDist.y);
+                                if(DstDistance > DstDistance2)
+                                {
+                                    TestResult = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if(!TestResult) continue;
+
+                    // 수집시작
+                    static DotList Collector;
+                    Collector.SubtractionAll();
+                    for(int i = DstBegin; i <= d; ++i)
+                        Collector.AtAdding() = Dst[i];
+                    Collector.AtAdding() = CrossDot.ToDot();
+
+                    // 마감교차점 검색
+                    for(int _s2 = 1; _s2 < send; ++_s2)
+                    {
+                        const int s2 = (s + _s2) % send;
+                        const Dot& Src2B = Src[s2];
+                        const Dot& Src2E = Src[(s2 + 1) % send];
+                        Collector.AtAdding() = Src2B; // 수집
+                        for(int d2 = 0; d2 < dend; ++d2)
+                        {
+                            // 한번 교차된 두 선분짝은 다시 사용불가
+                            if(d2 == d && s2 == s) continue;
+                            const Dot& Dst2B = Dst[d2];
+                            const Dot& Dst2E = Dst[(d2 + 1) % dend];
+                            CrossDotCache& CrossDot2 = CrossDots[d2 + s2 * dend];
+                            READY_CROSSDOT(CrossDot2, Dst2B, Dst2E, Src2B, Src2E);
+                            if(CrossDot2.status == 1)
+                            {
+                                Collector.AtAdding() = CrossDot2.ToDot(); // 수집
+                                if(DstBegin == 0) // 시작점이 변동되지 않은 경우에만 마무리수집이 필요
+                                for(int i = d2 + 1; i < dend; ++i)
+                                    Collector.AtAdding() = Dst[i]; // 마무리수집
+                                // 중복점 정리
+                                for(int i = Collector.Count() - 1; 0 <= i; --i)
+                                {
+                                    const Dot& DotA = Collector[i];
+                                    const Dot& DotB = Collector[(i + 1) % Collector.Count()];
+                                    if(CrossDotCache::SameTest(DotA.x, DotA.y, DotB.x, DotB.y))
+                                        Collector.SubtractionSection(i);
+                                }
+
+                                // 이후 Src에 교차점이 더 있다면 에러체크
+                                if(error)
+                                {
+                                    for(int d3 = 0; d3 < dend; ++d3)
+                                    {
+                                        const Dot& Dst3B = Dst[d3];
+                                        const Dot& Dst3E = Dst[(d3 + 1) % dend];
+		                                for(int s3 = 0; s3 < send; ++s3)
+		                                {
+                                            const Dot& Src3B = Src[s3];
+                                            const Dot& Src3E = Src[(s3 + 1) % send];
+                                            CrossDotCache& CrossDot3 = CrossDots[d3 + s3 * dend];
+                                            READY_CROSSDOT(CrossDot3, Dst3B, Dst3E, Src3B, Src3E);
+			                                if(CrossDot3.status == 1)
+                                            {
+                                                bool SameTest1 = true;
+                                                if(d3 != d || s3 != s)
+                                                    SameTest1 = CrossDot3.SameTest(CrossDots[d + s * dend]);
+                                                bool SameTest2 = true;
+                                                if(d3 != d2 || s3 != s2)
+                                                    SameTest2 = CrossDot3.SameTest(CrossDots[d2 + s2 * dend]);
+                                                if(!SameTest1 && !SameTest2)
+                                                if(!Util::PtInPolyLine(Collector, CrossDot3.ToDot()))
+                                                {
+                                                    *error = true;
+                                                    return &Collector;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    *error = false;
+                                }
+                                return &Collector;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return nullptr;
 	}
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -584,16 +699,7 @@ namespace BOSS
 				{
                     if(!hurdle->List[h].Enable) continue;
                     const auto& CurDots = hurdle->List[h].DotArray;
-					// curPos를 둘러싼 오브젝트는 검사에서 제외
-					if(0 <= hurdle->ObjectBeginID && hurdle->ObjectBeginID <= h)
-					{
-						bool IsInHurdle = true;
-                        for(int l = 0, lend = CurDots.Count(); IsInHurdle && l < lend; ++l)
-                            if(0 < Util::GetClockwiseValue(CurDots[l], CurDots[(l + 1) % lend], curPos))
-								IsInHurdle = false;
-						if(IsInHurdle) continue;
-					}
-                    for(int l = 0, lend = CurDots.Count(); !IsFindHurdle && l < lend; ++l)
+					for(int l = 0, lend = CurDots.Count(); !IsFindHurdle && l < lend; ++l)
 					{
                         IsFindHurdle = (nullptr != Util::GetDotByLineCross(CurDots[l], CurDots[(l + 1) % lend], curPos, CurTarget));
                         if(IsFindHurdle && 0 < Util::GetClockwiseValue(CurDots[l], CurDots[(l + 1) % lend], curPos))

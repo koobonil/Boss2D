@@ -32,27 +32,6 @@ namespace BOSS
         Set(nullptr);
     }
 
-    bool Context::LoadBin(bytes src)
-    {
-        if(GetBinHeader().Compare((chars) src))
-            return false;
-
-        m_namableChild.Reset();
-        m_indexableChild.Clear();
-
-        bytes SrcFocus = src + GetBinHeader().Length() + 1 + sizeof(sint32) + 1;
-        LoadBinCore(SrcFocus);
-        return true;
-    }
-
-    uint08s Context::SaveBin(uint08s dst) const
-    {
-        Memory::Copy(dst.AtDumping(dst.Count(), GetBinHeader().Length() + 1),
-            (chars) GetBinHeader(), GetBinHeader().Length() + 1);
-        SaveBinCore(dst);
-        return dst;
-    }
-
     bool Context::LoadJson(buffer src)
     {
         m_source.SharedValue().CertifyLast();
@@ -112,6 +91,62 @@ namespace BOSS
         for(sint32 i = 0, iend = m_indexableChild.Count(); i < iend; ++i)
             m_indexableChild[i].SaveXmlCore(0, String::FromInteger(i), dst);
         return dst;
+    }
+
+    bool Context::LoadBin(bytes src)
+    {
+        if(GetBinHeader().Compare((chars) src))
+            return false;
+
+        m_namableChild.Reset();
+        m_indexableChild.Clear();
+
+        bytes SrcFocus = src + GetBinHeader().Length() + 1 + sizeof(sint32) + 1;
+        LoadBinCore(SrcFocus);
+        return true;
+    }
+
+    uint08s Context::SaveBin(uint08s dst) const
+    {
+        Memory::Copy(dst.AtDumping(dst.Count(), GetBinHeader().Length() + 1),
+            (chars) GetBinHeader(), GetBinHeader().Length() + 1);
+        SaveBinCore(dst);
+        return dst;
+    }
+
+    bool Context::LoadPrm(chars src, sint32 length)
+    {
+        m_namableChild.Reset();
+        m_indexableChild.Clear();
+
+        const String SrcString(src, length);
+        sint32 PosBegin = 0;
+        while(PosBegin < SrcString.Length())
+        {
+            const sint32 PosMiddle = SrcString.Find(PosBegin + 1, "=");
+            if(PosMiddle != -1)
+            {
+                const sint32 PosEnd = SrcString.Find(PosMiddle + 1, ";");
+                if(PosEnd != -1)
+                {
+                    const String KeyName(src + PosBegin, PosMiddle - PosBegin);
+                    const String KeyValue(src + PosMiddle + 1, PosEnd - (PosMiddle + 1));
+                    At(KeyName).Set(KeyValue);
+                    PosBegin = PosEnd + 1;
+                }
+                else
+                {
+                    BOSS_ASSERT("Prm파싱중 \';\'기호를 찾을 수 없습니다", false);
+                    return false;
+                }
+            }
+            else
+            {
+                BOSS_ASSERT("Prm파싱중 \'=\'기호를 찾을 수 없습니다", false);
+                return false;
+            }
+        }
+        return true;
     }
 
     CollectedContexts Context::CollectByMatch(chars key, chars value, CollectOption option) const
@@ -262,105 +297,6 @@ namespace BOSS
     {
         m_source = anyparent->m_source;
         return this;
-    }
-
-    const String& Context::GetBinHeader()
-    {static const String _ = String::Format("bin{%s %s}", __TIME__, __DATE__); return _;}
-
-    bytes Context::LoadBinCore(bytes src)
-    {
-        // 데이터(원본)
-        sint32 ValueLength = src[0];
-        ValueLength |= (src[1] & 0xFF) << 8;
-        ValueLength |= (src[2] & 0xFF) << 16;
-        ValueLength |= (src[3] & 0xFF) << 24;
-        src += sizeof(sint32);
-        chars Value = (chars) src;
-        src += ValueLength + 1;
-
-        // 데이터(정수), 데이터(실수), 키워드식 자식수량, 배열식 자식수량
-        sint32 DataField[4];
-        Memory::Copy(DataField, src, sizeof(sint32) * 4);
-        src += sizeof(sint32) * 4;
-
-        // 셋팅
-        Set(Value, ValueLength);
-        m_parsedInt = new sint32(*((sint32*) &DataField[0]));
-        m_parsedFloat = new float(*((float*) &DataField[1]));
-
-        // 키워드식 자식
-        for(sint32 i = 0; i < DataField[2]; ++i)
-        {
-            // 자식의 자기명칭
-            sint32 NameLength = src[0];
-            NameLength |= (src[1] & 0xFF) << 8;
-            NameLength |= (src[2] & 0xFF) << 16;
-            NameLength |= (src[3] & 0xFF) << 24;
-            src += sizeof(sint32);
-            chars Name = (chars) src;
-            src += NameLength + 1;
-
-            // 자식루프
-            Context& NewChild = m_namableChild(Name);
-            src = NewChild.LoadBinCore(src);
-        }
-
-        // 배열식 자식
-        if(0 < DataField[3])
-        {
-            m_indexableChild.AtWherever(DataField[3] - 1);
-            for(sint32 i = 0; i < DataField[3]; ++i)
-            {
-                // 자기명칭 스킵
-                src += sizeof(sint32) + 1;
-
-                // 자식루프
-                Context& NewChild = m_indexableChild.At(i);
-                src = NewChild.LoadBinCore(src);
-            }
-        }
-        return src;
-    }
-
-    void Context::SaveBinCore(uint08s& dst, const String& name) const
-    {
-        // 자기명칭
-        const sint32 NameLength = name.Length();
-        Memory::Copy(dst.AtDumping(dst.Count(), sizeof(sint32)), &NameLength, sizeof(sint32));
-        Memory::Copy(dst.AtDumping(dst.Count(), NameLength + 1), (chars) name, NameLength + 1);
-
-        // 데이터(원본)
-        Memory::Copy(dst.AtDumping(dst.Count(), sizeof(sint32)), &m_valueLength, sizeof(sint32));
-        Memory::Copy(dst.AtDumping(dst.Count(), m_valueLength), m_valueOffset, m_valueLength);
-        *dst.AtDumping(dst.Count(), 1) = (uint08) '\0';
-
-        // 데이터(정수)
-        const sint32 IntValue = GetInt();
-        Memory::Copy(dst.AtDumping(dst.Count(), sizeof(sint32)), &IntValue, sizeof(sint32));
-        // 데이터(실수)
-        const float FloatValue = GetFloat();
-        Memory::Copy(dst.AtDumping(dst.Count(), sizeof(float)), &FloatValue, sizeof(float));
-        // 키워드식 자식수량
-        const sint32 NChildCount = m_namableChild.Count();
-        Memory::Copy(dst.AtDumping(dst.Count(), sizeof(sint32)), &NChildCount, sizeof(sint32));
-        // 배열식 자식수량
-        const sint32 IChildCount = m_indexableChild.Count();
-        Memory::Copy(dst.AtDumping(dst.Count(), sizeof(sint32)), &IChildCount, sizeof(sint32));
-
-        // 키워드식 자식
-        for(sint32 i = 0; i < NChildCount; ++i)
-        {
-            chararray GetName;
-            const Context* CurChild = m_namableChild.AccessByOrder(i, &GetName);
-            CurChild->SaveBinCore(dst, GetName);
-        }
-
-        // 배열식 자식
-        for(sint32 i = 0; i < IChildCount; ++i)
-        {
-            const Context& CurChild = m_indexableChild[i];
-            CurChild.SaveBinCore(dst);
-        }
     }
 
     bool Context::LoadJsonCore(chars src)
@@ -555,7 +491,7 @@ namespace BOSS
         }
     }
 
-    void Context::SaveJsonCoreCB(const MapPath* path, const Context* data, payload param)
+    void Context::SaveJsonCoreCB(const MapPath* path, Context* data, payload param)
     {
         const sint32 tab = *((sint32*) ((void**) param)[0]);
         String& dst = *((String*) ((void**) param)[1]);
@@ -761,7 +697,7 @@ namespace BOSS
         else dst += "/>\r\n";
     }
 
-    void Context::SaveXmlCoreCB(const MapPath* path, const Context* data, payload param)
+    void Context::SaveXmlCoreCB(const MapPath* path, Context* data, payload param)
     {
         String& dst = *((String*) param);
         const String Name = path->GetPath();
@@ -774,6 +710,105 @@ namespace BOSS
             chars_endless Value = data->GetStringFast(&ValueLength);
             dst.Add(Value, ValueLength);
             dst += '\"';
+        }
+    }
+
+    const String& Context::GetBinHeader()
+    {static const String _ = String::Format("bin{%s %s}", __TIME__, __DATE__); return _;}
+
+    bytes Context::LoadBinCore(bytes src)
+    {
+        // 데이터(원본)
+        sint32 ValueLength = src[0];
+        ValueLength |= (src[1] & 0xFF) << 8;
+        ValueLength |= (src[2] & 0xFF) << 16;
+        ValueLength |= (src[3] & 0xFF) << 24;
+        src += sizeof(sint32);
+        chars Value = (chars) src;
+        src += ValueLength + 1;
+
+        // 데이터(정수), 데이터(실수), 키워드식 자식수량, 배열식 자식수량
+        sint32 DataField[4];
+        Memory::Copy(DataField, src, sizeof(sint32) * 4);
+        src += sizeof(sint32) * 4;
+
+        // 셋팅
+        Set(Value, ValueLength);
+        m_parsedInt = new sint32(*((sint32*) &DataField[0]));
+        m_parsedFloat = new float(*((float*) &DataField[1]));
+
+        // 키워드식 자식
+        for(sint32 i = 0; i < DataField[2]; ++i)
+        {
+            // 자식의 자기명칭
+            sint32 NameLength = src[0];
+            NameLength |= (src[1] & 0xFF) << 8;
+            NameLength |= (src[2] & 0xFF) << 16;
+            NameLength |= (src[3] & 0xFF) << 24;
+            src += sizeof(sint32);
+            chars Name = (chars) src;
+            src += NameLength + 1;
+
+            // 자식루프
+            Context& NewChild = m_namableChild(Name);
+            src = NewChild.LoadBinCore(src);
+        }
+
+        // 배열식 자식
+        if(0 < DataField[3])
+        {
+            m_indexableChild.AtWherever(DataField[3] - 1);
+            for(sint32 i = 0; i < DataField[3]; ++i)
+            {
+                // 자기명칭 스킵
+                src += sizeof(sint32) + 1;
+
+                // 자식루프
+                Context& NewChild = m_indexableChild.At(i);
+                src = NewChild.LoadBinCore(src);
+            }
+        }
+        return src;
+    }
+
+    void Context::SaveBinCore(uint08s& dst, const String& name) const
+    {
+        // 자기명칭
+        const sint32 NameLength = name.Length();
+        Memory::Copy(dst.AtDumping(dst.Count(), sizeof(sint32)), &NameLength, sizeof(sint32));
+        Memory::Copy(dst.AtDumping(dst.Count(), NameLength + 1), (chars) name, NameLength + 1);
+
+        // 데이터(원본)
+        Memory::Copy(dst.AtDumping(dst.Count(), sizeof(sint32)), &m_valueLength, sizeof(sint32));
+        Memory::Copy(dst.AtDumping(dst.Count(), m_valueLength), m_valueOffset, m_valueLength);
+        *dst.AtDumping(dst.Count(), 1) = (uint08) '\0';
+
+        // 데이터(정수)
+        const sint32 IntValue = GetInt();
+        Memory::Copy(dst.AtDumping(dst.Count(), sizeof(sint32)), &IntValue, sizeof(sint32));
+        // 데이터(실수)
+        const float FloatValue = GetFloat();
+        Memory::Copy(dst.AtDumping(dst.Count(), sizeof(float)), &FloatValue, sizeof(float));
+        // 키워드식 자식수량
+        const sint32 NChildCount = m_namableChild.Count();
+        Memory::Copy(dst.AtDumping(dst.Count(), sizeof(sint32)), &NChildCount, sizeof(sint32));
+        // 배열식 자식수량
+        const sint32 IChildCount = m_indexableChild.Count();
+        Memory::Copy(dst.AtDumping(dst.Count(), sizeof(sint32)), &IChildCount, sizeof(sint32));
+
+        // 키워드식 자식
+        for(sint32 i = 0; i < NChildCount; ++i)
+        {
+            chararray GetName;
+            const Context* CurChild = m_namableChild.AccessByOrder(i, &GetName);
+            CurChild->SaveBinCore(dst, GetName);
+        }
+
+        // 배열식 자식
+        for(sint32 i = 0; i < IChildCount; ++i)
+        {
+            const Context& CurChild = m_indexableChild[i];
+            CurChild.SaveBinCore(dst);
         }
     }
 
@@ -797,7 +832,7 @@ namespace BOSS
             m_indexableChild[i].CollectCore(this, key, value, length, result, option);
     }
 
-    void Context::CollectCoreCB(const MapPath* path, const Context* data, payload param)
+    void Context::CollectCoreCB(const MapPath* path, Context* data, payload param)
     {
         const Context* parent = (const Context*) ((void**) param)[0];
         chars key = (chars) ((void**) param)[1];
@@ -824,6 +859,6 @@ namespace BOSS
         #endif
     }
 
-    void Context::DebugPrintCoreCB(const MapPath* path, const Context* data, payload param)
+    void Context::DebugPrintCoreCB(const MapPath* path, Context* data, payload param)
     {data->DebugPrintCore(*((sint32*) param) + 1, path->GetPath(), false);}
 }

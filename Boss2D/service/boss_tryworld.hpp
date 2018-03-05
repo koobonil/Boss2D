@@ -9,6 +9,7 @@ namespace BOSS
     //! \brief 길찾기
     class TryWorld
     {
+        ////////////////////////////////////////////////////////////////////////////////
         // Dot
         public: class Dot
         {
@@ -21,8 +22,10 @@ namespace BOSS
             public: int Payload;
         };
         public: typedef Array<Dot, datatype_class_canmemcpy, 4> DotList;
+
+        ////////////////////////////////////////////////////////////////////////////////
         // Line
-        private: enum linetype {linetype_bound, linetype_space, linetype_wall};
+        public: enum linetype {linetype_bound, linetype_space, linetype_wall};
 	    private: struct Line
 	    {
 		    linetype Type;
@@ -36,6 +39,8 @@ namespace BOSS
 		    }
         };
 	    private: typedef Array<Line, datatype_pod_canmemcpy, 8> LineList;
+
+        ////////////////////////////////////////////////////////////////////////////////
         // Polygon
         private: class Polygon
         {
@@ -52,13 +57,19 @@ namespace BOSS
         public: class Hurdle;
         public: class GetPosition;
 
+        ////////////////////////////////////////////////////////////////////////////////
+        // Util
         public: class Util
         {
             public: static inline const int GetClockwiseValue(const Dot& Start, const Dot& End, const Dot& Src)
-	        {return ((Start.x - End.x) * (Src.y - End.y) - (Start.y - End.y) * (Src.x - End.x) < 0)? -1 : 1;}
+	        {return (int) (((Start.x - End.x) * (Src.y - End.y) - (Start.y - End.y) * (Src.x - End.x)) * 256);}
             public: static const Dot* GetDotByLineCross(const Dot& DstB, const Dot& DstE, const Dot& SrcB, const Dot& SrcE);
+            public: static bool PtInPolygon(const DotList& Polygon, const Dot& Pt);
+            public: static bool PtInPolyLine(const DotList& Polygon, const Dot& Pt);
         };
 
+        ////////////////////////////////////////////////////////////////////////////////
+        // Path
 	    public: class Path
 	    {
 		    friend class Map;
@@ -82,6 +93,8 @@ namespace BOSS
 		    }
 	    };
 
+        ////////////////////////////////////////////////////////////////////////////////
+        // Map
 	    public: class Map
 	    {
 		    friend class Hurdle;
@@ -140,6 +153,17 @@ namespace BOSS
 				    Result->Next = Next;
 				    return Next = Result;
 			    }
+                private: Triangle* DELETE_FIRST()
+			    {
+                    if(Next)
+                    {
+                        Triangle* OldTriangle = Next;
+                        Next = Next->Next;
+                        OldTriangle->Next = nullptr;
+                        delete OldTriangle;
+                    }
+                    return nullptr;
+			    }
 		    } Top;
 
             private: Map();
@@ -148,8 +172,8 @@ namespace BOSS
             public: typedef std::function<int(const Dot&, const Dot&, const Dot&)> ScoreCB;
             public: Path* CreatePath(const int step);
             public: Path* BuildPath(const Dot& beginPos, const Dot& endPos, const int step = 0, int* score = nullptr, ScoreCB cb = nullptr);
-            private: void CREATE_TRIANGLES(PolygonList& list);
-		    private: void MAPPING(Triangle* focus, Triangle* parent, linetype type, int dotA, int dotB);
+            private: bool MAPPING(PolygonList& list);
+		    private: bool CREATE_TRIANGLES(Triangle* focus, Triangle* parent, linetype type, int dotA, int dotB);
             private: bool IS_INCLUDE_ANY_DOT_BY(int dotA, int dotB, int dotC) const;
             private: bool IS_CROSSING_ANY_LINE_BY(int dotA, int dotB) const;
             private: int FIND_LINE_ID(int dotA, int dotB) const;
@@ -177,23 +201,26 @@ namespace BOSS
             {return Dot((Dots[t.DotB].x + Dots[t.DotC].x * 2) / 3, (Dots[t.DotB].y + Dots[t.DotC].y * 2) / 3);}
 	    };
 
+        ////////////////////////////////////////////////////////////////////////////////
+        // Hurdle
 	    public: class Hurdle
 	    {
 		    friend class GetPosition;
-		    private: PolygonList List;
             private: bool BuildFlag;
-		    private: int ObjectBeginID;
+		    private: PolygonList List;
 
 		    private: Hurdle();
 		    public: ~Hurdle();
 		    public: static Hurdle* Create(Hurdle* hurdle = nullptr);
 		    public: static void Release(Hurdle*& hurdle);
-            public: void Add(DotList& polygon, const bool isBoundLine = false);
+            public: bool Add(DotList& polygon, bool error_test);
             public: void AddWithoutMerging(const DotList& polygon);
 		    public: Map* BuildMap(const Rect& boundBox);
-		    private: const DotList* MERGE_POLYGON(const DotList& Dst, const DotList& Src, const Rect SrcBound, const bool IsBoundLine);
+		    private: const DotList* MERGE_POLYGON(const DotList& dst, const DotList& src, bool* error);
 	    };
 
+        ////////////////////////////////////////////////////////////////////////////////
+        // GetPosition
 	    public: class GetPosition
 	    {
 		    private: GetPosition();

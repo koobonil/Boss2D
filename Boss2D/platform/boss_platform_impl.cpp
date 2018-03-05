@@ -441,7 +441,7 @@ namespace BOSS
                 payload Param = (payload) &Result;
                 g_OptionFlagMutex.Lock();
                 g_OptionFlagMap.AccessByCallback(
-                    [](const MapPath* path, const bool* data, payload param)->void
+                    [](const MapPath* path, bool* data, payload param)->void
                     {
                         Strings& Result = *((Strings*) param);
                         Result.AtAdding() = &path->GetPath()[0];
@@ -473,7 +473,7 @@ namespace BOSS
                 payload Param = (payload) &Result;
                 g_OptionTextMutex.Lock();
                 g_OptionTextMap.AccessByCallback(
-                    [](const MapPath* path, const String* data, payload param)->void
+                    [](const MapPath* path, String* data, payload param)->void
                     {
                         Strings& Result = *((Strings*) param);
                         Result.AtAdding() = &path->GetPath()[0];
@@ -505,7 +505,7 @@ namespace BOSS
                 payload Param = (payload) &Result;
                 g_OptionPayloadMutex.Lock();
                 g_OptionPayloadMap.AccessByCallback(
-                    [](const MapPath* path, const payload* data, payload param)->void
+                    [](const MapPath* path, payload* data, payload param)->void
                     {
                         Strings& Result = *((Strings*) param);
                         Result.AtAdding() = &path->GetPath()[0];
