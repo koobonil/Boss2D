@@ -379,6 +379,9 @@ namespace BOSS
 
     haschild ZayPanel::icon(const Image& image, UIAlign align, bool visible)
     {
+        if(!image.HasBitmap())
+            return haschild_null;
+
         const Clip& LastClip = m_stack_clip[-1];
         const sint32 XAlignCode = GetXAlignCode(align);
         const sint32 YAlignCode = GetYAlignCode(align);
@@ -405,6 +408,9 @@ namespace BOSS
 
     haschild ZayPanel::icon(float x, float y, const Image& image, UIAlign align, bool visible)
     {
+        if(!image.HasBitmap())
+            return haschild_null;
+
         const Clip& LastClip = m_stack_clip[-1];
         const sint32 XAlignCode = GetXAlignCode(align);
         const sint32 YAlignCode = GetYAlignCode(align);
@@ -461,6 +467,9 @@ namespace BOSS
 
     haschild ZayPanel::stretch(const Image& image, bool rebuild, bool visible)
     {
+        if(!image.HasBitmap())
+            return haschild_null;
+
         const Clip& LastClip = m_stack_clip[-1];
         if(visible)
         {
@@ -505,9 +514,11 @@ namespace BOSS
 
     haschild ZayPanel::ninepatch(const Image& image, bool visible)
     {
+        if(!image.HasBitmap())
+            return haschild_null;
+
         const Clip& LastClip = m_stack_clip[-1];
-        if(visible)
-        if(image.UpdatePatchBy(LastClip.Width(), LastClip.Height()))
+        if(visible && image.UpdatePatchBy(LastClip.Width(), LastClip.Height()))
         {
             const sint32* PatchSrcX = image.PatchSrcXArray();
             const sint32* PatchSrcY = image.PatchSrcYArray();
@@ -533,6 +544,8 @@ namespace BOSS
 
     void ZayPanel::pattern(const Image& image, UIAlign align, bool reversed_xorder, bool reversed_yorder) const
     {
+        if(!image.HasBitmap()) return;
+
         sint32 XAlignCode = 0;
         switch(align)
         {

@@ -1,6 +1,9 @@
 ﻿#include <boss.hpp>
 #include "boss_rect.hpp"
 
+#include <element/boss_point.hpp>
+#include <element/boss_size.hpp>
+
 namespace BOSS
 {
     Rect::Rect()
@@ -11,7 +14,7 @@ namespace BOSS
         b = 0;
     }
 
-    Rect::Rect(const Rect& rhs)
+    Rect::Rect(const rect128f& rhs)
     {
         operator=(rhs);
     }
@@ -24,7 +27,7 @@ namespace BOSS
         b = rhs.b;
     }
 
-    Rect::Rect(const Point point, const Size size)
+    Rect::Rect(const point64f point, const size64f size)
     {
         l = point.x;
         t = point.y;
@@ -32,7 +35,7 @@ namespace BOSS
         b = point.y + size.h;
     }
 
-    Rect::Rect(const Point point1, const Point point2)
+    Rect::Rect(const point64f point1, const point64f point2)
     {
         l = (point1.x < point2.x)? point1.x : point2.x;
         t = (point1.y < point2.y)? point1.y : point2.y;
@@ -52,7 +55,7 @@ namespace BOSS
     {
     }
 
-    Rect& Rect::operator=(const Rect& rhs)
+    Rect& Rect::operator=(const rect128f& rhs)
     {
         l = rhs.l;
         t = rhs.t;
@@ -61,7 +64,7 @@ namespace BOSS
         return *this;
     }
 
-    Rect& Rect::operator+=(const Point& rhs)
+    Rect& Rect::operator+=(const point64f& rhs)
     {
         l += rhs.x;
         t += rhs.y;
@@ -70,12 +73,12 @@ namespace BOSS
         return *this;
     }
 
-    Rect Rect::operator+(const Point& rhs) const
+    Rect Rect::operator+(const point64f& rhs) const
     {
         return Rect(*this).operator+=(rhs);
     }
 
-    Rect& Rect::operator-=(const Point& rhs)
+    Rect& Rect::operator-=(const point64f& rhs)
     {
         l -= rhs.x;
         t -= rhs.y;
@@ -84,12 +87,12 @@ namespace BOSS
         return *this;
     }
 
-    Rect Rect::operator-(const Point& rhs) const
+    Rect Rect::operator-(const point64f& rhs) const
     {
         return Rect(*this).operator-=(rhs);
     }
 
-    Rect& Rect::operator+=(const Size& rhs)
+    Rect& Rect::operator+=(const size64f& rhs)
     {
         l -= rhs.w;
         t -= rhs.h;
@@ -98,12 +101,12 @@ namespace BOSS
         return *this;
     }
 
-    Rect Rect::operator+(const Size& rhs) const
+    Rect Rect::operator+(const size64f& rhs) const
     {
         return Rect(*this).operator+=(rhs);
     }
 
-    Rect& Rect::operator-=(const Size& rhs)
+    Rect& Rect::operator-=(const size64f& rhs)
     {
         l += rhs.w;
         t += rhs.h;
@@ -112,7 +115,7 @@ namespace BOSS
         return *this;
     }
 
-    Rect Rect::operator-(const Size& rhs) const
+    Rect Rect::operator-(const size64f& rhs) const
     {
         return Rect(*this).operator-=(rhs);
     }
@@ -145,17 +148,42 @@ namespace BOSS
         return Rect(*this).operator/=(rhs);
     }
 
-    bool Rect::operator==(const Rect& rhs) const
+    bool Rect::operator==(const rect128f& rhs) const
     {
         return (l == rhs.l && t == rhs.t && r == rhs.r && b == rhs.b);
     }
 
-    bool Rect::operator!=(const Rect& rhs) const
+    bool Rect::operator!=(const rect128f& rhs) const
     {
         return !operator==(rhs);
     }
 
-    const bool Rect::PtInRect(const Point point) const
+    const float Rect::Width() const
+    {
+        return r - l;
+    }
+
+    const float Rect::Height() const
+    {
+        return b - t;
+    }
+
+    const point64f Rect::Center() const
+    {
+        return Point((r + l) / 2, (b + t) / 2);
+    }
+
+    const float Rect::CenterX() const
+    {
+        return (r + l) / 2;
+    }
+
+    const float Rect::CenterY() const
+    {
+        return (b + t) / 2;
+    }
+
+    const bool Rect::PtInRect(const point64f point) const
     {
         return (l <= point.x && t <= point.y && point.x < r && point.y < b);
     }

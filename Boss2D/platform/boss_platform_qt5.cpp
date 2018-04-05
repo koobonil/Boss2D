@@ -724,15 +724,14 @@
             return (id_image_read) &ScreenshotPixmap;
         }
 
-        id_bitmap_read Platform::Utility::GetScreenshotBitmap(const rect128& rect, bool vflip)
+        id_bitmap Platform::Utility::ImageToBitmap(id_image_read image, bool vflip)
         {
-            static Image ScreenshotImage;
-            QImage CurImage = QGuiApplication::primaryScreen()->grabWindow(
-                0, rect.l, rect.t, rect.r - rect.l, rect.b - rect.t).toImage();
+            if(!image) return nullptr;
+            QImage CurImage = ((QPixmap*) image)->toImage();
             CurImage = CurImage.convertToFormat(QImage::Format::Format_ARGB32);
-            ScreenshotImage.LoadBitmapFromBits(CurImage.constBits(), CurImage.width(), CurImage.height(),
-                CurImage.bitPlaneCount(), vflip);
-            return ScreenshotImage.GetBitmap();
+            id_bitmap Result = Bmp::CloneFromBits(CurImage.constBits(),
+                CurImage.width(), CurImage.height(), CurImage.bitPlaneCount(), vflip);
+            return Result;
         }
 
         void Platform::Utility::GetCursorPos(point64& pos)
@@ -967,7 +966,7 @@
                 size *= 0.4f * PixelScale;
             #elif BOSS_ANDROID
                 static const sint32 PixelScale = Platform::Utility::GetPixelScale();
-                size *= 0.475f * PixelScale;
+                size *= 0.4f * PixelScale;
             #endif
             CanvasClass::get()->painter().setFont(QFont(name, (sint32) size));
         }
@@ -1662,8 +1661,24 @@
             sint32 FindPos = PathQ.lastIndexOf("assets:");
             if(0 <= FindPos) PathQ = PathQ.mid(FindPos);
 
-            QDir TargetDir((0 <= FindPos)? String(RootForAssets()).Sub(1) + PathQ.mid(7) : PathQ);
-            if(!TargetDir.exists())
+            QDir TargetDir;
+            bool Exists = false;
+            if(FindPos < 0)
+            {
+                TargetDir = PathQ;
+                Exists = TargetDir.exists();
+            }
+            else
+            {
+                TargetDir = String(RootForAssets()).Sub(1) + PathQ.mid(7);
+                Exists = TargetDir.exists();
+                if(!Exists)
+                {
+                    TargetDir = String(RootForAssetsRem()).Sub(1) + PathQ.mid(7);
+                    Exists = TargetDir.exists();
+                }
+            }
+            if(!Exists)
             {
                 BOSS_TRACE("Search(%s) - The TargetDir is nonexistent", (chars) PathUTF8);
                 return -1;
@@ -2087,10 +2102,16 @@
         ////////////////////////////////////////////////////////////////////////////////
         // SOUND
         ////////////////////////////////////////////////////////////////////////////////
-        id_sound Platform::Sound::Open(chars filename, bool loop, sint32 fade_msec)
+        id_sound Platform::Sound::OpenForFile(chars filename, bool loop, sint32 fade_msec)
         {
             BOSS_ASSERT("해당 사운드파일이 존재하지 않습니다", Platform::File::Exist(filename));
             SoundClass* NewSound = new SoundClass(filename, loop);
+            return (id_sound) NewSound;
+        }
+
+        id_sound Platform::Sound::OpenForStream(sint32 channel, sint32 sample_rate, sint32 sample_size)
+        {
+            SoundClass* NewSound = new SoundClass(channel, sample_rate, sample_size);
             return (id_sound) NewSound;
         }
 
@@ -2108,7 +2129,7 @@
         {
             SoundClass* CurSound = (SoundClass*) sound;
             if(!CurSound) return;
-            CurSound->Play();
+            CurSound->Play(volume_rate);
         }
 
         void Platform::Sound::Stop(id_sound sound)
@@ -2116,6 +2137,21 @@
             SoundClass* CurSound = (SoundClass*) sound;
             if(!CurSound) return;
             CurSound->Stop();
+        }
+
+        bool Platform::Sound::NowPlaying(id_sound sound)
+        {
+            SoundClass* CurSound = (SoundClass*) sound;
+            if(CurSound)
+                return CurSound->NowPlaying();
+            return false;
+        }
+
+        sint32 Platform::Sound::AddStreamForPlay(id_sound sound, bytes raw, sint32 size, sint32 timeout)
+        {
+            SoundClass* CurSound = (SoundClass*) sound;
+            if(!CurSound) return false;
+            return CurSound->AddStreamForPlay(raw, size, timeout);
         }
 
         void Platform::Sound::StopAll()
@@ -2256,10 +2292,7 @@
             SocketBox* CurSocketBox = SocketBox::Access(socket);
             if(!CurSocketBox || !CurSocketBox->CheckState("RecvAvailable"))
                 return -1;
-
-            if(CurSocketBox->m_socket->waitForReadyRead(timeout))
-                return CurSocketBox->m_socket->bytesAvailable();
-            return 0;
+            return CurSocketBox->m_socket->bytesAvailable();
         }
 
         sint32 Platform::Socket::Recv(id_socket socket, uint08* data, sint32 size, sint32 timeout)
@@ -2502,6 +2535,12 @@
             web.set_buf(nullptr);
         }
 
+        void Platform::Web::ClearCookies(h_web web)
+        {
+            if(WebPrivate* CurWeb = (WebPrivate*) web.get())
+                CurWeb->ClearCookies();
+        }
+
         void Platform::Web::Reload(h_web web, chars url)
         {
             if(WebPrivate* CurWeb = (WebPrivate*) web.get())
@@ -2548,6 +2587,42 @@
                 return ScreenshotImage.GetBitmap();
             }
             return nullptr;
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // PURCHASE
+        ////////////////////////////////////////////////////////////////////////////////
+        id_purchase Platform::Purchase::Open(chars name, PurchaseType type)
+        {
+            auto NewPurchase = new PurchasePrivate();
+            if(!NewPurchase->Register(name, type))
+            {
+                delete NewPurchase;
+                return nullptr;
+            }
+            return (id_purchase) NewPurchase;
+        }
+
+        void Platform::Purchase::Close(id_purchase purchase)
+        {
+            if(!purchase) return;
+            auto OldPurchase = (PurchasePrivate*) purchase;
+            delete OldPurchase;
+        }
+
+        bool Platform::Purchase::IsPurchased(id_purchase purchase)
+        {
+            if(!purchase) return false;
+            auto CurPurchase = (PurchasePrivate*) purchase;
+            ///////////////////////////////////
+            return false;
+        }
+
+        bool Platform::Purchase::Purchasing(id_purchase purchase, PurchaseCB cb)
+        {
+            if(!purchase) return false;
+            auto CurPurchase = (PurchasePrivate*) purchase;
+            return CurPurchase->Purchase(cb);
         }
 
         ////////////////////////////////////////////////////////////////////////////////

@@ -23,9 +23,15 @@ namespace BOSS
     typedef const wchar_t*                    wchars;
     typedef const wchar_t*                    wchars_endless;
     typedef unsigned int                      argb32;
+
     typedef struct {sint32 x, y;}             point64;
+    typedef struct {float x, y;}              point64f;
     typedef struct {sint32 w, h;}             size64;
+    typedef struct {float w, h;}              size64f;
     typedef struct {sint32 l, t, r, b;}       rect128;
+    typedef struct {float l, t, r, b;}        rect128f;
+    typedef struct {sint32 x, y, vx, vy;}     vector128;
+    typedef struct {float x, y, vx, vy;}      vector128f;
     typedef struct {sint32 i, iend;}          zone64;
     typedef struct {sint32 x, xend;}          xzone64;
     typedef struct {sint32 y, yend;}          yzone64;
@@ -152,16 +158,20 @@ inline void operator delete[](void*, sblock) {}
     #define JulianToEpoch(JUL) (((uint64) JUL) - 210866803200000ui64)
 #endif
 #if BOSS_X64
-    #define PtrToUint64(PTR) (*((const uint64*) &(PTR)))
+    #define PtrToUint64(PTR)  (*((const uint64*) &(PTR)))
     #define AnyTypeToPtr(ANY) ((void*) (ANY))
 #else
-    #define PtrToUint64(PTR) ((const uint64) *((const uint32*) &(PTR)))
+    #define PtrToUint64(PTR)  ((const uint64) *((const uint32*) &(PTR)))
     #define AnyTypeToPtr(ANY) ((void*) (ANY))
 #endif
-#define JumperPos(JMP) ((const sint32*) &(JMP))
-#define JumperToPtr(JMP) (((sint32*) &(JMP)) + (JMP))
-#define Jumper16Pos(JMP) ((const sint16*) &(JMP))
+#define JumperPos(JMP)     ((const sint32*) &(JMP))
+#define JumperToPtr(JMP)   (((sint32*) &(JMP)) + (JMP))
+#define Jumper16Pos(JMP)   ((const sint16*) &(JMP))
 #define Jumper16ToPtr(JMP) (((sint16*) &(JMP)) + (JMP))
+
+// About code styling
+#define branch      if(false)
+#define jump(QUERY) else if(QUERY)
 
 // About declare
 #define BOSS_DECLARE_ID(NAME) \
@@ -267,6 +277,7 @@ namespace BOSS
     BOSS_DECLARE_ID(id_sound);
     BOSS_DECLARE_ID(id_socket);
     BOSS_DECLARE_ID(id_server);
+    BOSS_DECLARE_ID(id_purchase);
     BOSS_DECLARE_ID(id_bluetooth);
     BOSS_DECLARE_ID(id_serial);
     BOSS_DECLARE_ID(id_bitmap);

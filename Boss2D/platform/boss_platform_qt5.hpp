@@ -9,8 +9,13 @@
 
     #include <QtWidgets>
     #include <QMainWindow>
+
     #include <QMediaPlayer>
     #include <QMediaPlaylist>
+    #include <QAudioOutput>
+    #include <QAudioInput>
+    #include <QBuffer>
+
     #include <QHostInfo>
     #include <QTcpSocket>
     #include <QUdpSocket>
@@ -19,6 +24,8 @@
     #include <QGLWidget>
     #include <QGLFunctions>
     #include <QGLShaderProgram>
+
+    #include <QtPurchasing>
 
     #if !BOSS_IPHONE
         #include <QtSerialPort>
@@ -36,8 +43,9 @@
 
     #include <QDesktopServices>
 
-    #if BOSS_WINDOWS && defined(_MSC_VER)
+    #if BOSS_WINDOWS | BOSS_MAC_OSX
         #include <QWebEngineView>
+        #include <QWebEngineProfile>
     #endif
 
     #if BOSS_ANDROID
@@ -288,7 +296,7 @@
                 g_view = getWidget();
                 m_view_manager->OnCreate();
             }
-            m_tick_timer.start(17);
+            m_tick_timer.start(15);
         }
 
         inline bool canQuit()
@@ -1066,7 +1074,7 @@
             setUnifiedTitleAndToolBarOnMac(true);
             g_data = new MainData(this);
             connect(&m_tick_timer, &QTimer::timeout, this, &MainWindow::tick_timeout);
-            m_tick_timer.start(17);
+            m_tick_timer.start(15);
         }
 
         ~MainWindow()
@@ -1436,7 +1444,7 @@
         void UnbindGraphics()
         {
             BOSS_ASSERT("SurfaceClass는 스택식으로 해제해야 합니다", ST() == this);
-            mLastImage = mFBO.toImage();
+            mLastImage = mFBO.toImage(); // 매우 느림, 대책 강구중!
             mCanvas.Unbind();
             if(ST() = mSavedSurface)
             {
@@ -1597,8 +1605,13 @@
     public:
         SoundClass(chars filename, bool loop)
         {
+            m_volume = 0;
             m_player = new QMediaPlayer();
             m_playlist = nullptr;
+            m_output = nullptr;
+            m_outputdevice = nullptr;
+            m_outputmutex = nullptr;
+
             if(loop)
             {
                 m_playlist = new QMediaPlaylist();
@@ -1609,25 +1622,126 @@
             else m_player->setMedia(QUrl::fromLocalFile(filename));
             m_player->setVolume(100);
         }
+        SoundClass(sint32 channel, sint32 sample_rate, sint32 sample_size)
+        {
+            QAudioFormat AudioFormat;
+            AudioFormat.setCodec("audio/pcm");
+            AudioFormat.setChannelCount(channel);
+            AudioFormat.setSampleRate(sample_rate);
+            AudioFormat.setSampleSize(sample_size);
+            AudioFormat.setSampleType(QAudioFormat::UnSignedInt);
+            AudioFormat.setByteOrder(QAudioFormat::LittleEndian);
+
+            m_volume = 0;
+            m_player = nullptr;
+            m_playlist = nullptr;
+            m_output = new QAudioOutput(AudioFormat);
+            m_output->setBufferSize(sample_rate);
+            m_output->setVolume(100);
+            m_outputdevice = nullptr;
+            m_outputmutex = Mutex::Open();
+        }
         ~SoundClass()
         {
+            Stop();
             delete m_player;
             delete m_playlist;
+            delete m_output;
+            Mutex::Close(m_outputmutex);
         }
 
     public:
-        void Play()
+        void Play(float volume_rate)
         {
-            m_player->play();
+            m_volume = Math::Max(0, 256 * volume_rate);
+            branch;
+            jump(m_player)
+            {
+                m_player->setVolume(100 * volume_rate);
+                m_player->play();
+            }
+            jump(m_output)
+            {
+                if(!m_outputdevice)
+                {
+                    Mutex::Lock(m_outputmutex);
+                    m_outputdevice = m_output->start();
+                    Mutex::Unlock(m_outputmutex);
+                }
+            }
         }
         void Stop()
         {
-            m_player->stop();
+            branch;
+            jump(m_player) m_player->stop();
+            jump(m_output)
+            {
+                if(m_outputdevice)
+                {
+                    Mutex::Lock(m_outputmutex);
+                    m_output->stop();
+                    m_outputdevice = nullptr;
+                    Mutex::Unlock(m_outputmutex);
+                }
+            }
+        }
+        bool NowPlaying()
+        {
+            branch;
+            jump(m_player)
+            {
+                if(m_player->state() == QMediaPlayer::PlayingState)
+                    return true;
+            }
+            jump(m_output)
+            {
+                if(m_outputdevice && m_output->state() == QAudio::ActiveState)
+                    return true;
+            }
+            return false;
+        }
+        sint32 AddStreamForPlay(bytes raw, sint32 size, sint32 timeout)
+        {
+            Mutex::Lock(m_outputmutex);
+            sint32 WrittenBytes = -1;
+            if(m_outputdevice)
+                WrittenBytes = m_outputdevice->write((chars) raw, size);
+            Mutex::Unlock(m_outputmutex);
+
+            if(WrittenBytes == -1)
+                return -1;
+            else if(WrittenBytes < size)
+            {
+                uint64 BeginMsec = Platform::Utility::CurrentTimeMsec();
+                while(Platform::Utility::CurrentTimeMsec() < BeginMsec + timeout)
+                {
+                    Platform::Utility::Sleep(1, false);
+                    raw += WrittenBytes;
+                    size -= WrittenBytes;
+
+                    Mutex::Lock(m_outputmutex);
+                    WrittenBytes = -1;
+                    if(m_outputdevice)
+                        WrittenBytes = m_outputdevice->write((chars) raw, size);
+                    Mutex::Unlock(m_outputmutex);
+
+                    if(WrittenBytes == -1)
+                        return -1;
+                    if(WrittenBytes == size)
+                        return m_volume;
+                }
+                return -1; // Timeout
+            }
+            return m_volume;
         }
 
     private:
+        sint32 m_volume;
         QMediaPlayer* m_player;
         QMediaPlaylist* m_playlist;
+        QAudioOutput* m_output;
+        QIODevice* m_outputdevice;
+        id_mutex m_outputmutex;
     };
 
     class TCPPeerData : public QObjectUserData
@@ -1692,11 +1806,13 @@
             TCPPeerData* Data = (TCPPeerData*) Peer->userData(TCPPeerData::ClassID());
             sint64 PacketSize = Peer->bytesAvailable();
 
-            TCPPacket* NewPacket = new TCPPacket(packettype_message, Data->ID, PacketSize);
-            Peer->read((char*) NewPacket->Buffer, PacketSize);
-            PacketQueue.Enqueue(NewPacket);
-
-            connect(Peer, SIGNAL(readyRead()), this, SLOT(readyPeer()));
+            if(0 < PacketSize)
+            {
+                TCPPacket* NewPacket = new TCPPacket(packettype_message, Data->ID, PacketSize);
+                Peer->read((char*) NewPacket->Buffer, PacketSize);
+                PacketQueue.Enqueue(NewPacket);
+                connect(Peer, SIGNAL(readyRead()), this, SLOT(readyPeer()));
+            }
         }
 
         void readyPeerWithSizeField()
@@ -1807,36 +1923,86 @@
         }
     };
 
-    #if !BOSS_WINDOWS || !defined(_MSC_VER)
-        class WebViewPrivate : public QObject
+    class WebEngineViewForExtraDesktop : public QObject
+    {
+        Q_OBJECT
+
+    public:
+        WebEngineViewForExtraDesktop(QWidget* parent = nullptr) {}
+        virtual ~WebEngineViewForExtraDesktop() {}
+
+    public:
+        void setMouseTracking(...) {}
+        virtual void closeEvent(QCloseEvent* event) {}
+    };
+
+    #if !BOSS_WINDOWS & !BOSS_MAC_OSX
+        typedef WebEngineViewForExtraDesktop WebEngineViewClass;
+    #else
+        typedef QWebEngineView WebEngineViewClass;
+    #endif
+
+    class WebViewPrivate : public WebEngineViewClass
+    {
+        Q_OBJECT
+
+    public:
+        WebViewPrivate(QWidget* parent = nullptr) : WebEngineViewClass(parent), mHandle(h_web::null())
         {
-            Q_OBJECT
+            mCb = nullptr;
+            mData = nullptr;
+            setMouseTracking(true);
+            connect(this, SIGNAL(urlChanged(QUrl)), SLOT(onUrlChanged(QUrl)));
+        }
+        virtual ~WebViewPrivate()
+        {
+            mHandle.set_buf(nullptr);
+        }
 
-        public:
-            WebViewPrivate()
-            {
-            }
-            ~WebViewPrivate()
-            {
-            }
-        };
+    public:
+        WebViewPrivate(const WebViewPrivate&) {BOSS_ASSERT("사용금지", false);}
+        WebViewPrivate& operator=(const WebViewPrivate&) {BOSS_ASSERT("사용금지", false); return *this;}
 
-        class WebPrivate
+    protected:
+        void closeEvent(QCloseEvent* event) Q_DECL_OVERRIDE
+        {
+            event->accept();
+            mHandle.set_buf(nullptr);
+        }
+
+    private slots:
+        void onUrlChanged(const QUrl& url)
+        {
+            if(mCb)
+                mCb(mData, "UrlChanged", url.url().toUtf8().constData());
+        }
+
+    public:
+        h_web mHandle;
+        Platform::Web::EventCB mCb;
+        payload mData;
+    };
+
+    #if !BOSS_WINDOWS & !BOSS_MAC_OSX
+        class WebPrivateForExtraDesktop
         {
         public:
-            WebPrivate()
+            WebPrivateForExtraDesktop()
             {
             }
-            ~WebPrivate()
+            ~WebPrivateForExtraDesktop()
             {
             }
 
         public:
-            WebPrivate(const WebPrivate&) {BOSS_ASSERT("사용금지", false);}
-            WebPrivate& operator=(const WebPrivate&) {BOSS_ASSERT("사용금지", false); return *this;}
+            WebPrivateForExtraDesktop(const WebPrivateForExtraDesktop&) {BOSS_ASSERT("사용금지", false);}
+            WebPrivateForExtraDesktop& operator=(const WebPrivateForExtraDesktop&) {BOSS_ASSERT("사용금지", false); return *this;}
 
         public:
             void attachHandle(h_web web)
+            {
+            }
+            void ClearCookies()
             {
             }
             void Reload(chars url)
@@ -1870,68 +2036,32 @@
         private:
             QImage mLastImage;
         };
+        typedef WebPrivateForExtraDesktop WebPrivate;
     #else
-        class WebViewPrivate : public QWebEngineView
-        {
-            Q_OBJECT
-
-        public:
-            WebViewPrivate(QWidget* parent = nullptr) : QWebEngineView(parent), mHandle(h_web::null())
-            {
-                mCb = nullptr;
-                mData = nullptr;
-                setMouseTracking(true);
-                connect(this, SIGNAL(urlChanged(QUrl)), this, SLOT(urlEvent(QUrl)));
-            }
-            virtual ~WebViewPrivate()
-            {
-                mHandle.set_buf(nullptr);
-            }
-
-        public:
-            WebViewPrivate(const WebViewPrivate&) {BOSS_ASSERT("사용금지", false);}
-            WebViewPrivate& operator=(const WebViewPrivate&) {BOSS_ASSERT("사용금지", false); return *this;}
-
-        protected:
-            void closeEvent(QCloseEvent* event) Q_DECL_OVERRIDE
-            {
-                event->accept();
-                mHandle.set_buf(nullptr);
-            }
-
-        private slots:
-            virtual void urlEvent(const QUrl& url)
-            {
-                if(mCb)
-                    mCb(mData, "UrlChanged", url.url().toUtf8().constData());
-            }
-
-        public:
-            h_web mHandle;
-            Platform::Web::EventCB mCb;
-            payload mData;
-        };
-
-        class WebPrivate
+        class WebPrivateForDesktop
         {
         public:
-            WebPrivate()
+            WebPrivateForDesktop()
             {
                 mProxy = mScene.addWidget(&mView);
             }
-            ~WebPrivate()
+            ~WebPrivateForDesktop()
             {
                 mScene.removeItem(mProxy);
             }
 
         public:
-            WebPrivate(const WebPrivate&) {BOSS_ASSERT("사용금지", false);}
-            WebPrivate& operator=(const WebPrivate&) {BOSS_ASSERT("사용금지", false); return *this;}
+            WebPrivateForDesktop(const WebPrivateForDesktop&) {BOSS_ASSERT("사용금지", false);}
+            WebPrivateForDesktop& operator=(const WebPrivateForDesktop&) {BOSS_ASSERT("사용금지", false); return *this;}
 
         public:
             void attachHandle(h_web web)
             {
                 mView.mHandle = web;
+            }
+            void ClearCookies()
+            {
+                mView.page()->profile()->setPersistentCookiesPolicy(QWebEngineProfile::NoPersistentCookies);
             }
             void Reload(chars url)
             {
@@ -1995,7 +2125,71 @@
             QGraphicsScene mScene;
             QImage mLastImage;
         };
+        typedef WebPrivateForDesktop WebPrivate;
     #endif
+
+    class PurchasePrivate : public QInAppStore
+    {
+        Q_OBJECT
+
+    public:
+        PurchasePrivate(QWidget* parent = nullptr) : QInAppStore(parent)
+        {
+            mProduct = nullptr;
+            connect(this, SIGNAL(productRegistered(QInAppProduct*)), SLOT(onProductRegistered(QInAppProduct*)));
+            connect(this, SIGNAL(productUnknown(QInAppProduct::ProductType, const QString&)), SLOT(onProductUnknown(QInAppProduct::ProductType, const QString&)));
+            connect(this, SIGNAL(transactionReady(QInAppTransaction*)), SLOT(onTransactionReady(QInAppTransaction*)));
+        }
+        ~PurchasePrivate()
+        {
+        }
+
+    public:
+        PurchasePrivate(const PurchasePrivate&) {BOSS_ASSERT("사용금지", false);}
+        PurchasePrivate& operator=(const PurchasePrivate&) {BOSS_ASSERT("사용금지", false); return *this;}
+
+    public:
+        bool Register(chars name, PurchaseType type)
+        {
+            mName = name;
+            switch(type)
+            {
+            case PT_Consumable:
+                registerProduct(QInAppProduct::Consumable, name);
+                return true;
+            case PT_Unlockable:
+                registerProduct(QInAppProduct::Unlockable, name);
+                return true;
+            }
+            return false;
+        }
+        bool Purchase(PurchaseCB cb)
+        {
+            if(!mProduct)
+                mProduct = registeredProduct((chars) mName);
+            if(mProduct)
+            {
+                mProduct->purchase();
+                return true;
+            }
+            return false;
+        }
+
+    private slots:
+        void onProductRegistered(QInAppProduct* product)
+        {
+        }
+        void onProductUnknown(QInAppProduct::ProductType productType, const QString& identifier)
+        {
+        }
+        void onTransactionReady(QInAppTransaction* transaction)
+        {
+        }
+
+    public:
+        String mName;
+        QInAppProduct* mProduct;
+    };
 
     #if BOSS_ANDROID
         typedef QSerialPortInfo SerialPortInfoClass;
@@ -3704,18 +3898,20 @@
     #include <QAbstractVideoSurface>
     #include <QAudioProbe>
     #include <QWebEngineView>
+
     class ViewAPI : public QObject {Q_OBJECT};
     class GenericView : public QFrame {Q_OBJECT};
     class MainViewGL : public QGLWidget {Q_OBJECT};
     class MainViewMDI : public QMdiArea {Q_OBJECT};
-    class MainWindow : public QMainWindow {Q_OBJECT private slots: void OnSlot() {}};
+    class MainWindow : public QMainWindow {Q_OBJECT};
     class EditTracker : public QLineEdit {Q_OBJECT};
-    class ListTracker : public QListWidget {Q_OBJECT private slots: void onItemPressed(QListWidgetItem* item) {}};
-    class VideoSurface : public QAbstractVideoSurface {Q_OBJECT};
+    class ListTracker : public QListWidget {Q_OBJECT};
     class ThreadClass : public QThread {Q_OBJECT};
     class TCPAgent : public QTcpServer {Q_OBJECT};
+    class WebEngineViewForExtraDesktop : public QObject {Q_OBJECT};
+    class WebViewPrivate : public WebEngineViewClass {Q_OBJECT};
+    class PurchasePrivate : public QInAppStore {Q_OBJECT};
     class CameraSurface : public QAbstractVideoSurface {Q_OBJECT};
     class MicrophoneClass : public QAudioProbe {Q_OBJECT};
-    class WebViewPrivate : public QWebEngineView {Q_OBJECT};
 
 #endif

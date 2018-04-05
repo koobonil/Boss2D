@@ -518,7 +518,7 @@
             return nullptr;
         }
 
-        id_bitmap_read Platform::Utility::GetScreenshotBitmap(const rect128& rect, bool vflip)
+        id_bitmap Platform::Utility::ImageToBitmap(id_image_read image, bool vflip)
         {
             BOSS_ASSERT("Further development is needed.", false);
             return nullptr;
@@ -1341,7 +1341,13 @@
         ////////////////////////////////////////////////////////////////////////////////
         // SOUND
         ////////////////////////////////////////////////////////////////////////////////
-        id_sound Platform::Sound::Open(chars filename, bool loop, sint32 fade_msec)
+        id_sound Platform::Sound::OpenForFile(chars filename, bool loop, sint32 fade_msec)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return nullptr;
+        }
+
+        id_sound Platform::Sound::OpenForStream(sint32 channel, sint32 sample_rate, sint32 sample_size)
         {
             BOSS_ASSERT("Further development is needed.", false);
             return nullptr;
@@ -1365,6 +1371,18 @@
         void Platform::Sound::Stop(id_sound sound)
         {
             BOSS_ASSERT("Further development is needed.", false);
+        }
+
+        bool Platform::Sound::NowPlaying(id_sound sound)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return false;
+        }
+
+        sint32 Platform::Sound::AddStreamForPlay(id_sound sound, bytes raw, sint32 size, sint32 timeout)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return -1;
         }
 
         void Platform::Sound::StopAll()
@@ -1584,6 +1602,11 @@
             BOSS_ASSERT("Further development is needed.", false);
         }
 
+        void Platform::Web::ClearCookies(h_web web)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+        }
+
         void Platform::Web::Reload(h_web web, chars url)
         {
             BOSS_ASSERT("Further development is needed.", false);
@@ -1614,6 +1637,32 @@
         {
             BOSS_ASSERT("Further development is needed.", false);
             return nullptr;
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // PURCHASE
+        ////////////////////////////////////////////////////////////////////////////////
+        id_purchase Platform::Purchase::Open(chars name, PurchaseType type)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return nullptr;
+        }
+
+        void Platform::Purchase::Close(id_purchase purchase)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+        }
+
+        bool Platform::Purchase::IsPurchased(id_purchase purchase)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return false;
+        }
+
+        bool Platform::Purchase::Purchasing(id_purchase purchase, PurchaseCB cb)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return false;
         }
 
         ////////////////////////////////////////////////////////////////////////////////

@@ -174,12 +174,19 @@ namespace BOSS
         static float Atan(const float x, const float y);
 
         /*!
+        \brief PI값 얻기
+        \return PI값
+        */
+        inline static float PI()
+        {return 3.1415926535897932385f;}
+
+        /*!
         \brief 각도를 라디안으로 변환하기
         \param deg : 각도
         \return 라디안
         */
         inline static float ToRadian(const float deg)
-        {return deg * 3.1415926535897932385f / 180.0f;}
+        {return deg * PI() / 180.0f;}
 
         /*!
         \brief 라디안을 각도로 변환하기
@@ -187,7 +194,7 @@ namespace BOSS
         \return 각도
         */
         inline static float ToDegree(const float rad)
-        {return rad * 180.0f / 3.1415926535897932385f;}
+        {return rad * 180.0f / PI();}
 
         /*!
         \brief 거리 구하기
@@ -198,5 +205,11 @@ namespace BOSS
         \return 거리
         */
         static float Distance(const float x1, const float y1, const float x2, const float y2);
+
+        /*!
+        \brief 랜덤값 구하기
+        \return 랜덤값(0.0f에서 1.0f포함까지)
+        */
+        static float Random();
     };
 }

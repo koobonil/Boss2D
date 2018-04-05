@@ -1,43 +1,38 @@
 ﻿#pragma once
 #include <element/boss_matrix.hpp>
-#include <element/boss_size.hpp>
 
 namespace BOSS
 {
     //! \brief 2D좌표
-    class Point
+    class Point : public point64f
     {
     public:
         Point();
-        Point(const Point& rhs);
+        Point(const point64f& rhs);
         Point(float x, float y);
         ~Point();
 
-        Point& operator=(const Point& rhs);
+        Point& operator=(const point64f& rhs);
         Point& operator*=(const Matrix& rhs);
         Point operator*(const Matrix& rhs) const;
         Point& operator*=(const float rhs);
         Point operator*(const float rhs) const;
-        Point& operator*=(const Size& rhs);
-        Point operator*(const Size& rhs) const;
+        Point& operator*=(const size64f& rhs);
+        Point operator*(const size64f& rhs) const;
         Point& operator/=(const float rhs);
         Point operator/(const float rhs) const;
-        Point& operator+=(const Point& rhs);
-        Point operator+(const Point& rhs) const;
-        Point& operator+=(const Size& rhs);
-        Point operator+(const Size& rhs) const;
-        Point& operator-=(const Point& rhs);
-        Point operator-(const Point& rhs) const;
-        Point& operator-=(const Size& rhs);
-        Point operator-(const Size& rhs) const;
-        bool operator==(const Point& rhs) const;
-        bool operator!=(const Point& rhs) const;
+        Point& operator+=(const point64f& rhs);
+        Point operator+(const point64f& rhs) const;
+        Point& operator+=(const size64f& rhs);
+        Point operator+(const size64f& rhs) const;
+        Point& operator-=(const point64f& rhs);
+        Point operator-(const point64f& rhs) const;
+        Point& operator-=(const size64f& rhs);
+        Point operator-(const size64f& rhs) const;
+        bool operator==(const point64f& rhs) const;
+        bool operator!=(const point64f& rhs) const;
 
-        const bool ClockwiseTest(const Point begin, const Point end) const;
-
-    public:
-        float x;
-        float y;
+        const bool ClockwiseTest(const point64f begin, const point64f end) const;
     };
     typedef Array<Point, datatype_class_canmemcpy> Points;
 }

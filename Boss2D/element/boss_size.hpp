@@ -4,21 +4,17 @@
 namespace BOSS
 {
     //! \brief 2D구간
-    class Size
+    class Size : public size64f
     {
     public:
         Size();
-        Size(const Size& rhs);
+        Size(const size64f& rhs);
         Size(float w, float h);
         ~Size();
 
-        Size& operator=(const Size& rhs);
-        bool operator==(const Size& rhs) const;
-        bool operator!=(const Size& rhs) const;
-
-    public:
-        float w;
-        float h;
+        Size& operator=(const size64f& rhs);
+        bool operator==(const size64f& rhs) const;
+        bool operator!=(const size64f& rhs) const;
     };
     typedef Array<Size, datatype_class_canmemcpy> Sizes;
 }

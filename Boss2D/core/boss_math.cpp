@@ -2,6 +2,7 @@
 #include "boss_math.hpp"
 
 #include <math.h>
+#include <platform/boss_platform.hpp>
 
 namespace BOSS
 {
@@ -79,5 +80,10 @@ namespace BOSS
         const float X = x1 - x2;
         const float Y = y1 - y2;
         return sqrtf(X * X + Y * Y);
+    }
+
+    float Math::Random()
+    {
+        return ((sint32) (Platform::Utility::Random() & 0x7FFFFFFF)) / (float) 0x7FFFFFFF;
     }
 }

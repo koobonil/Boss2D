@@ -1451,7 +1451,7 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         }
     #endif
 
-    #if !BOSS_LINUX
+    #if !BOSS_LINUX & !BOSS_ANDROID
         namespace std
         {
             #undef ifstream

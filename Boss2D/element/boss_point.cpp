@@ -9,7 +9,7 @@ namespace BOSS
         y = 0;
     }
 
-    Point::Point(const Point& rhs)
+    Point::Point(const point64f& rhs)
     {
         operator=(rhs);
     }
@@ -24,7 +24,7 @@ namespace BOSS
     {
     }
 
-    Point& Point::operator=(const Point& rhs)
+    Point& Point::operator=(const point64f& rhs)
     {
         x = rhs.x;
         y = rhs.y;
@@ -57,14 +57,14 @@ namespace BOSS
         return Point(*this).operator*=(rhs);
     }
 
-    Point& Point::operator*=(const Size& rhs)
+    Point& Point::operator*=(const size64f& rhs)
     {
         x *= rhs.w;
         y *= rhs.h;
         return *this;
     }
 
-    Point Point::operator*(const Size& rhs) const
+    Point Point::operator*(const size64f& rhs) const
     {
         return Point(*this).operator*=(rhs);
     }
@@ -81,65 +81,65 @@ namespace BOSS
         return Point(*this).operator/=(rhs);
     }
 
-    Point& Point::operator+=(const Point& rhs)
+    Point& Point::operator+=(const point64f& rhs)
     {
         x += rhs.x;
         y += rhs.y;
         return *this;
     }
 
-    Point Point::operator+(const Point& rhs) const
+    Point Point::operator+(const point64f& rhs) const
     {
         return Point(*this).operator+=(rhs);
     }
 
-    Point& Point::operator+=(const Size& rhs)
+    Point& Point::operator+=(const size64f& rhs)
     {
         x += rhs.w;
         y += rhs.h;
         return *this;
     }
 
-    Point Point::operator+(const Size& rhs) const
+    Point Point::operator+(const size64f& rhs) const
     {
         return Point(*this).operator+=(rhs);
     }
 
-    Point& Point::operator-=(const Point& rhs)
+    Point& Point::operator-=(const point64f& rhs)
     {
         x -= rhs.x;
         y -= rhs.y;
         return *this;
     }
 
-    Point Point::operator-(const Point& rhs) const
+    Point Point::operator-(const point64f& rhs) const
     {
         return Point(*this).operator-=(rhs);
     }
 
-    Point& Point::operator-=(const Size& rhs)
+    Point& Point::operator-=(const size64f& rhs)
     {
         x -= rhs.w;
         y -= rhs.h;
         return *this;
     }
 
-    Point Point::operator-(const Size& rhs) const
+    Point Point::operator-(const size64f& rhs) const
     {
         return Point(*this).operator-=(rhs);
     }
 
-    bool Point::operator==(const Point& rhs) const
+    bool Point::operator==(const point64f& rhs) const
     {
         return (x == rhs.x && y == rhs.y);
     }
 
-    bool Point::operator!=(const Point& rhs) const
+    bool Point::operator!=(const point64f& rhs) const
     {
         return !operator==(rhs);
     }
 
-    const bool Point::ClockwiseTest(const Point begin, const Point end) const
+    const bool Point::ClockwiseTest(const point64f begin, const point64f end) const
     {
         return (0 < (end.x - begin.x) * (y - begin.y) - (end.y - begin.y) * (x - begin.x));
     }

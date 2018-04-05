@@ -1,31 +1,27 @@
 ﻿#pragma once
-#include <element/boss_point.hpp>
+#include <boss.hpp>
 
 namespace BOSS
 {
     //! \brief 2D벡터
-    class Vector
+    class Vector : public vector128f
     {
     public:
         Vector();
-        Vector(const Vector& rhs);
+        Vector(const vector128f& rhs);
         Vector(float x, float y, float vx, float vy);
-        Vector(const Point& pos, const Point& vec);
+        Vector(const point64f& pos, const point64f& vec);
         ~Vector();
 
-        Vector& operator=(const Vector& rhs);
-        Vector& operator+=(const Point& rhs);
-        Vector operator+(const Point& rhs) const;
-        Vector& operator-=(const Point& rhs);
-        Vector operator-(const Point& rhs) const;
-        bool operator==(const Vector& rhs) const;
-        bool operator!=(const Vector& rhs) const;
-
-    public:
-        float x;
-        float y;
-        float vx;
-        float vy;
+        Vector& operator=(const vector128f& rhs);
+        Vector& operator*=(const float rhs);
+        Vector operator*(const float rhs) const;
+        Vector& operator+=(const point64f& rhs);
+        Vector operator+(const point64f& rhs) const;
+        Vector& operator-=(const point64f& rhs);
+        Vector operator-(const point64f& rhs) const;
+        bool operator==(const vector128f& rhs) const;
+        bool operator!=(const vector128f& rhs) const;
     };
     typedef Array<Vector, datatype_class_canmemcpy> Vectors;
 }

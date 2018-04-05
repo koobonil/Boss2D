@@ -1,53 +1,46 @@
 ﻿#pragma once
-#include <element/boss_point.hpp>
-#include <element/boss_size.hpp>
+#include <boss.hpp>
 
 namespace BOSS
 {
     //! \brief 2D영역
-    class Rect
+    class Rect : public rect128f
     {
     public:
         Rect();
-        Rect(const Rect& rhs);
+        Rect(const rect128f& rhs);
         Rect(const rect128& rhs);
-        Rect(const Point point, const Size size);
-        Rect(const Point point1, const Point point2);
+        Rect(const point64f point, const size64f size);
+        Rect(const point64f point1, const point64f point2);
         Rect(float l, float t, float r, float b);
         ~Rect();
 
-        Rect& operator=(const Rect& rhs);
-        Rect& operator+=(const Point& rhs);
-        Rect operator+(const Point& rhs) const;
-        Rect& operator-=(const Point& rhs);
-        Rect operator-(const Point& rhs) const;
-        Rect& operator+=(const Size& rhs);
-        Rect operator+(const Size& rhs) const;
-        Rect& operator-=(const Size& rhs);
-        Rect operator-(const Size& rhs) const;
+        Rect& operator=(const rect128f& rhs);
+        Rect& operator+=(const point64f& rhs);
+        Rect operator+(const point64f& rhs) const;
+        Rect& operator-=(const point64f& rhs);
+        Rect operator-(const point64f& rhs) const;
+        Rect& operator+=(const size64f& rhs);
+        Rect operator+(const size64f& rhs) const;
+        Rect& operator-=(const size64f& rhs);
+        Rect operator-(const size64f& rhs) const;
         Rect& operator*=(float rhs);
         Rect operator*(float rhs) const;
         Rect& operator/=(float rhs);
         Rect operator/(float rhs) const;
-        bool operator==(const Rect& rhs) const;
-        bool operator!=(const Rect& rhs) const;
+        bool operator==(const rect128f& rhs) const;
+        bool operator!=(const rect128f& rhs) const;
 
-        inline const float Width() const {return r - l;}
-        inline const float Height() const {return b - t;}
-        inline const Point Center() const {return Point((r + l) / 2, (b + t) / 2);}
-        inline const float CenterX() const {return (r + l) / 2;}
-        inline const float CenterY() const {return (b + t) / 2;}
-        const bool PtInRect(const Point point) const;
+        const float Width() const;
+        const float Height() const;
+        const point64f Center() const;
+        const float CenterX() const;
+        const float CenterY() const;
+        const bool PtInRect(const point64f point) const;
         const bool PtInRect(const float x, const float y) const;
         const bool ContactTest(const Rect rect) const;
         Rect Inflate(const float x, const float y) const;
         Rect Deflate(const float x, const float y) const;
-
-    public:
-        float l;
-        float t;
-        float r;
-        float b;
     };
     typedef Array<Rect, datatype_class_canmemcpy> Rects;
 }

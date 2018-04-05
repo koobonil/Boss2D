@@ -9,7 +9,7 @@ namespace BOSS
         h = 0;
     }
 
-    Size::Size(const Size& rhs)
+    Size::Size(const size64f& rhs)
     {
         operator=(rhs);
     }
@@ -24,19 +24,19 @@ namespace BOSS
     {
     }
 
-    Size& Size::operator=(const Size& rhs)
+    Size& Size::operator=(const size64f& rhs)
     {
         w = rhs.w;
         h = rhs.h;
         return *this;
     }
 
-    bool Size::operator==(const Size& rhs) const
+    bool Size::operator==(const size64f& rhs) const
     {
         return (w == rhs.w && h == rhs.h);
     }
 
-    bool Size::operator!=(const Size& rhs) const
+    bool Size::operator!=(const size64f& rhs) const
     {
         return !operator==(rhs);
     }

@@ -6,13 +6,16 @@ namespace BOSS
     BOSS_DECLARE_ID(id_acc);
     BOSS_DECLARE_ID(id_alpr);
     BOSS_DECLARE_ID(id_curl);
-    BOSS_DECLARE_ID(id_h264);
     BOSS_DECLARE_ID(id_git);
-    BOSS_DECLARE_ID(id_tesseract);
+    BOSS_DECLARE_ID(id_h264);
     BOSS_DECLARE_ID(id_jpg);
+    BOSS_DECLARE_ID(id_tesseract);
+    BOSS_DECLARE_ID(id_opencv);
     BOSS_DECLARE_ID(id_zip);
-    enum ProgressType {PT_DownloadPack, PT_DownloadTip, PT_InflateFile};
+    enum GitProgressType {GPT_DownloadPack, GPT_DownloadTip, GPT_InflateFile};
     typedef size_t (*CurlReadCB)(void* ptr, size_t size, size_t nitems, payload data);
+    typedef void (*PcmCreateCB)(sint32 channel, sint32 sample_rate, sint32 sample_size, payload data);
+    typedef sint32 (*PcmWriteCB)(void* ptr, size_t size, payload data);
 
     //! \brief 애드온지원
     class AddOn
@@ -61,20 +64,11 @@ namespace BOSS
             static sint32 FtpSearch(id_curl curl, chars url, chars dirname, SearchCB cb, payload data);
         };
 
-        //! \brief H264연동
-        class H264
-        {
-        public:
-            static id_h264 Create(sint32 width, sint32 height, bool fastmode);
-            static void Release(id_h264 h264);
-            static void EncodeTo(id_h264 h264, const uint32* rgba, id_flash flash, uint64 timems);
-        };
-
         //! \brief GIT연동
         class Git
         {
         public:
-            typedef void (*ProgressCB)(payload, ProgressType, chars);
+            typedef void (*ProgressCB)(payload, GitProgressType, chars);
 
         public:
             static id_git Create(chars rootpath, chars sshname, chars id, chars password);
@@ -82,13 +76,13 @@ namespace BOSS
             static void Update(id_git git, ProgressCB cb = nullptr, payload data = nullptr);
         };
 
-        //! \brief TESSERACT연동
-        class Tesseract
+        //! \brief H264연동
+        class H264
         {
         public:
-            static id_tesseract Create(chars tifpath, chars otherpath);
-            static void Release(id_tesseract tesseract);
-            static void Training(id_tesseract tesseract, chars workname);
+            static id_h264 Create(sint32 width, sint32 height, bool fastmode);
+            static void Release(id_h264 h264);
+            static void EncodeTo(id_h264 h264, const uint32* rgba, id_flash flash, uint64 timems);
         };
 
         //! \brief JPG연동
@@ -100,6 +94,38 @@ namespace BOSS
             static sint32 GetLength(id_jpg jpg);
             static bytes GetBits(id_jpg jpg);
             static id_bitmap ToBmp(bytes jpg, sint32 length);
+        };
+
+        //! \brief OGG연동
+        class Ogg
+        {
+        public:
+            static void ToPcmStream(id_file_read oggfile, PcmCreateCB ccb, PcmWriteCB wcb, payload data);
+        };
+
+        //! \brief OpenCV연동
+        class OpenCV
+        {
+        public:
+            static id_opencv Create(void);
+            static void Release(id_opencv opencv);
+            static void Update(id_opencv opencv, id_bitmap_read bmp, double low = 125, double high = 125 * 3, sint32 aperture = 3);
+            static id_bitmap GetPreprocessImage(id_opencv opencv);
+            static void TrackingObject(id_opencv opencv);
+            static sint32 GetObjectCount(id_opencv opencv);
+            static rect128f GetObjectRect(id_opencv opencv, sint32 i);
+            static void TrackingStick(id_opencv opencv);
+            static sint32 GetStickCount(id_opencv opencv);
+            static vector128f GetStickLine(id_opencv opencv, sint32 i);
+        };
+
+        //! \brief TESSERACT연동
+        class Tesseract
+        {
+        public:
+            static id_tesseract Create(chars tifpath, chars otherpath);
+            static void Release(id_tesseract tesseract);
+            static void Training(id_tesseract tesseract, chars workname);
         };
 
         //! \brief ZIP연동

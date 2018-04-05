@@ -21,6 +21,10 @@
     #undef __ANDROID__
 #endif
 
+#if BOSS_MAC_OSX | BOSS_IPHONE | BOSS_ANDROID
+    #define _M_ARM
+#endif
+
 #define BOSS_FAKEWIN_DECLSPEC_DLLEXPORT //__declspec(dllexport)
 #define BOSS_FAKEWIN_DECLSPEC_DLLIMPORT //__declspec(dllimport)
 #define BOSS_FAKEWIN_STDCALL            //__stdcall
@@ -181,13 +185,13 @@
     #include <errno.h>
     #include <sys/stat.h>
     #include <wchar.h>
-    #if !BOSS_MAC_OSX && !BOSS_IPHONE
+    #if !BOSS_MAC_OSX & !BOSS_IPHONE & !BOSS_ANDROID
         #include <malloc.h>
     #endif
     #if BOSS_LINUX
         #include <sys/types.h>
         #include <sys/socket.h>
-    #elif BOSS_MAC_OSX || BOSS_IPHONE || BOSS_ANDROID
+    #elif BOSS_MAC_OSX | BOSS_IPHONE | BOSS_ANDROID
         #include <sys/select.h>
     #endif
     #if BOSS_WINDOWS
@@ -199,7 +203,7 @@
     #include <fcntl.h>
 
     #ifdef __cplusplus
-        #if !BOSS_LINUX && !BOSS_MAC_OSX && !BOSS_IPHONE
+        #if !BOSS_LINUX & !BOSS_MAC_OSX & !BOSS_IPHONE & !BOSS_ANDROID
             #include <iostream>
             #include <fstream>
             #include <sstream>
@@ -575,7 +579,7 @@
     #endif
 
     #ifdef __cplusplus
-        #if !BOSS_LINUX
+        #if !BOSS_LINUX & !BOSS_ANDROID
             namespace std
             {
                 #define ifstream boss_fakewin_ifstream

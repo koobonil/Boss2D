@@ -11,7 +11,7 @@ namespace BOSS
         vy = 0;
     }
 
-    Vector::Vector(const Vector& rhs)
+    Vector::Vector(const vector128f& rhs)
     {
         operator=(rhs);
     }
@@ -24,7 +24,7 @@ namespace BOSS
         this->vy = vy;
     }
 
-    Vector::Vector(const Point& pos, const Point& vec)
+    Vector::Vector(const point64f& pos, const point64f& vec)
     {
         x = pos.x;
         y = pos.y;
@@ -36,7 +36,7 @@ namespace BOSS
     {
     }
 
-    Vector& Vector::operator=(const Vector& rhs)
+    Vector& Vector::operator=(const vector128f& rhs)
     {
         x = rhs.x;
         y = rhs.y;
@@ -45,36 +45,50 @@ namespace BOSS
         return *this;
     }
 
-    Vector& Vector::operator+=(const Point& rhs)
+    Vector& Vector::operator*=(const float rhs)
+    {
+        x *= rhs;
+        y *= rhs;
+        vx *= rhs;
+        vy *= rhs;
+        return *this;
+    }
+
+    Vector Vector::operator*(const float rhs) const
+    {
+        return Vector(*this).operator*=(rhs);
+    }
+
+    Vector& Vector::operator+=(const point64f& rhs)
     {
         x += rhs.x;
         y += rhs.y;
         return *this;
     }
 
-    Vector Vector::operator+(const Point& rhs) const
+    Vector Vector::operator+(const point64f& rhs) const
     {
         return Vector(*this).operator+=(rhs);
     }
 
-    Vector& Vector::operator-=(const Point& rhs)
+    Vector& Vector::operator-=(const point64f& rhs)
     {
         x -= rhs.x;
         y -= rhs.y;
         return *this;
     }
 
-    Vector Vector::operator-(const Point& rhs) const
+    Vector Vector::operator-(const point64f& rhs) const
     {
         return Vector(*this).operator-=(rhs);
     }
 
-    bool Vector::operator==(const Vector& rhs) const
+    bool Vector::operator==(const vector128f& rhs) const
     {
         return (x == rhs.x && y == rhs.y && vx == rhs.vx && vy == rhs.vy);
     }
 
-    bool Vector::operator!=(const Vector& rhs) const
+    bool Vector::operator!=(const vector128f& rhs) const
     {
         return !operator==(rhs);
     }

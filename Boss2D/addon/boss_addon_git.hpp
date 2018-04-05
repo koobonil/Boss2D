@@ -28,7 +28,7 @@ namespace BOSS
         inline chars GetSshName() {return m_sshname;}
         inline chars GetID() {return m_id;}
         inline chars GetPassword() {return m_password;}
-        inline void Progress(ProgressType type, chars comment)
+        inline void Progress(GitProgressType type, chars comment)
         {m_progress_cb(m_progress_data, type, comment);}
 
     private:

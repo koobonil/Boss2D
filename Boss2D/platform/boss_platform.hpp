@@ -27,12 +27,14 @@ namespace BOSS
     enum MaskRole {MR_SrcOver, MR_DstOver, MR_Clear, MR_Src, MR_Dst,
         MR_SrcIn, MR_DstIn, MR_SrcOut, MR_DstOut,
         MR_SrcAtop, MR_DstAtop, MR_Xor, MR_Default = MR_SrcOver};
-    enum DialogButtonType {DBT_YES_NO, DBT_OK, DBT_OK_CANCEL, DBT_OK_CANCEL_IGNORE};
+    enum DialogButtonType {DBT_YesNo, DBT_Ok, DBT_OKCancel, DBT_OkCancelIgnore};
+    enum PurchaseType {PT_Consumable, PT_Unlockable};
     class ViewClass;
     class ViewManager;
-    typedef void (*ProcedureCB)(payload);
-    typedef bool (*PassCB)(void*, payload);
-    typedef void (*ThreadCB)(void*);
+    typedef void (*ProcedureCB)(payload data);
+    typedef bool (*PassCB)(void* view, payload data);
+    typedef void (*ThreadCB)(void* data);
+    typedef void (*PurchaseCB)(id_purchase purchase, bool success, chars comment);
     typedef sint32 (*SerialDecodeCB)(bytes data, sint32 length, uint08s& outdata, sint32* outtype);
     typedef void (*SerialEncodeCB)(bytes data, sint32 length, uint08s& outdata, sint32 type);
 
@@ -280,7 +282,14 @@ namespace BOSS
             */
             static bool FileDialog(String& path, String* shortpath, chars title, bool isdir = false);
 
-            static sint32 MessageDialog(chars title, chars text, DialogButtonType type = DBT_OK);
+            /*!
+            \brief 메시지 다이얄로그
+            \param title : 창제목
+            \param text : 내용
+            \param type : 버튼타입
+            \return 버튼결과(0-긍정, 1-부정, 2-무시)
+            */
+            static sint32 MessageDialog(chars title, chars text, DialogButtonType type = DBT_Ok);
 
             /*!
             \brief 웹브라우저 다이얄로그
@@ -393,12 +402,12 @@ namespace BOSS
             static id_image_read GetScreenshotImage(const rect128& rect);
 
             /*!
-            \brief 스크린샷 비트맵 얻기
-            \param rect : 스크린영역(px)
+            \brief 이미지로부터 비트맵 얻기
+            \param image : 이미지
             \param vflip : 상하반전여부(일반적인 비트맵파일은 true)
-            \return 스크린샷 비트맵(nullptr은 실패)
+            \return 비트맵(nullptr은 실패)
             */
-            static id_bitmap_read GetScreenshotBitmap(const rect128& rect, bool vflip = true);
+            static id_bitmap ImageToBitmap(id_image_read image, bool vflip = true);
 
             /*!
             \brief 커서위치 얻기
@@ -1247,14 +1256,24 @@ namespace BOSS
         {
         public:
             /*!
-            \brief 사운드열기
+            \brief 파일방식 사운드열기
             \param filename : 파일명
             \param loop : 루프방식여부
             \param fade_msec : 페이드시간(밀리초)
             \return 사운드ID
             \see Close
             */
-            static id_sound Open(chars filename, bool loop = false, sint32 fade_msec = 0);
+            static id_sound OpenForFile(chars filename, bool loop = false, sint32 fade_msec = 0);
+
+            /*!
+            \brief 스트림방식 사운드열기
+            \param channel : 채널수(1, 2)
+            \param sample_rate : 초당 샘플링양(8000, 44100)
+            \param sample_size : 비트수(8, 16)
+            \return 사운드ID
+            \see Close
+            */
+            static id_sound OpenForStream(sint32 channel, sint32 sample_rate, sint32 sample_size);
 
             /*!
             \brief 사운드닫기
@@ -1273,7 +1292,7 @@ namespace BOSS
             /*!
             \brief 사운드출력
             \param sound : 사운드ID
-            \param volume_rate : 전체볼륨에 곱해질 배수값
+            \param volume_rate : 전체볼륨에 곱해질 배수값(0.0f~1.0f, 그 이상도 가능)
             */
             static void Play(id_sound sound, float volume_rate = 1.0f);
 
@@ -1282,6 +1301,23 @@ namespace BOSS
             \param sound : 사운드ID
             */
             static void Stop(id_sound sound);
+
+            /*!
+            \brief 사운드가 현재 플레이중인지 조사
+            \param sound : 사운드ID
+            \return 플레이여부
+            */
+            static bool NowPlaying(id_sound sound);
+
+            /*!
+            \brief 스트림방식을 위한 사운드입력
+            \param sound : 사운드ID
+            \param raw : 저수준 사운드데이터
+            \param size : raw데이터의 길이
+            \param timeout : 타임아웃
+            \return 입력 실패시 -1, 성공시 현재 볼륨값(0~256, 그 이상도 가능)
+            */
+            static sint32 AddStreamForPlay(id_sound sound, bytes raw, sint32 size, sint32 timeout = 3000);
 
             /*!
             \brief 현재 플레이되고 있는 사운드중단
@@ -1482,7 +1518,7 @@ namespace BOSS
         class Web
         {
         public:
-            typedef bool (*EventCB)(payload, chars, chars);
+            typedef void (*EventCB)(payload, chars, chars);
 
             /*!
             \brief 웹핸들 할당
@@ -1502,6 +1538,12 @@ namespace BOSS
             \see Create
             */
             static void Release(h_web web);
+
+            /*!
+            \brief 쿠키제거
+            \param web : 해당 웹핸들
+            */
+            static void ClearCookies(h_web web);
 
             /*!
             \brief 웹페이지 리로드
@@ -1550,6 +1592,44 @@ namespace BOSS
             \return 스크린샷 비트맵(nullptr은 실패)
             */
             static id_bitmap_read GetScreenshotBitmap(h_web web, bool vflip = true);
+        };
+
+        ////////////////////////////////////////////////////////////////////////////////
+        //! \brief 인앱상품지원
+        ////////////////////////////////////////////////////////////////////////////////
+        class Purchase
+        {
+        public:
+            /*!
+            \brief 인앱상품 연결
+            \param name : 앱스토어에 등록한 인앱상품명
+            \param type : 인앱상품의 종류
+            \return 구매ID(nullptr은 실패)
+            \see Close
+            */
+            static id_purchase Open(chars name, PurchaseType type);
+
+            /*!
+            \brief 인앱상품 연결해제
+            \param purchase : 구매ID
+            \see Open
+            */
+            static void Close(id_purchase purchase);
+
+            /*!
+            \brief 이전에 구매한 적이 있는지 여부
+            \param purchase : 구매ID
+            \return 이전 구매여부
+            */
+            static bool IsPurchased(id_purchase purchase);
+
+            /*!
+            \brief 구매하기
+            \param purchase : 구매ID
+            \param cb : 구매결과를 전달받을 콜백함수
+            \return 상품을 찾지 못한 경우 false
+            */
+            static bool Purchasing(id_purchase purchase, PurchaseCB cb = nullptr);
         };
 
         ////////////////////////////////////////////////////////////////////////////////

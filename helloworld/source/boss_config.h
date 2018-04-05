@@ -16,6 +16,8 @@
 #define BOSS_NEED_ADDON_GIT        0
 #define BOSS_NEED_ADDON_H264       0
 #define BOSS_NEED_ADDON_JPG        0
+#define BOSS_NEED_ADDON_OGG        0
+#define BOSS_NEED_ADDON_OPENCV     0
 #define BOSS_NEED_ADDON_TENSORFLOW 0
 #define BOSS_NEED_ADDON_TESSERACT  0
 #define BOSS_NEED_ADDON_ZIP        0

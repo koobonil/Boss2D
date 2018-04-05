@@ -1,14 +1,19 @@
 ﻿#include <boss.hpp>
 #include "boss_addon.hpp"
 
+#include <element/boss_rect.hpp>
+#include <element/boss_vector.hpp>
+
 // 링크옵션 /OPT:NOREF가 안되서 임시코드
 bool __LINK_ADDON_AAC__();
 bool __LINK_ADDON_ALPR__();
 bool __LINK_ADDON_CURL__();
 bool __LINK_ADDON_GIT__();
 bool __LINK_ADDON_H264__();
-bool __LINK_ADDON_TESSERACT__();
 bool __LINK_ADDON_JPG__();
+bool __LINK_ADDON_OGG__();
+bool __LINK_ADDON_OPENCV__();
+bool __LINK_ADDON_TESSERACT__();
 bool __LINK_ADDON_ZIP__();
 static bool _ =
     __LINK_ADDON_AAC__() |
@@ -16,8 +21,10 @@ static bool _ =
     __LINK_ADDON_CURL__() |
     __LINK_ADDON_GIT__() |
     __LINK_ADDON_H264__() |
-    __LINK_ADDON_TESSERACT__() |
     __LINK_ADDON_JPG__() |
+    __LINK_ADDON_OGG__() |
+    __LINK_ADDON_OPENCV__() |
+    __LINK_ADDON_TESSERACT__() |
     __LINK_ADDON_ZIP__();
 
 namespace BOSS
@@ -120,21 +127,6 @@ namespace BOSS
     {return Core_AddOn_Curl_FtpSearch()(curl, url, dirname, cb, data);}
 
     ////////////////////////////////////////////////////////////////////////////////
-    static void H264_Error() {BOSS_ASSERT("H264애드온이 준비되지 않았습니다", false);}
-    BOSS_DEFINE_ADDON_FUNCTION(H264, Create, id_h264, return nullptr, sint32, sint32, bool)
-    BOSS_DEFINE_ADDON_FUNCTION(H264, Release, void, return, id_h264)
-    BOSS_DEFINE_ADDON_FUNCTION(H264, EncodeTo, void, return, id_h264, const uint32*, id_flash, uint64)
-
-    id_h264 AddOn::H264::Create(sint32 width, sint32 height, bool fastmode)
-    {return Core_AddOn_H264_Create()(width, height, fastmode);}
-
-    void AddOn::H264::Release(id_h264 h264)
-    {Core_AddOn_H264_Release()(h264);}
-
-    void AddOn::H264::EncodeTo(id_h264 h264, const uint32* rgba, id_flash flash, uint64 timems)
-    {Core_AddOn_H264_EncodeTo()(h264, rgba, flash, timems);}
-
-    ////////////////////////////////////////////////////////////////////////////////
     static void Git_Error() {BOSS_ASSERT("Git애드온이 준비되지 않았습니다", false);}
     BOSS_DEFINE_ADDON_FUNCTION(Git, Create, id_git, return nullptr, chars, chars, chars, chars)
     BOSS_DEFINE_ADDON_FUNCTION(Git, Release, void, return, id_git)
@@ -150,19 +142,19 @@ namespace BOSS
     {Core_AddOn_Git_Update()(git, cb, data);}
 
     ////////////////////////////////////////////////////////////////////////////////
-    static void Tesseract_Error() {BOSS_ASSERT("Tesseract애드온이 준비되지 않았습니다", false);}
-    BOSS_DEFINE_ADDON_FUNCTION(Tesseract, Create, id_tesseract, return nullptr, chars, chars)
-    BOSS_DEFINE_ADDON_FUNCTION(Tesseract, Release, void, return, id_tesseract)
-    BOSS_DEFINE_ADDON_FUNCTION(Tesseract, Training, void, return, id_tesseract, chars)
+    static void H264_Error() {BOSS_ASSERT("H264애드온이 준비되지 않았습니다", false);}
+    BOSS_DEFINE_ADDON_FUNCTION(H264, Create, id_h264, return nullptr, sint32, sint32, bool)
+    BOSS_DEFINE_ADDON_FUNCTION(H264, Release, void, return, id_h264)
+    BOSS_DEFINE_ADDON_FUNCTION(H264, EncodeTo, void, return, id_h264, const uint32*, id_flash, uint64)
 
-    id_tesseract AddOn::Tesseract::Create(chars tifpath, chars otherpath)
-    {return Core_AddOn_Tesseract_Create()(tifpath, otherpath);}
+    id_h264 AddOn::H264::Create(sint32 width, sint32 height, bool fastmode)
+    {return Core_AddOn_H264_Create()(width, height, fastmode);}
 
-    void AddOn::Tesseract::Release(id_tesseract tesseract)
-    {Core_AddOn_Tesseract_Release()(tesseract);}
+    void AddOn::H264::Release(id_h264 h264)
+    {Core_AddOn_H264_Release()(h264);}
 
-    void AddOn::Tesseract::Training(id_tesseract tesseract, chars workname)
-    {Core_AddOn_Tesseract_Training()(tesseract, workname);}
+    void AddOn::H264::EncodeTo(id_h264 h264, const uint32* rgba, id_flash flash, uint64 timems)
+    {Core_AddOn_H264_EncodeTo()(h264, rgba, flash, timems);}
 
     ////////////////////////////////////////////////////////////////////////////////
     static void Jpg_Error() {BOSS_ASSERT("Jpg애드온이 준비되지 않았습니다", false);}
@@ -186,6 +178,71 @@ namespace BOSS
 
     id_bitmap AddOn::Jpg::ToBmp(bytes jpg, sint32 length)
     {return Core_AddOn_Jpg_ToBmp()(jpg, length);}
+
+    ////////////////////////////////////////////////////////////////////////////////
+    static void Ogg_Error() {BOSS_ASSERT("Ogg애드온이 준비되지 않았습니다", false);}
+    BOSS_DEFINE_ADDON_FUNCTION(Ogg, ToPcmStream, void, return, id_file_read, PcmCreateCB, PcmWriteCB, payload)
+
+    void AddOn::Ogg::ToPcmStream(id_file_read oggfile, PcmCreateCB ccb, PcmWriteCB wcb, payload data)
+    {return Core_AddOn_Ogg_ToPcmStream()(oggfile, ccb, wcb, data);}
+
+    ////////////////////////////////////////////////////////////////////////////////
+    static void OpenCV_Error() {BOSS_ASSERT("OpenCV애드온이 준비되지 않았습니다", false);}
+    BOSS_DEFINE_ADDON_FUNCTION(OpenCV, Create, id_opencv, return nullptr, void)
+    BOSS_DEFINE_ADDON_FUNCTION(OpenCV, Release, void, return, id_opencv)
+    BOSS_DEFINE_ADDON_FUNCTION(OpenCV, Update, void, return, id_opencv, id_bitmap_read, double, double, sint32)
+    BOSS_DEFINE_ADDON_FUNCTION(OpenCV, GetPreprocessImage, id_bitmap, return nullptr, id_opencv)
+    BOSS_DEFINE_ADDON_FUNCTION(OpenCV, TrackingObject, void, return, id_opencv)
+    BOSS_DEFINE_ADDON_FUNCTION(OpenCV, GetObjectCount, sint32, return 0, id_opencv)
+    BOSS_DEFINE_ADDON_FUNCTION(OpenCV, GetObjectRect, rect128f, return Rect(), id_opencv, sint32)
+    BOSS_DEFINE_ADDON_FUNCTION(OpenCV, TrackingStick, void, return, id_opencv)
+    BOSS_DEFINE_ADDON_FUNCTION(OpenCV, GetStickCount, sint32, return 0, id_opencv)
+    BOSS_DEFINE_ADDON_FUNCTION(OpenCV, GetStickLine, vector128f, return Vector(), id_opencv, sint32)
+
+    id_opencv AddOn::OpenCV::Create(void)
+    {return Core_AddOn_OpenCV_Create()();}
+
+    void AddOn::OpenCV::Release(id_opencv opencv)
+    {Core_AddOn_OpenCV_Release()(opencv);}
+
+    void AddOn::OpenCV::Update(id_opencv opencv, id_bitmap_read bmp, double low, double high, sint32 aperture)
+    {Core_AddOn_OpenCV_Update()(opencv, bmp, low, high, aperture);}
+
+    id_bitmap AddOn::OpenCV::GetPreprocessImage(id_opencv opencv)
+    {return Core_AddOn_OpenCV_GetPreprocessImage()(opencv);}
+
+    void AddOn::OpenCV::TrackingObject(id_opencv opencv)
+    {Core_AddOn_OpenCV_TrackingObject()(opencv);}
+
+    sint32 AddOn::OpenCV::GetObjectCount(id_opencv opencv)
+    {return Core_AddOn_OpenCV_GetObjectCount()(opencv);}
+
+    rect128f AddOn::OpenCV::GetObjectRect(id_opencv opencv, sint32 i)
+    {return Core_AddOn_OpenCV_GetObjectRect()(opencv, i);}
+
+    void AddOn::OpenCV::TrackingStick(id_opencv opencv)
+    {Core_AddOn_OpenCV_TrackingStick()(opencv);}
+
+    sint32 AddOn::OpenCV::GetStickCount(id_opencv opencv)
+    {return Core_AddOn_OpenCV_GetStickCount()(opencv);}
+
+    vector128f AddOn::OpenCV::GetStickLine(id_opencv opencv, sint32 i)
+    {return Core_AddOn_OpenCV_GetStickLine()(opencv, i);}
+
+    ////////////////////////////////////////////////////////////////////////////////
+    static void Tesseract_Error() {BOSS_ASSERT("Tesseract애드온이 준비되지 않았습니다", false);}
+    BOSS_DEFINE_ADDON_FUNCTION(Tesseract, Create, id_tesseract, return nullptr, chars, chars)
+    BOSS_DEFINE_ADDON_FUNCTION(Tesseract, Release, void, return, id_tesseract)
+    BOSS_DEFINE_ADDON_FUNCTION(Tesseract, Training, void, return, id_tesseract, chars)
+
+    id_tesseract AddOn::Tesseract::Create(chars tifpath, chars otherpath)
+    {return Core_AddOn_Tesseract_Create()(tifpath, otherpath);}
+
+    void AddOn::Tesseract::Release(id_tesseract tesseract)
+    {Core_AddOn_Tesseract_Release()(tesseract);}
+
+    void AddOn::Tesseract::Training(id_tesseract tesseract, chars workname)
+    {Core_AddOn_Tesseract_Training()(tesseract, workname);}
 
     ////////////////////////////////////////////////////////////////////////////////
     static void Zip_Error() {BOSS_ASSERT("Zip애드온이 준비되지 않았습니다", false);}

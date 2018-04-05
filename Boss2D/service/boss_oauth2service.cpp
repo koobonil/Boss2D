@@ -16,6 +16,7 @@ namespace BOSS
         public:
             Data()
             {
+                mSigned = false;
                 mNeedDestroyWeb = false;
                 mCurl = AddOn::Curl::Create();
                 mPictureClipper = nullptr;
@@ -31,6 +32,7 @@ namespace BOSS
             {BOSS_ASSERT("This class is not allowed to be copied", false); return *this;}
         public:
             h_web mWeb;
+            bool mSigned;
             bool mNeedDestroyWeb;
             id_curl mCurl;
             String mClientId;
@@ -65,7 +67,16 @@ namespace BOSS
 
             String ResultUrl = AddOn::Curl::RequestRedirectUrl(data().mCurl, SigninCore(data_const().mClientId), 302);
             data().mWeb = Platform::Web::Create(ResultUrl, 0, 0, OnEvent, (payload) this);
+            data().mSigned = false;
             data().mNeedDestroyWeb = false;
+            Platform::Web::ClearCookies(data_const().mWeb);
+        }
+        void Signout() override
+        {
+            Share::Remove(mShare);
+            if(auto NewBuffer = CreateShare())
+                mShare = Share::Create(NewBuffer);
+            else mShare = nullptr;
         }
         bool IsSigning(bool needDestroy, bool* destroyResult = nullptr) override
         {
@@ -80,7 +91,12 @@ namespace BOSS
                 }
                 else if(destroyResult) *destroyResult = false;
             }
-            return (data_const().mWeb.get() != nullptr);
+            auto& CurWeb = data_const().mWeb;
+            return (CurWeb.get() != nullptr);
+        }
+        bool IsSigned() const override
+        {
+            return data_const().mSigned;
         }
         id_image_read GetWebImage(sint32 width, sint32 height) override
         {
@@ -126,8 +142,14 @@ namespace BOSS
             return data_const().mBackground;
         }
 
+    protected:
+        virtual buffer CreateShare()
+        {
+            return Buffer::Alloc<Data>(BOSS_DBG 1);
+        }
+
     private:
-        static bool OnEvent(payload self, chars type, chars text)
+        static void OnEvent(payload self, chars type, chars text)
         {
             auto Self = (OAuth2ServiceImpl*) self;
             if(!String::Compare(type, "UrlChanged"))
@@ -145,12 +167,12 @@ namespace BOSS
 
                     Self->OnEventCore(Code);
 
-                    // 웹의 제거
+                    // 서명됨
+                    Self->data().mSigned = true;
+                    // 웹제거요청
                     Self->data().mNeedDestroyWeb = true;
-                    return true;
                 }
             }
-            return false;
         }
 
     protected:
@@ -198,7 +220,7 @@ namespace BOSS
         chars service_name() const override {return "google";}
 
     public:
-        OAuth2GoogleService() : OAuth2ServiceImpl(Buffer::Alloc<Data>(BOSS_DBG 1))
+        OAuth2GoogleService() : OAuth2ServiceImpl(CreateShare())
         {
         }
         ~OAuth2GoogleService() override
@@ -257,7 +279,7 @@ namespace BOSS
         chars service_name() const override {return "facebook";}
 
     public:
-        OAuth2FacebookService() : OAuth2ServiceImpl(Buffer::Alloc<Data>(BOSS_DBG 1))
+        OAuth2FacebookService() : OAuth2ServiceImpl(CreateShare())
         {
         }
         ~OAuth2FacebookService() override
@@ -314,7 +336,7 @@ namespace BOSS
         chars service_name() const override {return "kakao";}
 
     public:
-        OAuth2KakaoService() : OAuth2ServiceImpl(Buffer::Alloc<Data>(BOSS_DBG 1))
+        OAuth2KakaoService() : OAuth2ServiceImpl(CreateShare())
         {
         }
         ~OAuth2KakaoService() override
