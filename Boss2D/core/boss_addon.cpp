@@ -76,7 +76,7 @@ namespace BOSS
     BOSS_DEFINE_ADDON_FUNCTION(Curl, RequestString, chars, return "", id_curl, chars, chars, chars)
     BOSS_DEFINE_ADDON_FUNCTION(Curl, RequestBytes, bytes, return nullptr, id_curl, chars, sint32*, chars, chars)
     BOSS_DEFINE_ADDON_FUNCTION(Curl, RequestRedirectUrl, chars, return "", id_curl, chars, sint32, chars, chars)
-    BOSS_DEFINE_ADDON_FUNCTION(Curl, SendStream, void, return, id_curl, chars, CurlReadCB, payload)
+    BOSS_DEFINE_ADDON_FUNCTION(Curl, SendStream, void, return, id_curl, chars, AddOn::Curl::CurlReadCB, payload)
     BOSS_DEFINE_ADDON_FUNCTION(Curl, FtpUpload, bool, return false, id_curl, chars, chars, buffer)
     BOSS_DEFINE_ADDON_FUNCTION(Curl, FtpDownload, buffer, return nullptr, id_curl, chars, chars)
     BOSS_DEFINE_ADDON_FUNCTION(Curl, FtpDelete, bool, return false, id_curl, chars, chars)
@@ -181,7 +181,7 @@ namespace BOSS
 
     ////////////////////////////////////////////////////////////////////////////////
     static void Ogg_Error() {BOSS_ASSERT("Ogg애드온이 준비되지 않았습니다", false);}
-    BOSS_DEFINE_ADDON_FUNCTION(Ogg, ToPcmStream, void, return, id_file_read, PcmCreateCB, PcmWriteCB, payload)
+    BOSS_DEFINE_ADDON_FUNCTION(Ogg, ToPcmStream, void, return, id_file_read, AddOn::Ogg::PcmCreateCB, AddOn::Ogg::PcmWriteCB, payload)
 
     void AddOn::Ogg::ToPcmStream(id_file_read oggfile, PcmCreateCB ccb, PcmWriteCB wcb, payload data)
     {return Core_AddOn_Ogg_ToPcmStream()(oggfile, ccb, wcb, data);}
@@ -190,14 +190,12 @@ namespace BOSS
     static void OpenCV_Error() {BOSS_ASSERT("OpenCV애드온이 준비되지 않았습니다", false);}
     BOSS_DEFINE_ADDON_FUNCTION(OpenCV, Create, id_opencv, return nullptr, void)
     BOSS_DEFINE_ADDON_FUNCTION(OpenCV, Release, void, return, id_opencv)
-    BOSS_DEFINE_ADDON_FUNCTION(OpenCV, Update, void, return, id_opencv, id_bitmap_read, double, double, sint32)
-    BOSS_DEFINE_ADDON_FUNCTION(OpenCV, GetPreprocessImage, id_bitmap, return nullptr, id_opencv)
-    BOSS_DEFINE_ADDON_FUNCTION(OpenCV, TrackingObject, void, return, id_opencv)
-    BOSS_DEFINE_ADDON_FUNCTION(OpenCV, GetObjectCount, sint32, return 0, id_opencv)
-    BOSS_DEFINE_ADDON_FUNCTION(OpenCV, GetObjectRect, rect128f, return Rect(), id_opencv, sint32)
-    BOSS_DEFINE_ADDON_FUNCTION(OpenCV, TrackingStick, void, return, id_opencv)
-    BOSS_DEFINE_ADDON_FUNCTION(OpenCV, GetStickCount, sint32, return 0, id_opencv)
-    BOSS_DEFINE_ADDON_FUNCTION(OpenCV, GetStickLine, vector128f, return Vector(), id_opencv, sint32)
+    BOSS_DEFINE_ADDON_FUNCTION(OpenCV, SetMOG2, void, return, id_opencv, bool, sint32, double, bool)
+    BOSS_DEFINE_ADDON_FUNCTION(OpenCV, SetCanny, void, return, id_opencv, bool, double, double, sint32)
+    BOSS_DEFINE_ADDON_FUNCTION(OpenCV, Update, void, return, id_opencv, id_bitmap_read)
+    BOSS_DEFINE_ADDON_FUNCTION(OpenCV, GetUpdatedImage, id_bitmap, return nullptr, id_opencv)
+    BOSS_DEFINE_ADDON_FUNCTION(OpenCV, GetFindContours, void, return, id_opencv, AddOn::OpenCV::FindContoursCB, payload)
+    BOSS_DEFINE_ADDON_FUNCTION(OpenCV, GetHoughLines, void, return, id_opencv, AddOn::OpenCV::HoughLinesCB, payload)
 
     id_opencv AddOn::OpenCV::Create(void)
     {return Core_AddOn_OpenCV_Create()();}
@@ -205,29 +203,23 @@ namespace BOSS
     void AddOn::OpenCV::Release(id_opencv opencv)
     {Core_AddOn_OpenCV_Release()(opencv);}
 
-    void AddOn::OpenCV::Update(id_opencv opencv, id_bitmap_read bmp, double low, double high, sint32 aperture)
-    {Core_AddOn_OpenCV_Update()(opencv, bmp, low, high, aperture);}
+    void AddOn::OpenCV::SetMOG2(id_opencv opencv, bool enable, sint32 history, double threshold, bool shadows)
+    {Core_AddOn_OpenCV_SetMOG2()(opencv, enable, history, threshold, shadows);}
 
-    id_bitmap AddOn::OpenCV::GetPreprocessImage(id_opencv opencv)
-    {return Core_AddOn_OpenCV_GetPreprocessImage()(opencv);}
+    void AddOn::OpenCV::SetCanny(id_opencv opencv, bool enable, double low, double high, sint32 aperture)
+    {Core_AddOn_OpenCV_SetCanny()(opencv, enable, low, high, aperture);}
 
-    void AddOn::OpenCV::TrackingObject(id_opencv opencv)
-    {Core_AddOn_OpenCV_TrackingObject()(opencv);}
+    void AddOn::OpenCV::Update(id_opencv opencv, id_bitmap_read bmp)
+    {Core_AddOn_OpenCV_Update()(opencv, bmp);}
 
-    sint32 AddOn::OpenCV::GetObjectCount(id_opencv opencv)
-    {return Core_AddOn_OpenCV_GetObjectCount()(opencv);}
+    id_bitmap AddOn::OpenCV::GetUpdatedImage(id_opencv opencv)
+    {return Core_AddOn_OpenCV_GetUpdatedImage()(opencv);}
 
-    rect128f AddOn::OpenCV::GetObjectRect(id_opencv opencv, sint32 i)
-    {return Core_AddOn_OpenCV_GetObjectRect()(opencv, i);}
+    void AddOn::OpenCV::GetFindContours(id_opencv opencv, FindContoursCB cb, payload data)
+    {Core_AddOn_OpenCV_GetFindContours()(opencv, cb, data);}
 
-    void AddOn::OpenCV::TrackingStick(id_opencv opencv)
-    {Core_AddOn_OpenCV_TrackingStick()(opencv);}
-
-    sint32 AddOn::OpenCV::GetStickCount(id_opencv opencv)
-    {return Core_AddOn_OpenCV_GetStickCount()(opencv);}
-
-    vector128f AddOn::OpenCV::GetStickLine(id_opencv opencv, sint32 i)
-    {return Core_AddOn_OpenCV_GetStickLine()(opencv, i);}
+    void AddOn::OpenCV::GetHoughLines(id_opencv opencv, HoughLinesCB cb, payload data)
+    {Core_AddOn_OpenCV_GetHoughLines()(opencv, cb, data);}
 
     ////////////////////////////////////////////////////////////////////////////////
     static void Tesseract_Error() {BOSS_ASSERT("Tesseract애드온이 준비되지 않았습니다", false);}

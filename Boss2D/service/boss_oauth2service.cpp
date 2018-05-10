@@ -42,6 +42,8 @@ namespace BOSS
             String mServiceId;
             String mName;
             String mComment;
+			String mPictureUrl;
+			String mBackgroundUrl;
             Image mPicture;
             Image mBackground;
             id_bitmap mPictureClipper;
@@ -265,8 +267,11 @@ namespace BOSS
                 (sint32) ResultBJson("circledByCount").GetInt(), (chars) ResultBJson("tagline").GetString());
 
             // 사진/배경 얻기
-            ReloadPicture(ResultBJson("image")("url").GetString(nullptr));
-            ReloadBackground(ResultBJson("cover")("coverPhoto")("url").GetString(nullptr));
+			data().mPictureUrl = ResultBJson("image")("url").GetString(nullptr);
+			ReloadPicture(data().mPictureUrl);
+
+			data().mBackgroundUrl = ResultBJson("cover")("coverPhoto")("url").GetString(nullptr);
+			ReloadBackground(data().mBackgroundUrl);
         }
     };
 
@@ -322,8 +327,11 @@ namespace BOSS
                 (sint32) ResultBJson("context")("mutual_likes")("summary")("total_count").GetInt());
 
             // 사진/배경 얻기
-            ReloadPicture(ResultBJson("picture")("data")("url").GetString(nullptr));
-            ReloadBackground(ResultBJson("cover")("source").GetString(nullptr));
+			data().mPictureUrl = ResultBJson("picture")("data")("url").GetString(nullptr);
+			ReloadPicture(data().mPictureUrl);
+
+			data().mBackgroundUrl = ResultBJson("cover")("source").GetString(nullptr);
+			ReloadBackground(data().mBackgroundUrl);
         }
     };
 
@@ -381,8 +389,11 @@ namespace BOSS
             data().mComment = String::Format("생일%s %d월 %d일", BirthType, BirthDay / 100, BirthDay % 100);
 
             // 사진/배경 얻기
-            ReloadPicture(ResultBJson("thumbnailURL").GetString(nullptr));
-            ReloadBackground(ResultBJson("bgImageURL").GetString(nullptr));
+			data().mPictureUrl = ResultBJson("thumbnailURL").GetString(nullptr);
+			ReloadPicture(data().mPictureUrl);
+
+			data().mBackgroundUrl = ResultBJson("bgImageURL").GetString(nullptr);
+			ReloadBackground(data().mBackgroundUrl);
 
             // ID정보 얻기
             chars ResultC = AddOn::Curl::RequestString(data().mCurl,

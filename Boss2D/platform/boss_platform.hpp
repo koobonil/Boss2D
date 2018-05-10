@@ -358,9 +358,10 @@ namespace BOSS
             /*!
             \brief 슬립처리
             \param ms : 밀리초
-            \param caninput : 사용자입력 가능여부
+            \param process_input : 입력처리
+            \param process_socket : 소켓처리
             */
-            static void Sleep(sint32 ms, bool caninput);
+            static void Sleep(sint32 ms, bool process_input, bool process_socket);
 
             /*!
             \brief 프로그램의 최소화
@@ -420,6 +421,14 @@ namespace BOSS
             \return 픽셀크기(1, 2, 3...)
             */
             static sint32 GetPixelScale();
+
+			/*!
+			\brief 플랫폼에 따른 폰트 배율 얻기
+			\param def_depth : 기준 Depth
+			\param def_dpi : 기준 DPI
+			\return 폰트 배율
+			*/
+			static float GetFontScaleRate(sint32 def_depth = 32, sint32 def_dpi = 96);
 
             /*!
             \brief OS명칭 얻기
@@ -1824,8 +1833,8 @@ namespace BOSS
 
             /*!
             \brief 촬영하기
-            \param preview : 프리뷰식 촬영여부(해상도가 낮지만 촬영속도는 빠름)
             \param camera : 카메라ID
+            \param preview : 프리뷰식 촬영여부(해상도가 낮지만 촬영속도는 빠름)
             \param needstop : 캡쳐직후 촬영을 중지할 여부
             */
             static void Capture(id_camera camera, bool preview, bool needstop);

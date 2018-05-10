@@ -64,6 +64,7 @@
 #define BOSS_OPENCV_U_opencv2__core__opencl__runtime__opencl_core_hpp      "addon/opencv-3.1.0_for_boss/modules/core/include/opencv2/core/opencl/runtime/opencl_core.hpp"
 #define BOSS_OPENCV_U_opencv2__core__opencl__runtime__opencl_clamdblas_hpp "addon/opencv-3.1.0_for_boss/modules/core/include/opencv2/core/opencl/runtime/opencl_clamdblas.hpp"
 #define BOSS_OPENCV_U_opencv2__core__opencl__runtime__opencl_clamdfft_hpp  "addon/opencv-3.1.0_for_boss/modules/core/include/opencv2/core/opencl/runtime/opencl_clamdfft.hpp"
+#define BOSS_OPENCV_U_opencv2__opencv2__cudabgsegm_hpp                     "addon/opencv-3.1.0_for_boss/modules/cudabgsegm/include/opencv2/cudabgsegm.hpp"
 #define BOSS_OPENCV_U_opencv2__highgui_hpp                                 "addon/opencv-3.1.0_for_boss/modules/highgui/include/opencv2/highgui.hpp"
 #define BOSS_OPENCV_U_opencv2__highgui__highgui_hpp                        "addon/opencv-3.1.0_for_boss/modules/highgui/include/opencv2/highgui/highgui.hpp"
 #define BOSS_OPENCV_U_opencv2__highgui__highgui_c_h                        "addon/opencv-3.1.0_for_boss/modules/highgui/include/opencv2/highgui/highgui_c.h"

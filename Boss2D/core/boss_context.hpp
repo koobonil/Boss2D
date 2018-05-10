@@ -273,6 +273,12 @@ namespace BOSS
         Context(const Context& rhs);
 
         /*!
+        \brief 이동생성자
+        \param rhs : 이동할 인스턴스
+        */
+        Context(Context&& rhs);
+
+        /*!
         \brief 생성자(Bin바이너리를 로드)
         \param src : Bin바이너리
         */
@@ -307,6 +313,13 @@ namespace BOSS
         Context& operator=(const Context& rhs);
 
         /*!
+        \brief 이동
+        \param rhs : 이동할 인스턴스
+        \return 자기 객체
+        */
+        Context& operator=(Context&& rhs);
+
+        /*!
         \brief bool형변환
         \return 자신의 유효여부
         */
@@ -318,6 +331,7 @@ namespace BOSS
 
     private:
         void SetValue(chars value, sint32 length);
+        void ClearCache();
         static chars FindMark(chars value, const char mark);
         static chars SkipBlank(chars value, bool exclude_nullzero);
         static chars SkipBlankReverse(chars value);

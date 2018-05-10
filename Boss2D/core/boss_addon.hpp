@@ -12,10 +12,6 @@ namespace BOSS
     BOSS_DECLARE_ID(id_tesseract);
     BOSS_DECLARE_ID(id_opencv);
     BOSS_DECLARE_ID(id_zip);
-    enum GitProgressType {GPT_DownloadPack, GPT_DownloadTip, GPT_InflateFile};
-    typedef size_t (*CurlReadCB)(void* ptr, size_t size, size_t nitems, payload data);
-    typedef void (*PcmCreateCB)(sint32 channel, sint32 sample_rate, sint32 sample_size, payload data);
-    typedef sint32 (*PcmWriteCB)(void* ptr, size_t size, payload data);
 
     //! \brief 애드온지원
     class AddOn
@@ -45,6 +41,7 @@ namespace BOSS
         class Curl
         {
         public:
+            typedef size_t (*CurlReadCB)(void* ptr, size_t size, size_t nitems, payload data);
             typedef void (*SearchCB)(payload data, chars name, sint32 size, id_clock clock);
 
         public:
@@ -68,6 +65,7 @@ namespace BOSS
         class Git
         {
         public:
+            enum GitProgressType {GPT_DownloadPack, GPT_DownloadTip, GPT_InflateFile};
             typedef void (*ProgressCB)(payload, GitProgressType, chars);
 
         public:
@@ -100,6 +98,10 @@ namespace BOSS
         class Ogg
         {
         public:
+            typedef void (*PcmCreateCB)(sint32 channel, sint32 sample_rate, sint32 sample_size, payload data);
+            typedef sint32 (*PcmWriteCB)(void* ptr, size_t size, payload data);
+
+        public:
             static void ToPcmStream(id_file_read oggfile, PcmCreateCB ccb, PcmWriteCB wcb, payload data);
         };
 
@@ -107,16 +109,18 @@ namespace BOSS
         class OpenCV
         {
         public:
+            typedef void (*FindContoursCB)(sint32 count, const point64* dots, payload data);
+            typedef void (*HoughLinesCB)(const point64f dot1, const point64f dot2, payload data);
+
+        public:
             static id_opencv Create(void);
             static void Release(id_opencv opencv);
-            static void Update(id_opencv opencv, id_bitmap_read bmp, double low = 125, double high = 125 * 3, sint32 aperture = 3);
-            static id_bitmap GetPreprocessImage(id_opencv opencv);
-            static void TrackingObject(id_opencv opencv);
-            static sint32 GetObjectCount(id_opencv opencv);
-            static rect128f GetObjectRect(id_opencv opencv, sint32 i);
-            static void TrackingStick(id_opencv opencv);
-            static sint32 GetStickCount(id_opencv opencv);
-            static vector128f GetStickLine(id_opencv opencv, sint32 i);
+            static void SetMOG2(id_opencv opencv, bool enable, sint32 history = 500, double threshold = 16, bool shadows = true);
+            static void SetCanny(id_opencv opencv, bool enable, double low = 125, double high = 125 * 3, sint32 aperture = 3);
+            static void Update(id_opencv opencv, id_bitmap_read bmp);
+            static id_bitmap GetUpdatedImage(id_opencv opencv);
+            static void GetFindContours(id_opencv opencv, FindContoursCB cb, payload data = nullptr);
+            static void GetHoughLines(id_opencv opencv, HoughLinesCB cb, payload data = nullptr);
         };
 
         //! \brief TESSERACT연동

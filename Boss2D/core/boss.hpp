@@ -32,6 +32,8 @@ namespace BOSS
     typedef struct {float l, t, r, b;}        rect128f;
     typedef struct {sint32 x, y, vx, vy;}     vector128;
     typedef struct {float x, y, vx, vy;}      vector128f;
+    typedef struct {sint32 ox, oy, r, rad;}   segment128;
+    typedef struct {float ox, oy, r, rad;}    segment128f;
     typedef struct {sint32 i, iend;}          zone64;
     typedef struct {sint32 x, xend;}          xzone64;
     typedef struct {sint32 y, yend;}          yzone64;

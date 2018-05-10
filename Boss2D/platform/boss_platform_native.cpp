@@ -458,7 +458,7 @@
             return 0;
         }
 
-        void Platform::Utility::Sleep(sint32 ms, bool caninput)
+        void Platform::Utility::Sleep(sint32 ms, bool process_input, bool process_socket)
         {
             #if BOSS_WINDOWS
                 ::Sleep(ms);

@@ -364,15 +364,23 @@ namespace BOSS
         }
 
         /*!
+        \brief 이동생성자
+        \param rhs : 이동할 인스턴스
+        */
+        Map(Map&& rhs)
+        {
+            Table = nullptr;
+            Info = nullptr;
+            operator=(ToReference(rhs));
+        }
+
+        /*!
         \brief 소멸자
         */
         ~Map()
         {
-            if(Info)
-            {
-                delete Info;
-                Info = nullptr;
-            }
+            delete Info;
+            Info = nullptr;
             Reset();
         }
 
@@ -384,6 +392,21 @@ namespace BOSS
         Map& operator=(const Map& rhs)
         {
             CopyCore(&rhs, true);
+            return *this;
+        }
+
+        /*!
+        \brief 이동
+        \param rhs : 이동할 인스턴스
+        \return 자기 객체
+        */
+        Map& operator=(Map&& rhs)
+        {
+            delete Info;
+            Info = nullptr;
+            Reset();
+            Table = rhs.Table; rhs.Table = nullptr;
+            Info = rhs.Info; rhs.Info = new VarInfo();
             return *this;
         }
 

@@ -426,7 +426,7 @@
             return 0;
         }
 
-        void Platform::Utility::Sleep(sint32 ms, bool caninput)
+        void Platform::Utility::Sleep(sint32 ms, bool process_input, bool process_socket)
         {
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
         }

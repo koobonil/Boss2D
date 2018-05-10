@@ -424,6 +424,37 @@ namespace BOSS
         return String(NewWords);
     }
 
+    String String::FromUrlString(chars text, sint32 length)
+    {
+        auto GetCode = [](chars url)->char
+        {
+            sint32 HiWord = 0, LoWord = 0;
+            if('0' <= url[0] && url[0] <= '9') HiWord = url[0] - '0';
+            else if('A' <= url[0] && url[0] <= 'F') HiWord = url[0] - 'A' + 10;
+            else if('a' <= url[0] && url[0] <= 'f') HiWord = url[0] - 'a' + 10;
+            if('0' <= url[1] && url[1] <= '9') LoWord = url[1] - '0';
+            else if('A' <= url[1] && url[1] <= 'F') LoWord = url[1] - 'A' + 10;
+            else if('a' <= url[1] && url[1] <= 'f') LoWord = url[1] - 'a' + 10;
+            return (char) ((HiWord << 4) | LoWord);
+        };
+
+        chararray NewWords;
+        for(sint32 i = 0, iend = (length < 0)? 0x7FFFFFFF : length; text[i] && i < iend; ++i)
+        {
+            if(text[i] == '%')
+            {
+                const char OneWord = GetCode(&text[i + 1]);
+                NewWords.AtAdding() = OneWord;
+                i += 2;
+            }
+            else if(text[i] == '+')
+                NewWords.AtAdding() = ' ';
+            else NewWords.AtAdding() = text[i];
+        }
+        NewWords.AtAdding() = '\0';
+        return String(NewWords);
+    }
+
     String String::FromInteger(const sint32 value)
     {
         char Result[1024];

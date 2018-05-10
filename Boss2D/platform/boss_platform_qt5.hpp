@@ -228,6 +228,7 @@
         {
             delete m_next_manager;
             m_next_manager = manager;
+            update(1);
         }
 
         inline void changeViewData(QWidget* data)
@@ -1499,15 +1500,21 @@
             BOSS_ASSERT("cb이 nullptr이 될 수 없습니다", cb);
             m_cb = cb;
             m_data = data;
+            connect(this, SIGNAL(finished()), SLOT(OnFinished()));
             start();
         }
         virtual ~ThreadClass() {}
 
     private:
-        void run()
+        void run() override
         {
             m_cb(m_data);
-            exec();
+        }
+
+    private slots:
+        void OnFinished()
+        {
+            delete this;
         }
 
     private:
@@ -1629,7 +1636,7 @@
             AudioFormat.setChannelCount(channel);
             AudioFormat.setSampleRate(sample_rate);
             AudioFormat.setSampleSize(sample_size);
-            AudioFormat.setSampleType(QAudioFormat::UnSignedInt);
+            AudioFormat.setSampleType(QAudioFormat::SignedInt);
             AudioFormat.setByteOrder(QAudioFormat::LittleEndian);
 
             m_volume = 0;
@@ -1715,7 +1722,7 @@
                 uint64 BeginMsec = Platform::Utility::CurrentTimeMsec();
                 while(Platform::Utility::CurrentTimeMsec() < BeginMsec + timeout)
                 {
-                    Platform::Utility::Sleep(1, false);
+                    Platform::Utility::Sleep(1, false, false);
                     raw += WrittenBytes;
                     size -= WrittenBytes;
 

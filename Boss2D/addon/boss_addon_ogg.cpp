@@ -15,7 +15,7 @@ bool __LINK_ADDON_OGG__() {return true;} // 링크옵션 /OPT:NOREF가 안되서
 // 등록과정
 namespace BOSS
 {
-    BOSS_DECLARE_ADDON_FUNCTION(Ogg, ToPcmStream, void, id_file_read, PcmCreateCB, PcmWriteCB, payload)
+    BOSS_DECLARE_ADDON_FUNCTION(Ogg, ToPcmStream, void, id_file_read, AddOn::Ogg::PcmCreateCB, AddOn::Ogg::PcmWriteCB, payload)
 
     static autorun Bind_AddOn_Ogg()
     {
@@ -28,7 +28,7 @@ namespace BOSS
 // 구현부
 namespace BOSS
 {
-    void Customized_AddOn_Ogg_ToPcmStream(id_file_read oggfile, PcmCreateCB ccb, PcmWriteCB wcb, payload data)
+    void Customized_AddOn_Ogg_ToPcmStream(id_file_read oggfile, AddOn::Ogg::PcmCreateCB ccb, AddOn::Ogg::PcmWriteCB wcb, payload data)
     {
         ogg_int16_t convbuffer[4096];
         int convsize = 4096;

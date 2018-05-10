@@ -179,18 +179,26 @@ namespace BOSS
         m_parsedFloat = nullptr;
     }
 
-    Context::Context(const Context& rhs) :
-        m_source(rhs.m_source),
-        m_namableChild(rhs.m_namableChild),
-        m_indexableChild(rhs.m_indexableChild)
+    Context::Context(const Context& rhs)
     {
-        m_valueOffset = rhs.m_valueOffset;
-        m_valueLength = rhs.m_valueLength;
-        m_parsedString = (rhs.m_parsedString)? Buffer::Clone(BOSS_DBG rhs.m_parsedString) : nullptr;
-        m_parsedInt = (rhs.m_parsedInt)? new sint32(*rhs.m_parsedInt) : nullptr;
-        m_parsedFloat = (rhs.m_parsedFloat)? new float(*rhs.m_parsedFloat) : nullptr;
-        if(rhs.m_valueOffset == (chars) rhs.m_parsedString)
-            m_valueOffset = (chars) m_parsedString;
+        m_valueOffset = nullptr;
+        m_valueLength = 0;
+        m_parsedString = nullptr;
+        m_parsedInt = nullptr;
+        m_parsedFloat = nullptr;
+
+        operator=(rhs);
+    }
+
+    Context::Context(Context&& rhs)
+    {
+        m_valueOffset = nullptr;
+        m_valueLength = 0;
+        m_parsedString = nullptr;
+        m_parsedInt = nullptr;
+        m_parsedFloat = nullptr;
+
+        operator=(ToReference(rhs));
     }
 
     Context::Context(bytes src) : m_indexableChild(Array<Context, datatype_class_nomemcpy, 0>::Null())
@@ -236,13 +244,12 @@ namespace BOSS
 
     Context::~Context()
     {
-        Buffer::Free(m_parsedString);
-        delete m_parsedInt;
-        delete m_parsedFloat;
+        ClearCache();
     }
 
     Context& Context::operator=(const Context& rhs)
     {
+        ClearCache();
         m_source = rhs.m_source;
         m_namableChild = rhs.m_namableChild;
         m_indexableChild = rhs.m_indexableChild;
@@ -256,20 +263,36 @@ namespace BOSS
         return *this;
     }
 
+    Context& Context::operator=(Context&& rhs)
+    {
+        ClearCache();
+        m_source = ToReference(rhs.m_source);
+        m_namableChild = ToReference(rhs.m_namableChild);
+        m_indexableChild = ToReference(rhs.m_indexableChild);
+        m_valueOffset = rhs.m_valueOffset; rhs.m_valueOffset = nullptr;
+        m_valueLength = rhs.m_valueLength; rhs.m_valueLength = 0;
+        m_parsedString = rhs.m_parsedString; rhs.m_parsedString = nullptr;
+        m_parsedInt = rhs.m_parsedInt; rhs.m_parsedInt = nullptr;
+        m_parsedFloat = rhs.m_parsedFloat; rhs.m_parsedFloat = nullptr;
+        return *this;
+    }
+
     void Context::SetValue(chars value, sint32 length)
     {
         if(m_valueOffset)
-        {
-            Buffer::Free(m_parsedString);
-            delete m_parsedInt;
-            delete m_parsedFloat;
-            m_parsedString = nullptr;
-            m_parsedInt = nullptr;
-            m_parsedFloat = nullptr;
-        }
-
+            ClearCache();
         m_valueOffset = value;
         m_valueLength = length;
+    }
+
+    void Context::ClearCache()
+    {
+        Buffer::Free(m_parsedString);
+        delete m_parsedInt;
+        delete m_parsedFloat;
+        m_parsedString = nullptr;
+        m_parsedInt = nullptr;
+        m_parsedFloat = nullptr;
     }
 
     chars Context::FindMark(chars value, const char mark)

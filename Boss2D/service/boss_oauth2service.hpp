@@ -32,6 +32,8 @@ namespace BOSS
         virtual const String& GetComment() const {static const String _; return _;}
         virtual const Image& GetPicture() const {static const Image _; return _;}
         virtual const Image& GetBackground() const {static const Image _; return _;}
+		virtual chars GetPictureUrl() const {return "";}
+		virtual chars GetBackgroundUrl() const {return "";}
 
     // 데이터(공유모델)
     protected:

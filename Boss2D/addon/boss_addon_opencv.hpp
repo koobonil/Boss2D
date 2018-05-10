@@ -10,8 +10,8 @@ extern "C"
 }
 
 #include <boss.hpp>
+#include <element/boss_point.hpp>
 #include <element/boss_rect.hpp>
-#include <element/boss_vector.hpp>
 
 class CVObject
 {
@@ -20,7 +20,22 @@ public:
     ~CVObject();
 
 public:
-    cv::Mat mPreProcessImage;
-    Rects mObjects;
-    Vectors mSticks;
+    // MOG2
+    bool mEnableMOG2;
+    sint32 mOldHistory;
+    double mOldThreshold;
+    bool mOldShadows;
+    cv::Mat mMOG2Mask;
+    cv::Mat mMOG2Image;
+    cv::Ptr<cv::BackgroundSubtractor> mMOG2;
+    // Canny
+    bool mEnableCanny;
+    double mLow;
+    double mHigh;
+    sint32 mAperture;
+    cv::Mat mCannyImage;
+
+    // Result
+    cv::Mat mGrayImage;
+    cv::Mat* mResult;
 };

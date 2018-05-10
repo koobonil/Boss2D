@@ -3,9 +3,9 @@
 #include <functional>
 #include <cctype>
 
-#include "boss_fakewin.h"
-
 #include <platform/boss_platform.hpp>
+
+#include "boss_fakewin.h"
 
 extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR lpBuffer)
 {
@@ -20,6 +20,7 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     #undef socket
     #undef connect
     #undef getsockopt
+	#undef setsockopt
     #undef select
     #undef recv
     #undef send
@@ -33,6 +34,18 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     #undef getpid
     #undef mbstowcs_s
     #undef wcstombs_s
+	#undef inet_addr
+	#undef bind
+	#undef getsockname
+	#undef getpeername
+	#undef sendto
+	#undef recvfrom
+	#undef accept
+	#undef listen
+	#undef getservbyname
+	#undef inet_ntoa
+	#undef shutdown
+	#undef _exit
 
     #undef CreateFileW
     #undef CreateFileMapping
@@ -44,6 +57,7 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     #undef CreateThread
     #undef DeregisterEventSource
     #undef DeviceIoControl
+    #undef ExpandEnvironmentStringsA
     #undef ExpandEnvironmentStringsW
     #undef FindClose
     #undef FindFirstFileA
@@ -54,6 +68,7 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     #undef FindWindow
     #undef FlushConsoleInputBuffer
     #undef FlushFileBuffers
+	#undef FormatMessageA	
     #undef FormatMessageW
     #undef GetCurrentDirectoryW
     #undef GetCurrentProcess
@@ -68,6 +83,8 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     #undef GetLastError
     #undef SetLastError
     #undef LoadLibraryA
+    #undef LoadLibraryW
+    #undef FreeLibrary
     #undef GetModuleHandleA
     #undef GetModuleHandleW
     #undef GetModuleFileName
@@ -102,6 +119,7 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     #undef SendMessage
     #undef SetFileAttributesW
     #undef Sleep
+    #undef SleepEx
     #undef VerifyVersionInfo
     #undef SetEvent
     #undef ResetEvent
@@ -137,8 +155,67 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     #undef ReleaseSemaphore
     #undef GetStartupInfo
     #undef CreateProcessA
-
+    #undef GetEnvironmentStrings
+    #undef GetEnvironmentStringsW
+    #undef GetSystemDirectoryA
+    #undef GetSystemDirectoryW
+    #undef GetEnvironmentVariableA
+    #undef GetEnvironmentVariableW
+    #undef GetSystemTime
+    #undef SwitchToFiber
+    #undef DeleteFiber
+    #undef ConvertFiberToThread
+    #undef ConvertThreadToFiber
+    #undef CreateFiberEx
+    #undef ConvertThreadToFiberEx
+    #undef CreateFiber
+	#undef GetConsoleMode
+	#undef SetConsoleMode
+	#undef ReadFile
+	#undef ReadFileEx
+	#undef GetFileType
+	#undef PeekNamedPipe
+	#undef strerror_s
+	#undef ntohs
+	#undef timeGetTime
+	#undef GetFiberData
+	#undef GetCurrentFiber
+	#undef GetVersionExA
+	#undef GetVersionExW
+	#undef WSAIoctl
+	#undef err2stringW
+	#undef err2stringA
+	#undef ldap_get_option
+	#undef ldap_get_optionW
+	#undef ldap_set_option
+	#undef ldap_set_optionW
+	#undef ldap_initW
+	#undef ldap_init
+	#undef ldap_simple_bindW
+	#undef ldap_simple_bindA
+	#undef ldap_simple_bind_sW
+	#undef ldap_simple_bind_sA
+	#undef ldap_searchW
+	#undef ldap_searchA
+	#undef ldap_search_sW
+	#undef ldap_search_sA
+	#undef ldap_first_entry
+	#undef ldap_get_dnW
+	#undef ldap_get_dn	
+	#undef ldap_first_attributeW
+	#undef ldap_first_attribute
+	#undef ldap_next_attributeW
+	#undef ldap_next_attribute
+	#undef ldap_get_values_lenW
+	#undef ldap_get_values_len
+	#undef ldap_value_free_len
+	#undef ldap_next_entry
+	#undef ldap_msgfree
+	#undef ldap_unbind
+	#undef ldap_unbind_s
+		
     #undef _waccess
+	#undef _chmod
     #undef _wchmod
     #undef _wfopen
     #undef _wfopen_s
@@ -163,6 +240,7 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     #undef _lfind
     #undef _chsize_s
     #undef _fstat64
+	#undef _stat64
     #undef _wchdir
     #undef _wmkdir
     #undef _wrmdir
@@ -178,9 +256,12 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     #undef _getch
     #undef _getdrive
     #undef _lrotl
+	#undef _lrotr
     #undef _rotl
     #undef _setmode
+    #undef stricmp
     #undef _stricmp
+    #undef strnicmp
     #undef _strnicmp
     #undef _mbsicmp
     #undef _wcsicmp
@@ -199,6 +280,23 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     #undef _strtoi64
     #undef _strtoui64
     #undef _set_errno
+	#undef _byteswap_ushort
+	#undef _byteswap_ulong
+	#undef _byteswap_uint64
+	#undef strlen
+	#undef wcslen
+	#undef strerror
+	#undef strerror_s	
+	#undef strcpy_s
+	#undef wcscpy_s
+	#undef strcpy
+	#undef wcscpy
+	#undef _strdup
+	#undef _wcsdup
+	#undef strpbrk
+	#undef wcspbrk
+	#undef ber_free	
+	
     // 명칭재정의관련
     #undef wfopen
     #undef wfopen_s
@@ -246,14 +344,33 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         BOSS_ASSERT("optname는 SO_ERROR만 지원합니다", optname == SO_ERROR);
         return 0;
     }
+	
+    extern "C" int boss_fakewin_setsockopt(SOCKET s, int level, int optname, const char* optval, int* optlen)
+    {
+        BOSS_ASSERT("level는 SOL_SOCKET만 지원합니다", level == SOL_SOCKET);
+        BOSS_ASSERT("optname는 SO_ERROR만 지원합니다", optname == SO_ERROR);
+        return 0;
+    }
 
     extern "C" int boss_fakewin_select(int nfds, boss_fakewin_fd_set* readfds, boss_fakewin_fd_set* writefds, boss_fakewin_fd_set* exceptfds, const struct timeval* timeout)
     {
-        BOSS_ASSERT("exceptfds는 nullptr만 지원합니다", exceptfds == nullptr);
-
         sint32 Result = 0;
+
+        if(readfds)
         for(sint32 i = 0, iend = readfds->fd_count; i < iend; ++i)
             Result += !!Platform::Socket::RecvAvailable((id_socket) readfds->fd_array[i], 1);
+        
+        if(writefds)
+        for(sint32 i = 0, iend = writefds->fd_count; i < iend; ++i)
+        {
+            BOSS_ASSERT("boss_fakewin_select writefds!!!", false);
+        }
+        
+        if(exceptfds)
+        for(sint32 i = 0, iend = exceptfds->fd_count; i < iend; ++i)
+        {
+            BOSS_ASSERT("boss_fakewin_select writefds!!!", false);
+        }
         return Result;
     }
 
@@ -330,7 +447,7 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
 
         for (p = 1; ainfo->ai_hostent->h_addr_list[p] != nullptr; p++) {
             ai->ai_next = (struct addrinfo*) Memory::Alloc(sizeof(struct addrinfo));
-            Memory::Copy(&ai->ai_next, ainfo, sizeof(struct addrinfo));
+            Memory::Copy(ai->ai_next, ainfo, sizeof(struct addrinfo));
             Memory::Copy(&ai->ai_next->ai_addr_in.sin_addr,
                 ainfo->ai_hostent->h_addr_list[p],
                 ainfo->ai_hostent->h_length);
@@ -397,7 +514,67 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         }
         return 0;
     }
-
+	
+	extern "C" unsigned long boss_fakewin_inet_addr(const char *cp)
+	{
+		BOSS_ASSERT("inet_addr준비중", false);
+		return 0;
+	}
+	extern "C" int boss_fakewin_bind(SOCKET s, const struct sockaddr* addr, int namelen)
+	{
+		BOSS_ASSERT("bind준비중", false);
+		return 0;
+	}
+	extern "C" int boss_fakewin_getsockname(SOCKET s, const struct sockaddr* addr, int* namelen)
+	{
+		BOSS_ASSERT("getsockname준비중", false);
+		return 0;
+	}	
+	extern "C" int boss_fakewin_getpeername(SOCKET s, const struct sockaddr* addr, int* namelen)
+	{
+		BOSS_ASSERT("getpeername준비중", false);
+		return 0;
+	}
+    extern "C" int boss_fakewin_sendto(SOCKET s, const char* buf, int len, int flags, const struct sockaddr* to, int tolen)
+	{
+		BOSS_ASSERT("sendto준비중", false);
+		return 0;
+	}
+    extern "C" int boss_fakewin_recvfrom(SOCKET s, char* buf, int len, int flags, struct sockaddr* to, int* fromlen)
+    {
+        BOSS_ASSERT("recvfrom준비중", false);
+        return 0;
+    }
+    extern "C" SOCKET boss_fakewin_accept(SOCKET s, struct sockaddr* addr, int* addrlen)
+    {
+        BOSS_ASSERT("accept준비중", false);
+        return 0;
+    }
+    extern "C" int boss_fakewin_listen(SOCKET s, int backlog)
+    {
+        BOSS_ASSERT("listen준비중", false);
+        return 0;
+    }
+	extern "C" struct servent* boss_fakewin_getservbyname(const char* name, const char* proto)
+    {
+        BOSS_ASSERT("getservbyname준비중", false);
+        return 0;
+    }
+	extern "C" char* boss_fakewin_inet_ntoa(struct in_addr in)
+    {
+        BOSS_ASSERT("inet_ntoa준비중", false);
+        return 0;
+    }
+	extern "C" int boss_fakewin_shutdown(SOCKET s, int how)
+	{
+		BOSS_ASSERT("shutdown준비중", false);
+        return 0;
+	}
+	extern "C" void boss_fakewin_exit(int status)
+	{
+		BOSS_ASSERT("_exit준비중", false);
+	}	
+	
     class Helper_MapInfo
     {
     public:
@@ -471,6 +648,68 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     extern "C" HANDLE boss_fakewin_CreateThread(LPSECURITY_ATTRIBUTES,size_t,LPTHREAD_START_ROUTINE,LPVOID,DWORD,LPDWORD) {BOSS_ASSERT("CreateThread준비중", false); return 0;}
     extern "C" BOOL boss_fakewin_DeregisterEventSource(HANDLE) {BOSS_ASSERT("DeregisterEventSource준비중", false); return 0;}
     extern "C" BOOL boss_fakewin_DeviceIoControl(HANDLE,DWORD,LPVOID,DWORD,LPVOID,DWORD,LPDWORD,LPOVERLAPPED) {BOSS_ASSERT("DeviceIoControl준비중", false); return 0;}
+
+    extern "C" DWORD boss_fakewin_ExpandEnvironmentStringsA(LPCSTR lpSrc, LPSTR lpDst, DWORD nSize)
+    {
+		BOSS_ASSERT("ExpandEnvironmentStringsA동작 확인해야 함", false);
+        static const WString& wRoot = Platform::File::GetFullPath((wchars) L"");
+        const String Root = String::FromWChars(wRoot);
+
+        String Result;
+        bool IsInnerCode = false;
+        while(*lpSrc)
+        {
+            if(*lpSrc != '%')
+            {
+                Result += *lpSrc;
+                lpSrc += 1;
+            }
+            else if(IsInnerCode)
+            {
+                IsInnerCode = false;
+                Result += *lpSrc;
+                lpSrc += 1;
+            }
+            else if(!Memory::Compare("%HOMEDRIVE%", lpSrc, sizeof(char) * 11))
+            {
+                Result += Root[0];
+                Result += Root[1];
+                lpSrc += 11;
+            }
+            else if(!Memory::Compare("%HOMEPATH%", lpSrc, sizeof(char) * 10))
+            {
+                Result += &((chars) Root)[2];
+                lpSrc += 10;
+            }
+            else if(!Memory::Compare("%USERPROFILE%", lpSrc, sizeof(char) * 13))
+            {
+                Result += Root;
+                lpSrc += 13;
+            }
+            else if(!Memory::Compare("%APPDATA%", lpSrc, sizeof(char) * 9))
+            {
+                Result += Root;
+                Result += (chars) "/appdata/roaming";
+                lpSrc += 9;
+            }
+            else if(!Memory::Compare("%LOCALAPPDATA%", lpSrc, sizeof(char) * 14))
+            {
+                Result += Root;
+                Result += (chars) "/appdata/local";
+                lpSrc += 14;
+            }
+            else
+            {
+                IsInnerCode = true;
+                Result += *lpSrc;
+                lpSrc += 1;
+            }
+        }
+
+        BOSS_ASSERT("nSize가 부족합니다", Result.Length() < (sint32) nSize);
+        Memory::Copy(lpDst, (chars) Result, sizeof(char) * (Result.Length() + 1));
+        return Result.Length();
+    }
 
     extern "C" DWORD boss_fakewin_ExpandEnvironmentStringsW(LPCWSTR lpSrc, LPWSTR lpDst, DWORD nSize)
     {
@@ -652,6 +891,14 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     extern "C" BOOL boss_fakewin_FlushConsoleInputBuffer(HANDLE) {BOSS_ASSERT("FlushConsoleInputBuffer준비중", false); return 0;}
     extern "C" BOOL boss_fakewin_FlushFileBuffers(HANDLE) {BOSS_ASSERT("FlushFileBuffers준비중", false); return 0;}
 
+    extern "C" DWORD boss_fakewin_FormatMessageA(DWORD dwFlags, LPCVOID lpSource, DWORD dwMessageId, DWORD dwLanguageId,
+        LPSTR lpBuffer, DWORD nSize, va_list* Arguments)
+    {
+		BOSS_ASSERT("FormatMessageA동작 확인해야 됨", false);
+        *((LPSTR*) lpBuffer) = (LPSTR) Buffer::Alloc<char>(BOSS_DBG 13 + 1);
+        Memory::Copy(*((LPSTR*) lpBuffer), "Unknown Error", sizeof(char) * (13 + 1));
+        return 13;
+    }
     extern "C" DWORD boss_fakewin_FormatMessageW(DWORD dwFlags, LPCVOID lpSource, DWORD dwMessageId, DWORD dwLanguageId,
         LPWSTR lpBuffer, DWORD nSize, va_list* Arguments)
     {
@@ -747,6 +994,8 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     {Common_ErrCode = dwErrCode;}
 
     extern "C" HMODULE boss_fakewin_LoadLibraryA(LPCSTR lpFileName) {BOSS_ASSERT("LoadLibraryA준비중", false); return 0;}
+    extern "C" HMODULE boss_fakewin_LoadLibraryW(LPCWSTR lpFileName) {BOSS_ASSERT("LoadLibraryW준비중", false); return 0;}
+    extern "C" BOOL boss_fakewin_FreeLibrary(HMODULE hModule) {BOSS_ASSERT("FreeLibrary준비중", false); return 0; }
 
     extern "C" HMODULE boss_fakewin_GetModuleHandleA(LPCSTR)
     {
@@ -811,7 +1060,10 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         return 0;
     }
 
-    extern "C" DWORD boss_fakewin_GetTickCount() {BOSS_ASSERT("GetTickCount준비중", false); return 0;}
+    extern "C" DWORD boss_fakewin_GetTickCount()
+    {
+        return (DWORD) Platform::Utility::CurrentTimeMsec();
+    }
 
     extern "C" BOOL boss_fakewin_GetUserObjectInformationW(HANDLE hObj, int nIndex, PVOID pvInfo, DWORD nLength, LPDWORD lpnLengthNeeded)
     {
@@ -877,7 +1129,7 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         const WString& NewString = WString::FromChars(lpMultiByteStr, cbMultiByte);
         if(0 < cchWideChar)
         {
-            BOSS_ASSERT("cchWideChar가 부족합니다", NewString.Length() < cchWideChar);
+            BOSS_ASSERT("cchWideChar가 부족합니다", NewString.Length() + 1 <= cchWideChar);
             Memory::Copy(lpWideCharStr, (wchars) NewString, sizeof(wchar_t) * (NewString.Length() + 1));
         }
 
@@ -895,7 +1147,7 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         const String& NewString = String::FromWChars(lpWideCharStr, cchWideChar);
         if(0 < cbMultiByte)
         {
-            BOSS_ASSERT("cbMultiByte가 부족합니다", NewString.Length() < cbMultiByte);
+            BOSS_ASSERT("cbMultiByte가 부족합니다", NewString.Length() + 1 <= cbMultiByte);
             Memory::Copy(lpMultiByteStr, (chars) NewString, sizeof(char) * (NewString.Length() + 1));
         }
         return NewString.Length() + 1;
@@ -933,7 +1185,15 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         return true;
     }
 
-    extern "C" void boss_fakewin_Sleep(DWORD) {BOSS_ASSERT("Sleep준비중", false);}
+    extern "C" void boss_fakewin_Sleep(DWORD dwMilliseconds)
+    {
+        Platform::Utility::Sleep(dwMilliseconds, false, false);
+    }
+
+    extern "C" void boss_fakewin_SleepEx(DWORD, BOOL)
+    {
+        BOSS_ASSERT("SleepEx준비중", false);
+    }
 
     extern "C" BOOL boss_fakewin_VerifyVersionInfo(LPOSVERSIONINFOEX lpVersionInfo, DWORD dwTypeMask, DWORDLONG dwlConditionMask)
     {
@@ -1032,6 +1292,16 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         return (Platform::File::CanAccess(path))? 0 : -1;
     }
 
+    extern "C" int boss_fakewin_chmod(const char* filename, int pmode)
+    {
+	    BOSS_ASSERT("_chmod준비중", false);
+        //if(S_IWRITE & pmode)
+        //    return (Platform::File::CanWritable(filename))? 0 : -1;
+        //if(S_IREAD & pmode)
+        //    return (Platform::File::CanAccess(filename))? 0 : -1;
+        return -1;
+    }
+	
     extern "C" int boss_fakewin_wchmod(const wchar_t* filename, int pmode)
     {
         if(S_IWRITE & pmode)
@@ -1196,7 +1466,7 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         _Stat->st_gid = 0;
         _Stat->st_rdev = 0;
         _Stat->st_size = GetSize;
-        #if BOSS_MAC_OSX || BOSS_IPHONE
+        #if BOSS_MAC_OSX
             _Stat->st_atimespec.tv_sec = WindowToEpoch(GetAccessTime / 10000) / 1000;
             _Stat->st_mtimespec.tv_sec = WindowToEpoch(GetModifyTime / 10000) / 1000;
             _Stat->st_ctimespec.tv_sec = WindowToEpoch(GetCreateTime / 10000) / 1000;
@@ -1205,6 +1475,12 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
             _Stat->st_mtime = WindowToEpoch(GetModifyTime / 10000) / 1000;
             _Stat->st_ctime = WindowToEpoch(GetCreateTime / 10000) / 1000;
         #endif
+        return 0;
+    }
+	
+	extern "C" int boss_fakewin_stat64(const char *file_name, struct boss_fakewin_stat64* _Stat)
+    {
+        BOSS_ASSERT("_stat64준비중", false);
         return 0;
     }
 
@@ -1262,6 +1538,11 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         fdset->fd_array[fdset->fd_count] = fd;
     }
 
+	extern "C" int boss_fakewin_FD_ISSET(int fd, boss_fakewin_fd_set* fdset)
+	{
+	    return (fdset->fd_array[fdset->fd_count] == fd);
+	}
+
     extern "C" void boss_fakewin_FD_ZERO(boss_fakewin_fd_set* fdset)
     {
         fdset->fd_count = 0;
@@ -1272,7 +1553,8 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         #if BOSS_WINDOWS
             return _alloca(_Size);
         #else
-            BOSS_ASSERT("준비중", false); return 0;
+            static uint08s _;
+            return _.AtDumping(0, _Size);
         #endif
     }
 
@@ -1310,6 +1592,18 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
 
         return Result;
     }
+
+    extern "C" unsigned long boss_fakewin_lrotr(unsigned long _Val, int _Shift)
+    {
+        _Shift &= 0x1F;
+        const unsigned long Result = (_Val >> _Shift) | (_Val << (32 - _Shift));
+
+        #if BOSS_WINDOWS
+            BOSS_ASSERT("_lrotr의 연산값에 문제가 있습니다", Result == _lrotr(_Val, _Shift));
+        #endif
+
+        return Result;
+    }	
 
     extern "C" unsigned int boss_fakewin_rotl(unsigned int _Val, int _Shift)
     {
@@ -1431,6 +1725,385 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         BOSS_ASSERT("_set_errno준비중", false);
         return 0;
     }
+    extern "C" LPCH boss_fakewin_GetEnvironmentStrings(void)
+    {
+        return (LPCH)"";
+    }
+    extern "C" LPWCH boss_fakewin_GetEnvironmentStringsW(void)
+    {
+        return (LPWCH) L"";
+    }
+    extern "C" UINT boss_fakewin_GetSystemDirectoryA(LPSTR lpBuffer, UINT uSize)
+    {
+        BOSS_ASSERT("GetSystemDirectoryA준비중", false);
+        return 0;
+    }
+    extern "C" UINT boss_fakewin_GetSystemDirectoryW(LPWSTR lpBuffer, UINT uSize)
+    {
+        BOSS_ASSERT("GetSystemDirectoryW준비중", false);
+        return 0;
+    }
+    extern "C" UINT boss_fakewin_GetEnvironmentVariableA(LPCSTR lpName, LPSTR lpBuffer, UINT uSize)
+    {
+        BOSS_ASSERT("GetEnvironmentVariableA준비중", false);
+        return 0;
+    }
+    extern "C" UINT boss_fakewin_GetEnvironmentVariableW(LPCWSTR lpName, LPWSTR lpBuffer, UINT uSize)
+    {
+        BOSS_ASSERT("GetEnvironmentVariableW준비중", false);
+        return 0;
+    }
+	extern "C" BOOL boss_fakewin_ReadConsoleA(HANDLE hConsoleInput, LPVOID lpBuffer, DWORD nNumberOfCharsToRead, LPDWORD lpNumberOfCharsRead, PCONSOLE_READCONSOLE_CONTROL pInputControl)
+	{
+	    BOSS_ASSERT("ReadConsoleA준비중", false);
+	    return 0;
+	}
+	extern "C" BOOL boss_fakewin_ReadConsoleW(HANDLE hConsoleInput, LPVOID lpBuffer, DWORD nNumberOfCharsToRead, LPDWORD lpNumberOfCharsRead, PCONSOLE_READCONSOLE_CONTROL pInputControl)
+	{
+	    BOSS_ASSERT("ReadConsoleW준비중", false);
+	    return 0;
+	}
+	extern "C" VOID boss_fakewin_GetSystemTime(LPSYSTEMTIME lpSystemTime)
+	{
+	    BOSS_ASSERT("GetSystemTime준비중", false);
+	}
+	extern "C" VOID boss_fakewin_SwitchToFiber(LPVOID lpFiber)
+	{
+	    BOSS_ASSERT("SwitchToFiber준비중", false);
+	}
+	extern "C" VOID boss_fakewin_DeleteFiber(LPVOID lpFiber)
+	{
+	    BOSS_ASSERT("DeleteFiber준비중", false);
+	}
+	extern "C" BOOL boss_fakewin_ConvertFiberToThread(void)
+	{
+	    BOSS_ASSERT("ConvertFiberToThread준비중", false);
+	    return 0;
+	}
+	extern "C" LPVOID boss_fakewin_ConvertThreadToFiber(LPVOID lpParameter)
+	{
+	    BOSS_ASSERT("ConvertThreadToFiber준비중", false);
+	    return 0;
+	}
+	extern "C" LPVOID boss_fakewin_CreateFiberEx(SIZE_T dwStackCommitSize, SIZE_T dwStackReserveSize,DWORD dwFlags, LPFIBER_START_ROUTINE lpStartAddress, LPVOID lpParameter)
+	{
+	    BOSS_ASSERT("CreateFiberEx준비중", false);
+	    return 0;
+	}
+	extern "C" LPVOID boss_fakewin_ConvertThreadToFiberEx(LPVOID lpParameter, DWORD dwFlags)
+	{
+	    BOSS_ASSERT("ConvertThreadToFiberEx준비중", false);
+	    return 0;
+	}
+	extern "C" LPVOID boss_fakewin_CreateFiber(SIZE_T dwStackSize, LPFIBER_START_ROUTINE lpStartAddress, LPVOID lpParameter)
+	{
+	    BOSS_ASSERT("CreateFiber준비중", false);
+	    return 0;
+	}
+	extern "C" BOOL boss_fakewin_GetConsoleMode(HANDLE hConsoleHandle, LPDWORD lpMode)
+	{
+	    BOSS_ASSERT("GetConsoleMode준비중", false);
+	    return 0;
+	}
+	extern "C" BOOL boss_fakewin_SetConsoleMode(HANDLE hConsoleHandle, LPDWORD dwMode)
+	{
+	    BOSS_ASSERT("SetConsoleMode준비중", false);
+	    return 0;
+	}
+	extern "C" BOOL boss_fakewin_ReadFile(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped)
+	{
+	    BOSS_ASSERT("ReadFile준비중", false);
+	    return 0;
+	}
+	extern "C" BOOL boss_fakewin_ReadFileEx(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPOVERLAPPED lpOverlapped, LPOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine)
+	{
+	    BOSS_ASSERT("ReadFileEx준비중", false);
+	    return 0;
+	}
+	extern "C" DWORD boss_fakewin_GetFileType(HANDLE hFile)
+	{
+	    BOSS_ASSERT("GetFileType준비중", false);
+	    return 0;
+	}
+	extern "C" BOOL boss_fakewin_PeekNamedPipe(HANDLE hNamedPipe, LPVOID lpBuffer, DWORD nBufferSize, LPDWORD lpBytesRead, LPDWORD lpTotalBytesAvail, LPDWORD lpBytesLeftThisMessage)
+	{
+	    BOSS_ASSERT("PeekNamedPipe준비중", false);
+	    return 0;
+	}
+	extern "C" DWORD boss_fakewin_timeGetTime(void)
+	{
+	    BOSS_ASSERT("timeGetTime준비중", false);
+	    return 0;
+	}
+	extern "C" PVOID boss_fakewin_GetFiberData(void)
+	{
+	    //return *(PVOID *) (ULONG_PTR) __readfsdword (0x10);
+	    BOSS_ASSERT("GetFiberData준비중", false);
+	    return 0;
+	}
+	extern "C" PVOID boss_fakewin_GetCurrentFiber(void)
+	{
+	    //return (PVOID) (ULONG_PTR) __readfsdword (0x10);
+	    BOSS_ASSERT("GetCurrentFiber준비중", false);
+	    return 0;
+	}
+	extern "C" unsigned short boss_fakewin_byteswap_ushort(unsigned short _Number)
+	{
+	    BOSS_ASSERT("_byteswap_ushort준비중", false);
+	    return 0;
+	}
+	extern "C" unsigned long boss_fakewin_byteswap_ulong(unsigned long _Number)
+	{
+	    BOSS_ASSERT("_byteswap_ulong준비중", false);
+	    return 0;
+	}
+	extern "C" unsigned __int64 boss_fakewin_byteswap_uint64(unsigned __int64 _Number)
+	{
+	    BOSS_ASSERT("_byteswap_uint64준비중", false);
+	    return 0;
+	}
+	extern "C" size_t boss_fakewin_strlen(const char *str)
+	{
+	    return boss_strlen(str);
+	}
+	extern "C" size_t boss_fakewin_wcslen(const wchar_t *str)
+	{
+        return boss_wcslen(str);
+	}
+	extern "C" char* boss_fakewin_strerror(int errnum)
+	{
+	    BOSS_ASSERT("strerror준비중", false);
+        return "";
+	}
+	extern "C" errno_t boss_fakewin_strerror_s(char *buf, rsize_t bufsz, errno_t errnum)
+	{
+	    BOSS_ASSERT("strerror_s준비중", false);
+	    return 0;	
+	}
+	extern "C" errno_t boss_fakewin_strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource)
+	{
+		BOSS_ASSERT("strcpy_s준비중", false);
+	    //for (size_t i = 0; i < numberOfElements; ++i)
+		//	dest[i] = sour[i];
+	    return 0;	
+	}
+	extern "C" errno_t boss_fakewin_wcscpy_s(wchar_t *strDestination, size_t numberOfElements, const wchar_t *strSource)
+	{
+		BOSS_ASSERT("wcscpy_s준비중", false);	
+	    //for (size_t i = 0; i < numberOfElements; ++i)
+		//	dest[i] = sour[i];
+	    return 0;	
+	}	
+	extern "C" char* boss_fakewin_strcpy(char *strDestination, const char *strSource)
+	{
+        char* temp = strDestination;
+        while (*(temp++) = *(strSource++));
+        return strDestination;
+	}
+	extern "C" wchar_t* boss_fakewin_wcscpy(wchar_t *strDestination, const wchar_t *strSource)
+	{
+        wchar_t* temp = strDestination;
+        while (*(temp++) = *(strSource++));
+        return strDestination;
+	}
+	extern "C" char* boss_fakewin_strdup(const char *strSource)
+	{
+        BOSS_ASSERT("_strdup준비중", false);
+        return 0;
+	}
+	extern "C" wchar_t* boss_fakewin_wcsdup(const wchar_t *strSource)
+	{
+        BOSS_ASSERT("_wcsdup준비중", false);
+        return 0;
+	}
+	extern "C" char* boss_fakewin_strpbrk(const char *str, const char *strCharSet)
+	{
+        BOSS_ASSERT("strpbrk준비중", false);
+        return 0;
+	}
+	extern "C" wchar_t* boss_fakewin_wcspbrk(const wchar_t *str, const wchar_t *strCharSet)
+	{
+        BOSS_ASSERT("wcspbrk준비중", false);
+        return 0;
+	}
+	extern "C" VOID boss_fakewin_ber_free(BerElement *pBerElement, INT fbuf)
+	{
+        BOSS_ASSERT("ber_free준비중", false);
+	}			
+	extern "C" BOOL boss_fakewin_GetVersionExA(LPOSVERSIONINFOA)
+	{
+	    BOSS_ASSERT("GetVersionExA준비중", false);
+	    return 0;
+	}
+	extern "C" BOOL boss_fakewin_GetVersionExW(LPOSVERSIONINFOW)
+	{
+	    BOSS_ASSERT("GetVersionExW준비중", false);
+	    return 0;
+	}
+	extern "C" int boss_fakewin_WSAIoctl(SOCKET s, DWORD dwIoControlCode, LPVOID lpvInBuffer, DWORD cbInBuffer, LPVOID lpvOutBuffer, DWORD cbOutBuffer, LPDWORD lpcbBytesReturned, LPWSAOVERLAPPED lpOverlapped,LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine)
+	{
+	    BOSS_ASSERT("WSAIoctl준비중", false);
+	    return 0;
+	}
+	extern "C" PWCHAR boss_fakewin_ldap_err2stringW(ULONG err)
+	{
+	    BOSS_ASSERT("ldap_err2stringW준비중", false);
+        return 0;
+	}
+	extern "C" PCHAR boss_fakewin_ldap_err2stringA(ULONG err)
+	{
+	    BOSS_ASSERT("ldap_err2stringA준비중", false);
+        return 0;
+	}
+	extern "C" ULONG boss_fakewin_ldap_get_option( LDAP *ld, int option, void *outvalue )
+    {
+	    BOSS_ASSERT("ldap_get_option준비중", false);
+        return 0;
+	}
+	extern "C" ULONG boss_fakewin_ldap_get_optionW( LDAP *ld, int option, void *outvalue )
+    {
+	    BOSS_ASSERT("ldap_get_optionW준비중", false);
+        return 0;
+	}
+    extern "C" ULONG boss_fakewin_ldap_set_option( LDAP *ld, int option, const void *outvalue )
+    {
+	    BOSS_ASSERT("ldap_set_option준비중", false);
+        return 0;
+	}
+	extern "C" ULONG boss_fakewin_ldap_set_optionW( LDAP *ld, int option, const void *outvalue )
+    {
+	    BOSS_ASSERT("ldap_set_optionW준비중", false);
+        return 0;
+	}
+    extern "C" LDAP* boss_fakewin_ldap_initW(const PWSTR HostName, ULONG PortNumber)
+    {
+	    BOSS_ASSERT("ldap_initW준비중", false);
+        return 0;
+	}
+	extern "C" LDAP* boss_fakewin_ldap_init(const PSTR HostName, ULONG PortNumber)
+    {
+	    BOSS_ASSERT("ldap_init준비중", false);
+        return 0;
+	}
+	extern "C" ULONG boss_fakewin_ldap_simple_bindW( LDAP *ld, PWSTR dn, PWSTR passwd )
+	{
+		BOSS_ASSERT("ldap_simple_bindW준비중", false);
+        return 0;
+	}
+	extern "C" ULONG boss_fakewin_ldap_simple_bindA( LDAP *ld, PSTR dn, PSTR passwd )
+	{
+		BOSS_ASSERT("ldap_simple_bindA준비중", false);
+        return 0;
+	}
+	extern "C" ULONG boss_fakewin_ldap_simple_bind_sW( LDAP *ld, PWSTR dn, PWSTR passwd )
+	{
+		BOSS_ASSERT("ldap_simple_bind_sW준비중", false);
+        return 0;
+	}
+	extern "C" ULONG boss_fakewin_ldap_simple_bind_sA( LDAP *ld, PSTR dn, PSTR passwd )
+	{
+		BOSS_ASSERT("ldap_simple_bind_sA준비중", false);
+        return 0;
+	}
+	extern "C" ULONG boss_fakewin_ldap_searchW(LDAP *ld, const PWSTR base, ULONG scope, const PWSTR filter, PZPWSTR attrs, LONG attrsonly)
+	{
+		BOSS_ASSERT("ldap_searchW준비중", false);
+        return 0;
+	}
+	extern "C" ULONG boss_fakewin_ldap_searchA(LDAP *ld, const PSTR base, ULONG scope, const PSTR filter, PZPSTR attrs, LONG attrsonly)
+	{
+		BOSS_ASSERT("ldap_searchA준비중", false);
+        return 0;
+	}
+	extern "C" ULONG boss_fakewin_ldap_search_sW(LDAP *ld, const PWSTR base, ULONG scope, const PWSTR filter, PZPWSTR attrs, LONG attrsonly, LDAPMessage** res)
+	{
+		BOSS_ASSERT("ldap_search_sW준비중", false);
+        return 0;
+	}
+	extern "C" ULONG boss_fakewin_ldap_search_sA(LDAP *ld, const PSTR base, ULONG scope, const PSTR filter, PZPSTR attrs, LONG attrsonly, LDAPMessage** res)
+	{
+		BOSS_ASSERT("ldap_search_sA준비중", false);
+        return 0;
+	}
+	extern "C" LDAPMessage* boss_fakewin_ldap_first_entry(LDAP *ld, LDAPMessage *res)
+	{
+		BOSS_ASSERT("ldap_first_entry준비중", false);
+        return 0;
+	}
+	extern "C" PWCHAR boss_fakewin_ldap_get_dnW(LDAP *ld, LDAPMessage *entry)
+	{
+		BOSS_ASSERT("ldap_first_entry준비중", false);
+        return 0;
+	}
+	extern "C" PCHAR boss_fakewin_ldap_get_dn(LDAP *ld, LDAPMessage *entry)
+	{
+		BOSS_ASSERT("ldap_first_entry준비중", false);
+        return 0;
+	}	
+	extern "C" VOID boss_fakewin_ldap_memfreeW(PWCHAR Block)
+	{
+		BOSS_ASSERT("ldap_first_entry준비중", false);
+	}
+	extern "C" VOID boss_fakewin_ldap_memfree(PCHAR Block)
+	{
+		BOSS_ASSERT("ldap_first_entry준비중", false);
+	}
+	extern "C" PWCHAR boss_fakewin_ldap_first_attributeW(LDAP *ld, LDAPMessage* entry, BerElement** ptr)
+	{
+		BOSS_ASSERT("ldap_first_attributeW준비중", false);
+        return 0;
+	}
+	extern "C" PCHAR boss_fakewin_ldap_first_attribute(LDAP *ld, LDAPMessage* entry, BerElement** ptr)
+	{
+		BOSS_ASSERT("ldap_first_attribute준비중", false);
+        return 0;
+	}
+	extern "C" PWCHAR boss_fakewin_ldap_next_attributeW(LDAP *ld, LDAPMessage* entry, BerElement* ptr)
+	{
+		BOSS_ASSERT("ldap_next_attributeW준비중", false);
+        return 0;
+	}
+	extern "C" PCHAR boss_fakewin_ldap_next_attribute(LDAP *ld, LDAPMessage* entry, BerElement* ptr)
+	{
+		BOSS_ASSERT("ldap_next_attribute준비중", false);
+        return 0;
+	}	
+	extern "C" struct berval** boss_fakewin_ldap_get_values_lenW(LDAP *ExternalHandle, LDAPMessage* Message, const PWSTR attr)
+	{
+		BOSS_ASSERT("ldap_get_values_lenW준비중", false);
+        return 0;
+	}
+	extern "C" struct berval** boss_fakewin_ldap_get_values_len(LDAP *ExternalHandle, LDAPMessage* Message, const PSTR attr)
+	{
+		BOSS_ASSERT("ldap_get_values_len준비중", false);
+        return 0;
+	}
+	extern "C" ULONG boss_fakewin_ldap_value_free_len(struct berval **vals)
+	{
+		BOSS_ASSERT("ldap_next_attribute준비중", false);
+        return 0;
+	}
+	extern "C" LDAPMessage* boss_fakewin_ldap_next_entry(LDAP *ld, LDAPMessage *entry)
+	{
+		BOSS_ASSERT("ldap_next_entry준비중", false);
+        return 0;
+	}
+	extern "C" ULONG boss_fakewin_ldap_msgfree(LDAPMessage *res)
+	{
+		BOSS_ASSERT("ldap_msgfree준비중", false);
+        return 0;
+	}
+    extern "C" ULONG boss_fakewin_ldap_unbind(LDAP *ld)
+	{
+		BOSS_ASSERT("ldap_unbind준비중", false);
+        return 0;
+	}
+	extern "C" ULONG boss_fakewin_ldap_unbind_s(LDAP *ld)
+	{
+		BOSS_ASSERT("ldap_unbind_s준비중", false);
+        return 0;
+	}
+
 
     #if BOSS_MAC_OSX || BOSS_IPHONE
         namespace std

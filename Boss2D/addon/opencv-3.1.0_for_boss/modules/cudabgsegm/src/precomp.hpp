@@ -45,7 +45,7 @@
 
 #include <limits>
 
-#include "opencv2/cudabgsegm.hpp"
+#include BOSS_OPENCV_U_opencv2__opencv2__cudabgsegm_hpp //original-code:"opencv2/cudabgsegm.hpp"
 
 #include BOSS_OPENCV_U_opencv2__core__private_D_cuda_hpp //original-code:"opencv2/core/private.cuda.hpp"
 

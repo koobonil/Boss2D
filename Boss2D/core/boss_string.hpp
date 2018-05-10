@@ -297,6 +297,14 @@ namespace BOSS
         static String FromWChars(wchars text, sint32 length = -1);
 
         /*!
+        \brief 컨버팅식 객체생성(URL스트링)
+        \param text : 컨버팅할 URL스트링
+        \param length : 적용할 길이(-1이면 자동설정)
+        \return 객체
+        */
+        static String FromUrlString(chars text, sint32 length = -1);
+
+        /*!
         \brief 정수식 객체생성
         \param value : 컨버팅할 정수
         \return 객체

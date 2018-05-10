@@ -65,6 +65,10 @@
 #include <addon/opencv-3.1.0_for_boss/modules/core/src/persistence.cpp>
 
 #undef __OPENCV_PRECOMP_H__
+#include <addon/opencv-3.1.0_for_boss/modules/cudabgsegm/src/mog.cpp>
+#include <addon/opencv-3.1.0_for_boss/modules/cudabgsegm/src/mog2.cpp>
+
+#undef __OPENCV_PRECOMP_H__
 #include <addon/opencv-3.1.0_for_boss/modules/imgproc/src/accum.cpp>
 #include <addon/opencv-3.1.0_for_boss/modules/imgproc/src/approx.cpp>
 #include <addon/opencv-3.1.0_for_boss/modules/imgproc/src/blend.cpp>
@@ -157,6 +161,10 @@
 #include <addon/opencv-3.1.0_for_boss/modules/flann/src/miniflann.cpp>
 #undef __OPENCV_PRECOMP_H__
 #include <addon/opencv-3.1.0_for_boss/modules/video/src/bgfg_gaussmix2.cpp>
+#define defaultHistory2 defaultHistory2_bgfg_KNN_BOSS
+#define defaultnShadowDetection2 defaultnShadowDetection2_bgfg_KNN_BOSS
+#define defaultfTau defaultfTau_bgfg_KNN_BOSS
+#include <addon/opencv-3.1.0_for_boss/modules/video/src/bgfg_KNN.cpp>
 
 // ■ 대체구현(addon/opencv-3.1.0_for_boss/modules/imgproc/src/imgwarp.cpp)
 static inline int clip(int x, int a, int b)

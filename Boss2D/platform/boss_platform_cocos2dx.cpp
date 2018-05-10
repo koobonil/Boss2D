@@ -494,7 +494,7 @@
             return 0;
         }
 
-        void Platform::Utility::Sleep(sint32 ms, bool caninput)
+        void Platform::Utility::Sleep(sint32 ms, bool process_input, bool process_socket)
         {
             BOSS_ASSERT("Further development is needed.", false);
         }

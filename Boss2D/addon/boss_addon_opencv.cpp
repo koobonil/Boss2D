@@ -17,27 +17,23 @@ namespace BOSS
 {
     BOSS_DECLARE_ADDON_FUNCTION(OpenCV, Create, id_opencv, void)
     BOSS_DECLARE_ADDON_FUNCTION(OpenCV, Release, void, id_opencv)
-    BOSS_DECLARE_ADDON_FUNCTION(OpenCV, Update, void, id_opencv, id_bitmap_read, double, double, sint32)
-    BOSS_DECLARE_ADDON_FUNCTION(OpenCV, GetPreprocessImage, id_bitmap, id_opencv)
-    BOSS_DECLARE_ADDON_FUNCTION(OpenCV, TrackingObject, void, id_opencv)
-    BOSS_DECLARE_ADDON_FUNCTION(OpenCV, GetObjectCount, sint32, id_opencv)
-    BOSS_DECLARE_ADDON_FUNCTION(OpenCV, GetObjectRect, rect128f, id_opencv, sint32)
-    BOSS_DECLARE_ADDON_FUNCTION(OpenCV, TrackingStick, void, id_opencv)
-    BOSS_DECLARE_ADDON_FUNCTION(OpenCV, GetStickCount, sint32, id_opencv)
-    BOSS_DECLARE_ADDON_FUNCTION(OpenCV, GetStickLine, vector128f, id_opencv, sint32)
+    BOSS_DECLARE_ADDON_FUNCTION(OpenCV, SetMOG2, void, id_opencv, bool, sint32, double, bool)
+    BOSS_DECLARE_ADDON_FUNCTION(OpenCV, SetCanny, void, id_opencv, bool, double, double, sint32)
+    BOSS_DECLARE_ADDON_FUNCTION(OpenCV, Update, void, id_opencv, id_bitmap_read)
+    BOSS_DECLARE_ADDON_FUNCTION(OpenCV, GetUpdatedImage, id_bitmap, id_opencv)
+    BOSS_DECLARE_ADDON_FUNCTION(OpenCV, GetFindContours, void, id_opencv, AddOn::OpenCV::FindContoursCB, payload)
+    BOSS_DECLARE_ADDON_FUNCTION(OpenCV, GetHoughLines, void, id_opencv, AddOn::OpenCV::HoughLinesCB, payload)
 
     static autorun Bind_AddOn_OpenCV()
     {
         Core_AddOn_OpenCV_Create() = Customized_AddOn_OpenCV_Create;
         Core_AddOn_OpenCV_Release() = Customized_AddOn_OpenCV_Release;
+        Core_AddOn_OpenCV_SetMOG2() = Customized_AddOn_OpenCV_SetMOG2;
+        Core_AddOn_OpenCV_SetCanny() = Customized_AddOn_OpenCV_SetCanny;
         Core_AddOn_OpenCV_Update() = Customized_AddOn_OpenCV_Update;
-        Core_AddOn_OpenCV_GetPreprocessImage() = Customized_AddOn_OpenCV_GetPreprocessImage;
-        Core_AddOn_OpenCV_TrackingObject() = Customized_AddOn_OpenCV_TrackingObject;
-        Core_AddOn_OpenCV_GetObjectCount() = Customized_AddOn_OpenCV_GetObjectCount;
-        Core_AddOn_OpenCV_GetObjectRect() = Customized_AddOn_OpenCV_GetObjectRect;
-        Core_AddOn_OpenCV_TrackingStick() = Customized_AddOn_OpenCV_TrackingStick;
-        Core_AddOn_OpenCV_GetStickCount() = Customized_AddOn_OpenCV_GetStickCount;
-        Core_AddOn_OpenCV_GetStickLine() = Customized_AddOn_OpenCV_GetStickLine;
+        Core_AddOn_OpenCV_GetUpdatedImage() = Customized_AddOn_OpenCV_GetUpdatedImage;
+        Core_AddOn_OpenCV_GetFindContours() = Customized_AddOn_OpenCV_GetFindContours;
+        Core_AddOn_OpenCV_GetHoughLines() = Customized_AddOn_OpenCV_GetHoughLines;
         return true;
     }
     static autorun _ = Bind_AddOn_OpenCV();
@@ -48,36 +44,76 @@ namespace BOSS
 {
     id_opencv Customized_AddOn_OpenCV_Create(void)
     {
-        CVObject* NewObject = new CVObject();
-        return (id_opencv) NewObject;
+        CVObject* NewCV = new CVObject();
+        return (id_opencv) NewCV;
     }
 
     void Customized_AddOn_OpenCV_Release(id_opencv opencv)
     {
-        CVObject* OldObject = (CVObject*) opencv;
-        delete OldObject;
+        CVObject* CurCV = (CVObject*) opencv;
+        delete CurCV;
     }
 
-    void Customized_AddOn_OpenCV_Update(id_opencv opencv, id_bitmap_read bmp, double low, double high, sint32 aperture)
+    void Customized_AddOn_OpenCV_SetMOG2(id_opencv opencv, bool enable, sint32 history, double threshold, bool shadows)
     {
         if(!opencv) return;
-        CVObject* CurObject = (CVObject*) opencv;
-        cv::Mat OneImage(Bmp::GetHeight(bmp), Bmp::GetWidth(bmp), CV_8UC4, (void*) Bmp::GetBits(bmp));
-
-        // 흑백화
-        cv::Mat GrayImage;
-        cv::cvtColor(OneImage, GrayImage, cv::COLOR_BGR2GRAY);
-
-        // 캐니엣지화
-        cv::blur(GrayImage, GrayImage, cv::Size(3, 3));
-        cv::Canny(GrayImage, CurObject->mPreProcessImage, low, high, aperture);
+        CVObject* CurCV = (CVObject*) opencv;
+        CurCV->mEnableMOG2 = enable;
+        if(enable && (
+            CurCV->mOldHistory != history ||
+            CurCV->mOldThreshold != threshold ||
+            CurCV->mOldShadows != shadows))
+        {
+            CurCV->mOldHistory = history;
+            CurCV->mOldThreshold = threshold;
+            CurCV->mOldShadows = shadows;
+            CurCV->mMOG2 = cv::createBackgroundSubtractorMOG2(history, threshold, shadows);
+        }
     }
 
-    id_bitmap Customized_AddOn_OpenCV_GetPreprocessImage(id_opencv opencv)
+    void Customized_AddOn_OpenCV_SetCanny(id_opencv opencv, bool enable, double low, double high, sint32 aperture)
+    {
+        if(!opencv) return;
+        CVObject* CurCV = (CVObject*) opencv;
+        CurCV->mEnableCanny = enable;
+        CurCV->mLow = low;
+        CurCV->mHigh = high;
+        CurCV->mAperture = aperture;
+    }
+
+    void Customized_AddOn_OpenCV_Update(id_opencv opencv, id_bitmap_read bmp)
+    {
+        if(!opencv) return;
+        CVObject* CurCV = (CVObject*) opencv;
+        cv::Mat OneImage(Bmp::GetHeight(bmp), Bmp::GetWidth(bmp), CV_8UC4, (void*) Bmp::GetBits(bmp));
+
+        // 블러와 흑백화
+        cv::blur(OneImage, CurCV->mGrayImage, cv::Size(5, 5));
+        cv::cvtColor(CurCV->mGrayImage, CurCV->mGrayImage, cv::COLOR_BGR2GRAY);
+        CurCV->mResult = &CurCV->mGrayImage;
+
+        // 배경축출
+        if(CurCV->mEnableMOG2)
+        {
+            CurCV->mMOG2->apply(*CurCV->mResult, CurCV->mMOG2Mask);
+            CurCV->mMOG2Image.convertTo(CurCV->mMOG2Image, -1, 1, -100);
+            CurCV->mResult->copyTo(CurCV->mMOG2Image, CurCV->mMOG2Mask);
+            CurCV->mResult = &CurCV->mMOG2Image;
+        }
+
+        // 캐니엣지화
+        if(CurCV->mEnableCanny)
+        {
+            cv::Canny(*CurCV->mResult, CurCV->mCannyImage, CurCV->mLow, CurCV->mHigh, CurCV->mAperture);
+            CurCV->mResult = &CurCV->mCannyImage;
+        }
+	}
+
+    id_bitmap Customized_AddOn_OpenCV_GetUpdatedImage(id_opencv opencv)
     {
         if(!opencv) return nullptr;
-        CVObject* CurObject = (CVObject*) opencv;
-        const cv::Mat& CurImage = CurObject->mPreProcessImage;
+        CVObject* CurCV = (CVObject*) opencv;
+        const cv::Mat& CurImage = *CurCV->mResult;
 
         auto NewBitmap = Bmp::Create(4, CurImage.cols, CurImage.rows);
         auto NewBitmapBits = (Bmp::bitmappixel*) Bmp::GetBits(NewBitmap);
@@ -97,136 +133,54 @@ namespace BOSS
         return NewBitmap;
     }
 
-    void Customized_AddOn_OpenCV_TrackingObject(id_opencv opencv)
+    void Customized_AddOn_OpenCV_GetFindContours(id_opencv opencv, AddOn::OpenCV::FindContoursCB cb, payload data)
     {
         if(!opencv) return;
-        CVObject* CurObject = (CVObject*) opencv;
-        
+        CVObject* CurCV = (CVObject*) opencv;
+
         // 폐쇄도형수집
         std::vector< std::vector<cv::Point> > Contours;
-        cv::findContours(CurObject->mPreProcessImage, Contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+        cv::findContours(*CurCV->mResult, Contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 
-        // 소팅
-        const sint32 BallMinSize = 4;
-        const sint32 BallMaxSize = Math::Min(CurObject->mPreProcessImage.cols, CurObject->mPreProcessImage.rows) / 20;
-        float BestScore = 0;
-        Rect BestRect;
         for(size_t i = 0, iend = Contours.size(); i < iend; ++i)
         {
-            bool IsSuccess = true;
-            Rect BallRect(Contours[i][0].x, Contours[i][0].y, Contours[i][0].x, Contours[i][0].y);
-            for(size_t j = 1, jend = Contours[i].size(); j < jend; ++j)
-            {
-                BallRect.l = Math::MinF(BallRect.l, Contours[i][j].x);
-                BallRect.t = Math::MinF(BallRect.t, Contours[i][j].y);
-                BallRect.r = Math::MaxF(BallRect.r, Contours[i][j].x);
-                BallRect.b = Math::MaxF(BallRect.b, Contours[i][j].y);
-                if(BallRect.t < CurObject->mPreProcessImage.rows * 3 / 4 || BallRect.l < CurObject->mPreProcessImage.cols * 1 / 5 ||
-                    CurObject->mPreProcessImage.cols * 4 / 5 < BallRect.r) // 공의 위치한계
-                {
-                    IsSuccess = false;
-                    break;
-                }
-                if(BallMaxSize < BallRect.Width() || BallMaxSize < BallRect.Height()) // 공크기 최대한계
-                {
-                    IsSuccess = false;
-                    break;
-                }
-            }
-
-            if(IsSuccess && BallMinSize < BallRect.Width() && BallMinSize < BallRect.Height()) // 공크기 최소한계
-            {
-                // 동그란 정도를 점수화
-                point64f OPos = BallRect.Center();
-                float MinDistance = Math::Distance(OPos.x, OPos.y, Contours[i][0].x, Contours[i][0].y);
-                float MaxDistance = MinDistance;
-                for(size_t j = 1, jend = Contours[i].size(); j < jend; ++j)
-                {
-                    const float OneDistance = Math::Distance(OPos.x, OPos.y, Contours[i][j].x, Contours[i][j].y);
-                    MinDistance = Math::MinF(MinDistance, OneDistance);
-                    MaxDistance = Math::MaxF(MaxDistance, OneDistance);
-                }
-                const float CurScore = MinDistance / MaxDistance;
-                if(BestScore < CurScore)
-                {
-                    BestScore = CurScore;
-                    BestRect = BallRect;
-                }
-            }
-        }
-
-        // 결과정리
-        CurObject->mObjects.Clear();
-        if(0.25f < BestScore) // 동그란 점수 최소치
-        {
-            const float MaxSize = Math::MaxF(BestRect.Width(), BestRect.Height());
-            auto& NewRects = CurObject->mObjects.AtAdding();
-            const float X = BestRect.CenterX();
-            const float Y = BestRect.CenterY();
-            const float R = MaxSize / 2;
-            NewRects.l = X - R;
-            NewRects.t = Y - R;
-            NewRects.r = X + R;
-            NewRects.b = Y + R;
+            const auto& CurContour = Contours[i];
+            cb(CurContour.size(), (point64*) &CurContour[0], data);
         }
     }
 
-    sint32 Customized_AddOn_OpenCV_GetObjectCount(id_opencv opencv)
-    {
-        if(!opencv) return 0;
-        CVObject* CurObject = (CVObject*) opencv;
-        return CurObject->mObjects.Count();
-    }
-
-    rect128f Customized_AddOn_OpenCV_GetObjectRect(id_opencv opencv, sint32 i)
-    {
-        if(!opencv) return Rect();
-        CVObject* CurObject = (CVObject*) opencv;
-        return CurObject->mObjects[i];
-    }
-
-    void Customized_AddOn_OpenCV_TrackingStick(id_opencv opencv)
+    void Customized_AddOn_OpenCV_GetHoughLines(id_opencv opencv, AddOn::OpenCV::HoughLinesCB cb, payload data)
     {
         if(!opencv) return;
-        CVObject* CurObject = (CVObject*) opencv;
+        CVObject* CurCV = (CVObject*) opencv;
 
-        const sint32 LineMinSize = Math::Min(CurObject->mPreProcessImage.cols, CurObject->mPreProcessImage.rows) / 4;
+        const sint32 LineMinSize = Math::Min(CurCV->mResult->cols, CurCV->mResult->rows) / 8;
         const sint32 LineMaxGap = LineMinSize / 10;
-        
+
         // 허프식 선분감지
         std::vector< cv::Vec4f > Lines;
-        cv::HoughLinesP(CurObject->mPreProcessImage, Lines, 1, Math::ToRadian(1), 90, LineMinSize, LineMaxGap);
+		sint32 Threshold = 100;
+        cv::HoughLinesP(*CurCV->mResult, Lines, 1, Math::ToRadian(1), Threshold, LineMinSize, LineMaxGap);
 
-        // 선분수집
-        CurObject->mSticks.Clear();
-        for(size_t i = 0, iend = Lines.size(); i < iend; ++i)
+		for(size_t i = 0, iend = Lines.size(); i < iend; ++i)
         {
             const auto& CurLine = Lines[i];
-            auto& NewStick = CurObject->mSticks.AtAdding();
-            NewStick.x = CurLine[0];
-            NewStick.y = CurLine[1];
-            NewStick.vx = CurLine[2] - CurLine[0];
-            NewStick.vy = CurLine[3] - CurLine[1];
+            cb(Point(CurLine[0], CurLine[1]), Point(CurLine[2], CurLine[3]), data);
         }
-    }
-
-    sint32 Customized_AddOn_OpenCV_GetStickCount(id_opencv opencv)
-    {
-        if(!opencv) return 0;
-        CVObject* CurObject = (CVObject*) opencv;
-        return CurObject->mSticks.Count();
-    }
-
-    vector128f Customized_AddOn_OpenCV_GetStickLine(id_opencv opencv, sint32 i)
-    {
-        if(!opencv) return Vector();
-        CVObject* CurObject = (CVObject*) opencv;
-        return CurObject->mSticks[i];
     }
 }
 
 CVObject::CVObject()
 {
+    mEnableMOG2 = false;
+    mOldHistory = 0;
+    mOldThreshold = 0;
+    mOldShadows = false;
+    mEnableCanny = false;
+    mLow = 0;
+    mHigh = 0;
+    mAperture = 0;
+    mResult = &mGrayImage;
 }
 
 CVObject::~CVObject()

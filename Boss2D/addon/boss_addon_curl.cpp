@@ -28,7 +28,7 @@ namespace BOSS
     BOSS_DECLARE_ADDON_FUNCTION(Curl, RequestString, chars, id_curl, chars, chars, chars)
     BOSS_DECLARE_ADDON_FUNCTION(Curl, RequestBytes, bytes, id_curl, chars, sint32*, chars, chars)
     BOSS_DECLARE_ADDON_FUNCTION(Curl, RequestRedirectUrl, chars, id_curl, chars, sint32, chars, chars)
-    BOSS_DECLARE_ADDON_FUNCTION(Curl, SendStream, void, id_curl, chars, CurlReadCB, payload)
+    BOSS_DECLARE_ADDON_FUNCTION(Curl, SendStream, void, id_curl, chars, AddOn::Curl::CurlReadCB, payload)
     BOSS_DECLARE_ADDON_FUNCTION(Curl, FtpUpload, bool, id_curl, chars, chars, buffer)
     BOSS_DECLARE_ADDON_FUNCTION(Curl, FtpDownload, buffer, id_curl, chars, chars)
     BOSS_DECLARE_ADDON_FUNCTION(Curl, FtpDelete, bool, id_curl, chars, chars)
@@ -257,7 +257,7 @@ namespace BOSS
     }
 
     ////////////////////////////////////////////////////////////////////////////////
-    void Customized_AddOn_Curl_SendStream(id_curl curl, chars url, CurlReadCB cb, payload data)
+    void Customized_AddOn_Curl_SendStream(id_curl curl, chars url, AddOn::Curl::CurlReadCB cb, payload data)
     {
         if(!curl) return;
         CURL* CurCurl = ((CurlStruct*) curl)->mId;

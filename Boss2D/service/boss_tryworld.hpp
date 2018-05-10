@@ -206,17 +206,18 @@ namespace BOSS
 	    public: class Hurdle
 	    {
 		    friend class GetPosition;
+			private: const sint32 DiffBorder;
             private: bool BuildFlag;
 		    private: PolygonList List;
 
-		    private: Hurdle();
+		    private: Hurdle(sint32 diffBorder = 10);
 		    public: ~Hurdle();
-		    public: static Hurdle* Create(Hurdle* hurdle = nullptr);
+		    public: static Hurdle* Create(Hurdle* hurdle = nullptr, sint32 diffBorder = 10);
 		    public: static void Release(Hurdle*& hurdle);
-            public: bool Add(DotList& polygon, bool error_test);
+            public: void Add(DotList& polygon, bool add_or_sub);
             public: void AddWithoutMerging(const DotList& polygon);
+			public: void SetPayload(const Rect& testRect, int payload);
 		    public: Map* BuildMap(const Rect& boundBox);
-		    private: const DotList* MERGE_POLYGON(const DotList& dst, const DotList& src, bool* error);
 	    };
 
         ////////////////////////////////////////////////////////////////////////////////

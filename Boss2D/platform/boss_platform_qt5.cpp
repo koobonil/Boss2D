@@ -628,15 +628,17 @@
             return (qrand() & 0xFFFF) | ((qrand() & 0xFFFF) << 16);
         }
 
-        void Platform::Utility::Sleep(sint32 ms, bool caninput)
+        void Platform::Utility::Sleep(sint32 ms, bool process_input, bool process_socket)
         {
             QTime StartTime = QTime::currentTime();
-            QEventLoop EventLoop(QThread::currentThread());
-
-            sint32 Flag = QEventLoop::AllEvents;
-            if(!caninput) Flag |= QEventLoop::ExcludeUserInputEvents;
-            EventLoop.processEvents((QEventLoop::ProcessEventsFlag) Flag, ms);
-
+            if(process_input || process_socket)
+            {
+                QEventLoop EventLoop(QThread::currentThread());
+                sint32 Flag = QEventLoop::AllEvents;
+                if(!process_input) Flag |= QEventLoop::ExcludeUserInputEvents;
+                if(!process_socket) Flag |= QEventLoop::ExcludeSocketNotifiers;
+                EventLoop.processEvents((QEventLoop::ProcessEventsFlag) Flag, ms);
+            }
             sint32 SleepTime = ms - StartTime.msecsTo(QTime::currentTime());
             if(0 < SleepTime) QThread::msleep(SleepTime);
         }
@@ -728,6 +730,7 @@
         {
             if(!image) return nullptr;
             QImage CurImage = ((QPixmap*) image)->toImage();
+            if(!CurImage.constBits()) return nullptr;
             CurImage = CurImage.convertToFormat(QImage::Format::Format_ARGB32);
             id_bitmap Result = Bmp::CloneFromBits(CurImage.constBits(),
                 CurImage.width(), CurImage.height(), CurImage.bitPlaneCount(), vflip);
@@ -746,6 +749,15 @@
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_window);
             if(!g_window) return 1;
             return g_window->devicePixelRatio();
+        }
+
+        float Platform::Utility::GetFontScaleRate(sint32 def_depth, sint32 def_dpi)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", g_window);
+            if(!g_window) return 1;
+            float depth_rate = def_depth / (float) g_window->depth();
+            float dpi_rate = g_window->logicalDpiX() / (float) def_dpi;
+            return depth_rate * dpi_rate;
         }
 
         chars Platform::Utility::GetOSName()
@@ -959,14 +971,12 @@
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             #if BOSS_MAC_OSX
-                static const sint32 PixelScale = Platform::Utility::GetPixelScale();
-                size *= 1.2f * PixelScale;
+                size *= 1.2f;
             #elif BOSS_IPHONE
-                static const sint32 PixelScale = Platform::Utility::GetPixelScale();
-                size *= 0.4f * PixelScale;
+                size *= 1.2f;
             #elif BOSS_ANDROID
                 static const sint32 PixelScale = Platform::Utility::GetPixelScale();
-                size *= 0.4f * PixelScale;
+                size *= 0.3f * PixelScale;
             #endif
             CanvasClass::get()->painter().setFont(QFont(name, (sint32) size));
         }
