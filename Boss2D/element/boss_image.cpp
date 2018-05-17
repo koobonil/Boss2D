@@ -28,9 +28,9 @@ namespace BOSS
     Image& Image::operator=(const Image& rhs)
     {
         ResetBitmap();
+        ResetData();
         m_fileformat = rhs.m_fileformat;
         m_filepath = rhs.m_filepath;
-        Bmp::Remove(m_bitmap);
         m_bitmap = (rhs.m_bitmap)? Bmp::Clone(rhs.m_bitmap) : nullptr;
         m_image_cache_max = rhs.m_image_cache_max;
         m_valid_rect.l = rhs.m_valid_rect.l;
@@ -41,10 +41,8 @@ namespace BOSS
         m_child_iyzone = rhs.m_child_iyzone;
         m_patch_xzone = rhs.m_patch_xzone;
         m_patch_yzone = rhs.m_patch_yzone;
-        m_patch_calced_sum_width = rhs.m_patch_calced_sum_width;
-        m_patch_calced_sum_height = rhs.m_patch_calced_sum_height;
-        m_patch_calced_src_x = rhs.m_patch_calced_src_x;
-        m_patch_calced_src_y = rhs.m_patch_calced_src_y;
+        if(0 < m_patch_xzone.Count() && 0 < m_patch_yzone.Count())
+            RecalcData();
         return *this;
     }
 
@@ -586,71 +584,88 @@ namespace BOSS
         BOSS_ASSERT("m_patch_cached_dst_x이 할당되어 있지 않습니다", 0 < m_patch_cached_dst_x.Count());
         BOSS_ASSERT("m_patch_cached_dst_y이 할당되어 있지 않습니다", 0 < m_patch_cached_dst_y.Count());
 
+        sint32* DstX = nullptr;
+        sint32* DstY = nullptr;
         if(m_patch_cached_dst_terms_w != w)
         {
             m_patch_cached_dst_terms_w = w;
             m_patch_cached_dst_visible_w = false;
-            if(sint32* DstX = &m_patch_cached_dst_x.At(0))
-            {
-                const sint32 SrcBegin = Math::Min(0, PatchL());
-                const sint32 SrcEnd = Math::Max(PatchR(), GetImageWidth());
-                const sint32 SrcFixationSize = SrcEnd - SrcBegin - PatchSumWidth();
-                const sint32 DstBegin = SrcBegin - L();
-                const float DstEnd = w + SrcEnd - R();
-                const float DstSize = DstEnd - DstBegin;
-                if(0 < DstSize)
-                {
-                    m_patch_cached_dst_visible_w = true;
-                    const bool PatchVisibled = (SrcFixationSize < DstSize);
-                    const float PatchRate = (PatchVisibled)? (DstSize - SrcFixationSize) / PatchSumWidth() : 0;
-                    const float FixationRate = (PatchVisibled)? 1 : DstSize / SrcFixationSize;
-                    *(DstX++) = (sint32) DstBegin;
-                    float DstPos = DstBegin;
-                    if(0 < PatchL())
-                        *(DstX++) = (sint32) (DstPos += PatchX(0) * FixationRate);
-                    for(sint32 i = 0, iend = PatchXCount() - 1; i < iend; ++i)
-                    {
-                        *(DstX++) = (sint32) (DstPos += (PatchXEnd(i) - PatchX(i)) * PatchRate);
-                        *(DstX++) = (sint32) (DstPos += (PatchX(i + 1) - PatchXEnd(i)) * FixationRate);
-                    }
-                    if(PatchR() < GetImageWidth())
-                        *(DstX++) = (sint32) (DstPos += (PatchXEnd(-1) - PatchX(-1)) * PatchRate);
-                    *(DstX++) = (sint32) DstEnd;
-                }
-            }
+            DstX = &m_patch_cached_dst_x.At(0);
         }
         if(m_patch_cached_dst_terms_h != h)
         {
             m_patch_cached_dst_terms_h = h;
             m_patch_cached_dst_visible_h = false;
-            if(sint32* DstY = &m_patch_cached_dst_y.At(0))
+            DstY = &m_patch_cached_dst_y.At(0);
+        }
+
+        sint32 DstSizeW = 0, DstSizeH = 0;
+        sint32 DstBeginW, DstBeginH;
+        sint32 DstEndW, DstEndH;
+        sint32 SrcFixationSizeW, SrcFixationSizeH;
+        float UnityFixationRate = 1;
+        if(DstX)
+        {
+            const sint32 SrcBegin = Math::Min(0, PatchL());
+            const sint32 SrcEnd = Math::Max(PatchR(), GetImageWidth());
+            SrcFixationSizeW = SrcEnd - SrcBegin - PatchSumWidth();
+            DstBeginW = SrcBegin - L();
+            DstEndW = w + SrcEnd - R();
+            DstSizeW = DstEndW - DstBeginW;
+            if(0 < DstSizeW)
             {
-                const sint32 SrcBegin = Math::Min(0, PatchT());
-                const sint32 SrcEnd = Math::Max(PatchB(), GetImageHeight());
-                const sint32 SrcFixationSize = SrcEnd - SrcBegin - PatchSumHeight();
-                const sint32 DstBegin = SrcBegin - T();
-                const float DstEnd = h + SrcEnd - B();
-                const float DstSize = DstEnd - DstBegin;
-                if(0 < DstSize)
-                {
-                    m_patch_cached_dst_visible_h = true;
-                    const bool PatchVisibled = (SrcFixationSize < DstSize);
-                    const float PatchRate = (PatchVisibled)? (DstSize - SrcFixationSize) / PatchSumHeight() : 0;
-                    const float FixationRate = (PatchVisibled)? 1 : DstSize / SrcFixationSize;
-                    *(DstY++) = (sint32) DstBegin;
-                    float DstPos = (sint32) DstBegin;
-                    if(0 < PatchT())
-                        *(DstY++) = (sint32) (DstPos += PatchY(0) * FixationRate);
-                    for(sint32 i = 0, iend = PatchYCount() - 1; i < iend; ++i)
-                    {
-                        *(DstY++) = (sint32) (DstPos += (PatchYEnd(i) - PatchY(i)) * PatchRate);
-                        *(DstY++) = (sint32) (DstPos += (PatchY(i + 1) - PatchYEnd(i)) * FixationRate);
-                    }
-                    if(PatchB() < GetImageHeight())
-                        *(DstY++) = (sint32) (DstPos += (PatchYEnd(-1) - PatchY(-1)) * PatchRate);
-                    *(DstY++) = (sint32) DstEnd;
-                }
+                m_patch_cached_dst_visible_w = true;
+                const float FixationRate = Math::MinF(1, DstSizeW / (float) SrcFixationSizeW);
+                UnityFixationRate = Math::MinF(UnityFixationRate, FixationRate);
             }
+        }
+        if(DstY)
+        {
+            const sint32 SrcBegin = Math::Min(0, PatchT());
+            const sint32 SrcEnd = Math::Max(PatchB(), GetImageHeight());
+            SrcFixationSizeH = SrcEnd - SrcBegin - PatchSumHeight();
+            DstBeginH = SrcBegin - T();
+            DstEndH = h + SrcEnd - B();
+            DstSizeH = DstEndH - DstBeginH;
+            if(0 < DstSizeH)
+            {
+                m_patch_cached_dst_visible_h = true;
+                const float FixationRate = Math::MinF(1, DstSizeH / (float) SrcFixationSizeH);
+                UnityFixationRate = Math::MinF(UnityFixationRate, FixationRate);
+            }
+        }
+
+        if(0 < DstSizeW)
+        {
+            const float PatchRate = (DstSizeW - (SrcFixationSizeW * UnityFixationRate)) / PatchSumWidth();
+            *(DstX++) = DstBeginW;
+            float DstPos = DstBeginW;
+            if(0 < PatchL())
+                *(DstX++) = (sint32) (DstPos += PatchX(0) * UnityFixationRate);
+            for(sint32 i = 0, iend = PatchXCount() - 1; i < iend; ++i)
+            {
+                *(DstX++) = (sint32) (DstPos += (PatchXEnd(i) - PatchX(i)) * PatchRate);
+                *(DstX++) = (sint32) (DstPos += (PatchX(i + 1) - PatchXEnd(i)) * UnityFixationRate);
+            }
+            if(PatchR() < GetImageWidth())
+                *(DstX++) = (sint32) (DstPos += (PatchXEnd(-1) - PatchX(-1)) * PatchRate);
+            *(DstX++) = DstEndW;
+        }
+        if(0 < DstSizeH)
+        {
+            const float PatchRate = (DstSizeH - (SrcFixationSizeH * UnityFixationRate)) / PatchSumHeight();
+            *(DstY++) = DstBeginH;
+            float DstPos = DstBeginH;
+            if(0 < PatchT())
+                *(DstY++) = (sint32) (DstPos += PatchY(0) * UnityFixationRate);
+            for(sint32 i = 0, iend = PatchYCount() - 1; i < iend; ++i)
+            {
+                *(DstY++) = (sint32) (DstPos += (PatchYEnd(i) - PatchY(i)) * PatchRate);
+                *(DstY++) = (sint32) (DstPos += (PatchY(i + 1) - PatchYEnd(i)) * UnityFixationRate);
+            }
+            if(PatchB() < GetImageHeight())
+                *(DstY++) = (sint32) (DstPos += (PatchYEnd(-1) - PatchY(-1)) * PatchRate);
+            *(DstY++) = DstEndH;
         }
         return (m_patch_cached_dst_visible_w && m_patch_cached_dst_visible_h);
     }

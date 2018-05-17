@@ -533,8 +533,8 @@ int ListTracker::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     return _id;
 }
 struct qt_meta_stringdata_ThreadClass_t {
-    QByteArrayData data[1];
-    char stringdata0[12];
+    QByteArrayData data[3];
+    char stringdata0[24];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -543,10 +543,12 @@ struct qt_meta_stringdata_ThreadClass_t {
     )
 static const qt_meta_stringdata_ThreadClass_t qt_meta_stringdata_ThreadClass = {
     {
-QT_MOC_LITERAL(0, 0, 11) // "ThreadClass"
+QT_MOC_LITERAL(0, 0, 11), // "ThreadClass"
+QT_MOC_LITERAL(1, 12, 10), // "OnFinished"
+QT_MOC_LITERAL(2, 23, 0) // ""
 
     },
-    "ThreadClass"
+    "ThreadClass\0OnFinished\0"
 };
 #undef QT_MOC_LITERAL
 
@@ -556,21 +558,32 @@ static const uint qt_meta_data_ThreadClass[] = {
        7,       // revision
        0,       // classname
        0,    0, // classinfo
-       0,    0, // methods
+       1,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
        0,       // flags
        0,       // signalCount
 
+ // slots: name, argc, parameters, tag, flags
+       1,    0,   19,    2, 0x08 /* Private */,
+
+ // slots: parameters
+    QMetaType::Void,
+
        0        // eod
 };
 
 void ThreadClass::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
-    Q_UNUSED(_o);
-    Q_UNUSED(_id);
-    Q_UNUSED(_c);
+    if (_c == QMetaObject::InvokeMetaMethod) {
+        ThreadClass *_t = static_cast<ThreadClass *>(_o);
+        Q_UNUSED(_t)
+        switch (_id) {
+        case 0: _t->OnFinished(); break;
+        default: ;
+        }
+    }
     Q_UNUSED(_a);
 }
 
@@ -596,6 +609,17 @@ void *ThreadClass::qt_metacast(const char *_clname)
 int ThreadClass::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
     _id = QThread::qt_metacall(_c, _id, _a);
+    if (_id < 0)
+        return _id;
+    if (_c == QMetaObject::InvokeMetaMethod) {
+        if (_id < 1)
+            qt_static_metacall(this, _c, _id, _a);
+        _id -= 1;
+    } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
+        if (_id < 1)
+            *reinterpret_cast<int*>(_a[0]) = -1;
+        _id -= 1;
+    }
     return _id;
 }
 struct qt_meta_stringdata_TCPAgent_t {
@@ -714,25 +738,25 @@ int TCPAgent::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     }
     return _id;
 }
-struct qt_meta_stringdata_WebViewPrivate_t {
+struct qt_meta_stringdata_WebEngineViewForExtraDesktop_t {
     QByteArrayData data[1];
-    char stringdata0[15];
+    char stringdata0[29];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
-    qptrdiff(offsetof(qt_meta_stringdata_WebViewPrivate_t, stringdata0) + ofs \
+    qptrdiff(offsetof(qt_meta_stringdata_WebEngineViewForExtraDesktop_t, stringdata0) + ofs \
         - idx * sizeof(QByteArrayData)) \
     )
-static const qt_meta_stringdata_WebViewPrivate_t qt_meta_stringdata_WebViewPrivate = {
+static const qt_meta_stringdata_WebEngineViewForExtraDesktop_t qt_meta_stringdata_WebEngineViewForExtraDesktop = {
     {
-QT_MOC_LITERAL(0, 0, 14) // "WebViewPrivate"
+QT_MOC_LITERAL(0, 0, 28) // "WebEngineViewForExtraDesktop"
 
     },
-    "WebViewPrivate"
+    "WebEngineViewForExtraDesktop"
 };
 #undef QT_MOC_LITERAL
 
-static const uint qt_meta_data_WebViewPrivate[] = {
+static const uint qt_meta_data_WebEngineViewForExtraDesktop[] = {
 
  // content:
        7,       // revision
@@ -748,7 +772,7 @@ static const uint qt_meta_data_WebViewPrivate[] = {
        0        // eod
 };
 
-void WebViewPrivate::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+void WebEngineViewForExtraDesktop::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
     Q_UNUSED(_o);
     Q_UNUSED(_id);
@@ -756,8 +780,87 @@ void WebViewPrivate::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _
     Q_UNUSED(_a);
 }
 
+const QMetaObject WebEngineViewForExtraDesktop::staticMetaObject = {
+    { &QObject::staticMetaObject, qt_meta_stringdata_WebEngineViewForExtraDesktop.data,
+      qt_meta_data_WebEngineViewForExtraDesktop,  qt_static_metacall, nullptr, nullptr}
+};
+
+
+const QMetaObject *WebEngineViewForExtraDesktop::metaObject() const
+{
+    return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
+}
+
+void *WebEngineViewForExtraDesktop::qt_metacast(const char *_clname)
+{
+    if (!_clname) return nullptr;
+    if (!strcmp(_clname, qt_meta_stringdata_WebEngineViewForExtraDesktop.stringdata0))
+        return static_cast<void*>(this);
+    return QObject::qt_metacast(_clname);
+}
+
+int WebEngineViewForExtraDesktop::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
+{
+    _id = QObject::qt_metacall(_c, _id, _a);
+    return _id;
+}
+struct qt_meta_stringdata_WebViewPrivate_t {
+    QByteArrayData data[4];
+    char stringdata0[33];
+};
+#define QT_MOC_LITERAL(idx, ofs, len) \
+    Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
+    qptrdiff(offsetof(qt_meta_stringdata_WebViewPrivate_t, stringdata0) + ofs \
+        - idx * sizeof(QByteArrayData)) \
+    )
+static const qt_meta_stringdata_WebViewPrivate_t qt_meta_stringdata_WebViewPrivate = {
+    {
+QT_MOC_LITERAL(0, 0, 14), // "WebViewPrivate"
+QT_MOC_LITERAL(1, 15, 12), // "onUrlChanged"
+QT_MOC_LITERAL(2, 28, 0), // ""
+QT_MOC_LITERAL(3, 29, 3) // "url"
+
+    },
+    "WebViewPrivate\0onUrlChanged\0\0url"
+};
+#undef QT_MOC_LITERAL
+
+static const uint qt_meta_data_WebViewPrivate[] = {
+
+ // content:
+       7,       // revision
+       0,       // classname
+       0,    0, // classinfo
+       1,   14, // methods
+       0,    0, // properties
+       0,    0, // enums/sets
+       0,    0, // constructors
+       0,       // flags
+       0,       // signalCount
+
+ // slots: name, argc, parameters, tag, flags
+       1,    1,   19,    2, 0x08 /* Private */,
+
+ // slots: parameters
+    QMetaType::Void, QMetaType::QUrl,    3,
+
+       0        // eod
+};
+
+void WebViewPrivate::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+{
+    if (_c == QMetaObject::InvokeMetaMethod) {
+        WebViewPrivate *_t = static_cast<WebViewPrivate *>(_o);
+        Q_UNUSED(_t)
+        switch (_id) {
+        case 0: _t->onUrlChanged((*reinterpret_cast< const QUrl(*)>(_a[1]))); break;
+        default: ;
+        }
+    }
+}
+
 const QMetaObject WebViewPrivate::staticMetaObject = {
-    { &QObject::staticMetaObject, qt_meta_stringdata_WebViewPrivate.data,
+    { &WebEngineViewClass::staticMetaObject, qt_meta_stringdata_WebViewPrivate.data,
       qt_meta_data_WebViewPrivate,  qt_static_metacall, nullptr, nullptr}
 };
 
@@ -772,12 +875,131 @@ void *WebViewPrivate::qt_metacast(const char *_clname)
     if (!_clname) return nullptr;
     if (!strcmp(_clname, qt_meta_stringdata_WebViewPrivate.stringdata0))
         return static_cast<void*>(this);
-    return QObject::qt_metacast(_clname);
+    return WebEngineViewClass::qt_metacast(_clname);
 }
 
 int WebViewPrivate::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
-    _id = QObject::qt_metacall(_c, _id, _a);
+    _id = WebEngineViewClass::qt_metacall(_c, _id, _a);
+    if (_id < 0)
+        return _id;
+    if (_c == QMetaObject::InvokeMetaMethod) {
+        if (_id < 1)
+            qt_static_metacall(this, _c, _id, _a);
+        _id -= 1;
+    } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
+        if (_id < 1)
+            *reinterpret_cast<int*>(_a[0]) = -1;
+        _id -= 1;
+    }
+    return _id;
+}
+struct qt_meta_stringdata_PurchasePrivate_t {
+    QByteArrayData data[12];
+    char stringdata0[177];
+};
+#define QT_MOC_LITERAL(idx, ofs, len) \
+    Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
+    qptrdiff(offsetof(qt_meta_stringdata_PurchasePrivate_t, stringdata0) + ofs \
+        - idx * sizeof(QByteArrayData)) \
+    )
+static const qt_meta_stringdata_PurchasePrivate_t qt_meta_stringdata_PurchasePrivate = {
+    {
+QT_MOC_LITERAL(0, 0, 15), // "PurchasePrivate"
+QT_MOC_LITERAL(1, 16, 19), // "onProductRegistered"
+QT_MOC_LITERAL(2, 36, 0), // ""
+QT_MOC_LITERAL(3, 37, 14), // "QInAppProduct*"
+QT_MOC_LITERAL(4, 52, 7), // "product"
+QT_MOC_LITERAL(5, 60, 16), // "onProductUnknown"
+QT_MOC_LITERAL(6, 77, 26), // "QInAppProduct::ProductType"
+QT_MOC_LITERAL(7, 104, 11), // "productType"
+QT_MOC_LITERAL(8, 116, 10), // "identifier"
+QT_MOC_LITERAL(9, 127, 18), // "onTransactionReady"
+QT_MOC_LITERAL(10, 146, 18), // "QInAppTransaction*"
+QT_MOC_LITERAL(11, 165, 11) // "transaction"
+
+    },
+    "PurchasePrivate\0onProductRegistered\0"
+    "\0QInAppProduct*\0product\0onProductUnknown\0"
+    "QInAppProduct::ProductType\0productType\0"
+    "identifier\0onTransactionReady\0"
+    "QInAppTransaction*\0transaction"
+};
+#undef QT_MOC_LITERAL
+
+static const uint qt_meta_data_PurchasePrivate[] = {
+
+ // content:
+       7,       // revision
+       0,       // classname
+       0,    0, // classinfo
+       3,   14, // methods
+       0,    0, // properties
+       0,    0, // enums/sets
+       0,    0, // constructors
+       0,       // flags
+       0,       // signalCount
+
+ // slots: name, argc, parameters, tag, flags
+       1,    1,   29,    2, 0x08 /* Private */,
+       5,    2,   32,    2, 0x08 /* Private */,
+       9,    1,   37,    2, 0x08 /* Private */,
+
+ // slots: parameters
+    QMetaType::Void, 0x80000000 | 3,    4,
+    QMetaType::Void, 0x80000000 | 6, QMetaType::QString,    7,    8,
+    QMetaType::Void, 0x80000000 | 10,   11,
+
+       0        // eod
+};
+
+void PurchasePrivate::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+{
+    if (_c == QMetaObject::InvokeMetaMethod) {
+        PurchasePrivate *_t = static_cast<PurchasePrivate *>(_o);
+        Q_UNUSED(_t)
+        switch (_id) {
+        case 0: _t->onProductRegistered((*reinterpret_cast< QInAppProduct*(*)>(_a[1]))); break;
+        case 1: _t->onProductUnknown((*reinterpret_cast< QInAppProduct::ProductType(*)>(_a[1])),(*reinterpret_cast< const QString(*)>(_a[2]))); break;
+        case 2: _t->onTransactionReady((*reinterpret_cast< QInAppTransaction*(*)>(_a[1]))); break;
+        default: ;
+        }
+    }
+}
+
+const QMetaObject PurchasePrivate::staticMetaObject = {
+    { &QInAppStore::staticMetaObject, qt_meta_stringdata_PurchasePrivate.data,
+      qt_meta_data_PurchasePrivate,  qt_static_metacall, nullptr, nullptr}
+};
+
+
+const QMetaObject *PurchasePrivate::metaObject() const
+{
+    return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
+}
+
+void *PurchasePrivate::qt_metacast(const char *_clname)
+{
+    if (!_clname) return nullptr;
+    if (!strcmp(_clname, qt_meta_stringdata_PurchasePrivate.stringdata0))
+        return static_cast<void*>(this);
+    return QInAppStore::qt_metacast(_clname);
+}
+
+int PurchasePrivate::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
+{
+    _id = QInAppStore::qt_metacall(_c, _id, _a);
+    if (_id < 0)
+        return _id;
+    if (_c == QMetaObject::InvokeMetaMethod) {
+        if (_id < 3)
+            qt_static_metacall(this, _c, _id, _a);
+        _id -= 3;
+    } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
+        if (_id < 3)
+            *reinterpret_cast<int*>(_a[0]) = -1;
+        _id -= 3;
+    }
     return _id;
 }
 struct qt_meta_stringdata_CameraSurface_t {
