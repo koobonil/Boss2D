@@ -43,7 +43,7 @@
 
     #include <QDesktopServices>
 
-    #if BOSS_WINDOWS | BOSS_MAC_OSX
+    #if (BOSS_WINDOWS & !BOSS_WINDOWS_MINGW) | BOSS_MAC_OSX
         #include <QWebEngineView>
         #include <QWebEngineProfile>
     #endif
@@ -59,6 +59,10 @@
         #include <fcntl.h>
         #include <errno.h>
         #include <string.h>
+    #endif
+
+    #if BOSS_IPHONE
+        #include <QtGui/5.10.0/QtGui/qpa/qplatformnativeinterface.h>
     #endif
 
     class MainData;
@@ -1943,10 +1947,10 @@
         virtual void closeEvent(QCloseEvent* event) {}
     };
 
-    #if !BOSS_WINDOWS & !BOSS_MAC_OSX
-        typedef WebEngineViewForExtraDesktop WebEngineViewClass;
-    #else
+    #if (BOSS_WINDOWS & !BOSS_WINDOWS_MINGW) | BOSS_MAC_OSX
         typedef QWebEngineView WebEngineViewClass;
+    #else
+        typedef WebEngineViewForExtraDesktop WebEngineViewClass;
     #endif
 
     class WebViewPrivate : public WebEngineViewClass
@@ -1990,61 +1994,7 @@
         payload mData;
     };
 
-    #if !BOSS_WINDOWS & !BOSS_MAC_OSX
-        class WebPrivateForExtraDesktop
-        {
-        public:
-            WebPrivateForExtraDesktop()
-            {
-            }
-            ~WebPrivateForExtraDesktop()
-            {
-            }
-
-        public:
-            WebPrivateForExtraDesktop(const WebPrivateForExtraDesktop&) {BOSS_ASSERT("사용금지", false);}
-            WebPrivateForExtraDesktop& operator=(const WebPrivateForExtraDesktop&) {BOSS_ASSERT("사용금지", false); return *this;}
-
-        public:
-            void attachHandle(h_web web)
-            {
-            }
-            void ClearCookies()
-            {
-            }
-            void Reload(chars url)
-            {
-            }
-            void Resize(sint32 width, sint32 height)
-            {
-                if(width != mLastImage.width() || height != mLastImage.height())
-                    mLastImage = QImage(width, height, QImage::Format_ARGB32);
-            }
-            void SetCallback(Platform::Web::EventCB cb, payload data)
-            {
-            }
-            void SendTouchEvent(TouchType type, sint32 x, sint32 y)
-            {
-            }
-            void SendKeyEvent(sint32 code, chars text, bool pressed)
-            {
-            }
-            const QPixmap GetPixmap()
-            {
-                return QPixmap::fromImage(GetImage());
-            }
-            const QImage& GetImage()
-            {
-                CanvasClass CurCanvas(&mLastImage);
-                const QRect CurRect(0, 0, mLastImage.width(), mLastImage.height());
-                return mLastImage;
-            }
-
-        private:
-            QImage mLastImage;
-        };
-        typedef WebPrivateForExtraDesktop WebPrivate;
-    #else
+    #if (BOSS_WINDOWS & !BOSS_WINDOWS_MINGW) | BOSS_MAC_OSX
         class WebPrivateForDesktop
         {
         public:
@@ -2133,6 +2083,60 @@
             QImage mLastImage;
         };
         typedef WebPrivateForDesktop WebPrivate;
+    #else
+        class WebPrivateForExtraDesktop
+        {
+        public:
+            WebPrivateForExtraDesktop()
+            {
+            }
+            ~WebPrivateForExtraDesktop()
+            {
+            }
+
+        public:
+            WebPrivateForExtraDesktop(const WebPrivateForExtraDesktop&) {BOSS_ASSERT("사용금지", false);}
+            WebPrivateForExtraDesktop& operator=(const WebPrivateForExtraDesktop&) {BOSS_ASSERT("사용금지", false); return *this;}
+
+        public:
+            void attachHandle(h_web web)
+            {
+            }
+            void ClearCookies()
+            {
+            }
+            void Reload(chars url)
+            {
+            }
+            void Resize(sint32 width, sint32 height)
+            {
+                if(width != mLastImage.width() || height != mLastImage.height())
+                    mLastImage = QImage(width, height, QImage::Format_ARGB32);
+            }
+            void SetCallback(Platform::Web::EventCB cb, payload data)
+            {
+            }
+            void SendTouchEvent(TouchType type, sint32 x, sint32 y)
+            {
+            }
+            void SendKeyEvent(sint32 code, chars text, bool pressed)
+            {
+            }
+            const QPixmap GetPixmap()
+            {
+                return QPixmap::fromImage(GetImage());
+            }
+            const QImage& GetImage()
+            {
+                CanvasClass CurCanvas(&mLastImage);
+                const QRect CurRect(0, 0, mLastImage.width(), mLastImage.height());
+                return mLastImage;
+            }
+
+        private:
+            QImage mLastImage;
+        };
+        typedef WebPrivateForExtraDesktop WebPrivate;
     #endif
 
     class PurchasePrivate : public QInAppStore

@@ -8,6 +8,17 @@
 
 #pragma warning(disable : 4090)
 
+#if BOSS_ARM
+    #define _M_ARM
+#endif
+
+#if BOSS_LINUX | BOSS_ANDROID
+    #define __pragma(...)
+    #define struct_stat_BOSS struct boss_fakewin_struct_stat64
+#else
+    #define struct_stat_BOSS struct stat
+#endif
+
 // 도구준비
 #include "boss_integration_curl-7.51.0.h"
 
@@ -37,9 +48,13 @@
 #include <addon/curl-7.51.0_for_boss/lib/dotdot.c>
 #include <addon/curl-7.51.0_for_boss/lib/easy.c>
 #include <addon/curl-7.51.0_for_boss/lib/escape.c>
+#define struct_stat struct_stat_BOSS
 #include <addon/curl-7.51.0_for_boss/lib/file.c>
+#undef struct_stat
 #include <addon/curl-7.51.0_for_boss/lib/fileinfo.c>
+#define struct_stat struct_stat_BOSS
 #include <addon/curl-7.51.0_for_boss/lib/formdata.c>
+#undef struct_stat
 #include <addon/curl-7.51.0_for_boss/lib/ftp.c>
 #include <addon/curl-7.51.0_for_boss/lib/ftplistparser.c>
 #include <addon/curl-7.51.0_for_boss/lib/getenv.c>

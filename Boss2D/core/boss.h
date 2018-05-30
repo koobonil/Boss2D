@@ -45,8 +45,14 @@
 // About platform macro
 #if defined(_WIN32) || defined(_WIN64)
     #define BOSS_WINDOWS 1
+    #if defined(__MINGW32__)
+        #define BOSS_WINDOWS_MINGW 1
+    #else
+        #define BOSS_WINDOWS_MINGW 0
+    #endif
 #else
     #define BOSS_WINDOWS 0
+    #define BOSS_WINDOWS_MINGW 0
 #endif
 
 #if defined(__linux__) && !defined(ANDROID)
@@ -82,10 +88,17 @@
     #error Unknown platform
 #endif
 
-#if defined(__x86_64__) || defined(__amd64__) || defined(__LP64__) || defined(_WIN64)
+#if defined(__x86_64__) || defined(__x86_64) || defined(__amd64__) || defined(__amd64) || \
+    defined(__ppc64__) || defined(_WIN64) || defined(__LP64__) || defined(_LP64)
     #define BOSS_X64 1
 #else
     #define BOSS_X64 0
+#endif
+
+#if defined(arm) || defined(__arm__) || defined(ARM) || defined(_ARM_)
+    #define BOSS_ARM 1
+#else
+    #define BOSS_ARM 0
 #endif
 
 // About type_t

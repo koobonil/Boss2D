@@ -37,7 +37,7 @@
 #include BOSS_CURL_U_memdebug_h //original-code:"memdebug.h"
 
 #ifdef _WIN32
-#define setsockopt(a,b,c,d,e) (setsockopt)(a,b,c,(const char *)d,(int)e)
+// removed by BOSS: #define setsockopt(a,b,c,d,e) (setsockopt)(a,b,c,(const char *)d,(int)e)
 #define SET_RCVTIMEO(tv,s)   int tv = s*1000
 #else
 #define SET_RCVTIMEO(tv,s)   struct timeval tv = {s,0}

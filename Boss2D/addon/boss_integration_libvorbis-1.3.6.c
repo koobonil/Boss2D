@@ -1,6 +1,10 @@
 ﻿#include <boss.h>
 #if BOSS_NEED_ADDON_OGG
 
+#if !BOSS_WINDOWS
+    #define _M_ARM
+#endif
+
 // 도구준비
 #include "boss_integration_libvorbis-1.3.6.h"
 

@@ -19,7 +19,7 @@
 #endif
 
 #if defined(_WIN32)
-# include <windows.h>
+# include BOSS_FAKEWIN_V_windows_h //original-code:<windows.h>
 #endif
 
 #include BOSS_OPENSSL_V_internal__async_h //original-code:<internal/async.h>

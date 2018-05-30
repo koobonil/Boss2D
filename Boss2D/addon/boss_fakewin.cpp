@@ -239,8 +239,10 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     #undef _lseeki64
     #undef _lfind
     #undef _chsize_s
+    #undef _stat
+    #undef _stat64
+    #undef _fstat
     #undef _fstat64
-	#undef _stat64
     #undef _wchdir
     #undef _wmkdir
     #undef _wrmdir
@@ -352,7 +354,7 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         return 0;
     }
 
-    extern "C" int boss_fakewin_select(int nfds, boss_fakewin_fd_set* readfds, boss_fakewin_fd_set* writefds, boss_fakewin_fd_set* exceptfds, const struct timeval* timeout)
+    extern "C" int boss_fakewin_select(int nfds, boss_fakewin_struct_fd_set* readfds, boss_fakewin_struct_fd_set* writefds, boss_fakewin_struct_fd_set* exceptfds, const struct timeval* timeout)
     {
         sint32 Result = 0;
 
@@ -1441,7 +1443,19 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         return Platform::File::FDResize(fd, size)? 0 : -1;
     }
 
-    extern "C" int boss_fakewin_fstat64(int fd, struct boss_fakewin_stat64* _Stat)
+    extern "C" int boss_fakewin_stat(const char* file_name, struct boss_fakewin_struct_stat* _Stat)
+    {
+        BOSS_ASSERT("_stat준비중", false);
+        return 0;
+    }
+
+    extern "C" int boss_fakewin_stat64(const char* file_name, struct boss_fakewin_struct_stat64* _Stat)
+    {
+        BOSS_ASSERT("_stat64준비중", false);
+        return 0;
+    }
+
+    extern "C" int boss_fakewin_fstat(int fd, struct boss_fakewin_struct_stat* _Stat)
     {
         uint64 GetSize, GetCreateTime, GetAccessTime, GetModifyTime;
         const DWORD FileAttributes = Platform::File::FDAttributes(fd,
@@ -1449,7 +1463,7 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         if(FileAttributes == -1)
             return -1;
 
-        Memory::Set(_Stat, 0x00, sizeof(struct boss_fakewin_stat64));
+        Memory::Set(_Stat, 0x00, sizeof(struct boss_fakewin_struct_stat));
         _Stat->st_mode = 0;
         if(FileAttributes & FILE_ATTRIBUTE_DIRECTORY) _Stat->st_mode |= S_IFDIR;
         else
@@ -1477,10 +1491,41 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         #endif
         return 0;
     }
-	
-	extern "C" int boss_fakewin_stat64(const char *file_name, struct boss_fakewin_stat64* _Stat)
+
+    extern "C" int boss_fakewin_fstat64(int fd, struct boss_fakewin_struct_stat64* _Stat)
     {
-        BOSS_ASSERT("_stat64준비중", false);
+        uint64 GetSize, GetCreateTime, GetAccessTime, GetModifyTime;
+        const DWORD FileAttributes = Platform::File::FDAttributes(fd,
+            &GetSize, &GetCreateTime, &GetAccessTime, &GetModifyTime);
+        if(FileAttributes == -1)
+            return -1;
+
+        Memory::Set(_Stat, 0x00, sizeof(struct boss_fakewin_struct_stat64));
+        _Stat->st_mode = 0;
+        if(FileAttributes & FILE_ATTRIBUTE_DIRECTORY) _Stat->st_mode |= S_IFDIR;
+        else
+        {
+            _Stat->st_mode |= S_IFREG;
+            if(FileAttributes & FILE_ATTRIBUTE_READONLY) _Stat->st_mode |= S_IREAD;
+            else _Stat->st_mode |= S_IREAD | S_IWRITE;
+        }
+
+        _Stat->st_dev = 0;
+        _Stat->st_ino = 0;
+        _Stat->st_nlink = 1; // No NTFS
+        _Stat->st_uid = 0;
+        _Stat->st_gid = 0;
+        _Stat->st_rdev = 0;
+        _Stat->st_size = GetSize;
+        #if BOSS_MAC_OSX
+            _Stat->st_atimespec.tv_sec = WindowToEpoch(GetAccessTime / 10000) / 1000;
+            _Stat->st_mtimespec.tv_sec = WindowToEpoch(GetModifyTime / 10000) / 1000;
+            _Stat->st_ctimespec.tv_sec = WindowToEpoch(GetCreateTime / 10000) / 1000;
+        #else
+            _Stat->st_atime = WindowToEpoch(GetAccessTime / 10000) / 1000;
+            _Stat->st_mtime = WindowToEpoch(GetModifyTime / 10000) / 1000;
+            _Stat->st_ctime = WindowToEpoch(GetCreateTime / 10000) / 1000;
+        #endif
         return 0;
     }
 
@@ -1533,17 +1578,17 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         #endif
     }
 
-    extern "C" void boss_fakewin_FD_SET(int fd, boss_fakewin_fd_set* fdset)
+    extern "C" void boss_fakewin_FD_SET(int fd, boss_fakewin_struct_fd_set* fdset)
     {
         fdset->fd_array[fdset->fd_count] = fd;
     }
 
-	extern "C" int boss_fakewin_FD_ISSET(int fd, boss_fakewin_fd_set* fdset)
+    extern "C" int boss_fakewin_FD_ISSET(int fd, boss_fakewin_struct_fd_set* fdset)
 	{
 	    return (fdset->fd_array[fdset->fd_count] == fd);
 	}
 
-    extern "C" void boss_fakewin_FD_ZERO(boss_fakewin_fd_set* fdset)
+    extern "C" void boss_fakewin_FD_ZERO(boss_fakewin_struct_fd_set* fdset)
     {
         fdset->fd_count = 0;
     }
@@ -2109,7 +2154,7 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         namespace std
         {
             #define stringstream
-            boss_fakewin_stringstream::boss_fakewin_stringstream()
+            /*boss_fakewin_stringstream::boss_fakewin_stringstream()
             {
                 mStr = (void*) new std::string();
             }
@@ -2120,7 +2165,7 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
             void boss_fakewin_stringstream::str(const char* s)
             {
                 *((std::string*) mStr) = std::string(s);
-            }
+            }*/
         }
     #endif
 
@@ -2128,7 +2173,7 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         namespace std
         {
             #undef ifstream
-            boss_fakewin_ifstream::boss_fakewin_ifstream(const char* filename, ios_base::openmode mode)
+            /*boss_fakewin_ifstream::boss_fakewin_ifstream(const char* filename, ios_base::openmode mode)
             {
                 std::string modeStr("r");
                 printf("Open file (read): %s\n", filename);
@@ -2172,7 +2217,7 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
                     boss_fakewin_fclose(f);
                 f = NULL;
                 this->str("");
-            }
+            }*/
         }
     #endif
 #endif

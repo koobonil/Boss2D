@@ -90,6 +90,7 @@
     <ClCompile Include="..\service\boss_boxr.cpp" />
     <ClCompile Include="..\service\boss_brii.cpp" />
     <ClCompile Include="..\service\boss_camera360service.cpp" />
+    <ClCompile Include="..\service\boss_firebaseservice.cpp" />
     <ClCompile Include="..\service\boss_livechatservice.cpp" />
     <ClCompile Include="..\service\boss_oauth2service.cpp" />
     <ClCompile Include="..\service\boss_parasource.cpp" />
@@ -184,6 +185,7 @@
     <ClInclude Include="..\service\boss_boxr.hpp" />
     <ClInclude Include="..\service\boss_brii.hpp" />
     <ClInclude Include="..\service\boss_camera360service.hpp" />
+    <ClInclude Include="..\service\boss_firebaseservice.hpp" />
     <ClInclude Include="..\service\boss_livechatservice.hpp" />
     <ClInclude Include="..\service\boss_oauth2service.hpp" />
     <ClInclude Include="..\service\boss_parasource.hpp" />

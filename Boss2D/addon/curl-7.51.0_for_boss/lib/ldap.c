@@ -36,12 +36,12 @@
  */
 
 #ifdef USE_WIN32_LDAP           /* Use Windows LDAP implementation. */
-# include <winldap.h>
+# include BOSS_FAKEWIN_V_winldap_h //original-code:<winldap.h>
 # ifndef LDAP_VENDOR_NAME
 #  error Your Platform SDK is NOT sufficient for LDAP support! \
          Update your Platform SDK, or disable LDAP support!
 # else
-#  include <winber.h>
+#  include BOSS_FAKEWIN_V_winber_h //original-code:<winber.h>
 # endif
 #else
 # define LDAP_DEPRECATED 1      /* Be sure ldap_init() is defined. */

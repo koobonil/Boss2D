@@ -30,6 +30,12 @@ CONFIG(release, debug|release){
     DEFINES += BOSS_NDEBUG=1
 }
 
+include(../../Boss2D_plugins/firebase_cpp_sdk_4.5.1/firebase_cpp_sdk.pri) {
+    message("BOSS_PLUGINS_FIREBASE : The plug-in connected.")
+} else {
+    message("BOSS_PLUGINS_FIREBASE : The plug-in is not ready and the module connection is canceled.")
+}
+
 ###########################################################
 # ADDON
 ###########################################################
@@ -195,6 +201,7 @@ HEADERS += ../../Boss2D/service/boss_batchbuilder.hpp
 HEADERS += ../../Boss2D/service/boss_boxr.hpp
 HEADERS += ../../Boss2D/service/boss_brii.hpp
 HEADERS += ../../Boss2D/service/boss_camera360service.hpp
+HEADERS += ../../Boss2D/service/boss_firebaseservice.hpp
 HEADERS += ../../Boss2D/service/boss_livechatservice.hpp
 HEADERS += ../../Boss2D/service/boss_oauth2service.hpp
 HEADERS += ../../Boss2D/service/boss_parasource.hpp
@@ -208,6 +215,7 @@ SOURCES += ../../Boss2D/service/boss_batchbuilder.cpp
 SOURCES += ../../Boss2D/service/boss_boxr.cpp
 SOURCES += ../../Boss2D/service/boss_brii.cpp
 SOURCES += ../../Boss2D/service/boss_camera360service.cpp
+SOURCES += ../../Boss2D/service/boss_firebaseservice.cpp
 SOURCES += ../../Boss2D/service/boss_livechatservice.cpp
 SOURCES += ../../Boss2D/service/boss_oauth2service.cpp
 SOURCES += ../../Boss2D/service/boss_parasource.cpp

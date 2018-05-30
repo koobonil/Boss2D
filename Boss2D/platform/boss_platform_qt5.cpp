@@ -89,18 +89,39 @@
     }
 
     #if BOSS_ANDROID
-        QAndroidJniObject g_activity;
-        QAndroidJniObject g_context;
+        static JavaVM* g_jvm = nullptr;
+        jint JNI_OnLoad(JavaVM* vm, void*)
+        {
+            g_jvm = vm;
+            BOSS_TRACE("g_jvm=0x%08X", g_jvm);
+            return JNI_VERSION_1_6;
+        }
+
+        JNIEnv* GetAndroidJNIEnv()
+        {
+            static QAndroidJniEnvironment g_environment;
+            return g_environment;
+        }
+        jobject GetAndroidApplicationActivity()
+        {
+            QAndroidJniObject Activity = QtAndroid::androidActivity();
+            return GetAndroidJNIEnv()->NewGlobalRef(Activity.object());
+        }
+        void SetAndroidApplicationActivity(jobject activity)
+        {
+        }
         jobject GetAndroidApplicationContext()
         {
-            g_activity = QAndroidJniObject::callStaticObjectMethod(
-                "org/qtproject/qt5/android/QtNative", "activity", "()Landroid/app/Activity;");
-            g_context = g_activity.callObjectMethod("getApplicationContext",
-                "()Landroid/content/Context;");
-            return g_context.object<jobject>();
+            QAndroidJniObject Context = QtAndroid::androidContext();
+            return GetAndroidJNIEnv()->NewGlobalRef(Context.object());
         }
         void SetAndroidApplicationContext(jobject context)
         {
+        }
+    #elif BOSS_IPHONE
+        void* GetIOSApplicationUIView()
+        {
+            return QGuiApplication::platformNativeInterface()->nativeResourceForWindow("uiview", QGuiApplication::focusWindow());
         }
     #endif
 
@@ -116,7 +137,7 @@
                 MainWindow mainWindow;
                 g_window = &mainWindow;
 
-                Platform::Option::SetFlag("AssertPopup", BOSS_WINDOWS | BOSS_LINUX | BOSS_MAC_OSX);
+                Platform::Option::SetFlag("AssertPopup", !BOSS_IPHONE);
                 PlatformInit();
                 #if BOSS_NEED_FULLSCREEN
                     mainWindow.showFullScreen();

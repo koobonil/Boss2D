@@ -303,7 +303,7 @@ static int get_cert_by_subject(X509_LOOKUP *xl, X509_LOOKUP_TYPE type,
 #  define stat _stat
 # endif
             {
-                struct stat st;
+                struct_stat_BOSS st; //original-code:struct stat st;
                 if (stat(b->data, &st) < 0)
                     break;
             }

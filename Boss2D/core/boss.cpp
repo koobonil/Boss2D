@@ -364,13 +364,9 @@ static Map<FileClass> gAllFiles;
 static sint32 gLastFileID = -1;
 
 #if BOSS_ANDROID
-    JavaVM* g_JVM;
-    jint JNI_OnLoad(JavaVM* vm, void*)
-    {
-        g_JVM = vm;
-        return JNI_VERSION_1_6;
-    }
+    extern JNIEnv* GetAndroidJNIEnv();
     extern jobject GetAndroidApplicationContext();
+
     static AAssetManager* GetAAssetManager()
     {
         static AAssetManager* pAssetManager = nullptr;
@@ -379,9 +375,7 @@ static sint32 gLastFileID = -1;
             jobject context = GetAndroidApplicationContext();
             BOSS_TRACE("context=0x%08X", context);
 
-            JNIEnv* env = nullptr;
-            BOSS_TRACE("g_JVM=0x%08X", g_JVM);
-            g_JVM->AttachCurrentThread(&env, 0);
+            JNIEnv* env = GetAndroidJNIEnv();
             jclass contextClass = env->GetObjectClass(context);
             BOSS_TRACE("contextClass=0x%08X", contextClass);
             jmethodID methodGetAssets = env->GetMethodID(contextClass,

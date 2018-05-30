@@ -45,7 +45,7 @@
 #endif
 
 #if defined(_WIN32) && !defined(__SYMBIAN32__)
-#  include <malloc.h>
+#  include BOSS_FAKEWIN_V_malloc_h //original-code:<malloc.h>
 #  define rint(x)   (floor((x)+0.5f))
 #  define NO_FLOAT_MATH_LIB
 #  define FAST_HYPOT(a, b) sqrt((a)*(a) + (b)*(b))

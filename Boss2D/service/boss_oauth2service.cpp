@@ -1,7 +1,6 @@
 ﻿#include <boss.hpp>
 #include "boss_oauth2service.hpp"
 
-#include <boss.hpp>
 #include <element/boss_image.hpp>
 #include <format/boss_bmp.hpp>
 #include <platform/boss_platform.hpp>
@@ -59,20 +58,22 @@ namespace BOSS
         }
 
     private:
-        void Signin(chars option, id_bitmap clipper) override
-        {
-            Context ClientInfo(ST_Json, SO_OnlyReference, option);
-            data().mClientId = ClientInfo[0].GetString();
-            data().mClientSecret = ClientInfo[1].GetString();
-            Bmp::Remove(data().mPictureClipper);
-            data().mPictureClipper = clipper;
+		void Signin(chars option, bool clearcookies, id_bitmap clipper) override
+		{
+			Context ClientInfo(ST_Json, SO_OnlyReference, option);
+			data().mClientId = ClientInfo[0].GetString();
+			data().mClientSecret = ClientInfo[1].GetString();
+			Bmp::Remove(data().mPictureClipper);
+			data().mPictureClipper = clipper;
 
-            String ResultUrl = AddOn::Curl::RequestRedirectUrl(data().mCurl, SigninCore(data_const().mClientId), 302);
-            data().mWeb = Platform::Web::Create(ResultUrl, 0, 0, OnEvent, (payload) this);
-            data().mSigned = false;
-            data().mNeedDestroyWeb = false;
-            Platform::Web::ClearCookies(data_const().mWeb);
-        }
+			String ResultUrl = AddOn::Curl::RequestRedirectUrl(data().mCurl, SigninCore(data_const().mClientId), 302);
+			data().mWeb = Platform::Web::Create(ResultUrl, 0, 0, OnEvent, (payload)this);
+			data().mSigned = false;
+			data().mNeedDestroyWeb = false;
+
+			if(clearcookies)
+				Platform::Web::ClearCookies(data().mWeb);
+		}
         void Signout() override
         {
             Share::Remove(mShare);
@@ -143,6 +144,14 @@ namespace BOSS
         {
             return data_const().mBackground;
         }
+		chars GetPictureUrl() const override
+		{
+			return data_const().mPictureUrl;
+		}
+		chars GetBackgroundUrl() const override
+		{
+			return data_const().mBackgroundUrl;
+		}
 
     protected:
         virtual buffer CreateShare()
@@ -269,7 +278,6 @@ namespace BOSS
             // 사진/배경 얻기
 			data().mPictureUrl = ResultBJson("image")("url").GetString(nullptr);
 			ReloadPicture(data().mPictureUrl);
-
 			data().mBackgroundUrl = ResultBJson("cover")("coverPhoto")("url").GetString(nullptr);
 			ReloadBackground(data().mBackgroundUrl);
         }
@@ -298,6 +306,7 @@ namespace BOSS
             return String::Format(
                 "https://" "www.facebook.com/dialog/oauth?"
                 "client_id=%s&"
+				"display=popup&"
                 "redirect_uri=http://" "localhost/oauth2callback&"
                 "scope=public_profile,user_photos", clientId);
         }
@@ -328,10 +337,11 @@ namespace BOSS
 
             // 사진/배경 얻기
 			data().mPictureUrl = ResultBJson("picture")("data")("url").GetString(nullptr);
-			ReloadPicture(data().mPictureUrl);
-
+			if(0 < data().mPictureUrl.Length())
+				ReloadPicture(data().mPictureUrl);
 			data().mBackgroundUrl = ResultBJson("cover")("source").GetString(nullptr);
-			ReloadBackground(data().mBackgroundUrl);
+			if(0 < data().mBackgroundUrl.Length())
+				ReloadBackground(data().mBackgroundUrl);
         }
     };
 
@@ -391,7 +401,6 @@ namespace BOSS
             // 사진/배경 얻기
 			data().mPictureUrl = ResultBJson("thumbnailURL").GetString(nullptr);
 			ReloadPicture(data().mPictureUrl);
-
 			data().mBackgroundUrl = ResultBJson("bgImageURL").GetString(nullptr);
 			ReloadBackground(data().mBackgroundUrl);
 

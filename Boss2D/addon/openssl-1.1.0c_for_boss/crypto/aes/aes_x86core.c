@@ -80,16 +80,16 @@ static void prefetch256(const void *table)
 #undef GETU32
 #define GETU32(p) (*((u32*)(p)))
 
-#if (defined(_WIN32) || defined(_WIN64)) && !defined(__MINGW32__)
-typedef unsigned __int64 u64;
-#define U64(C)  C##UI64
-#elif defined(__arch64__)
-typedef unsigned long u64;
-#define U64(C)  C##UL
-#else
-typedef unsigned long long u64;
-#define U64(C)  C##ULL
-#endif
+// removed by BOSS: #if (defined(_WIN32) || defined(_WIN64)) && !defined(__MINGW32__)
+// removed by BOSS: typedef unsigned __int64 u64;
+// removed by BOSS: #define U64(C)  C##UI64
+// removed by BOSS: #elif defined(__arch64__)
+// removed by BOSS: typedef unsigned long u64;
+// removed by BOSS: #define U64(C)  C##UL
+// removed by BOSS: #else
+// removed by BOSS: typedef unsigned long long u64;
+// removed by BOSS: #define U64(C)  C##ULL
+// removed by BOSS: #endif
 
 #undef ROTATE
 #if defined(_MSC_VER)

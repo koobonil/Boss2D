@@ -408,7 +408,7 @@ static void get_current_time(struct timeval *t)
     now.ul -= 116444736000000000ULL;
 # else
     /* *INDENT-OFF* */
-    now.ul -= 116444736000000000UI64;
+    now.ul -= U64(116444736000000000); //original-code:116444736000000000UI64;
     /* *INDENT-ON* */
 # endif
     t->tv_sec = (long)(now.ul / 10000000);

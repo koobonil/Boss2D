@@ -85,7 +85,7 @@ void OPENSSL_cpuid_setup(void)
 #endif
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
-# include <tchar.h>
+# include BOSS_FAKEWIN_V_tchar_h //original-code:<tchar.h>
 # include <signal.h>
 # ifdef __WATCOMC__
 #  if defined(_UNICODE) || defined(__UNICODE__)

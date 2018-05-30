@@ -33,8 +33,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <windows.h>
-#include <tchar.h>
+#include BOSS_FAKEWIN_V_windows_h //original-code:<windows.h>
+#include BOSS_FAKEWIN_V_tchar_h //original-code:<tchar.h>
 #include BOSS_OPENSSL_U_internal__numbers_h //original-code:"internal/numbers.h"
 #ifndef LPDIR_H
 # include "LPdir.h"

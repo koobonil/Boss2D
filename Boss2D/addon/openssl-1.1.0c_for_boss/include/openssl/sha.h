@@ -81,16 +81,16 @@ void SHA256_Transform(SHA256_CTX *c, const unsigned char *data);
  * wide big-endian values.
  */
 # define SHA512_CBLOCK   (SHA_LBLOCK*8)
-# if (defined(_WIN32) || defined(_WIN64)) && !defined(__MINGW32__)
-#  define SHA_LONG64 unsigned __int64
-#  define U64(C)     C##UI64
-# elif defined(__arch64__)
-#  define SHA_LONG64 unsigned long
-#  define U64(C)     C##UL
-# else
-#  define SHA_LONG64 unsigned long long
-#  define U64(C)     C##ULL
-# endif
+// removed by BOSS: # if (defined(_WIN32) || defined(_WIN64)) && !defined(__MINGW32__)
+// removed by BOSS: #  define SHA_LONG64 unsigned __int64
+// removed by BOSS: #  define U64(C)     C##UI64
+// removed by BOSS: # elif defined(__arch64__)
+// removed by BOSS: #  define SHA_LONG64 unsigned long
+// removed by BOSS: #  define U64(C)     C##UL
+// removed by BOSS: # else
+// removed by BOSS: #  define SHA_LONG64 unsigned long long
+// removed by BOSS: #  define U64(C)     C##ULL
+// removed by BOSS: # endif
 
 typedef struct SHA512state_st {
     SHA_LONG64 h[8];

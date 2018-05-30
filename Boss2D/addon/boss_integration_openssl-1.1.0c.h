@@ -29,6 +29,8 @@
     #define U64(C)     C##ULL
 #endif
 
+#define _WINDEF_H
+
 #define OPENSSL_NO_ASM // No assembly for iphone-simulator
 #define OPENSSL_NO_MD2
 #define OPENSSL_NO_MD4

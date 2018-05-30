@@ -19,7 +19,7 @@ namespace BOSS
 
     // 서비스함수
     public:
-        virtual void Signin(chars option, id_bitmap clipper = nullptr) {}
+        virtual void Signin(chars option, bool clearcookies, id_bitmap clipper = nullptr) {}
         virtual void Signout() {}
         virtual bool IsSigning(bool needDestroy, bool* destroyResult = nullptr) {return false;}
         virtual bool IsSigned() const {return false;}

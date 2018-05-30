@@ -187,11 +187,11 @@ extern "C" {
         * it's sufficient to check for specific Winsock2 API availability
         * at run-time [DSO_global_lookup is recommended]...
         */
-#    include <winsock2.h>
-#    include <ws2tcpip.h>
+#    include BOSS_FAKEWIN_V_winsock2_h //original-code:<winsock2.h>
+#    include BOSS_FAKEWIN_V_ws2tcpip_h //original-code:<ws2tcpip.h>
        /* yes, they have to be #included prior to <windows.h> */
 #   endif
-#   include <windows.h>
+#   include BOSS_FAKEWIN_V_windows_h //original-code:<windows.h>
 #   include <stdio.h>
 #   include <stddef.h>
 #   include <errno.h>
@@ -246,7 +246,7 @@ extern FILE *_imp___iob;
 #    endif
 #   endif
 #  endif
-#  include <io.h>
+#  include BOSS_FAKEWIN_V_io_h //original-code:<io.h>
 #  include <fcntl.h>
 
 #  ifdef OPENSSL_SYS_WINCE
@@ -365,7 +365,7 @@ extern FILE *_imp___iob;
 #    ifdef getservbyname
 #     undef getservbyname
          /* this is used to be wcecompat/include/winsock_extras.h */
-struct servent *PASCAL getservbyname(const char *, const char *);
+// removed by BOSS: struct servent *PASCAL getservbyname(const char *, const char *);
 #    endif
 
 #    ifdef _WIN64

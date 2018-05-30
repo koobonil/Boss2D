@@ -12,6 +12,13 @@
 #pragma warning(disable : 4090)
 #pragma warning(disable : 4133)
 
+#if BOSS_LINUX | BOSS_ANDROID
+    #define __pragma(...)
+    #define struct_stat_BOSS struct boss_fakewin_struct_stat64
+#else
+    #define struct_stat_BOSS struct stat
+#endif
+
 // 선행포함
 #include <addon/openssl-1.1.0c_for_boss/crypto/bio/bio_lcl.h>
 
@@ -47,6 +54,9 @@
 #include <addon/openssl-1.1.0c_for_boss/crypto/bio/b_print.c>
 #include <addon/openssl-1.1.0c_for_boss/crypto/bio/b_dump.c>
 #include <addon/openssl-1.1.0c_for_boss/crypto/bio/bss_sock.c>
+#if !BOSS_WINDOWS
+    #define WSAData _WSAData
+#endif
 #include <addon/openssl-1.1.0c_for_boss/crypto/bio/b_sock.c>
 #include <addon/openssl-1.1.0c_for_boss/crypto/bio/bss_conn.c>
 #include <addon/openssl-1.1.0c_for_boss/crypto/bio/bf_buff.c>
@@ -156,8 +166,10 @@
 #include <addon/openssl-1.1.0c_for_boss/crypto/x509v3/v3_genn.c>
 #define extract_min_max extract_min_max_v3_addr_BOSS
 #include <addon/openssl-1.1.0c_for_boss/crypto/x509v3/v3_addr.c>
+#undef extract_min_max
 #define extract_min_max extract_min_max_v3_asid_BOSS
 #include <addon/openssl-1.1.0c_for_boss/crypto/x509v3/v3_asid.c>
+#undef extract_min_max
 #define str_free str_free_v3_utl_BOSS
 #include <addon/openssl-1.1.0c_for_boss/crypto/x509v3/v3_utl.c>
 #include <addon/openssl-1.1.0c_for_boss/crypto/x509v3/v3_lib.c>

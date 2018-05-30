@@ -118,7 +118,7 @@ int RAND_load_file(const char *file, long bytes)
 
     unsigned char buf[BUFSIZE];
 #ifndef OPENSSL_NO_POSIX_IO
-    struct stat sb;
+     struct_stat_BOSS sb; //original-code:struct stat sb;
 #endif
     int i, ret = 0, n;
     FILE *in = NULL;
@@ -188,7 +188,7 @@ int RAND_write_file(const char *file)
     FILE *out = NULL;
     int n;
 #ifndef OPENSSL_NO_POSIX_IO
-    struct stat sb;
+    struct_stat_BOSS sb; //original-code:struct stat sb;
 
 # if defined(S_ISBLK) && defined(S_ISCHR)
 # ifdef _WIN32

@@ -32,19 +32,50 @@
     dependency* g_func = nullptr;
 
     #if BOSS_ANDROID
-        extern JavaVM* g_JVM;
-        jobject g_context = nullptr;
+        static JavaVM* g_jvm = nullptr;
+        jint JNI_OnLoad(JavaVM* vm, void*)
+        {
+            g_jvm = vm;
+            BOSS_TRACE("g_jvm=0x%08X", g_jvm);
+            return JNI_VERSION_1_6;
+        }
+
+        JNIEnv* GetAndroidJNIEnv()
+        {
+            JNIEnv* result = nullptr;
+            if(g_jvm) g_jvm->AttachCurrentThread(&result, 0);
+            return result;
+        }
+        static jobject g_activity = nullptr;
+        jobject GetAndroidApplicationActivity()
+        {
+            BOSS_ASSERT("안드로이드OS의 경우에 한하여 Java소스에서 SetAndroidApplicationActivity의 선행호출이 필요합니다", g_activity);
+            JNIEnv* env = GetAndroidJNIEnv();
+            return env->NewGlobalRef(g_activity);
+        }
+        void SetAndroidApplicationActivity(jobject activity)
+        {
+            BOSS_ASSERT("g_jvm가 nullptr입니다", g_jvm);
+            JNIEnv* env = GetAndroidJNIEnv();
+            g_activity = env->NewGlobalRef(activity);
+        }
+        static jobject g_context = nullptr;
         jobject GetAndroidApplicationContext()
         {
-            BOSS_ASSERT("안드로이드OS의 경우에 한하여 ApplicationContext값이 필요합니다", g_context);
-            return g_context;
+            BOSS_ASSERT("안드로이드OS의 경우에 한하여 Java소스에서 SetAndroidApplicationContext의 선행호출이 필요합니다", g_context);
+            JNIEnv* env = GetAndroidJNIEnv();
+            return env->NewGlobalRef(g_context);
         }
         void SetAndroidApplicationContext(jobject context)
         {
-            BOSS_ASSERT("g_JVM가 nullptr입니다", g_JVM);
-            JNIEnv* env = nullptr;
-            g_JVM->AttachCurrentThread(&env, 0);
+            BOSS_ASSERT("g_jvm가 nullptr입니다", g_jvm);
+            JNIEnv* env = GetAndroidJNIEnv();
             g_context = env->NewGlobalRef(context);
+        }
+    #elif BOSS_IPHONE
+        void* GetIOSApplicationUIView()
+        {
+            return nullptr;
         }
     #endif
 

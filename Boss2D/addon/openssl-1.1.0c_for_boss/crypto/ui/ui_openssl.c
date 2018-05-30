@@ -61,9 +61,9 @@
 #endif
 
 #ifdef WIN_CONSOLE_BUG
-# include <windows.h>
+# include BOSS_FAKEWIN_V_windows_h //original-code:<windows.h>
 # ifndef OPENSSL_SYS_WINCE
-#  include <wincon.h>
+#  include BOSS_FAKEWIN_V_wincon_h //original-code:<wincon.h>
 # endif
 #endif
 
@@ -127,7 +127,7 @@
 #endif
 
 #ifdef OPENSSL_SYS_MSDOS
-# include <conio.h>
+# include BOSS_FAKEWIN_V_conio_h //original-code:<conio.h>
 #endif
 
 #ifdef OPENSSL_SYS_VMS

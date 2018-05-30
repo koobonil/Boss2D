@@ -12,7 +12,7 @@
 
 #ifdef ASYNC_WIN
 
-# include <windows.h>
+# include BOSS_FAKEWIN_V_windows_h //original-code:<windows.h>
 # include BOSS_OPENSSL_U_internal__cryptlib_h //original-code:"internal/cryptlib.h"
 
 int ASYNC_is_capable(void)

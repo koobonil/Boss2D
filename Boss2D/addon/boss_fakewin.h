@@ -21,10 +21,6 @@
     #undef __ANDROID__
 #endif
 
-#if BOSS_MAC_OSX | BOSS_IPHONE | BOSS_ANDROID
-    #define _M_ARM
-#endif
-
 #define BOSS_FAKEWIN_DECLSPEC_DLLEXPORT //__declspec(dllexport)
 #define BOSS_FAKEWIN_DECLSPEC_DLLIMPORT //__declspec(dllimport)
 #define BOSS_FAKEWIN_STDCALL            //__stdcall
@@ -58,14 +54,14 @@
     #define BOSS_FAKEWIN_V_intrin_h                        <intrin.h>
     #define BOSS_FAKEWIN_V_winldap_h                       <winldap.h>
     #define BOSS_FAKEWIN_V_winber_h                        <winber.h>
-	//#define __pragma(A)
 
     // 선행참조효과
     #undef UNICODE
     #include <winsock2.h>
     #include <windows.h>
+    #include <malloc.h>
 
-    typedef struct fd_set boss_fakewin_fd_set;
+    typedef struct fd_set boss_fakewin_struct_fd_set;
     #define GetCurrentDirectoryW boss_fakewin_GetCurrentDirectoryW
     typedef unsigned short mode_t;
 #else
@@ -460,8 +456,10 @@
     #define _lseeki64 boss_fakewin_lseeki64
     #define _lfind boss_fakewin_lfind
     #define _chsize_s boss_fakewin_chsize_s
-    #define _fstat64 boss_fakewin_fstat64
+    #define _stat boss_fakewin_stat
 	#define _stat64 boss_fakewin_stat64
+    #define _fstat boss_fakewin_fstat
+    #define _fstat64 boss_fakewin_fstat64
     #define _wchdir boss_fakewin_wchdir
     #define _wmkdir boss_fakewin_wmkdir
     #define _wrmdir boss_fakewin_wrmdir
@@ -543,28 +541,44 @@
         #define FD_SETSIZE 64
         u_int fd_count;               /* how many are SET? */
         SOCKET fd_array[FD_SETSIZE];   /* an array of SOCKETs */
-    } boss_fakewin_fd_set;
-    #define fd_set boss_fakewin_fd_set
+    } boss_fakewin_struct_fd_set;
+    #define fd_set boss_fakewin_struct_fd_set
 
     #undef st_atime
     #undef st_mtime
     #undef st_ctime
-    #if BOSS_WINDOWS || BOSS_LINUX || BOSS_ANDROID || BOSS_IPHONE
-        struct boss_fakewin_stat64 {
-            _dev_t     st_dev;
-            _ino_t     st_ino;
-            unsigned short st_mode;
-            short      st_nlink;
-            short      st_uid;
-            short      st_gid;
-            _dev_t     st_rdev;
-            __int64    st_size;
-            __time64_t st_atime;
-            __time64_t st_mtime;
-            __time64_t st_ctime;
+    #if BOSS_WINDOWS | BOSS_LINUX | BOSS_ANDROID | BOSS_IPHONE
+        struct boss_fakewin_struct_stat {
+            dev_t           st_dev;
+            ino_t           st_ino;
+            mode_t          st_mode;
+            nlink_t         st_nlink;
+            uid_t           st_uid;
+            gid_t           st_gid;
+            dev_t           st_rdev;
+            off_t           st_size;
+            blksize_t       st_blksize;
+            blkcnt_t        st_blocks;
+            time_t          st_atime;
+            time_t          st_mtime;
+            time_t          st_ctime;
+        };
+        struct boss_fakewin_struct_stat64 {
+            _dev_t          st_dev;
+            _ino_t          st_ino;
+            unsigned short  st_mode;
+            short           st_nlink;
+            short           st_uid;
+            short           st_gid;
+            _dev_t          st_rdev;
+            __int64         st_size;
+            __time64_t      st_atime;
+            __time64_t      st_mtime;
+            __time64_t      st_ctime;
         };
     #else
-        #define boss_fakewin_stat64 stat
+        #define boss_fakewin_struct_stat stat
+        #define boss_fakewin_struct_stat64 stat
     #endif
 
     #ifdef __cplusplus
@@ -595,8 +609,10 @@
         __int64 boss_fakewin_lseeki64(int,__int64,int);
         void* boss_fakewin_lfind(const void*,const void*,unsigned int*,unsigned int,int (*)(const void*, const void*));
         errno_t boss_fakewin_chsize_s(int, __int64);
-        int boss_fakewin_fstat64(int,struct boss_fakewin_stat64*);
-		int boss_fakewin_stat64(const char*,struct boss_fakewin_stat64*);
+        int boss_fakewin_stat(const char*,struct boss_fakewin_struct_stat*);
+		int boss_fakewin_stat64(const char*,struct boss_fakewin_struct_stat64*);
+        int boss_fakewin_fstat(int,struct boss_fakewin_struct_stat*);
+        int boss_fakewin_fstat64(int,struct boss_fakewin_struct_stat64*);
         int boss_fakewin_wchdir(const wchar_t*);
         int boss_fakewin_wmkdir(const wchar_t*);
         int boss_fakewin_wrmdir(const wchar_t*);
@@ -604,9 +620,9 @@
         errno_t boss_fakewin_mktemp_s(char*,size_t);
         wchar_t* boss_fakewin_wgetenv(const wchar_t*);
         wchar_t* boss_fakewin_wgetcwd(wchar_t*,int);
-        void boss_fakewin_FD_SET(int fd, boss_fakewin_fd_set* fdset);
-        void boss_fakewin_FD_ZERO(boss_fakewin_fd_set* fdset);
-        int boss_fakewin_FD_ISSET(int fd, boss_fakewin_fd_set* set);
+        void boss_fakewin_FD_SET(int fd, boss_fakewin_struct_fd_set* fdset);
+        void boss_fakewin_FD_ZERO(boss_fakewin_struct_fd_set* fdset);
+        int boss_fakewin_FD_ISSET(int fd, boss_fakewin_struct_fd_set* set);
         void* boss_fakewin_alloca(size_t);
         int boss_fakewin_fileno(FILE*);
         int boss_fakewin_getch();
@@ -693,8 +709,8 @@
         #ifdef __cplusplus
             namespace std
             {
-                #define stringstream boss_fakewin_stringstream
-                class boss_fakewin_stringstream
+                #define stringstream boss_fakewin_class_stringstream
+                class boss_fakewin_class_stringstream
                 {
                 public:
                     stringstream();
@@ -703,8 +719,8 @@
                 private:
                     void* mStr;
                 };
-                #define ios_base boss_fakewin_ios_base
-                class boss_fakewin_ios_base
+                #define ios_base boss_fakewin_class_ios_base
+                class boss_fakewin_class_ios_base
                 {
                 public:
                     enum openmode {in, binary};
@@ -719,13 +735,13 @@
         #if !BOSS_LINUX & !BOSS_ANDROID
             namespace std
             {
-                #define ifstream boss_fakewin_ifstream
-                class boss_fakewin_ifstream : public stringstream
+                #define ifstream boss_fakewin_class_ifstream
+                class boss_fakewin_class_ifstream : public stringstream
                 {
                     FILE* f;
                 public:
-                    boss_fakewin_ifstream(const char* filename, ios_base::openmode mode = ios_base::in);
-                    ~boss_fakewin_ifstream();
+                    boss_fakewin_class_ifstream(const char* filename, ios_base::openmode mode = ios_base::in);
+                    ~boss_fakewin_class_ifstream();
                     bool is_open() const;
                     void close();
                 };
@@ -1374,7 +1390,7 @@
         };
     } SCOPE_ID, *PSCOPE_ID;
 
-    typedef struct boss_fakewin_sockaddr {
+    typedef struct boss_fakewin_struct_sockaddr {
         #if (_WIN32_WINNT < 0x0600)
             u_short sa_family;
         #else
@@ -1382,17 +1398,17 @@
         #endif //(_WIN32_WINNT < 0x0600)
         CHAR sa_data[14];                   // Up to 14 bytes of direct address.
     } SOCKADDR, *PSOCKADDR, *LPSOCKADDR;
-    #define sockaddr boss_fakewin_sockaddr
+    #define sockaddr boss_fakewin_struct_sockaddr
 
-    struct boss_fakewin_sockaddr_in {
+    struct boss_fakewin_struct_sockaddr_in {
         short   sin_family;
         u_short sin_port;
         struct  in_addr sin_addr;
         char    sin_zero[8];
     };
-    #define sockaddr_in boss_fakewin_sockaddr_in
+    #define sockaddr_in boss_fakewin_struct_sockaddr_in
 
-    typedef struct boss_fakewin_sockaddr_storage {
+    typedef struct boss_fakewin_struct_sockaddr_storage {
         ADDRESS_FAMILY ss_family;      // address family
         CHAR __ss_pad1[_SS_PAD1SIZE];  // 6 byte pad, this is to make
                                         //   implementation specific pad up to
@@ -1404,7 +1420,7 @@
                                         //   ss_family, __ss_pad1, and
                                         //   __ss_align fields is 112
     } SOCKADDR_STORAGE_LH, *PSOCKADDR_STORAGE_LH, *LPSOCKADDR_STORAGE_LH;
-    #define sockaddr_storage boss_fakewin_sockaddr_storage
+    #define sockaddr_storage boss_fakewin_struct_sockaddr_storage
 
     typedef struct _FILETIME {
         DWORD dwLowDateTime;
@@ -1643,7 +1659,7 @@
         char*         s_proto;
     } SERVENT, *PSERVENT, *LPSERVENT;
 
-    typedef struct boss_fakewin_addrinfo {
+    typedef struct boss_fakewin_struct_addrinfo {
         struct hostent *ai_hostent;
         struct servent *ai_servent;
         struct sockaddr_in ai_addr_in;
@@ -1653,13 +1669,13 @@
         int ai_socktype;
         int ai_protocol;
         long ai_port;
-        struct boss_fakewin_addrinfo *ai_next;
-        #if BOSS_LINUX
+        struct boss_fakewin_struct_addrinfo *ai_next;
+        #if BOSS_LINUX | BOSS_ANDROID
             int ai_flags;
             char* ai_canonname;
         #endif
     } ADDRINFOA, *PADDRINFOA;
-    #define addrinfo boss_fakewin_addrinfo
+    #define addrinfo boss_fakewin_struct_addrinfo
 
     typedef struct _WSAPROTOCOLCHAIN {
         int   ChainLen;
@@ -1805,7 +1821,7 @@
         int boss_fakewin_connect(SOCKET, const struct sockaddr*, int);
         int boss_fakewin_getsockopt(SOCKET, int, int, char*, int*);
 		int boss_fakewin_setsockopt(SOCKET, int, int, const char*, int*);
-        int boss_fakewin_select(int, boss_fakewin_fd_set*, boss_fakewin_fd_set*, boss_fakewin_fd_set*, const struct timeval*);
+        int boss_fakewin_select(int, boss_fakewin_struct_fd_set*, boss_fakewin_struct_fd_set*, boss_fakewin_struct_fd_set*, const struct timeval*);
         int boss_fakewin_recv(SOCKET, char*, int, int);
         int boss_fakewin_send(SOCKET, const char*, int, int);
         int boss_fakewin_closesocket(SOCKET);

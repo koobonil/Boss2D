@@ -18,7 +18,7 @@
 # define ASYNC_WIN
 # define ASYNC_ARCH
 
-# include <windows.h>
+# include BOSS_FAKEWIN_V_windows_h //original-code:<windows.h>
 # include BOSS_OPENSSL_U_internal__cryptlib_h //original-code:"internal/cryptlib.h"
 
 typedef struct async_fibre_st {
