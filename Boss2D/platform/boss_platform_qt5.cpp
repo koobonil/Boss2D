@@ -133,11 +133,12 @@
         {
             int result = 0;
             {
+                QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
                 QApplication app(argc, argv);
                 MainWindow mainWindow;
                 g_window = &mainWindow;
 
-                Platform::Option::SetFlag("AssertPopup", !BOSS_IPHONE);
+                Platform::Option::SetFlag("AssertPopup", true);
                 PlatformInit();
                 #if BOSS_NEED_FULLSCREEN
                     mainWindow.showFullScreen();
@@ -579,12 +580,12 @@
             return PlatformImpl::Wrap::Popup_MessageDialog(title, text, type);
         }
 
-        void Platform::Popup::WebBrowserDialog(String url)
+        void Platform::Popup::WebBrowserDialog(chars url)
         {
             #if BOSS_WINDOWS
                 PlatformImpl::Wrap::Popup_WebBrowserDialog(url);
             #else
-                QDesktopServices::openUrl(QUrl((chars) url, QUrl::TolerantMode));
+                QDesktopServices::openUrl(QUrl(url, QUrl::TolerantMode));
             #endif
         }
 
@@ -725,7 +726,7 @@
             }
 
             #if BOSS_ANDROID
-                id_file_read Hdmi = Platform::File::OpenForRead("/sys/devices/virtual/switch/hdmi/state");
+                /*id_file_read Hdmi = Platform::File::OpenForRead("/sys/devices/virtual/switch/hdmi/state");
                 if(!Hdmi) Hdmi = Platform::File::OpenForRead("/sys/class/switch/hdmi/state");
                 if(Hdmi)
                 {
@@ -734,7 +735,7 @@
                     const bool HasPhygicalMonitor = ((Value & 1) == 1);
                     Platform::File::Close(Hdmi);
                     return HasPhygicalMonitor;
-                }
+                }*/
             #endif
             return true;
         }
@@ -789,6 +790,11 @@
         void Platform::Utility::Threading(ThreadCB cb, payload data)
         {
             ThreadClass::Begin(cb, data);
+        }
+
+        void* Platform::Utility::ThreadingEx(ThreadExCB cb, payload data)
+        {
+            return ThreadClass::BeginEx(cb, data);
         }
 
         uint64 Platform::Utility::CurrentThreadID()
@@ -2549,9 +2555,10 @@
         ////////////////////////////////////////////////////////////////////////////////
         // WEB
         ////////////////////////////////////////////////////////////////////////////////
-        h_web Platform::Web::Create(chars url, sint32 width, sint32 height, EventCB cb, payload data)
+        h_web Platform::Web::Create(chars url, sint32 width, sint32 height, bool clearcookies, EventCB cb, payload data)
         {
             WebPrivate* NewWeb = (WebPrivate*) Buffer::Alloc<WebPrivate>(BOSS_DBG 1);
+            if(clearcookies) NewWeb->ClearCookies();
             if(cb) NewWeb->SetCallback(cb, data);
             NewWeb->Resize(width, height);
             NewWeb->Reload(url);
@@ -2564,12 +2571,6 @@
         void Platform::Web::Release(h_web web)
         {
             web.set_buf(nullptr);
-        }
-
-        void Platform::Web::ClearCookies(h_web web)
-        {
-            if(WebPrivate* CurWeb = (WebPrivate*) web.get())
-                CurWeb->ClearCookies();
         }
 
         void Platform::Web::Reload(h_web web, chars url)
@@ -2618,6 +2619,21 @@
                 return ScreenshotImage.GetBitmap();
             }
             return nullptr;
+        }
+
+        h_web_native Platform::Web::CreateNative(chars url, bool clearcookies, EventCB cb, payload data)
+        {
+            return PlatformImpl::Wrap::Web_CreateNative(url, clearcookies, cb, data);
+        }
+
+        void Platform::Web::ReleaseNative(h_web_native web_native)
+        {
+            PlatformImpl::Wrap::Web_ReleaseNative(web_native);
+        }
+
+        void Platform::Web::ReloadNative(h_web_native web_native, chars url)
+        {
+            PlatformImpl::Wrap::Web_ReloadNative(web_native, url);
         }
 
         ////////////////////////////////////////////////////////////////////////////////

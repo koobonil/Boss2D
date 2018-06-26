@@ -117,8 +117,10 @@ poly1305_blocks(void *ctx, const unsigned char *inp, size_t len, u32 padbit);
      (defined(__SIZEOF_INT128__) && __SIZEOF_INT128__==16) && \
      (defined(__SIZEOF_LONG__) && __SIZEOF_LONG__==8)
 
-typedef unsigned long u64;
-typedef unsigned __int128 u128;
+// removed by BOSS:typedef unsigned long u64;
+// removed by BOSS:typedef unsigned __int128 u128;
+#define u64 unsigned long // added by BOSS
+#define u128 unsigned __int128 // added by BOSS
 
 typedef struct {
     u64 h[3];

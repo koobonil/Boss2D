@@ -12,7 +12,7 @@
     #define _M_ARM
 #endif
 
-#if BOSS_LINUX | BOSS_ANDROID
+#if !BOSS_WINDOWS | BOSS_NEED_FORCED_FAKEWIN
     #define __pragma(...)
     #define struct_stat_BOSS struct boss_fakewin_struct_stat64
 #else

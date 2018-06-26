@@ -9,6 +9,7 @@
 #define WIN32
 #define _WIN32
 #define __WIN32__
+#define _WIN32_WCE 0x0501
 #define _WIN32_WINNT 0x0501
 #define WINDOWS
 #define _WINDOWS
@@ -64,6 +65,17 @@
     typedef struct fd_set boss_fakewin_struct_fd_set;
     #define GetCurrentDirectoryW boss_fakewin_GetCurrentDirectoryW
     typedef unsigned short mode_t;
+
+    #if BOSS_WINDOWS_MINGW
+        struct addrinfo
+        {
+            struct sockaddr* ai_addr;
+            int ai_addrlen;
+            int ai_family;
+            int ai_socktype;
+            int ai_protocol;
+        };
+    #endif
 #else
     #define BOSS_COMMAND_OBJECTS_IS_ENABLED
     #define BOSS_FAKEWIN_V_windows_h                       <addon/boss_fakewin.h>
@@ -149,7 +161,7 @@
     typedef void* LPVOID;
     typedef const void* LPCVOID;
     typedef void* HANDLE;
-    typedef unsigned int SOCKET;
+    typedef int SOCKET;
     typedef USHORT ADDRESS_FAMILY;
     typedef int socklen_t;
     #define __socklen_t_defined
@@ -185,6 +197,13 @@
     typedef unsigned short _ino_t;
     typedef long _off_t;
     typedef __int64 __time64_t;
+    typedef unsigned __int32 uid_t;
+    typedef unsigned __int32 gid_t;
+    #if !BOSS_ANDROID
+        typedef unsigned __int16 nlink_t;
+        typedef __int32 blksize_t;
+        typedef __int64 blkcnt_t;
+    #endif
 
     // 선행참조효과(공통)
     #include <stdio.h>
@@ -212,11 +231,14 @@
     #include <stdint.h>
     #include <fcntl.h>
 
+    //#define _CMATH_
+    //#define _CSTDLIB_
+
     #ifdef __cplusplus
-        #if !BOSS_LINUX & !BOSS_MAC_OSX & !BOSS_IPHONE & !BOSS_ANDROID
-            #include <iostream>
-            #include <fstream>
-            #include <sstream>
+        #if BOSS_WINDOWS
+            //#include <iostream>
+            //#include <fstream>
+            //#include <sstream>
         #endif
     #endif
 
@@ -234,10 +256,6 @@
     #define getaddrinfo boss_fakewin_getaddrinfo
     #define freeaddrinfo boss_fakewin_freeaddrinfo
     #define gai_strerror boss_fakewin_gai_strerror
-    #define getpid boss_fakewin_getpid
-	#define _getpid boss_fakewin_getpid
-    #define mbstowcs_s boss_fakewin_mbstowcs_s
-    #define wcstombs_s boss_fakewin_wcstombs_s
 	#define inet_addr boss_fakewin_inet_addr
 	#define bind boss_fakewin_bind
 	#define getsockname boss_fakewin_getsockname
@@ -250,6 +268,10 @@
 	#define inet_ntoa boss_fakewin_inet_ntoa
     #define shutdown boss_fakewin_shutdown
 	#define _exit boss_fakewin_exit
+    #define getpid boss_fakewin_getpid
+    #define _getpid boss_fakewin_getpid
+    #define mbstowcs_s boss_fakewin_mbstowcs_s
+    #define wcstombs_s boss_fakewin_wcstombs_s
 
     #define GetCurrentDirectoryW boss_fakewin_GetCurrentDirectoryW
     #define CreateFileW boss_fakewin_CreateFileW
@@ -431,6 +453,7 @@
     #define CreateProcess CreateProcessA
     #define GetModuleHandle GetModuleHandleA
 
+    #define _access boss_fakewin_access
     #define _waccess boss_fakewin_waccess
 	#define _chmod boss_fakewin_chmod
     #define _wchmod boss_fakewin_wchmod
@@ -463,6 +486,7 @@
     #define _wchdir boss_fakewin_wchdir
     #define _wmkdir boss_fakewin_wmkdir
     #define _wrmdir boss_fakewin_wrmdir
+    #define _unlink boss_fakewin_unlink
     #define _wunlink boss_fakewin_wunlink
     #define _mktemp_s boss_fakewin_mktemp_s
     #define _wgetenv boss_fakewin_wgetenv
@@ -510,12 +534,13 @@
 	#define strcpy boss_fakewin_strcpy
 	#define wcscpy boss_fakewin_wcscpy
 	#define _strdup boss_fakewin_strdup
-	#define _wcsdup boss_fakewin_wcsdup		
-	#define strpbrk boss_fakewin_strpbrk
-	#define wcspbrk boss_fakewin_wcspbrk
+    #define _wcsdup boss_fakewin_wcsdup
+    #define strpbrk boss_fakewin_strpbrk
+    #define wcspbrk boss_fakewin_wcspbrk
 	#define ber_free boss_fakewin_ber_free
 
     // 명칭재정의관련
+    #define access _access
     #define wfopen _wfopen
     #define wfopen_s _wfopen_s
     #define fopen _fopen
@@ -529,6 +554,7 @@
     #define fgets _fgets
     #define ungetc _ungetc
     #define fclose _fclose
+    #define unlink _unlink
     #define ltoa _ltoa
     #define _snprintf boss_snprintf
     #ifdef UNICODE
@@ -537,53 +563,44 @@
         #define _vsntprintf _vsnprintf
     #endif
 
-    typedef struct {
-        #define FD_SETSIZE 64
-        u_int fd_count;               /* how many are SET? */
-        SOCKET fd_array[FD_SETSIZE];   /* an array of SOCKETs */
-    } boss_fakewin_struct_fd_set;
-    #define fd_set boss_fakewin_struct_fd_set
+    #define fd_set boss_fd_set
 
     #undef st_atime
     #undef st_mtime
     #undef st_ctime
-    #if BOSS_WINDOWS | BOSS_LINUX | BOSS_ANDROID | BOSS_IPHONE
-        struct boss_fakewin_struct_stat {
-            dev_t           st_dev;
-            ino_t           st_ino;
-            mode_t          st_mode;
-            nlink_t         st_nlink;
-            uid_t           st_uid;
-            gid_t           st_gid;
-            dev_t           st_rdev;
-            off_t           st_size;
-            blksize_t       st_blksize;
-            blkcnt_t        st_blocks;
-            time_t          st_atime;
-            time_t          st_mtime;
-            time_t          st_ctime;
-        };
-        struct boss_fakewin_struct_stat64 {
-            _dev_t          st_dev;
-            _ino_t          st_ino;
-            unsigned short  st_mode;
-            short           st_nlink;
-            short           st_uid;
-            short           st_gid;
-            _dev_t          st_rdev;
-            __int64         st_size;
-            __time64_t      st_atime;
-            __time64_t      st_mtime;
-            __time64_t      st_ctime;
-        };
-    #else
-        #define boss_fakewin_struct_stat stat
-        #define boss_fakewin_struct_stat64 stat
-    #endif
+    struct boss_fakewin_struct_stat {
+        dev_t           st_dev;
+        ino_t           st_ino;
+        mode_t          st_mode;
+        nlink_t         st_nlink;
+        uid_t           st_uid;
+        gid_t           st_gid;
+        dev_t           st_rdev;
+        off_t           st_size;
+        blksize_t       st_blksize;
+        blkcnt_t        st_blocks;
+        time_t          st_atime;
+        time_t          st_mtime;
+        time_t          st_ctime;
+    };
+    struct boss_fakewin_struct_stat64 {
+        _dev_t          st_dev;
+        _ino_t          st_ino;
+        unsigned short  st_mode;
+        short           st_nlink;
+        short           st_uid;
+        short           st_gid;
+        _dev_t          st_rdev;
+        __int64         st_size;
+        __time64_t      st_atime;
+        __time64_t      st_mtime;
+        __time64_t      st_ctime;
+    };
 
     #ifdef __cplusplus
         extern "C" {
     #endif
+        int boss_fakewin_access(const char*,int);
         int boss_fakewin_waccess(const wchar_t*,int);
 		int boss_fakewin_chmod(const char*,int);
         int boss_fakewin_wchmod(const wchar_t*,int);
@@ -616,13 +633,14 @@
         int boss_fakewin_wchdir(const wchar_t*);
         int boss_fakewin_wmkdir(const wchar_t*);
         int boss_fakewin_wrmdir(const wchar_t*);
+        int boss_fakewin_unlink(const char*);
         int boss_fakewin_wunlink(const wchar_t*);
         errno_t boss_fakewin_mktemp_s(char*,size_t);
         wchar_t* boss_fakewin_wgetenv(const wchar_t*);
         wchar_t* boss_fakewin_wgetcwd(wchar_t*,int);
-        void boss_fakewin_FD_SET(int fd, boss_fakewin_struct_fd_set* fdset);
-        void boss_fakewin_FD_ZERO(boss_fakewin_struct_fd_set* fdset);
-        int boss_fakewin_FD_ISSET(int fd, boss_fakewin_struct_fd_set* set);
+        void boss_fakewin_FD_SET(int fd, boss_fd_set* fdset);
+        void boss_fakewin_FD_ZERO(boss_fd_set* fdset);
+        int boss_fakewin_FD_ISSET(int fd, boss_fd_set* set);
         void* boss_fakewin_alloca(size_t);
         int boss_fakewin_fileno(FILE*);
         int boss_fakewin_getch();
@@ -661,9 +679,9 @@
 		char* boss_fakewin_strcpy(char *strDestination, const char *strSource);
 		wchar_t* boss_fakewin_wcscpy(wchar_t *strDestination, const wchar_t *strSource);
 		char* boss_fakewin_strdup(const char *strSource);
-		wchar_t* boss_fakewin_wcsdup(const wchar_t *strSource);
-		char* boss_fakewin_strpbrk(const char *str, const char *strCharSet);
-		wchar_t* boss_fakewin_wcspbrk(const wchar_t *str, const wchar_t *strCharSet); 		    
+        wchar_t* boss_fakewin_wcsdup(const wchar_t *strSource);
+        char* boss_fakewin_strpbrk(const char *str, const char *strCharSet);
+        wchar_t* boss_fakewin_wcspbrk(const wchar_t *str, const wchar_t *strCharSet);
     #ifdef __cplusplus
         }
     #endif
@@ -699,6 +717,7 @@
             long    tv_sec;         /* seconds */
             long    tv_usec;        /* and microseconds */
         };
+        #define _TIMEVAL_DEFINED // for mingw32
         #  if defined(_UNICODE) || defined(__UNICODE__)
         #   define _vsntprintf _vsnwprintf
         #  else
@@ -732,7 +751,7 @@
     #endif
 
     #ifdef __cplusplus
-        #if !BOSS_LINUX & !BOSS_ANDROID
+        #if !BOSS_WINDOWS & !BOSS_LINUX & !BOSS_ANDROID
             namespace std
             {
                 #define ifstream boss_fakewin_class_ifstream
@@ -841,6 +860,7 @@
     #define PF_INET6                         AF_INET6
     #define PF_UNSPEC                        AF_UNSPEC
     #define SOCK_STREAM                      1
+    #define SOCK_DGRAM                       2
     #define IPPROTO_IP                       0
     #define IPPROTO_ICMP                     1
     #define IPPROTO_TCP                      6
@@ -873,7 +893,6 @@
     #define SO_ERROR                         0x1007
     #define SO_TYPE                          0x1008
     #define SO_KEEPALIVE                     0x0008
-    #define SOCK_DGRAM                       2
     #define WSAEINTR                         10004L
     #define WSAEBADF                         10009L
     #define WSAEACCES                        10013L
@@ -1045,7 +1064,7 @@
     #define DEBUG_ONLY_THIS_PROCESS          0x00000002
     #define CREATE_SUSPENDED                 0x00000004
     #define DETACHED_PROCESS                 0x00000008
-    #define INET6_ADDRSTRLEN                 16
+    #define INET_ADDRSTRLEN                  16
     #define INET6_ADDRSTRLEN                 46
     #define VER_PLATFORM_WIN32s              0
     #define VER_PLATFORM_WIN32_WINDOWS       1
@@ -1105,13 +1124,91 @@
     #define LDAP_SCOPE_SUBTREE               0x02
 #ifndef RC_INVOKED
     #define _SECURECRT_ERRCODE_VALUES_DEFINED
-    #define EINVAL                           22
-    #define ERANGE                           34
+    #define	EPERM                             1		/* Operation not permitted */
+    #define	ENOENT                            2		/* No such file or directory */
+    #define	ESRCH                             3		/* No such process */
+    #define	EINTR                             4		/* Interrupted system call */
+    #define	EIO                               5		/* Input/output error */
+    #define	ENXIO                             6		/* Device not configured */
+    #define	E2BIG                             7		/* Argument list too long */
+    #define	ENOEXEC                           8		/* Exec format error */
+    #define	EBADF                             9		/* Bad file descriptor */
+    #define	ECHILD                           10		/* No child processes */
+    #define	EDEADLK                          11		/* Resource deadlock avoided */
+    #define	ENOMEM                           12		/* Cannot allocate memory */
+    #define	EACCES                           13		/* Permission denied */
+    #define	EFAULT                           14		/* Bad address */
+    #define	ENOTBLK                          15		/* Block device required */
+    #define	EBUSY                            16		/* Device busy */
+    #define	EEXIST                           17		/* File exists */
+    #define	EXDEV                            18		/* Cross-device link */
+    #define	ENODEV                           19		/* Operation not supported by device */
+    #define	ENOTDIR                          20		/* Not a directory */
+    #define	EISDIR                           21		/* Is a directory */
+    #define	EINVAL                           22		/* Invalid argument */
+    #define	ENFILE                           23		/* Too many open files in system */
+    #define	EMFILE                           24		/* Too many open files */
+    #define	ENOTTY                           25		/* Inappropriate ioctl for device */
+    #define	ETXTBSY                          26		/* Text file busy */
+    #define	EFBIG                            27		/* File too large */
+    #define	ENOSPC                           28		/* No space left on device */
+    #define	ESPIPE                           29		/* Illegal seek */
+    #define	EROFS                            30		/* Read-only file system */
+    #define	EMLINK                           31		/* Too many links */
+    #define	EPIPE                            32		/* Broken pipe */
+    #define	EDOM                             33		/* Numerical argument out of domain */
+    #define	ERANGE                           34		/* Result too large */
+    #define	EAGAIN                           35		/* Resource temporarily unavailable */
+    #define	EWOULDBLOCK                      EAGAIN	/* Operation would block */
+    #define	EINPROGRESS                      36		/* Operation now in progress */
+    #define	EALREADY                         37		/* Operation already in progress */
+    #define	ENOTSOCK                         38		/* Socket operation on non-socket */
+    #define	EDESTADDRREQ                     39		/* Destination address required */
+    #define	EMSGSIZE                         40		/* Message too long */
+    #define	EPROTOTYPE                       41		/* Protocol wrong type for socket */
+    #define	ENOPROTOOPT                      42		/* Protocol not available */
+    #define	EPROTONOSUPPORT                  43		/* Protocol not supported */
+    #define	ESOCKTNOSUPPORT                  44		/* Socket type not supported */
+    #define	EOPNOTSUPP                       45		/* Operation not supported on socket */
+    #define	EPFNOSUPPORT                     46		/* Protocol family not supported */
+    #define	EAFNOSUPPORT                     47		/* Address family not supported by protocol family */
+    #define	EADDRINUSE                       48		/* Address already in use */
+    #define	EADDRNOTAVAIL                    49		/* Can't assign requested address */
+    #define	ENETDOWN                         50		/* Network is down */
+    #define	ENETUNREACH                      51		/* Network is unreachable */
+    #define	ENETRESET                        52		/* Network dropped connection on reset */
+    #define	ECONNABORTED                     53		/* Software caused connection abort */
+    #define	ECONNRESET                       54		/* Connection reset by peer */
+    #define	ENOBUFS                          55		/* No buffer space available */
+    #define	EISCONN                          56		/* Socket is already connected */
+    #define	ENOTCONN                         57		/* Socket is not connected */
+    #define	ESHUTDOWN                        58		/* Can't send after socket shutdown */
+    #define	ETOOMANYREFS                     59		/* Too many references: can't splice */
+    #define	ETIMEDOUT                        60		/* Connection timed out */
+    #define	ECONNREFUSED                     61		/* Connection refused */
+    #define	ELOOP                            62		/* Too many levels of symbolic links */
+    #define	ENAMETOOLONG                     63		/* File name too long */
+    #define	EHOSTDOWN                        64		/* Host is down */
+    #define	EHOSTUNREACH                     65		/* No route to host */
+    #define	ENOTEMPTY                        66		/* Directory not empty */
+    #define	EPROCLIM                         67		/* Too many processes */
+    #define	EUSERS                           68		/* Too many users */
+    #define	EDQUOT                           69		/* Disc quota exceeded */
+    #define	ESTALE                           70		/* Stale NFS file handle */
+    #define	EREMOTE                          71		/* Too many levels of remote in path */
+    #define	EBADRPC                          72		/* RPC struct is bad */
+    #define	ERPCMISMATCH                     73		/* RPC version wrong */
+    #define	EPROGUNAVAIL                     74		/* RPC prog. not avail */
+    #define	EPROGMISMATCH                    75		/* Program version wrong */
+    #define	EPROCUNAVAIL                     76		/* Bad procedure for program */
+    #define	ENOLCK                           77		/* No locks available */
+    #define	ENOSYS                           78		/* Function not implemented */
+    #define	EFTYPE                           79		/* Inappropriate file type or format */
     #define EILSEQ                           42
     #define STRUNCATE                        80
 #endif
 #ifndef sys_nerr
-    #  define sys_nerr                       EILSEQ
+    #define sys_nerr                         EILSEQ
 #endif
     #define WSAEVENT                         HANDLE
     #define FD_MAX_EVENTS                    10
@@ -1338,7 +1435,7 @@
         BYTE  wReserved;
     } OSVERSIONINFOEX, *LPOSVERSIONINFOEX;
 
-    typedef struct _WSAData {
+    typedef struct boss_fakewin_struct_WSAData {
             WORD                    wVersion;
             WORD                    wHighVersion;
             #if BOSS_X64
@@ -1356,14 +1453,18 @@
             #endif
     } WSADATA, *LPWSADATA;
 
-    #define WSAData                      WSADATA
+    #define WSAData                      boss_fakewin_struct_WSAData
     #define MSG_PEEK                     0x2             /* peek at incoming message */
 
-    typedef struct in_addr {
+    typedef struct boss_fakewin_struct_in_addr {
         union {
             struct { UCHAR s_b1,s_b2,s_b3,s_b4; } S_un_b;
             struct { USHORT s_w1,s_w2; } S_un_w;
-            ULONG S_addr;
+            #if BOSS_WINDOWS
+                ULONG S_addr;
+            #else
+                __uint32_t S_addr;
+            #endif
         } S_un;
         #define s_addr  S_un.S_addr /* can be used for most tcp & ip code */
         #define s_host  S_un.S_un_b.s_b2    // host on imp
@@ -1372,13 +1473,16 @@
         #define s_impno S_un.S_un_b.s_b4    // imp #
         #define s_lh    S_un.S_un_b.s_b3    // logical host
     } IN_ADDR, *PIN_ADDR, *LPIN_ADDR;
+    #define in_addr boss_fakewin_struct_in_addr
 
-    typedef struct in6_addr {
+    typedef struct boss_fakewin_struct_in6_addr {
         union {
-            UCHAR       Byte[16];
-            USHORT      Word[8];
+            UCHAR Byte[16];
+            USHORT Word[8];
         } u;
+        #define s6_addr u.Byte
     } IN6_ADDR, *PIN6_ADDR, *LPIN6_ADDR;
+    #define in6_addr boss_fakewin_struct_in6_addr
 
     typedef struct {
         union {
@@ -1391,19 +1495,33 @@
     } SCOPE_ID, *PSCOPE_ID;
 
     typedef struct boss_fakewin_struct_sockaddr {
-        #if (_WIN32_WINNT < 0x0600)
+        #if BOSS_WINDOWS
+            #if (_WIN32_WINNT < 0x0600)
+                u_short sa_family;
+            #else
+                ADDRESS_FAMILY sa_family;           // Address family.
+            #endif
+        #elif BOSS_ANDROID
             u_short sa_family;
         #else
-            ADDRESS_FAMILY sa_family;           // Address family.
-        #endif //(_WIN32_WINNT < 0x0600)
+            __uint8_t sa_len;
+            __uint8_t sa_family;
+        #endif
         CHAR sa_data[14];                   // Up to 14 bytes of direct address.
     } SOCKADDR, *PSOCKADDR, *LPSOCKADDR;
     #define sockaddr boss_fakewin_struct_sockaddr
 
     struct boss_fakewin_struct_sockaddr_in {
-        short   sin_family;
+        #if BOSS_WINDOWS
+            short sin_family;
+        #elif BOSS_ANDROID
+            u_short sin_family;
+        #else
+            __uint8_t sin_len;
+            __uint8_t sin_family;
+        #endif
         u_short sin_port;
-        struct  in_addr sin_addr;
+        struct  boss_fakewin_struct_in_addr sin_addr;
         char    sin_zero[8];
     };
     #define sockaddr_in boss_fakewin_struct_sockaddr_in
@@ -1632,7 +1750,7 @@
         CHAR* buf;     /* the pointer to the buffer */
     } WSABUF, *LPWSABUF;
 
-    typedef struct sockaddr_in6 {
+    typedef struct boss_fakewin_struct_sockaddr_in6 {
         ADDRESS_FAMILY sin6_family; // AF_INET6.
         USHORT sin6_port;           // Transport level port number.
         ULONG  sin6_flowinfo;       // IPv6 flow information.
@@ -1642,22 +1760,34 @@
             SCOPE_ID sin6_scope_struct;
         };
     } SOCKADDR_IN6_LH, *PSOCKADDR_IN6_LH, *LPSOCKADDR_IN6_LH;
+    #define sockaddr_in6 boss_fakewin_struct_sockaddr_in6
 
-    typedef struct hostent {
+    typedef struct boss_fakewin_struct_hostent {
         char*         h_name;
         char**        h_aliases;
-        short         h_addrtype;
-        short         h_length;
+        #if BOSS_WINDOWS
+            short     h_addrtype;
+            short     h_length;
+        #else
+            int       h_addrtype;
+            int       h_length;
+        #endif
         char**        h_addr_list;
 		#define h_addr  h_addr_list[0]
     } HOSTENT, *PHOSTENT, *LPHOSTENT;
+    #define hostent boss_fakewin_struct_hostent
 
-    typedef struct servent {
+    typedef struct boss_fakewin_struct_servent {
         char*         s_name;
         char**        s_aliases;
-        short         s_port;
+        #if BOSS_WINDOWS
+            short     s_port;
+        #else
+            int       s_port;
+        #endif
         char*         s_proto;
     } SERVENT, *PSERVENT, *LPSERVENT;
+    #define servent boss_fakewin_struct_servent
 
     typedef struct boss_fakewin_struct_addrinfo {
         struct hostent *ai_hostent;
@@ -1670,7 +1800,7 @@
         int ai_protocol;
         long ai_port;
         struct boss_fakewin_struct_addrinfo *ai_next;
-        #if BOSS_LINUX | BOSS_ANDROID
+        #if BOSS_LINUX | BOSS_MAC_OSX | BOSS_IPHONE | BOSS_ANDROID
             int ai_flags;
             char* ai_canonname;
         #endif
@@ -1818,34 +1948,34 @@
         extern "C" {
     #endif
         SOCKET boss_fakewin_socket(int, int, int);
-        int boss_fakewin_connect(SOCKET, const struct sockaddr*, int);
+        int boss_fakewin_connect(SOCKET, const struct boss_fakewin_struct_sockaddr*, int);
         int boss_fakewin_getsockopt(SOCKET, int, int, char*, int*);
-		int boss_fakewin_setsockopt(SOCKET, int, int, const char*, int*);
-        int boss_fakewin_select(int, boss_fakewin_struct_fd_set*, boss_fakewin_struct_fd_set*, boss_fakewin_struct_fd_set*, const struct timeval*);
+        int boss_fakewin_setsockopt(SOCKET, int, int, const char*, int);
+        int boss_fakewin_select(int, boss_fd_set*, boss_fd_set*, boss_fd_set*, struct timeval*);
         int boss_fakewin_recv(SOCKET, char*, int, int);
         int boss_fakewin_send(SOCKET, const char*, int, int);
         int boss_fakewin_closesocket(SOCKET);
         int boss_fakewin_ioctlsocket(SOCKET,long,u_long*);
-        struct hostent* boss_fakewin_gethostbyname(const char*);
+        struct boss_fakewin_struct_hostent* boss_fakewin_gethostbyname(const char*);
         unsigned short boss_fakewin_htons(unsigned short);
         int boss_fakewin_getaddrinfo(PCSTR,PCSTR,const ADDRINFOA*,PADDRINFOA*);
         void boss_fakewin_freeaddrinfo(struct addrinfo*);
         const char* boss_fakewin_gai_strerror(int);
+		unsigned long boss_fakewin_inet_addr(const char *cp);
+        int boss_fakewin_bind(SOCKET, const struct boss_fakewin_struct_sockaddr*, int);
+        int boss_fakewin_getsockname(SOCKET, struct boss_fakewin_struct_sockaddr*, int*);
+        int boss_fakewin_getpeername(SOCKET, struct boss_fakewin_struct_sockaddr*, int*);
+        int boss_fakewin_sendto(SOCKET, const char*, int, int, const struct boss_fakewin_struct_sockaddr*, int);
+        int boss_fakewin_recvfrom(SOCKET, char *, int, int, struct boss_fakewin_struct_sockaddr*, int*);
+        SOCKET boss_fakewin_accept(SOCKET, struct boss_fakewin_struct_sockaddr*, int*);
+        int boss_fakewin_listen(SOCKET s, int backlog);
+        struct boss_fakewin_struct_servent* boss_fakewin_getservbyname(const char*, const char*);
+        char* boss_fakewin_inet_ntoa(struct boss_fakewin_struct_in_addr in);
+		int boss_fakewin_shutdown(SOCKET, int);
+		void boss_fakewin_exit(int);
         int boss_fakewin_getpid();
         errno_t boss_fakewin_mbstowcs_s(size_t*,wchar_t*,size_t,const char*,size_t);
         errno_t boss_fakewin_wcstombs_s(size_t*,char*,size_t,const wchar_t*,size_t);
-		unsigned long boss_fakewin_inet_addr(const char *cp);
-		int boss_fakewin_bind(SOCKET, const struct sockaddr*, int);
-		int boss_fakewin_getsockname(SOCKET, const struct sockaddr*, int*);
-		int boss_fakewin_getpeername(SOCKET, const struct sockaddr*, int*);
-        int boss_fakewin_sendto(SOCKET, const char*, int, int, const struct sockaddr*, int);
-		int boss_fakewin_recvfrom(SOCKET, char *, int, int, struct sockaddr*, int*);
-		SOCKET boss_fakewin_accept(SOCKET, struct sockaddr*, int*);
-        int boss_fakewin_listen(SOCKET s, int backlog);
-		struct servent* boss_fakewin_getservbyname(const char*, const char*);
-		char* boss_fakewin_inet_ntoa(struct in_addr in);
-		int boss_fakewin_shutdown(SOCKET, int);
-		void boss_fakewin_exit(int);
 
         HANDLE boss_fakewin_CreateFileW(LPCWSTR,DWORD,DWORD,LPSECURITY_ATTRIBUTES,DWORD,DWORD,HANDLE);
         HANDLE boss_fakewin_CreateFileMapping(HANDLE,LPSECURITY_ATTRIBUTES,DWORD,DWORD,DWORD,LPCTSTR);

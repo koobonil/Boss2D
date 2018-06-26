@@ -6,6 +6,7 @@
 
 #if BOSS_WINDOWS
     #include <windows.h>
+    #pragma comment(lib, "ws2_32.lib")
 #elif BOSS_LINUX
     #include <sys/stat.h>
     #include <dirent.h>
@@ -19,6 +20,15 @@
 #elif BOSS_ANDROID
     #include <dirent.h>
     #include <android/asset_manager_jni.h>
+#endif
+
+#if !BOSS_WINDOWS
+    #include <sys/socket.h>
+    #include <sys/select.h>
+    #include <netinet/in.h>
+    #include <arpa/inet.h>
+    #include <netdb.h>
+    #include <fcntl.h>
 #endif
 
 extern "C"
@@ -59,6 +69,11 @@ extern "C"
         extern int stricmp(const char*, const char*);
         extern int strnicmp(const char*, const char*, size_t);
     #endif
+    #if BOSS_WINDOWS & !BOSS_WINDOWS_MINGW
+        extern const char* strpbrk(const char*, const char*);
+    #else
+        extern char* strpbrk(const char*, const char*);
+    #endif
 
     extern int wcscmp(const wchar_t*, const wchar_t*);
     extern int wcsncmp(const wchar_t*, const wchar_t*, size_t);
@@ -69,10 +84,78 @@ extern "C"
         extern int _wcsicmp(const wchar_t*, const wchar_t*);
         extern int _wcsnicmp(const wchar_t*, const wchar_t*, size_t);
     #endif
+    #if BOSS_WINDOWS & !BOSS_WINDOWS_MINGW
+        extern const wchar_t* wcspbrk(const wchar_t*, const wchar_t*);
+    #else
+        extern wchar_t* wcspbrk(const wchar_t*, const wchar_t*);
+    #endif
 
     // MFC프로젝트시의 문제해결
     extern FILE* fopen(char const*, char const*);
     void _except_handler4_common() {}
+
+    #if BOSS_WINDOWS
+        extern SOCKET socket(int domain, int type, int protocol);
+        extern int connect(SOCKET s, const struct sockaddr* name, int namelen);
+        extern int bind(SOCKET s, const struct sockaddr* name, int namelen);
+        extern SOCKET accept(SOCKET s, struct sockaddr* addr, int* addrlen);
+        extern int listen(SOCKET s, int backlog);
+        extern int shutdown(SOCKET s, int how);
+        extern int getsockopt(SOCKET s, int level, int optname, char* optval, int* optlen);
+        extern int setsockopt(SOCKET s, int level, int optname, const char* optval, int optlen);
+        extern int getsockname(SOCKET s, struct sockaddr* name, int* namelen);
+        extern int getpeername(SOCKET s, struct sockaddr* name, int* namelen);
+        extern int recv(SOCKET s, char* buf, int len, int flags);
+        extern int recvfrom(SOCKET s, char* buf, int len, int flags, struct sockaddr* from, int* fromlen);
+        extern int send(SOCKET s, const char* buf, int len, int flags);
+        extern int sendto(SOCKET s, const char* buf, int len, int flags, const struct sockaddr* to, int tolen);
+        extern int ioctlsocket(SOCKET s, long cmd, unsigned long* argp);
+        #if BOSS_WINDOWS_MINGW
+            extern int select(int nfds, fd_set* readfds, fd_set* writefds, fd_set* exceptfds, const PTIMEVAL timeout);
+        #else
+            extern int select(int nfds, fd_set* readfds, fd_set* writefds, fd_set* exceptfds, const struct timeval* timeout);
+        #endif
+        extern int closesocket(SOCKET s);
+        extern struct hostent* gethostbyaddr(const char* addr, int len, int type);
+        extern struct hostent* gethostbyname(const char* name);
+        extern int getaddrinfo(const char* node, const char* service, const struct addrinfo* hints, struct addrinfo** result);
+        extern void freeaddrinfo(struct addrinfo* ai);
+        extern struct servent* getservbyname(const char* name, const char* proto);
+        extern struct servent* getservbyport(int port, const char* proto);
+        extern char* inet_ntoa(struct in_addr in);
+        extern unsigned long inet_addr(const char* cp);
+    #else
+        extern int socket(int domain, int type, int protocol);
+        extern int connect(int sockfd, const struct sockaddr* addr, socklen_t addrlen);
+        extern int bind(int sockfd, const struct sockaddr* addr, socklen_t addrlen);
+        extern int accept(int sockfd, struct sockaddr* addr, socklen_t* addrlen);
+        extern int listen(int sockfd, int backlog);
+        extern int shutdown(int sockfd, int how);
+        extern int getsockopt(int sockfd, int level, int optname, void* optval, socklen_t* optlen);
+        extern int setsockopt(int sockfd, int level, int optname, const void* optval, socklen_t optlen);
+        extern int getsockname(int sockfd, struct sockaddr* addr, socklen_t* addrlen);
+        extern int getpeername(int sockfd, struct sockaddr* addr, socklen_t* addrlen);
+        extern ssize_t recv(int sockfd, void* buf, size_t len, int flags);
+        extern ssize_t recvfrom(int sockfd, void* buf, size_t len, int flags, struct sockaddr* src_addr, socklen_t* addrlen);
+        extern ssize_t send(int sockfd, const void* buf, size_t len, int flags);
+        extern ssize_t sendto(int sockfd, const void* buf, size_t len, int flags, const struct sockaddr* dest_addr, socklen_t addrlen);
+        #if BOSS_LINUX | BOSS_ANDROID
+            extern int ioctl(int fd, int cmd, ...);
+        #else
+            extern int fcntl(int fd, int cmd, ...);
+        #endif
+        extern int select(int nfds, fd_set* readfds, fd_set* writefds, fd_set* exceptfds, struct timeval* timeout);
+        extern int close(int fd);
+        extern struct hostent* gethostbyaddr(const void* addr, socklen_t len, int type);
+        extern struct hostent* gethostbyname(const char* name);
+        extern int getaddrinfo(const char* node, const char* service, const struct addrinfo* hints, struct addrinfo** res);
+        extern void freeaddrinfo(struct addrinfo* res);
+        extern const char* gai_strerror(int errcode);
+        extern struct servent* getservbyname(const char* name, const char* proto);
+        extern struct servent* getservbyport(int port, const char* proto);
+        extern char* inet_ntoa(struct in_addr in);
+        extern in_addr_t inet_addr(const char* cp);
+    #endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -189,6 +272,11 @@ extern "C" int boss_strnicmp(const char* str1, const char* str2, size_t maxcount
     #endif
 }
 
+extern "C" char* boss_strpbrk(const char* str1, const char* str2)
+{
+    return (char*) strpbrk(str1, str2);
+}
+
 extern "C" int boss_wcscmp(const wchar_t* str1, const wchar_t* str2)
 {
     return wcscmp(str1, str2);
@@ -215,6 +303,11 @@ extern "C" int boss_wcsnicmp(const wchar_t* str1, const wchar_t* str2, size_t ma
     #else
         return _wcsnicmp(str1, str2, maxcount);
     #endif
+}
+
+extern "C" wchar_t* boss_wcspbrk(const wchar_t* str1, const wchar_t* str2)
+{
+    return (wchar_t*) wcspbrk(str1, str2);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -841,4 +934,323 @@ extern "C" int boss_closedir(void* dir)
         return 0;
     }
     return 1;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Socket
+////////////////////////////////////////////////////////////////////////////////
+
+extern "C" int boss_socket(int domain, int type, int protocol)
+{
+    return socket(domain, type, protocol);
+}
+
+extern "C" int boss_connect(int sockfd, const void* addr, int addrlen)
+{
+    #if BOSS_WINDOWS | BOSS_ANDROID
+        return connect(sockfd, (const struct sockaddr*) addr, addrlen);
+    #else
+        struct sockaddr_in AddrIn;
+        Memory::Copy(&AddrIn, addr, addrlen);
+        AddrIn.sin_len = addrlen;
+        return connect(sockfd, (const struct sockaddr*) &AddrIn, (socklen_t) addrlen);
+    #endif
+}
+
+extern "C" int boss_bind(int sockfd, const void* addr, int addrlen)
+{
+    #if BOSS_WINDOWS | BOSS_ANDROID
+        return bind(sockfd, (const struct sockaddr*) addr, addrlen);
+    #else
+        struct sockaddr_in AddrIn;
+        Memory::Copy(&AddrIn, addr, addrlen);
+        AddrIn.sin_len = addrlen;
+        return bind(sockfd, (const struct sockaddr*) &AddrIn, (socklen_t) addrlen);
+    #endif
+}
+
+extern "C" int boss_accept(int sockfd, void* addr, int* addrlen)
+{
+    #if BOSS_WINDOWS | BOSS_ANDROID
+        return accept(sockfd, (struct sockaddr*) addr, addrlen);
+    #else
+        return accept(sockfd, (struct sockaddr*) addr, (socklen_t*) addrlen);
+    #endif
+}
+
+extern "C" int boss_listen(int sockfd, int backlog)
+{
+    return listen(sockfd, backlog);
+}
+
+extern "C" int boss_shutdown(int sockfd, int how)
+{
+    return shutdown(sockfd, how);
+}
+
+extern "C" int boss_getsockopt(int sockfd, int level, int optname, void* optval, int* optlen)
+{
+    #if BOSS_WINDOWS | BOSS_ANDROID
+        return getsockopt(sockfd, level, optname, (char*) optval, optlen);
+    #else
+        return getsockopt(sockfd, level, optname, optval, (socklen_t*) optlen);
+    #endif
+}
+
+extern "C" int boss_setsockopt(int sockfd, int level, int optname, const void* optval, int optlen)
+{
+    #if BOSS_WINDOWS | BOSS_ANDROID
+        return setsockopt(sockfd, level, optname, (const char*) optval, optlen);
+    #else
+        return setsockopt(sockfd, level, optname, optval, (socklen_t) optlen);
+    #endif
+}
+
+extern "C" int boss_getsockname(int sockfd, void* addr, int* addrlen)
+{
+    #if BOSS_WINDOWS | BOSS_ANDROID
+        return getsockname(sockfd, (struct sockaddr*) addr, addrlen);
+    #else
+        return getsockname(sockfd, (struct sockaddr*) addr, (socklen_t*) addrlen);
+    #endif
+}
+
+extern "C" int boss_getpeername(int sockfd, void* addr, int* addrlen)
+{
+    #if BOSS_WINDOWS | BOSS_ANDROID
+        return getpeername(sockfd, (struct sockaddr*) addr, addrlen);
+    #else
+        return getpeername(sockfd, (struct sockaddr*) addr, (socklen_t*) addrlen);
+    #endif
+}
+
+extern "C" ssize_t boss_recv(int sockfd, void* buf, size_t len, int flags)
+{
+    #if BOSS_WINDOWS | BOSS_ANDROID
+        return recv(sockfd, (char*) buf, len, flags);
+    #else
+        return recv(sockfd, buf, len, flags);
+    #endif
+}
+
+extern "C" ssize_t boss_recvfrom(int sockfd, void* buf, size_t len, int flags, void* src_addr, int* addrlen)
+{
+    #if BOSS_WINDOWS | BOSS_ANDROID
+        return recvfrom(sockfd, (char*) buf, len, flags, (struct sockaddr*) src_addr, addrlen);
+    #else
+        return recvfrom(sockfd, buf, len, flags, (struct sockaddr*) src_addr, (socklen_t*) addrlen);
+    #endif
+}
+
+extern "C" ssize_t boss_send(int sockfd, const void* buf, size_t len, int flags)
+{
+    #if BOSS_WINDOWS | BOSS_ANDROID
+        return send(sockfd, (const char*) buf, len, flags);
+    #else
+        return send(sockfd, buf, len, flags);
+    #endif
+}
+
+extern "C" ssize_t boss_sendto(int sockfd, const void* buf, size_t len, int flags, const void* dest_addr, int addrlen)
+{
+    #if BOSS_WINDOWS | BOSS_ANDROID
+        return sendto(sockfd, (const char*) buf, len, flags, (const struct sockaddr*) dest_addr, addrlen);
+    #else
+        struct sockaddr_in DestAddrIn;
+        Memory::Copy(&DestAddrIn, dest_addr, addrlen);
+        DestAddrIn.sin_len = addrlen;
+        return sendto(sockfd, buf, len, flags, (const struct sockaddr*) &DestAddrIn, (socklen_t) addrlen);
+    #endif
+}
+
+extern "C" int boss_ioctlsocket(int sockfd, long cmd, unsigned long* argp)
+{
+    #if BOSS_WINDOWS
+        return ioctlsocket(sockfd, cmd, argp);
+    #elif BOSS_LINUX | BOSS_ANDROID
+        return ioctl(sockfd, cmd, argp);
+    #else
+        #define IOC_IN       0x80000000
+        #define IOCPARM_MASK 0x7f
+        #define _IOW(x,y,t)  (IOC_IN|(((long)sizeof(t)&IOCPARM_MASK)<<16)|((x)<<8)|(y))
+        #define FIONBIO      _IOW('f', 126, u_long)
+
+        const sint32 OldFlags = fcntl(sockfd, F_GETFL, 0);
+        sint32 NewFlag = 0;
+        switch(cmd)
+        {
+        case FIONBIO: NewFlag = O_NONBLOCK;
+        }
+        return (0 <= fcntl(sockfd, F_SETFL, OldFlags | NewFlag));
+    #endif
+}
+
+extern "C" int boss_select(int nfds, boss_fd_set* readfds, boss_fd_set* writefds, boss_fd_set* exceptfds, void* timeout)
+{
+    #if BOSS_WINDOWS
+        return select(nfds, (fd_set*) readfds, (fd_set*) writefds, (fd_set*) exceptfds, (struct timeval*) timeout);
+    #else
+        return select(nfds,
+            (fd_set*) ((readfds)? &readfds->fds_bits : nullptr),
+            (fd_set*) ((writefds)? &writefds->fds_bits : nullptr),
+            (fd_set*) ((exceptfds)? &exceptfds->fds_bits : nullptr),
+            (struct timeval*) timeout);
+    #endif
+}
+
+extern "C" int boss_closesocket(int sockfd)
+{
+    #if BOSS_WINDOWS
+        return closesocket(sockfd);
+    #else
+        return close(sockfd);
+    #endif
+}
+
+extern "C" void* boss_gethostbyaddr(const void* addr, int len, int type)
+{
+    #if BOSS_WINDOWS
+        return (void*) gethostbyaddr((const char*) addr, len, type);
+    #else
+        return (void*) gethostbyaddr(addr, (socklen_t) len, type);
+    #endif
+}
+
+extern "C" void* boss_gethostbyname(const char* name)
+{
+    return gethostbyname(name);
+}
+
+extern "C" int boss_getaddrinfo(const char* node, const char* service, const void* hints, void** res)
+{
+    return getaddrinfo(node, service, (const struct addrinfo*) hints, (struct addrinfo**) res);
+}
+
+extern "C" void boss_freeaddrinfo(void* res)
+{
+    return freeaddrinfo((struct addrinfo*) res);
+}
+
+extern "C" const char* boss_gai_strerror(int errcode)
+{
+    #if BOSS_WINDOWS
+        static String Result;
+        Result = String::Format("boss_gai_strerror: %d", errcode);
+        return Result;
+    #else
+        return gai_strerror(errcode);
+    #endif
+}
+
+extern "C" void* boss_getservbyname(const char* name, const char* proto)
+{
+    return (void*) getservbyname(name, proto);
+}
+
+extern "C" void* boss_getservbyport(int port, const char* proto)
+{
+    return (void*) getservbyport(port, proto);
+}
+
+extern "C" char* boss_inet_ntoa(void* in)
+{
+    return inet_ntoa(*((struct in_addr*) in));
+}
+
+extern "C" unsigned int boss_inet_addr(const char* cp)
+{
+    return (unsigned int) inet_addr(cp);
+}
+
+extern "C" unsigned int boss_htonl(unsigned int hostlong)
+{
+    #if BOSS_WINDOWS
+        return (unsigned int) htonl(hostlong);
+    #else
+        return (unsigned int) htonl((uint32_t) hostlong);
+    #endif
+}
+
+extern "C" unsigned short boss_htons(unsigned short hostshort)
+{
+    #if BOSS_WINDOWS
+        return (unsigned short) htons(hostshort);
+    #else
+        return (unsigned short) htons((uint16_t) hostshort);
+    #endif
+}
+
+extern "C" unsigned int boss_ntohl(unsigned int netlong)
+{
+    #if BOSS_WINDOWS
+        return (unsigned int) ntohl(netlong);
+    #else
+        return (unsigned int) ntohl((uint32_t) netlong);
+    #endif
+}
+
+extern "C" unsigned short boss_ntohs(unsigned short netshort)
+{
+    #if BOSS_WINDOWS
+        return (unsigned short) ntohs(netshort);
+    #else
+        return (unsigned short) ntohs((uint16_t) netshort);
+    #endif
+}
+
+extern "C" void boss_FD_ZERO(boss_fd_set* fdset)
+{
+    #if BOSS_WINDOWS
+        FD_ZERO(fdset);
+    #else
+        FD_ZERO((fd_set*) &fdset->fds_bits);
+        fdset->fd_count = 0;
+    #endif
+}
+
+extern "C" void boss_FD_SET(int fd, boss_fd_set* fdset)
+{
+    #if BOSS_WINDOWS
+        FD_SET(fd, fdset);
+    #else
+        FD_SET(fd, (fd_set*) &fdset->fds_bits);
+        fdset->fd_count++;
+    #endif
+}
+
+extern "C" void boss_FD_CLR(int fd, boss_fd_set* fdset)
+{
+    #if BOSS_WINDOWS
+        FD_CLR(fd, fdset);
+    #else
+        FD_CLR(fd, (fd_set*) &fdset->fds_bits);
+    #endif
+}
+
+extern "C" int boss_FD_ISSET(int fd, boss_fd_set* fdset)
+{
+    #if BOSS_WINDOWS
+        return FD_ISSET(fd, fdset);
+    #else
+        return FD_ISSET(fd, (fd_set*) &fdset->fds_bits);
+    #endif
+}
+
+extern "C" int boss_geterrno()
+{
+    #if BOSS_WINDOWS
+        return WSAGetLastError() - 10000;
+    #else
+        return errno;
+    #endif
+}
+
+extern "C" void boss_seterrno(int err)
+{
+    #if BOSS_WINDOWS
+        if(err == 0) WSASetLastError(0);
+        else WSASetLastError(err + 10000);
+    #else
+        errno = err;
+    #endif
 }

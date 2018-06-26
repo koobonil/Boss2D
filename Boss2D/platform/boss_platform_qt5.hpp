@@ -24,7 +24,6 @@
     #include <QGLWidget>
     #include <QGLFunctions>
     #include <QGLShaderProgram>
-
     #include <QtPurchasing>
 
     #if !BOSS_IPHONE
@@ -40,12 +39,16 @@
     #include <QAudioRecorder>
     #include <QAudioProbe>
     #include <QAudioDeviceInfo>
-
     #include <QDesktopServices>
 
-    #if (BOSS_WINDOWS & !BOSS_WINDOWS_MINGW) | BOSS_MAC_OSX
+    #if QT_HAVE_WEBENGINEWIDGETS
+        #include <QtWebEngine>
         #include <QWebEngineView>
         #include <QWebEngineProfile>
+    #endif
+
+    #if BOSS_IPHONE
+        #include <qpa/qplatformnativeinterface.h>
     #endif
 
     #if BOSS_ANDROID
@@ -59,10 +62,7 @@
         #include <fcntl.h>
         #include <errno.h>
         #include <string.h>
-    #endif
-
-    #if BOSS_IPHONE
-        #include <QtGui/5.10.0/QtGui/qpa/qplatformnativeinterface.h>
+        extern JNIEnv* GetAndroidJNIEnv();
     #endif
 
     class MainData;
@@ -1495,14 +1495,19 @@
     public:
         static void Begin(ThreadCB cb, payload data)
         {
-            new ThreadClass(cb, data);
+            new ThreadClass(cb, nullptr, data);
+        }
+        static void* BeginEx(ThreadExCB cb, payload data)
+        {
+            return new ThreadClass(nullptr, cb, data);
         }
 
     private:
-        ThreadClass(ThreadCB cb, payload data)
+        ThreadClass(ThreadCB cb1, ThreadExCB cb2, payload data)
         {
-            BOSS_ASSERT("cb이 nullptr이 될 수 없습니다", cb);
-            m_cb = cb;
+            BOSS_ASSERT("cb1와 cb2가 모두 nullptr일 순 없습니다", cb1 || cb2);
+            m_cb1 = cb1;
+            m_cb2 = cb2;
             m_data = data;
             connect(this, SIGNAL(finished()), SLOT(OnFinished()));
             start();
@@ -1512,7 +1517,8 @@
     private:
         void run() override
         {
-            m_cb(m_data);
+            if(m_cb1) m_cb1(m_data);
+            else if(m_cb2) m_cb2(m_data);
         }
 
     private slots:
@@ -1522,7 +1528,8 @@
         }
 
     private:
-        ThreadCB m_cb;
+        ThreadCB m_cb1;
+        ThreadExCB m_cb2;
         payload m_data;
     };
 
@@ -1947,7 +1954,7 @@
         virtual void closeEvent(QCloseEvent* event) {}
     };
 
-    #if (BOSS_WINDOWS & !BOSS_WINDOWS_MINGW) | BOSS_MAC_OSX
+    #if QT_HAVE_WEBENGINEWIDGETS
         typedef QWebEngineView WebEngineViewClass;
     #else
         typedef WebEngineViewForExtraDesktop WebEngineViewClass;
@@ -1994,12 +2001,18 @@
         payload mData;
     };
 
-    #if (BOSS_WINDOWS & !BOSS_WINDOWS_MINGW) | BOSS_MAC_OSX
+    #if QT_HAVE_WEBENGINEWIDGETS
         class WebPrivateForDesktop
         {
         public:
             WebPrivateForDesktop()
             {
+                static bool JustOnce = true;
+                if(JustOnce)
+                {
+                    JustOnce = false;
+                    QtWebEngine::initialize();
+                }
                 mProxy = mScene.addWidget(&mView);
             }
             ~WebPrivateForDesktop()
@@ -3158,6 +3171,8 @@
         class CameraSurfaceForAndroid
         {
         private:
+            QCameraViewfinderSettings mSettings;
+            QList<QCameraViewfinderSettings> mAllSettings;
             id_mutex mMutex;
             uint08s mLastImage;
             uint32 mTextureId;
@@ -3165,16 +3180,38 @@
         public:
             CameraSurfaceForAndroid(const QCameraInfo& info)
             {
+                {
+                    QCamera Camera(info);
+                    mSettings = Camera.viewfinderSettings();
+                    QList<QSize> SupportedResolutions;
+                    SupportedResolutions.append(QSize(320, 240));
+                    SupportedResolutions.append(QSize(640, 480));
+                    SupportedResolutions.append(QSize(720, 480));
+                    SupportedResolutions.append(QSize(960, 720));
+                    SupportedResolutions.append(QSize(1280, 720));
+                    SupportedResolutions.append(QSize(1280, 960));
+                    SupportedResolutions.append(QSize(1440, 1080));
+                    SupportedResolutions.append(QSize(1920, 1080));
+                    SupportedResolutions.append(QSize(1440, 1440));
+                    SupportedResolutions.append(QSize(2560, 1080));
+                    SupportedResolutions.append(QSize(1920, 1440));
+                    SupportedResolutions.append(QSize(2560, 1440));
+                    foreach(const auto& CurResolution, SupportedResolutions)
+                    {
+                        QCameraViewfinderSettings NewSettings = mSettings;
+                        NewSettings.setResolution(CurResolution);
+                        mAllSettings.append(NewSettings);
+                    }
+                }
                 mMutex = Mutex::Open();
                 mTextureId = -1;
                 JNINativeMethod methods[] {
                     {"OnPictureTaken", "([BI)V", reinterpret_cast<void*>(OnPictureTaken)},
-                    {"OnPreviewTaken", "([BIII)V", reinterpret_cast<void*>(OnPreviewTaken)}};
-                QAndroidJniObject javaClass("com/boss2d/CameraManager");
-                QAndroidJniEnvironment env;
-                jclass objectClass = env->GetObjectClass(javaClass.object<jobject>());
-                env->RegisterNatives(objectClass, methods, sizeof(methods) / sizeof(methods[0]));
-                env->DeleteLocalRef(objectClass);
+                    {"OnPreviewTaken", "([BIII)V", reinterpret_cast<void*>(OnPreviewTaken)}};                
+                JNIEnv* env = GetAndroidJNIEnv();
+                jclass BossCameraManagerClass = env->FindClass("com/boss2d/BossCameraManager");
+                env->RegisterNatives(BossCameraManagerClass, methods, sizeof(methods) / sizeof(methods[0]));
+                env->DeleteLocalRef(BossCameraManagerClass);
                 SavedMe() = this;
             }
             ~CameraSurfaceForAndroid()
@@ -3198,11 +3235,12 @@
                 f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                 f->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 256, 256, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
                 BOSS_TRACE("StartCamera: GenTexture - mTextureId: %d", mTextureId);
-                QAndroidJniObject::callStaticMethod<void>("com/boss2d/CameraManager", "init", "(I)V", mTextureId);
+                QAndroidJniObject::callStaticMethod<void>("com/boss2d/BossCameraManager", "init", "(III)V",
+                    mTextureId, mSettings.resolution().width(), mSettings.resolution().height());
             }
             void StopCamera()
             {
-                QAndroidJniObject::callStaticMethod<void>("com/boss2d/CameraManager", "quit", "()V");
+                QAndroidJniObject::callStaticMethod<void>("com/boss2d/BossCameraManager", "quit", "()V");
                 QOpenGLContext* ctx = QOpenGLContext::currentContext();
                 BOSS_TRACE("StopCamera: DeleteTexture begin: 0x%08X, %d", ctx, mTextureId);
                 QOpenGLFunctions* f = ctx->functions();
@@ -3210,13 +3248,13 @@
                 mTextureId = -1;
                 BOSS_TRACE("StopCamera: DeleteTexture done");
             }
-            const QCameraViewfinderSettings GetSettings() {return QCameraViewfinderSettings();}
-            void SetSettings(const QCameraViewfinderSettings& settings) {}
-            const QList<QCameraViewfinderSettings> GetSupportedAllSettings() {return QList<QCameraViewfinderSettings>();}
+            const QCameraViewfinderSettings GetSettings() {return mSettings;}
+            void SetSettings(const QCameraViewfinderSettings& settings) {mSettings = settings;}
+            const QList<QCameraViewfinderSettings> GetSupportedAllSettings() {return mAllSettings;}
 
         protected:
-            void StartPreview(bool preview) {QAndroidJniObject::callStaticMethod<void>("com/boss2d/CameraManager", "play", "(I)V", (preview)? 1 : 2);}
-            void StopPreview() {QAndroidJniObject::callStaticMethod<void>("com/boss2d/CameraManager", "stop", "()V");}
+            void StartPreview(bool preview) {QAndroidJniObject::callStaticMethod<void>("com/boss2d/BossCameraManager", "play", "(I)V", (preview)? 1 : 2);}
+            void StopPreview() {QAndroidJniObject::callStaticMethod<void>("com/boss2d/BossCameraManager", "stop", "()V");}
             virtual bool CaptureEnabled() {return false;}
             virtual Bmp::bitmappixel* GetBuffer(sint32 width, sint32 height) {return nullptr;}
             virtual void BufferFlush() {}
@@ -3590,7 +3628,8 @@
                     sint32 BestValue = 0, SavedWidth = width, SavedHeight = height;
                     double SavedMinFR = -1, SavedMaxFR = -1;
                     auto AllSettings = mCameraService->GetSupportedAllSettings();
-                    BOSS_TRACE("Created Camera: %s [Included %d settings]",
+                    BOSS_TRACE("Created Camera: %s(%s) [Included %d settings]",
+                        CurCameraInfo.deviceName().toUtf8().constData(),
                         CurCameraInfo.description().toUtf8().constData(), AllSettings.size());
                     BOSS_TRACE(" - Setting Count: %d", AllSettings.size());
                     foreach(const auto& CurSetting, AllSettings)

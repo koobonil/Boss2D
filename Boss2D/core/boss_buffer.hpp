@@ -125,7 +125,7 @@ namespace BOSS
             {
                 chars TypeNameBegin = nullptr;
                 chars TypeNameEnd = nullptr;
-                #if BOSS_WINDOWS && defined(_MSC_VER)
+                #if BOSS_WINDOWS & !BOSS_WINDOWS_MINGW
                     chars FuncFocus = __FUNCSIG__;
                     while(*FuncFocus != '<') ++FuncFocus;
                     TypeNameBegin = ++FuncFocus;

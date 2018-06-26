@@ -1,6 +1,7 @@
 TARGET = helloworld
 TEMPLATE = app
 
+QT_ADD_PLUGINS_FIREBASE = no
 !include(../../Boss2D/project/boss2d.pri) {
     error("Couldn't find the boss2d.pri file...")
 }
@@ -20,16 +21,21 @@ win32{
     RC_ICONS += ../common/windows/main.ico
 }
 
+macx{
+    QMAKE_BUNDLE_DATA += ASSETS_IMAGE
+    QMAKE_INFO_PLIST = $$PWD/../common/macx/Info.plist
+    QMAKE_ASSET_CATALOGS += $$PWD/../common/macx/Assets.xcassets
+    QMAKE_ASSET_CATALOGS_APP_ICON = AppIcon
+}
+
+ios{
+    QMAKE_BUNDLE_DATA += ASSETS_IMAGE
+    QMAKE_INFO_PLIST = $$PWD/../common/ios/Info.plist
+    QMAKE_ASSET_CATALOGS += $$PWD/../common/ios/Assets.xcassets
+    QMAKE_ASSET_CATALOGS_APP_ICON = AppIcon
+}
+
 android{
     INSTALLS += ASSETS_IMAGE
     ANDROID_PACKAGE_SOURCE_DIR = $$PWD/../common/android
-}
-
-ios|macx{
-    QMAKE_BUNDLE_DATA += ASSETS_IMAGE
-    QMAKE_BUNDLE_DATA += PLIST_RESOURCE
-    QMAKE_INFO_PLIST = $$PWD/../common/ios/Info.plist
-    PLIST_RESOURCE.files += $$PWD/../common/ios/res/icon.icns
-    ios: PLIST_RESOURCE.path = /
-    macx: PLIST_RESOURCE.path = /Contents/Resources
 }

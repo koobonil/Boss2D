@@ -16,10 +16,12 @@ namespace BOSS
     public:
         static const Strings GetValidServices();
         static OAuth2Service Create(chars service);
+        static OAuth2Service* CreatePtr(chars service);
+        static void Remove(OAuth2Service* service);
 
     // 서비스함수
     public:
-        virtual void Signin(chars option, bool clearcookies, id_bitmap clipper = nullptr) {}
+        virtual void Signin(chars option, bool dialog, bool clearcookies, id_bitmap clipper = nullptr) {}
         virtual void Signout() {}
         virtual bool IsSigning(bool needDestroy, bool* destroyResult = nullptr) {return false;}
         virtual bool IsSigned() const {return false;}

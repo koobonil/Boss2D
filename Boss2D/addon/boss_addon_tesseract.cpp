@@ -13,9 +13,9 @@ bool __LINK_ADDON_TESSERACT__() {return true;} // 링크옵션 /OPT:NOREF가 안
 
 // 도구준비
 #include <addon/boss_fakewin.h>
-#include <addon/boss_integration_tesseract-3.04.01.h>
+#include <addon/boss_integration_tesseract-3.05.02.h>
 
-#include <addon/tesseract-3.04.01_for_boss/api/baseapi.h>
+#include <addon/tesseract-3.05.02_for_boss/api/baseapi.h>
 #include <addon/openalpr-2.3.0_for_boss/openalpr-windows-2.2.0/tesseract-ocr/dependencies/liblept/include/allheaders.h>
 #include BOSS_OPENCV_U_opencv2__core_hpp
 #include BOSS_OPENCV_U_opencv2__imgproc_hpp

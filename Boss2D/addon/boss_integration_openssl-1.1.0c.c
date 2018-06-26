@@ -12,7 +12,7 @@
 #pragma warning(disable : 4090)
 #pragma warning(disable : 4133)
 
-#if BOSS_LINUX | BOSS_ANDROID
+#if !BOSS_WINDOWS | BOSS_NEED_FORCED_FAKEWIN
     #define __pragma(...)
     #define struct_stat_BOSS struct boss_fakewin_struct_stat64
 #else
@@ -54,9 +54,6 @@
 #include <addon/openssl-1.1.0c_for_boss/crypto/bio/b_print.c>
 #include <addon/openssl-1.1.0c_for_boss/crypto/bio/b_dump.c>
 #include <addon/openssl-1.1.0c_for_boss/crypto/bio/bss_sock.c>
-#if !BOSS_WINDOWS
-    #define WSAData _WSAData
-#endif
 #include <addon/openssl-1.1.0c_for_boss/crypto/bio/b_sock.c>
 #include <addon/openssl-1.1.0c_for_boss/crypto/bio/bss_conn.c>
 #include <addon/openssl-1.1.0c_for_boss/crypto/bio/bf_buff.c>

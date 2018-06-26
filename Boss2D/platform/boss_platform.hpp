@@ -34,6 +34,7 @@ namespace BOSS
     typedef void (*ProcedureCB)(payload data);
     typedef bool (*PassCB)(void* view, payload data);
     typedef void (*ThreadCB)(void* data);
+    typedef uint32 (*ThreadExCB)(void* data);
     typedef void (*PurchaseCB)(id_purchase purchase, bool success, chars comment);
     typedef sint32 (*SerialDecodeCB)(bytes data, sint32 length, uint08s& outdata, sint32* outtype);
     typedef void (*SerialEncodeCB)(bytes data, sint32 length, uint08s& outdata, sint32 type);
@@ -295,7 +296,7 @@ namespace BOSS
             \brief 웹브라우저 다이얄로그
             \param url : 접속할 URL
             */
-            static void WebBrowserDialog(String url);
+            static void WebBrowserDialog(chars url);
 
             /*!
             \brief 텍스트편집 트래커 열기
@@ -437,11 +438,19 @@ namespace BOSS
             static chars GetOSName();
 
             /*!
-            \brief 특정 콜백함수를 스레드방식으로 실행
+            \brief 콜백함수(ThreadCB)를 스레드방식으로 실행
             \param cb : 콜백함수
             \param data : 콜백함수에 전달할 데이터
             */
             static void Threading(ThreadCB cb, payload data);
+
+            /*!
+            \brief 콜백함수(ThreadExCB)를 스레드방식으로 실행
+            \param cb : 콜백함수
+            \param data : 콜백함수에 전달할 데이터
+            \return 스레드핸들
+            */
+            static void* ThreadingEx(ThreadExCB cb, payload data);
 
             /*!
             \brief 소속된 스레드ID 구하기
@@ -1534,12 +1543,13 @@ namespace BOSS
             \param url : 로드할 웹주소
             \param width : 웹페이지 가로길이(px)
             \param height : 웹페이지 세로길이(px)
+            \param clearcookies : 쿠키제거여부
             \param cb : 콜백함수
             \param data : 콜백함수에 전달할 데이터
             \return 웹핸들
             \see Release
             */
-            static h_web Create(chars url, sint32 width, sint32 height, EventCB cb = nullptr, payload data = nullptr);
+            static h_web Create(chars url, sint32 width, sint32 height, bool clearcookies, EventCB cb = nullptr, payload data = nullptr);
 
             /*!
             \brief 웹핸들 반환
@@ -1549,12 +1559,6 @@ namespace BOSS
             static void Release(h_web web);
 
             /*!
-            \brief 쿠키제거
-            \param web : 해당 웹핸들
-            */
-            static void ClearCookies(h_web web);
-
-            /*!
             \brief 웹페이지 리로드
             \param web : 해당 웹핸들
             \param url : 로드할 웹주소
@@ -1562,7 +1566,7 @@ namespace BOSS
             static void Reload(h_web web, chars url);
 
             /*!
-            \brief 웹페이지 리로드
+            \brief 웹페이지 리사이징
             \param web : 해당 웹핸들
             \param width : 웹페이지 가로길이(px)
             \param height : 웹페이지 세로길이(px)
@@ -1601,6 +1605,31 @@ namespace BOSS
             \return 스크린샷 비트맵(nullptr은 실패)
             */
             static id_bitmap_read GetScreenshotBitmap(h_web web, bool vflip = true);
+
+            /*!
+            \brief 네이티브형 웹핸들 할당
+            \param url : 로드할 웹주소
+            \param clearcookies : 쿠키제거여부
+            \param cb : 콜백함수
+            \param data : 콜백함수에 전달할 데이터
+            \return 네이티브형 웹핸들
+            \see ReleaseNative
+            */
+            static h_web_native CreateNative(chars url, bool clearcookies, EventCB cb = nullptr, payload data = nullptr);
+
+            /*!
+            \brief 네이티브형 웹핸들 반환
+            \param web_native : 네이티브형 웹핸들
+            \see CreateNative
+            */
+            static void ReleaseNative(h_web_native web_native);
+
+            /*!
+            \brief 네이티브형 웹페이지 리로드
+            \param web_native : 해당 네이티브형 웹핸들
+            \param url : 로드할 웹주소
+            */
+            static void ReloadNative(h_web_native web_native, chars url);
         };
 
         ////////////////////////////////////////////////////////////////////////////////

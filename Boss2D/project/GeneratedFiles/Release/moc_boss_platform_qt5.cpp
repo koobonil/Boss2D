@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'boss_platform_qt5.hpp'
 **
-** Created by: The Qt Meta Object Compiler version 67 (Qt 5.10.0)
+** Created by: The Qt Meta Object Compiler version 67 (Qt 5.11.0)
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
@@ -12,7 +12,7 @@
 #if !defined(Q_MOC_OUTPUT_REVISION)
 #error "The header file 'boss_platform_qt5.hpp' doesn't include <QObject>."
 #elif Q_MOC_OUTPUT_REVISION != 67
-#error "This file was generated using the moc from 5.10.0. It"
+#error "This file was generated using the moc from 5.11.0. It"
 #error "cannot be used with the include files from this version of Qt."
 #error "(The moc has changed too much.)"
 #endif
@@ -62,7 +62,7 @@ void ViewAPI::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, voi
     Q_UNUSED(_a);
 }
 
-const QMetaObject ViewAPI::staticMetaObject = {
+QT_INIT_METAOBJECT const QMetaObject ViewAPI::staticMetaObject = {
     { &QObject::staticMetaObject, qt_meta_stringdata_ViewAPI.data,
       qt_meta_data_ViewAPI,  qt_static_metacall, nullptr, nullptr}
 };
@@ -128,7 +128,7 @@ void GenericView::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id,
     Q_UNUSED(_a);
 }
 
-const QMetaObject GenericView::staticMetaObject = {
+QT_INIT_METAOBJECT const QMetaObject GenericView::staticMetaObject = {
     { &QFrame::staticMetaObject, qt_meta_stringdata_GenericView.data,
       qt_meta_data_GenericView,  qt_static_metacall, nullptr, nullptr}
 };
@@ -194,7 +194,7 @@ void MainViewGL::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
     Q_UNUSED(_a);
 }
 
-const QMetaObject MainViewGL::staticMetaObject = {
+QT_INIT_METAOBJECT const QMetaObject MainViewGL::staticMetaObject = {
     { &QGLWidget::staticMetaObject, qt_meta_stringdata_MainViewGL.data,
       qt_meta_data_MainViewGL,  qt_static_metacall, nullptr, nullptr}
 };
@@ -260,7 +260,7 @@ void MainViewMDI::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id,
     Q_UNUSED(_a);
 }
 
-const QMetaObject MainViewMDI::staticMetaObject = {
+QT_INIT_METAOBJECT const QMetaObject MainViewMDI::staticMetaObject = {
     { &QMdiArea::staticMetaObject, qt_meta_stringdata_MainViewMDI.data,
       qt_meta_data_MainViewMDI,  qt_static_metacall, nullptr, nullptr}
 };
@@ -339,7 +339,7 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
     Q_UNUSED(_a);
 }
 
-const QMetaObject MainWindow::staticMetaObject = {
+QT_INIT_METAOBJECT const QMetaObject MainWindow::staticMetaObject = {
     { &QMainWindow::staticMetaObject, qt_meta_stringdata_MainWindow.data,
       qt_meta_data_MainWindow,  qt_static_metacall, nullptr, nullptr}
 };
@@ -416,7 +416,7 @@ void EditTracker::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id,
     Q_UNUSED(_a);
 }
 
-const QMetaObject EditTracker::staticMetaObject = {
+QT_INIT_METAOBJECT const QMetaObject EditTracker::staticMetaObject = {
     { &QLineEdit::staticMetaObject, qt_meta_stringdata_EditTracker.data,
       qt_meta_data_EditTracker,  qt_static_metacall, nullptr, nullptr}
 };
@@ -497,7 +497,7 @@ void ListTracker::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id,
     }
 }
 
-const QMetaObject ListTracker::staticMetaObject = {
+QT_INIT_METAOBJECT const QMetaObject ListTracker::staticMetaObject = {
     { &QListWidget::staticMetaObject, qt_meta_stringdata_ListTracker.data,
       qt_meta_data_ListTracker,  qt_static_metacall, nullptr, nullptr}
 };
@@ -587,7 +587,7 @@ void ThreadClass::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id,
     Q_UNUSED(_a);
 }
 
-const QMetaObject ThreadClass::staticMetaObject = {
+QT_INIT_METAOBJECT const QMetaObject ThreadClass::staticMetaObject = {
     { &QThread::staticMetaObject, qt_meta_stringdata_ThreadClass.data,
       qt_meta_data_ThreadClass,  qt_static_metacall, nullptr, nullptr}
 };
@@ -703,7 +703,7 @@ void TCPAgent::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, vo
     }
 }
 
-const QMetaObject TCPAgent::staticMetaObject = {
+QT_INIT_METAOBJECT const QMetaObject TCPAgent::staticMetaObject = {
     { &QTcpServer::staticMetaObject, qt_meta_stringdata_TCPAgent.data,
       qt_meta_data_TCPAgent,  qt_static_metacall, nullptr, nullptr}
 };
@@ -780,7 +780,7 @@ void WebEngineViewForExtraDesktop::qt_static_metacall(QObject *_o, QMetaObject::
     Q_UNUSED(_a);
 }
 
-const QMetaObject WebEngineViewForExtraDesktop::staticMetaObject = {
+QT_INIT_METAOBJECT const QMetaObject WebEngineViewForExtraDesktop::staticMetaObject = {
     { &QObject::staticMetaObject, qt_meta_stringdata_WebEngineViewForExtraDesktop.data,
       qt_meta_data_WebEngineViewForExtraDesktop,  qt_static_metacall, nullptr, nullptr}
 };
@@ -859,7 +859,7 @@ void WebViewPrivate::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _
     }
 }
 
-const QMetaObject WebViewPrivate::staticMetaObject = {
+QT_INIT_METAOBJECT const QMetaObject WebViewPrivate::staticMetaObject = {
     { &WebEngineViewClass::staticMetaObject, qt_meta_stringdata_WebViewPrivate.data,
       qt_meta_data_WebViewPrivate,  qt_static_metacall, nullptr, nullptr}
 };
@@ -967,7 +967,7 @@ void PurchasePrivate::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int 
     }
 }
 
-const QMetaObject PurchasePrivate::staticMetaObject = {
+QT_INIT_METAOBJECT const QMetaObject PurchasePrivate::staticMetaObject = {
     { &QInAppStore::staticMetaObject, qt_meta_stringdata_PurchasePrivate.data,
       qt_meta_data_PurchasePrivate,  qt_static_metacall, nullptr, nullptr}
 };
@@ -1071,7 +1071,7 @@ void CameraSurface::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _i
     }
 }
 
-const QMetaObject CameraSurface::staticMetaObject = {
+QT_INIT_METAOBJECT const QMetaObject CameraSurface::staticMetaObject = {
     { &QAbstractVideoSurface::staticMetaObject, qt_meta_stringdata_CameraSurface.data,
       qt_meta_data_CameraSurface,  qt_static_metacall, nullptr, nullptr}
 };
@@ -1174,7 +1174,7 @@ void MicrophoneClass::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int 
     }
 }
 
-const QMetaObject MicrophoneClass::staticMetaObject = {
+QT_INIT_METAOBJECT const QMetaObject MicrophoneClass::staticMetaObject = {
     { &QAudioProbe::staticMetaObject, qt_meta_stringdata_MicrophoneClass.data,
       qt_meta_data_MicrophoneClass,  qt_static_metacall, nullptr, nullptr}
 };

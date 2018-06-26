@@ -31,6 +31,7 @@ namespace BOSS
             {BOSS_ASSERT("This class is not allowed to be copied", false); return *this;}
         public:
             h_web mWeb;
+            h_web_native mWebNative;
             bool mSigned;
             bool mNeedDestroyWeb;
             id_curl mCurl;
@@ -58,22 +59,20 @@ namespace BOSS
         }
 
     private:
-		void Signin(chars option, bool clearcookies, id_bitmap clipper) override
-		{
-			Context ClientInfo(ST_Json, SO_OnlyReference, option);
-			data().mClientId = ClientInfo[0].GetString();
-			data().mClientSecret = ClientInfo[1].GetString();
-			Bmp::Remove(data().mPictureClipper);
-			data().mPictureClipper = clipper;
+        void Signin(chars option, bool dialog, bool clearcookies, id_bitmap clipper) override
+        {
+            Context ClientInfo(ST_Json, SO_OnlyReference, option);
+            data().mClientId = ClientInfo[0].GetString();
+            data().mClientSecret = ClientInfo[1].GetString();
+            Bmp::Remove(data().mPictureClipper);
+            data().mPictureClipper = clipper;
 
-			String ResultUrl = AddOn::Curl::RequestRedirectUrl(data().mCurl, SigninCore(data_const().mClientId), 302);
-			data().mWeb = Platform::Web::Create(ResultUrl, 0, 0, OnEvent, (payload)this);
-			data().mSigned = false;
-			data().mNeedDestroyWeb = false;
-
-			if(clearcookies)
-				Platform::Web::ClearCookies(data().mWeb);
-		}
+            data().mSigned = false;
+            data().mNeedDestroyWeb = false;
+            String ResultUrl = AddOn::Curl::RequestRedirectUrl(data().mCurl, SigninCore(data_const().mClientId), 302);
+            if(dialog) data().mWebNative = Platform::Web::CreateNative(ResultUrl, clearcookies, OnEvent, (payload) this);
+            else data().mWeb = Platform::Web::Create(ResultUrl, 0, 0, clearcookies, OnEvent, (payload) this);
+        }
         void Signout() override
         {
             Share::Remove(mShare);
@@ -89,13 +88,15 @@ namespace BOSS
                 {
                     data().mNeedDestroyWeb = false;
                     Platform::Web::Release(data().mWeb);
+                    Platform::Web::ReleaseNative(data().mWebNative);
                     if(destroyResult) *destroyResult = true;
                     return false;
                 }
                 else if(destroyResult) *destroyResult = false;
             }
             auto& CurWeb = data_const().mWeb;
-            return (CurWeb.get() != nullptr);
+            auto& CurWebNative = data_const().mWebNative;
+            return (CurWeb.get() || CurWebNative.get());
         }
         bool IsSigned() const override
         {
@@ -168,22 +169,30 @@ namespace BOSS
                 chars CallbackUrl = "http://" "localhost/oauth2callback?";
                 static const sint32 CallbackUrlLen = boss_strlen(CallbackUrl);
                 if(!String::Compare(text, CallbackUrl, CallbackUrlLen))
-                {
-                    // 코드 얻기
-                    String Code = text + CallbackUrlLen;
-                    const sint32 FindBegin = Code.Find(0, "code=");
-                    if(FindBegin != -1) Code = Code.Right(Code.Length() - (FindBegin + 5));
-                    const sint32 FindEnd = Code.Find(0, "&");
-                    if(FindEnd != -1) Code = Code.Left(FindEnd);
-
-                    Self->OnEventCore(Code);
-
-                    // 서명됨
-                    Self->data().mSigned = true;
-                    // 웹제거요청
-                    Self->data().mNeedDestroyWeb = true;
-                }
+                    OnEventUrlChanged(self, text + CallbackUrlLen);
             }
+        }
+        static void OnEventUrlChanged(payload self, chars text)
+        {
+            auto Self = (OAuth2ServiceImpl*) self;
+
+            String Code = text;
+            const sint32 FindBegin = Code.Find(0, "code=");
+            if(FindBegin != -1) Code = Code.Right(Code.Length() - (FindBegin + 5));
+            const sint32 FindEnd = Code.Find(0, "&");
+            if(FindEnd != -1) Code = Code.Left(FindEnd);
+            else
+            {
+                const sint32 FindEnd2 = Code.Find(0, " ");
+                if(FindEnd2 != -1) Code = Code.Left(FindEnd2);
+            }
+
+            Self->OnEventCore(Code);
+
+            // 서명됨
+            Self->data().mSigned = true;
+            // 웹제거요청
+            Self->data().mNeedDestroyWeb = true;
         }
 
     protected:
@@ -193,11 +202,14 @@ namespace BOSS
             {
                 sint32 GetSize = 0;
                 bytes Result = AddOn::Curl::RequestBytes(data().mCurl, url, &GetSize);
-                id_bitmap NewBitmap = AddOn::Jpg::ToBmp(Result, GetSize);
-                data().mPicture.LoadBitmap(NewBitmap);
-                if(data().mPictureClipper)
-                    data().mPicture.ReplaceAlphaChannelBy(data().mPictureClipper);
-                Bmp::Remove(NewBitmap);
+                if(id_bitmap NewBitmap = AddOn::Jpg::ToBmp(Result, GetSize))
+                {
+                    data().mPicture.LoadBitmap(NewBitmap);
+                    if(data().mPictureClipper)
+                        data().mPicture.ReplaceAlphaChannelBy(data().mPictureClipper);
+                    Bmp::Remove(NewBitmap);
+                }
+                else data().mPicture.Crear();
             }
         }
         void ReloadBackground(chars url)
@@ -206,9 +218,12 @@ namespace BOSS
             {
                 sint32 GetSize = 0;
                 bytes Result = AddOn::Curl::RequestBytes(data().mCurl, url, &GetSize);
-                id_bitmap NewBitmap = AddOn::Jpg::ToBmp(Result, GetSize);
-                data().mBackground.LoadBitmap(NewBitmap);
-                Bmp::Remove(NewBitmap);
+                if(id_bitmap NewBitmap = AddOn::Jpg::ToBmp(Result, GetSize))
+                {
+                    data().mBackground.LoadBitmap(NewBitmap);
+                    Bmp::Remove(NewBitmap);
+                }
+                else data().mBackground.Crear();
             }
         }
 
@@ -460,5 +475,21 @@ namespace BOSS
         if(!String::CompareNoCase(service, "Kakao"))
             return OAuth2KakaoService();
         return OAuth2Service();
+    }
+
+    OAuth2Service* OAuth2Service::CreatePtr(chars service)
+    {
+        if(!String::CompareNoCase(service, "Google+"))
+            return new OAuth2GoogleService();
+        if(!String::CompareNoCase(service, "Facebook"))
+            return new OAuth2FacebookService();
+        if(!String::CompareNoCase(service, "Kakao"))
+            return new OAuth2KakaoService();
+        return new OAuth2Service();
+    }
+
+    void OAuth2Service::Remove(OAuth2Service* service)
+    {
+        delete service;
     }
 }

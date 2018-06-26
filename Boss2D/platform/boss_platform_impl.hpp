@@ -34,8 +34,10 @@ namespace BOSS
         namespace Wrap
         {
             void AddWindowProcedure(WindowEvent event, ProcedureCB cb, payload data);
+
             chars Utility_GetOSName();
             sint64 Utility_CurrentAvailableMemory(sint64* totalbytes);
+
             void Option_SetOptionFlag(chars name, bool flag);
             bool Option_GetOptionFlag(chars name);
             Strings Option_GetOptionFlagNames();
@@ -45,9 +47,11 @@ namespace BOSS
             void Option_SetOptionPayload(chars name, payload data);
             payload Option_GetOptionPayload(chars name);
             Strings Option_GetOptionPayloadNames();
+
             bool Popup_FileDialog(String& path, String* shortpath, chars title, bool isdir);
             sint32 Popup_MessageDialog(chars title, chars text, DialogButtonType type);
             void Popup_WebBrowserDialog(String url);
+
             WString File_GetDirName(wchars itemname, wchar_t badslash, wchar_t goodslash);
             WString File_GetShortName(wchars itemname);
             sint32 File_GetDriveCode();
@@ -56,6 +60,10 @@ namespace BOSS
             bool File_FDUnmap(const void* map);
             void File_ResetAssetsRoot(chars dirname);
             void File_ResetAssetsRemRoot(chars dirname);
+
+            h_web_native Web_CreateNative(chars url, bool clearcookies, Platform::Web::EventCB cb, payload data);
+            void Web_ReleaseNative(h_web_native web_native);
+            void Web_ReloadNative(h_web_native web_native, chars url);
         }
     }
 }

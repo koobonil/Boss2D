@@ -362,11 +362,11 @@ extern FILE *_imp___iob;
          /* winsock[2].h was included already? */
 #     include <winsock.h>
 #    endif
-#    ifdef getservbyname
-#     undef getservbyname
-         /* this is used to be wcecompat/include/winsock_extras.h */
-// removed by BOSS: struct servent *PASCAL getservbyname(const char *, const char *);
-#    endif
+// removed by BOSS:#    ifdef getservbyname
+// removed by BOSS:#     undef getservbyname
+// removed by BOSS:         /* this is used to be wcecompat/include/winsock_extras.h */
+// removed by BOSS:struct servent *PASCAL getservbyname(const char *, const char *);
+// removed by BOSS:#    endif
 
 #    ifdef _WIN64
 /*

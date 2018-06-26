@@ -77,11 +77,11 @@
 #define BOSS_OPENSSL_V_openssl__rc4_h                 <addon/openssl-1.1.0c_for_boss/include/openssl/rc4.h>
 #define BOSS_OPENSSL_V_openssl__cms_h                 <addon/openssl-1.1.0c_for_boss/include/openssl/cms.h>
 #define BOSS_OPENSSL_V_openssl__ssl2_h                <addon/openssl-1.1.0c_for_boss/include/openssl/ssl2.h>
-#define BOSS_OPENSSL_V_openssl__ssl3_h                  <addon/openssl-1.1.0c_for_boss/include/openssl/ssl3.h>
+#define BOSS_OPENSSL_V_openssl__ssl3_h                <addon/openssl-1.1.0c_for_boss/include/openssl/ssl3.h>
 #define BOSS_OPENSSL_V_openssl__dh_h                  <addon/openssl-1.1.0c_for_boss/include/openssl/dh.h>
-#define BOSS_OPENSSL_V_openssl__tls1_h                  <addon/openssl-1.1.0c_for_boss/include/openssl/tls1.h> 
-#define BOSS_OPENSSL_V_openssl__dtls1_h                  <addon/openssl-1.1.0c_for_boss/include/openssl/dtls1.h>
-#define BOSS_OPENSSL_V_openssl__srtp_h                  <addon/openssl-1.1.0c_for_boss/include/openssl/srtp.h> 
+#define BOSS_OPENSSL_V_openssl__tls1_h                <addon/openssl-1.1.0c_for_boss/include/openssl/tls1.h>
+#define BOSS_OPENSSL_V_openssl__dtls1_h               <addon/openssl-1.1.0c_for_boss/include/openssl/dtls1.h>
+#define BOSS_OPENSSL_V_openssl__srtp_h                <addon/openssl-1.1.0c_for_boss/include/openssl/srtp.h>
 #define BOSS_OPENSSL_V_openssl__comp_h                <addon/openssl-1.1.0c_for_boss/include/openssl/comp.h>
 #define BOSS_OPENSSL_V_openssl__crypto_h              <addon/openssl-1.1.0c_for_boss/include/openssl/crypto.h>
 #define BOSS_OPENSSL_V_openssl__e_os2_h               <addon/openssl-1.1.0c_for_boss/include/openssl/e_os2.h>

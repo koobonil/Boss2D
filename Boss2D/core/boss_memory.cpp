@@ -34,6 +34,7 @@ namespace BOSS
 
     void Memory::CopyVPTR(void* dst, const void* src)
     {
+        BOSS_ASSERT("모든 컴파일러에 대한 검증이 안된 코드입니다.", false);
         switch(sizeof(void*))
         {
         case 4:

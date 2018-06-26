@@ -9,15 +9,15 @@
 
 
 
-#if BOSS_WINDOWS // modified by BOSS, original code: #ifdef WINDOWS
+#if BOSS_WINDOWS & !BOSS_WINDOWS_MINGW // modified by BOSS, original code: #ifdef WINDOWS
     // Import windows only stuff
 	#include BOSS_FAKEWIN_V_windows_h //original-code:<windows.h>
 	#if _MSC_VER < 1900
-	struct timespec
-	{
-		time_t tv_sec;  // Seconds - >= 0
-		long   tv_nsec; // Nanoseconds - [0, 999999999]
-	};
+        struct timespec
+        {
+                time_t tv_sec;  // Seconds - >= 0
+                long   tv_nsec; // Nanoseconds - [0, 999999999]
+        };
 	#else
 
 	#endif

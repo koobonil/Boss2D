@@ -90,22 +90,6 @@ namespace BOSS
 
     const uint32 Parser::ReadHex32()
     {
-        if(m_source[m_offset] == '0'
-            && (m_source[m_offset + 1] == 'x' || m_source[m_offset + 1] == 'X'))
-            m_offset += 2;
-
-        uint32 Value = 0;
-        bool IsNumeric = false, IsHexLower = false, IsHexUpper = false;
-        char OneChar = m_source[m_offset];
-        while((IsNumeric = ('0' <= OneChar && OneChar <= '9'))
-            || (IsHexLower = ('a' <= OneChar && OneChar <= 'f'))
-            || (IsHexUpper = ('A' <= OneChar && OneChar <= 'F')))
-        {
-            if(IsNumeric) Value = (Value << 4) + OneChar - '0';
-            else if(IsHexLower) Value = (Value << 4) + 10 + OneChar - 'a';
-            else if(IsHexUpper) Value = (Value << 4) + 10 + OneChar - 'A';
-            OneChar = m_source[++m_offset];
-        }
-        return Value;
+        return GetHex32(m_source, m_source_base.Length(), &m_offset);
     }
 }

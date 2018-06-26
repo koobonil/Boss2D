@@ -118,30 +118,30 @@ extern curl_wcsdup_callback Curl_cwcsdup;
  * from memdebug.h are the ones that shall be used.
  */
 
-#undef strdup
-#define strdup(ptr) Curl_cstrdup(ptr)
-#undef malloc
-#define malloc(size) Curl_cmalloc(size)
-#undef calloc
-#define calloc(nbelem,size) Curl_ccalloc(nbelem, size)
-#undef realloc
-#define realloc(ptr,size) Curl_crealloc(ptr, size)
-#undef free
-#define free(ptr) Curl_cfree(ptr)
+// removed by BOSS:#undef strdup
+// removed by BOSS:#define strdup(ptr) Curl_cstrdup(ptr)
+// removed by BOSS:#undef malloc
+// removed by BOSS:#define malloc(size) Curl_cmalloc(size)
+// removed by BOSS:#undef calloc
+// removed by BOSS:#define calloc(nbelem,size) Curl_ccalloc(nbelem, size)
+// removed by BOSS:#undef realloc
+// removed by BOSS:#define realloc(ptr,size) Curl_crealloc(ptr, size)
+// removed by BOSS:#undef free
+// removed by BOSS:#define free(ptr) Curl_cfree(ptr)
 
-#ifdef WIN32
-#  ifdef UNICODE
-#    undef wcsdup
-#    define wcsdup(ptr) Curl_cwcsdup(ptr)
-#    undef _wcsdup
-#    define _wcsdup(ptr) Curl_cwcsdup(ptr)
-#    undef _tcsdup
-#    define _tcsdup(ptr) Curl_cwcsdup(ptr)
-#  else
-#    undef _tcsdup
-#    define _tcsdup(ptr) Curl_cstrdup(ptr)
-#  endif
-#endif
+// removed by BOSS:#ifdef WIN32
+// removed by BOSS:#  ifdef UNICODE
+// removed by BOSS:#    undef wcsdup
+// removed by BOSS:#    define wcsdup(ptr) Curl_cwcsdup(ptr)
+// removed by BOSS:#    undef _wcsdup
+// removed by BOSS:#    define _wcsdup(ptr) Curl_cwcsdup(ptr)
+// removed by BOSS:#    undef _tcsdup
+// removed by BOSS:#    define _tcsdup(ptr) Curl_cwcsdup(ptr)
+// removed by BOSS:#  else
+// removed by BOSS:#    undef _tcsdup
+// removed by BOSS:#    define _tcsdup(ptr) Curl_cstrdup(ptr)
+// removed by BOSS:#  endif
+// removed by BOSS:#endif
 
 #endif /* CURLDEBUG */
 

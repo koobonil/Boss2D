@@ -1,5 +1,5 @@
 ﻿#include <boss.h>
-#if BOSS_NEED_ADDON_TESSERACT
+#if BOSS_NEED_ADDON_ALPR | BOSS_NEED_ADDON_TESSERACT
 
 #include <iostream>
 #include <functional>

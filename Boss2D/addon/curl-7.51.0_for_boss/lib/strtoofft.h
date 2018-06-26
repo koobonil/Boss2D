@@ -45,14 +45,14 @@
 #    define curlx_strtoofft strtoll
 #  else
 #    if defined(_MSC_VER) && (_MSC_VER >= 1300) && (_INTEGRAL_MAX_BITS >= 64)
-#      if defined(_SAL_VERSION)
-         _Check_return_ _CRTIMP __int64 __cdecl _strtoi64(
-             _In_z_ const char *_String,
-             _Out_opt_ _Deref_post_z_ char **_EndPtr, _In_ int _Radix);
-#      else
-         _CRTIMP __int64 __cdecl _strtoi64(const char *_String,
-                                           char **_EndPtr, int _Radix);
-#      endif
+// removed by BOSS:#      if defined(_SAL_VERSION)
+// removed by BOSS:         _Check_return_ _CRTIMP __int64 __cdecl _strtoi64(
+// removed by BOSS:             _In_z_ const char *_String,
+// removed by BOSS:             _Out_opt_ _Deref_post_z_ char **_EndPtr, _In_ int _Radix);
+// removed by BOSS:#      else
+// removed by BOSS:         _CRTIMP __int64 __cdecl _strtoi64(const char *_String,
+// removed by BOSS:                                           char **_EndPtr, int _Radix);
+// removed by BOSS:#      endif
 #      define curlx_strtoofft _strtoi64
 #    else
        curl_off_t curlx_strtoll(const char *nptr, char **endptr, int base);

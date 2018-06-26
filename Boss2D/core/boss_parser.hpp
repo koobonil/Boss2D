@@ -107,6 +107,33 @@ namespace BOSS
             if(offset) *offset = Offset;
             return Result;
         }
+        template<typename TYPE = uint32>
+        static const TYPE GetHex32(chars source, sint32 length = -1, sint32* offset = nullptr)
+        {
+            if(source == nullptr || length == 0) return 0;
+            else if(length == -1) length = boss_strlen(source);
+            sint32 Offset = (offset)? *offset : 0;
+
+            if(source[Offset] == '0'
+                && (source[Offset + 1] == 'x' || source[Offset + 1] == 'X'))
+                Offset += 2;
+
+            TYPE Value = 0;
+            bool IsNumeric = false, IsHexLower = false, IsHexUpper = false;
+            char OneChar = source[Offset];
+            while((IsNumeric = ('0' <= OneChar && OneChar <= '9'))
+                || (IsHexLower = ('a' <= OneChar && OneChar <= 'f'))
+                || (IsHexUpper = ('A' <= OneChar && OneChar <= 'F')))
+            {
+                if(IsNumeric) Value = (Value << 4) + OneChar - '0';
+                else if(IsHexLower) Value = (Value << 4) + 10 + OneChar - 'a';
+                else if(IsHexUpper) Value = (Value << 4) + 10 + OneChar - 'A';
+                OneChar = source[++Offset];
+            }
+
+            if(offset) *offset = Offset;
+            return Value;
+        }
 
     private:
         const String m_source_base;

@@ -421,7 +421,7 @@
             return PlatformImpl::Wrap::Popup_MessageDialog(title, text, type);
         }
 
-        void Platform::Popup::WebBrowserDialog(String url)
+        void Platform::Popup::WebBrowserDialog(chars url)
         {
             return PlatformImpl::Wrap::Popup_WebBrowserDialog(url);
         }
@@ -574,20 +574,12 @@
         void Platform::Utility::Threading(ThreadCB cb, payload data)
         {
             BOSS_ASSERT("Further development is needed.", false);
+        }
 
-            /*#if BOSS_WINDOWS
-                #include <windows.h>
-                #define THREAD_ID HANDLE
-                #define THREAD_CREATE(ID, ARG) do{(ID) = CreateThread(nullptr, 0, _TaskCore, ARG, 0, nullptr);} while(false)
-                #define THREAD_FUNCTION(NAME, ARG) static DWORD WINAPI NAME(LPVOID ARG)
-                #define THREAD_FUNCTION_RETURN do{return 0;} while(false)
-            #else
-                #include <pthread.h>
-                #define THREAD_ID pthread_t
-                #define THREAD_CREATE(ID, ARG) pthread_create(&(ID), nullptr, _TaskCore, ARG)
-                #define THREAD_FUNCTION(NAME, ARG) static void* NAME(void* ARG)
-                #define THREAD_FUNCTION_RETURN do{return nullptr;} while(false)
-            #endif*/
+        void* Platform::Utility::ThreadingEx(ThreadExCB cb, payload data)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return nullptr;
         }
 
         uint64 Platform::Utility::CurrentThreadID()
@@ -1622,18 +1614,13 @@
         ////////////////////////////////////////////////////////////////////////////////
         // WEB
         ////////////////////////////////////////////////////////////////////////////////
-        h_web Platform::Web::Create(chars url, sint32 width, sint32 height, EventCB cb, payload data)
+        h_web Platform::Web::Create(chars url, sint32 width, sint32 height, bool clearcookies, EventCB cb, payload data)
         {
             BOSS_ASSERT("Further development is needed.", false);
             return h_web::null();
         }
 
         void Platform::Web::Release(h_web web)
-        {
-            BOSS_ASSERT("Further development is needed.", false);
-        }
-
-        void Platform::Web::ClearCookies(h_web web)
         {
             BOSS_ASSERT("Further development is needed.", false);
         }
@@ -1668,6 +1655,21 @@
         {
             BOSS_ASSERT("Further development is needed.", false);
             return nullptr;
+        }
+
+        h_web_native Platform::Web::CreateNative(chars url, bool clearcookies, EventCB cb, payload data)
+        {
+            return PlatformImpl::Wrap::Web_CreateNative(url, clearcookies, cb, data);
+        }
+
+        void Platform::Web::ReleaseNative(h_web_native web_native)
+        {
+            PlatformImpl::Wrap::Web_ReleaseNative(web_native);
+        }
+
+        void Platform::Web::ReloadNative(h_web_native web_native, chars url)
+        {
+            PlatformImpl::Wrap::Web_ReloadNative(web_native, url);
         }
 
         ////////////////////////////////////////////////////////////////////////////////

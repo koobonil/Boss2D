@@ -246,6 +246,12 @@
     <ClCompile Include="..\addon\boss_integration_openalpr-2.3.0.cpp">
       <Filter>Boss2D\addon</Filter>
     </ClCompile>
+    <ClCompile Include="..\addon\boss_integration_openalpr-2.3.0_3rdparty_liblept.c">
+      <Filter>Boss2D\addon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\addon\boss_integration_openalpr-2.3.0_3rdparty_libtiff.c">
+      <Filter>Boss2D\addon</Filter>
+    </ClCompile>
     <ClCompile Include="..\addon\boss_integration_opencv-3.1.0.cpp">
       <Filter>Boss2D\addon</Filter>
     </ClCompile>
@@ -264,7 +270,7 @@
     <ClCompile Include="..\addon\boss_integration_tensorflow-1.2.1.cpp">
       <Filter>Boss2D\addon</Filter>
     </ClCompile>
-    <ClCompile Include="..\addon\boss_integration_tesseract-3.04.01.cpp">
+    <ClCompile Include="..\addon\boss_integration_tesseract-3.05.02.cpp">
       <Filter>Boss2D\addon</Filter>
     </ClCompile>
   </ItemGroup>
@@ -509,6 +515,12 @@
     <ClInclude Include="..\addon\boss_integration_openalpr-2.3.0.h">
       <Filter>Boss2D\addon</Filter>
     </ClInclude>
+    <ClInclude Include="..\addon\boss_integration_openalpr-2.3.0_3rdparty_liblept.h">
+      <Filter>Boss2D\addon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\addon\boss_integration_openalpr-2.3.0_3rdparty_libtiff.h">
+      <Filter>Boss2D\addon</Filter>
+    </ClInclude>
     <ClInclude Include="..\addon\boss_integration_opencv-3.1.0.h">
       <Filter>Boss2D\addon</Filter>
     </ClInclude>
@@ -527,7 +539,7 @@
     <ClInclude Include="..\addon\boss_integration_tensorflow-1.2.1.h">
       <Filter>Boss2D\addon</Filter>
     </ClInclude>
-    <ClInclude Include="..\addon\boss_integration_tesseract-3.04.01.h">
+    <ClInclude Include="..\addon\boss_integration_tesseract-3.05.02.h">
       <Filter>Boss2D\addon</Filter>
     </ClInclude>
   </ItemGroup>

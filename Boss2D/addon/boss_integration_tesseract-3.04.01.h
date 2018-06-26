@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <addon/boss_fakewin.h>
-#include <addon/boss_integration_openalpr-2.3.0.h>
+#include <addon/boss_integration_opencv-3.1.0.h>
+#include <addon/boss_integration_openalpr-2.3.0_3rdparty_liblept.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // _BOSS_BATCH_COMMAND_ {"type" : "include-alias", "prm" : "BOSS_TESSERACT_", "restore-comment" : " //original-code:"}

@@ -9,8 +9,11 @@
     #pragma comment(lib, "shell32.lib")
 #elif BOSS_LINUX
     #include <gtk/gtk.h>
+#elif BOSS_IPHONE
+    #include "ios/src/BossWebView.h"
 #elif BOSS_ANDROID
     #include <sys/sysinfo.h>
+    #include <jni.h>
 #endif
 
 class FileMMIOBlock;
@@ -249,6 +252,13 @@ void FileElement::SeekerExtension(sint32 size)
         Memory::Set(mmio_seeker.AtDumping(OldSize, size - OldSize),
             0x00, sizeof(FileMMIOBlock*) * (size - OldSize));
 }
+
+#if BOSS_IPHONE
+    extern void* GetIOSApplicationUIView();
+#elif BOSS_ANDROID
+    extern JNIEnv* GetAndroidJNIEnv();
+    extern jobject GetAndroidApplicationActivity();
+#endif
 
 namespace BOSS
 {
@@ -773,6 +783,104 @@ namespace BOSS
             {
                 PlatformImpl::Core::g_AssetsRemRoot = dirname;
                 PlatformImpl::Core::g_AssetsRemRoot += '/';
+            }
+
+            class WebNativePrivate
+            {
+            public:
+                WebNativePrivate(sint32 id = -1) {mID = id;}
+                ~WebNativePrivate()
+                {
+                    if(mID != -1)
+                    {
+                        #if BOSS_IPHONE
+                            BossWebView::Release(mID);
+                        #elif BOSS_ANDROID
+                            JNIEnv* env = GetAndroidJNIEnv();
+                            jclass BossWebViewClass = env->FindClass("com/boss2d/BossWebView");
+                            jmethodID ReleaseMethodID = env->GetStaticMethodID(BossWebViewClass, "Release", "(I)V");
+                            env->CallStaticVoidMethod(BossWebViewClass, ReleaseMethodID, mID);
+                            env->DeleteLocalRef(BossWebViewClass);
+                        #endif
+                    }
+                }
+            public:
+                void Reload(chars url)
+                {
+                }
+            private:
+                sint32 mID;
+            };
+
+            #if BOSS_ANDROID
+                class WebPayloadForAndroid
+                {
+                public:
+                    WebPayloadForAndroid() {mCB = nullptr; mData = nullptr;}
+                    ~WebPayloadForAndroid() {}
+                public:
+                    static WebPayloadForAndroid& ST(sint32 id)
+                    {static Map<WebPayloadForAndroid> _; return _[id];}
+                public:
+                    Platform::Web::EventCB mCB;
+                    payload mData;
+                public:
+                    static void OnEvent(JNIEnv* env, jobject obj, jint id, jstring type, jstring text)
+                    {
+                        chars PrmType = (chars) ((JNIEnv*) env)->GetStringUTFChars(type, nullptr);
+                        chars PrmText = (chars) ((JNIEnv*) env)->GetStringUTFChars(text, nullptr);
+                        auto& CurPayload = ST(id);
+                        CurPayload.mCB(CurPayload.mData, PrmType, PrmText);
+                        ((JNIEnv*) env)->ReleaseStringUTFChars(type, PrmType);
+                        ((JNIEnv*) env)->ReleaseStringUTFChars(text, PrmText);
+                    }
+                };
+            #endif
+
+            h_web_native Web_CreateNative(chars url, bool clearcookies, Platform::Web::EventCB cb, payload data)
+            {
+                sint32 ID = -1;
+                #if BOSS_IPHONE
+                    ID = BossWebView::Create(GetIOSApplicationUIView(), url, clearcookies, cb, data);
+                #elif BOSS_ANDROID
+                    JNIEnv* env = GetAndroidJNIEnv();
+                    jclass BossWebViewClass = env->FindClass("com/boss2d/BossWebView");
+                    static bool JustOnce = true;
+                    if(JustOnce)
+                    {
+                        JustOnce = false;
+                        JNINativeMethod methods[] {
+                            {"OnEvent", "(ILjava/lang/String;Ljava/lang/String;)V", reinterpret_cast<void*>(WebPayloadForAndroid::OnEvent)}};
+                        env->RegisterNatives(BossWebViewClass, methods, sizeof(methods) / sizeof(methods[0]));
+                    }
+
+                    jmethodID CreateMethodID = env->GetStaticMethodID(BossWebViewClass,
+                        "Create", "(Landroid/app/Activity;Ljava/lang/String;Z)I");
+                    jobject activity = GetAndroidApplicationActivity();
+                    jstring string = env->NewStringUTF(url);
+                    ID = env->CallStaticIntMethod(BossWebViewClass, CreateMethodID, activity, string, (jboolean) clearcookies);
+                    env->DeleteLocalRef(BossWebViewClass);
+
+                    auto& NewPayload = WebPayloadForAndroid::ST(ID);
+                    NewPayload.mCB = cb;
+                    NewPayload.mData = data;
+                #endif
+
+                auto NewWeb = (WebNativePrivate*) Buffer::AllocNoConstructorOnce<WebNativePrivate>(BOSS_DBG 1);
+                BOSS_CONSTRUCTOR(NewWeb, 0, WebNativePrivate, ID);
+                auto NewWebHandle = h_web_native::create_by_buf(BOSS_DBG (buffer) NewWeb);
+                return NewWebHandle;
+            }
+
+            void Web_ReleaseNative(h_web_native web_native)
+            {
+                web_native.set_buf(nullptr);
+            }
+
+            void Web_ReloadNative(h_web_native web_native, chars url)
+            {
+                if(auto CurWeb = (WebNativePrivate*) web_native.get())
+                    CurWeb->Reload(url);
             }
         }
     }

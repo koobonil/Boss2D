@@ -240,10 +240,12 @@
     int boss_strncmp(const char* str1, const char* str2, size_t maxcount);
     int boss_stricmp(const char* str1, const char* str2);
     int boss_strnicmp(const char* str1, const char* str2, size_t maxcount);
+    char* boss_strpbrk(const char* str1, const char* str2);
     int boss_wcscmp(const wchar_t* str1, const wchar_t* str2);
     int boss_wcsncmp(const wchar_t* str1, const wchar_t* str2, size_t maxcount);
     int boss_wcsicmp(const wchar_t* str1, const wchar_t* str2);
     int boss_wcsnicmp(const wchar_t* str1, const wchar_t* str2, size_t maxcount);
+    wchar_t* boss_wcspbrk(const wchar_t* str1, const wchar_t* str2);
 
     ////////////////////////////////////////////////////////////////////////////////
     // File
@@ -262,6 +264,55 @@
     void* boss_readdir(void* dir);
     const char* boss_getdirname(void* dirent);
     int boss_closedir(void* dir);
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Socket
+    ////////////////////////////////////////////////////////////////////////////////
+    typedef struct boss_fd_set
+    {
+        unsigned int fd_count;
+        union
+        {
+            int fd_array[64];
+            unsigned long fds_bits[1024 / (8 * sizeof(unsigned long))];
+        };
+    } boss_fd_set;
+    int boss_socket(int domain, int type, int protocol);
+    int boss_connect(int sockfd, const void* addr, int addrlen);
+    int boss_bind(int sockfd, const void* addr, int addrlen);
+    int boss_accept(int sockfd, void* addr, int* addrlen);
+    int boss_listen(int sockfd, int backlog);
+    int boss_shutdown(int sockfd, int how);
+    int boss_getsockopt(int sockfd, int level, int optname, void* optval, int* optlen);
+    int boss_setsockopt(int sockfd, int level, int optname, const void* optval, int optlen);
+    int boss_getsockname(int sockfd, void* addr, int* addrlen);
+    int boss_getpeername(int sockfd, void* addr, int* addrlen);
+    ssize_t boss_recv(int sockfd, void* buf, size_t len, int flags);
+    ssize_t boss_recvfrom(int sockfd, void* buf, size_t len, int flags, void* src_addr, int* addrlen);
+    ssize_t boss_send(int sockfd, const void* buf, size_t len, int flags);
+    ssize_t boss_sendto(int sockfd, const void* buf, size_t len, int flags, const void* dest_addr, int addrlen);
+    int boss_ioctlsocket(int sockfd, long cmd, unsigned long* argp);
+    int boss_select(int nfds, boss_fd_set* readfds, boss_fd_set* writefds, boss_fd_set* exceptfds, void* timeout);
+    int boss_closesocket(int sockfd);
+    void* boss_gethostbyaddr(const void* addr, int len, int type);
+    void* boss_gethostbyname(const char* name);
+    int boss_getaddrinfo(const char* node, const char* service, const void* hints, void** res);
+    void boss_freeaddrinfo(void* res);
+    const char* boss_gai_strerror(int errcode);
+    void* boss_getservbyname(const char* name, const char* proto);
+    void* boss_getservbyport(int port, const char* proto);
+    char* boss_inet_ntoa(void* in);
+    unsigned int boss_inet_addr(const char* cp);
+    unsigned int boss_htonl(unsigned int hostlong);
+    unsigned short boss_htons(unsigned short hostshort);
+    unsigned int boss_ntohl(unsigned int netlong);
+    unsigned short boss_ntohs(unsigned short netshort);
+    void boss_FD_ZERO(boss_fd_set* fdset);
+    void boss_FD_SET(int fd, boss_fd_set* fdset);
+    void boss_FD_CLR(int fd, boss_fd_set* fdset);
+    int boss_FD_ISSET(int fd, boss_fd_set* fdset);
+    int boss_geterrno();
+    void boss_seterrno(int err);
 #ifdef __cplusplus
     }
 #endif

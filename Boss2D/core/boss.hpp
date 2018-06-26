@@ -325,6 +325,7 @@ namespace BOSS
         BOSS_DECLARE_HANDLE(h_dock);
         BOSS_DECLARE_HANDLE(h_window);
         BOSS_DECLARE_HANDLE(h_web);
+        BOSS_DECLARE_HANDLE(h_web_native);
     }
 #endif
 

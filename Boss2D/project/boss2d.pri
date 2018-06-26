@@ -6,8 +6,13 @@ QT += widgets
 QT += multimedia
 QT += purchasing
 !ios: QT += serialport
+ios: QT += gui-private
 android: QT += androidextras
-win32-msvc*|macx: QT += webenginewidgets
+qtHaveModule(webenginewidgets){
+    QT += webengine
+    QT += webenginewidgets
+    DEFINES += QT_HAVE_WEBENGINEWIDGETS
+}
 
 CONFIG += c++11
 CONFIG += mobility
@@ -16,7 +21,7 @@ MOBILITY += systeminfo
 win32-msvc*: QMAKE_CFLAGS += /bigobj
 win32-msvc*: QMAKE_CXXFLAGS += /bigobj
 android: LIBS += -landroid
-ios|macx: LIBS += -framework CoreFoundation
+macx|ios: LIBS += -framework CoreFoundation
 linux-g++: CONFIG += link_pkgconfig
 linux-g++: PKGCONFIG += gtk+-3.0
 
@@ -30,10 +35,14 @@ CONFIG(release, debug|release){
     DEFINES += BOSS_NDEBUG=1
 }
 
-include(../../Boss2D_plugins/firebase_cpp_sdk_4.5.1/firebase_cpp_sdk.pri) {
-    message("BOSS_PLUGINS_FIREBASE : The plug-in connected.")
+equals(QT_ADD_PLUGINS_FIREBASE, "ok"){
+    include(../../Boss2D_plugins/firebase_cpp_sdk_4.5.1/firebase_cpp_sdk.pri){
+        message("BOSS_PLUGINS_FIREBASE : The plug-in connected.")
+    } else {
+        message("BOSS_PLUGINS_FIREBASE : The plug-in is not ready and the module connection is canceled.")
+    }
 } else {
-    message("BOSS_PLUGINS_FIREBASE : The plug-in is not ready and the module connection is canceled.")
+    message("BOSS_PLUGINS_FIREBASE : Excluded.")
 }
 
 ###########################################################
@@ -57,6 +66,8 @@ HEADERS += ../../Boss2D/addon/boss_integration_libogg-1.3.3.h
 HEADERS += ../../Boss2D/addon/boss_integration_libssh2-1.6.0.h
 HEADERS += ../../Boss2D/addon/boss_integration_libvorbis-1.3.6.h
 HEADERS += ../../Boss2D/addon/boss_integration_openalpr-2.3.0.h
+HEADERS += ../../Boss2D/addon/boss_integration_openalpr-2.3.0_3rdparty_liblept.h
+HEADERS += ../../Boss2D/addon/boss_integration_openalpr-2.3.0_3rdparty_libtiff.h
 HEADERS += ../../Boss2D/addon/boss_integration_opencv-3.1.0.h
 HEADERS += ../../Boss2D/addon/boss_integration_opencv-3.1.0_3rdparty_libjpeg.h
 HEADERS += ../../Boss2D/addon/boss_integration_openh264-1.6.0.h
@@ -81,6 +92,8 @@ SOURCES += ../../Boss2D/addon/boss_integration_libogg-1.3.3.c
 SOURCES += ../../Boss2D/addon/boss_integration_libssh2-1.6.0.c
 SOURCES += ../../Boss2D/addon/boss_integration_libvorbis-1.3.6.c
 SOURCES += ../../Boss2D/addon/boss_integration_openalpr-2.3.0.cpp
+SOURCES += ../../Boss2D/addon/boss_integration_openalpr-2.3.0_3rdparty_liblept.c
+SOURCES += ../../Boss2D/addon/boss_integration_openalpr-2.3.0_3rdparty_libtiff.c
 SOURCES += ../../Boss2D/addon/boss_integration_opencv-3.1.0.cpp
 SOURCES += ../../Boss2D/addon/boss_integration_opencv-3.1.0_3rdparty_libjpeg.c
 SOURCES += ../../Boss2D/addon/boss_integration_openh264-1.6.0.cpp
@@ -188,9 +201,17 @@ SOURCES += ../../Boss2D/platform/boss_platform_cocos2dx.cpp
 SOURCES += ../../Boss2D/platform/boss_platform_impl.cpp
 SOURCES += ../../Boss2D/platform/boss_platform_native.cpp
 SOURCES += ../../Boss2D/platform/boss_platform_qt5.cpp
-HEADERS += ../../Boss2D/platform/android/OpenGLES_Functions.h
-SOURCES += ../../Boss2D/platform/android/OpenGLES_Functions.cpp
-HEADERS += ../../Boss2D/platform/win32/glew.h
+win32-msvc*{
+    HEADERS += ../../Boss2D/platform/win32/glew.h
+}
+ios{
+    OBJECTIVE_HEADERS += $$PWD/../../Boss2D/platform/ios/src/BossWebView.h
+    OBJECTIVE_SOURCES += $$PWD/../../Boss2D/platform/ios/src/BossWebView.mm
+}
+android{
+    HEADERS += ../../Boss2D/platform/android/OpenGLES_Functions.h
+    SOURCES += ../../Boss2D/platform/android/OpenGLES_Functions.cpp
+}
 
 ###########################################################
 # SERVICE
