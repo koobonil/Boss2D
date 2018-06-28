@@ -1,4 +1,5 @@
 package com.boss2d;
+import android.Manifest;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
@@ -66,6 +67,37 @@ public class BossCameraManager
     private static native void OnPreviewTaken(byte[] data, int length, int width, int height);
 
     private static BossCameraManager sCameraManager = null;
+    public static String info()
+    {
+        Camera camera = null;
+        String collector = new String();
+        try
+        {
+            camera = Camera.open();
+            List<Camera.Size> PictureSizes = camera.getParameters().getSupportedPictureSizes();
+            for(Camera.Size CurSize : PictureSizes)
+                collector += "Size_" + CurSize.width + "x" + CurSize.height + ";";
+            List<Integer> PictureFormats = camera.getParameters().getSupportedPictureFormats();
+            for(Integer CurFormat : PictureFormats)
+            {
+                if(CurFormat == ImageFormat.JPEG)  collector += "Format_JPEG;";
+                else if(CurFormat == ImageFormat.NV21)  collector += "Format_NV21;";
+                else if(CurFormat == ImageFormat.RGB_565)  collector += "Format_RGB_565;";
+                else if(CurFormat == ImageFormat.YUV_420_888)  collector += "Format_YUV_420_888;";
+                else if(CurFormat == ImageFormat.YUV_444_888)  collector += "Format_YUV_444_888;";
+                else if(CurFormat == ImageFormat.YUY2)  collector += "Format_YUY2;";
+                else if(CurFormat == ImageFormat.YV12)  collector += "Format_YV12;";
+            }
+        }
+        catch(Exception e)
+        {
+            Log.d("TAG", "### info Exception(" + e.toString() + ")");
+        }
+        if(camera != null)
+            camera.release();
+        return collector;
+    }
+
     public static void init(int texture, int width, int height)
     {
         if(sCameraManager != null) return;
@@ -167,28 +199,17 @@ public class BossCameraManager
             Camera.Parameters parameters = mCamera.getParameters();
             parameters.setPictureSize(mCameraWidth, mCameraHeight);
             parameters.setPreviewSize(mCameraWidth, mCameraHeight);
-            parameters.setFocusMode("continuous-picture");
+
+            List<String> focusModes = parameters.getSupportedFocusModes();
+            if(focusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE))
+                parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
             mCamera.setParameters(parameters);
-            mCamera.autoFocus(new Camera.AutoFocusCallback()
-            {
-                public void onAutoFocus(boolean anonymousBoolean, Camera anonymousCamera)
-                {
-                    Log.w("TAG", "### AUTO FOCUS: " + String.valueOf(anonymousBoolean));
-                }
-            });
-            mCamera.setAutoFocusMoveCallback(new Camera.AutoFocusMoveCallback()
-            {
-                public void onAutoFocusMoving(boolean anonymousBoolean, Camera anonymousCamera)
-                {
-                    Log.w("TAG", "### AUTO FOCUS Move: " + String.valueOf(anonymousBoolean));
-                }
-            });
             mCamera.setPreviewTexture(mSurfaceTexture);
             mCamera.startPreview();
         }
         catch(Exception e)
         {
-            Log.d("TAG", "### openCamera Exception");
+            Log.d("TAG", "### openCamera Exception(" + e.toString() + ")");
             closeCamera();
             return false;
         }

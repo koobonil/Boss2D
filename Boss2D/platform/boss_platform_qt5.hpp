@@ -3180,35 +3180,44 @@
         public:
             CameraSurfaceForAndroid(const QCameraInfo& info)
             {
+                JNIEnv* env = GetAndroidJNIEnv();
+                // 카메라 정보수집
+                QAndroidJniObject Collector = QAndroidJniObject::callStaticObjectMethod("com/boss2d/BossCameraManager", "info", "()Ljava/lang/String;");
+                String Result = Collector.toString().toUtf8().constData();
+                chars ResultPtr = Result;
+
+                // 정보입력
+                QList<QSize> SupportedResolutions;
+                for(sint32 i = 0; (i = Result.Find(i, "Size_")) != -1;)
                 {
-                    QCamera Camera(info);
-                    mSettings = Camera.viewfinderSettings();
-                    QList<QSize> SupportedResolutions;
-                    SupportedResolutions.append(QSize(320, 240));
-                    SupportedResolutions.append(QSize(640, 480));
-                    SupportedResolutions.append(QSize(720, 480));
-                    SupportedResolutions.append(QSize(960, 720));
-                    SupportedResolutions.append(QSize(1280, 720));
-                    SupportedResolutions.append(QSize(1280, 960));
-                    SupportedResolutions.append(QSize(1440, 1080));
-                    SupportedResolutions.append(QSize(1920, 1080));
-                    SupportedResolutions.append(QSize(1440, 1440));
-                    SupportedResolutions.append(QSize(2560, 1080));
-                    SupportedResolutions.append(QSize(1920, 1440));
-                    SupportedResolutions.append(QSize(2560, 1440));
-                    foreach(const auto& CurResolution, SupportedResolutions)
-                    {
-                        QCameraViewfinderSettings NewSettings = mSettings;
-                        NewSettings.setResolution(CurResolution);
-                        mAllSettings.append(NewSettings);
-                    }
+                    QSize NewResolution;
+                    i += 5; // Size_
+                    NewResolution.setWidth(Parser::GetInt(ResultPtr, -1, &i));
+                    i += 1; // x
+                    NewResolution.setHeight(Parser::GetInt(ResultPtr, -1, &i));
+                    i += 1; // ;
+                    SupportedResolutions.append(NewResolution);
                 }
+                foreach(const auto& CurResolution, SupportedResolutions)
+                {
+                    QCameraViewfinderSettings NewSettings = mSettings;
+                    NewSettings.setResolution(CurResolution);
+                    mAllSettings.append(NewSettings);
+                }
+                // "Format_JPEG;" -> Format_Jpeg
+                // "Format_NV21;" -> Format_NV21
+                // "Format_RGB_565;" -> Format_RGB565
+                // "Format_YUV_420_888;" -> Format_YUV420P
+                // "Format_YUV_444_888;" -> Format_YUV444
+                // "Format_YUY2;" -> Format_YUYV
+                // "Format_YV12;" -> Format_YV12
+
                 mMutex = Mutex::Open();
                 mTextureId = -1;
+                // 콜백함수 연결
                 JNINativeMethod methods[] {
                     {"OnPictureTaken", "([BI)V", reinterpret_cast<void*>(OnPictureTaken)},
                     {"OnPreviewTaken", "([BIII)V", reinterpret_cast<void*>(OnPreviewTaken)}};                
-                JNIEnv* env = GetAndroidJNIEnv();
                 jclass BossCameraManagerClass = env->FindClass("com/boss2d/BossCameraManager");
                 env->RegisterNatives(BossCameraManagerClass, methods, sizeof(methods) / sizeof(methods[0]));
                 env->DeleteLocalRef(BossCameraManagerClass);
@@ -3234,7 +3243,8 @@
                 f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
                 f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                 f->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 256, 256, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
-                BOSS_TRACE("StartCamera: GenTexture - mTextureId: %d", mTextureId);
+                BOSS_TRACE("StartCamera: GenTexture - mTextureId: %d, width: %d, height: %d",
+                    mTextureId, mSettings.resolution().width(), mSettings.resolution().height());
                 QAndroidJniObject::callStaticMethod<void>("com/boss2d/BossCameraManager", "init", "(III)V",
                     mTextureId, mSettings.resolution().width(), mSettings.resolution().height());
             }
@@ -3270,7 +3280,7 @@
                 {
                     switch(*((uint32*) &mLastImage[0]))
                     {
-                    case 'NV21':
+                    case codeid(NV21):
                         {
                             BOSS_TRACE("DecodeImage(RAW8) - Mid-A");
                             width = *((sint32*) &mLastImage[4]);
@@ -3310,7 +3320,7 @@
                             BOSS_TRACE("DecodeImage(RAW8) - Mid-B");
                         }
                         break;
-                    case 'JPEG':
+                    case codeid(JPEG):
                         BOSS_TRACE("DecodeImage(JPEG)");
                         if(id_bitmap NewBitmap = AddOn::Jpg::ToBmp(&mLastImage[4], mLastImage.Count()))
                         {
@@ -3371,7 +3381,7 @@
                             ((sint32*) paramData)[2], ((sint32*) paramData)[3], length);
                         Mutex::Lock(Me->mMutex);
                         Me->mLastImage.SubtractionAll();
-                        const uint32 TypeCode = 'JPEG';
+                        const uint32 TypeCode = codeid(JPEG);
                         Memory::Copy(Me->mLastImage.AtDumpingAdded(4), &TypeCode, 4);
                         Memory::Copy(Me->mLastImage.AtDumpingAdded(length), paramData, length);
                         Mutex::Unlock(Me->mMutex);
@@ -3399,7 +3409,7 @@
                             ((sint32*) paramData)[2], ((sint32*) paramData)[3], length);
                         Mutex::Lock(Me->mMutex);
                         Me->mLastImage.SubtractionAll();
-                        const uint32 TypeCode = 'NV21';
+                        const uint32 TypeCode = codeid(NV21);
                         Memory::Copy(Me->mLastImage.AtDumpingAdded(4), &TypeCode, 4);
                         Memory::Copy(Me->mLastImage.AtDumpingAdded(4), &width, 4);
                         Memory::Copy(Me->mLastImage.AtDumpingAdded(4), &height, 4);
@@ -3625,7 +3635,7 @@
                     mCameraInfo = CurCameraInfo;
                     mCameraService = new CameraService(mCameraInfo);
 
-                    sint32 BestValue = 0, SavedWidth = width, SavedHeight = height;
+                    sint32 BestValue = 0, SavedWidth = -1, SavedHeight = -1;
                     double SavedMinFR = -1, SavedMaxFR = -1;
                     auto AllSettings = mCameraService->GetSupportedAllSettings();
                     BOSS_TRACE("Created Camera: %s(%s) [Included %d settings]",
@@ -3684,8 +3694,13 @@
                         if(SavedMinFR != -1) NewSettings.setMinimumFrameRate(SavedMinFR);
                         if(SavedMaxFR != -1) NewSettings.setMaximumFrameRate(SavedMaxFR);
                         mCameraService->SetSettings(NewSettings);
+                        mCameraService->StartCamera();
                     }
-                    mCameraService->StartCamera();
+                    else
+                    {
+                        delete mCameraService;
+                        mCameraService = nullptr;
+                    }
                     break;
                 }
             }

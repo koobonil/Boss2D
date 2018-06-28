@@ -172,8 +172,9 @@ inline void operator delete[](void*, sblock) {}
 #define Jumper16ToPtr(JMP) (((sint16*) &(JMP)) + (JMP))
 
 // About code styling
-#define branch      if(false)
-#define jump(QUERY) else if(QUERY)
+#define branch       if(false)
+#define jump(QUERY)  else if(QUERY)
+#define codeid(NAME) ((#NAME[0] & 0xFF) | ((#NAME[1] & 0xFF) << 8) | ((#NAME[2] & 0xFF) << 16) | ((#NAME[3] & 0xFF) << 24))
 
 // About declare
 #define BOSS_DECLARE_ID(NAME) \

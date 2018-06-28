@@ -19,20 +19,20 @@ public class BossWebView
     public static int Create(Activity activity, String url, boolean clearcache)
     {
         Log.d("TAG", "### BossWebView: Create()");
-        final int NewID = sActivities.size();
-        final Activity SavedActivity = activity;
+        sActivity = activity;
         final String SavedUrl = url;
         final boolean SavedClearCache = clearcache;
+        final int NewID = sWebViews.size();
 
-        activity.runOnUiThread(new Runnable()
+        sActivity.runOnUiThread(new Runnable()
         {
             public void run()
             {
-                BossWebView NewView = new BossWebView(NewID, SavedActivity, SavedUrl, SavedClearCache);
-                sActivities.add(NewView);
+                BossWebView NewView = new BossWebView(NewID, sActivity, SavedUrl, SavedClearCache);
+                sWebViews.add(NewView);
                 LinearLayout.LayoutParams LLP = new LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.FILL_PARENT);
-                SavedActivity.addContentView(NewView.view, LLP);
+                sActivity.addContentView(NewView.view, LLP);
             }
         });
         return NewID;
@@ -41,14 +41,26 @@ public class BossWebView
     public static void Release(int id)
     {
         Log.d("TAG", "### BossWebView: Release()");
-        BossWebView OldView = sActivities.get(id);
-        if(OldView.view.getParent() != null && OldView.view instanceof ViewGroup)
-            ((ViewGroup) OldView.view.getParent()).removeView(OldView.view);
-        sActivities.set(id, null);
+        final int OldID = id;
+
+        if(sActivity != null)
+        {
+            sActivity.runOnUiThread(new Runnable()
+            {
+                public void run()
+                {
+                    BossWebView OldView = sWebViews.get(OldID);
+                    if(OldView.view.getParent() instanceof ViewGroup)
+                        ((ViewGroup) OldView.view.getParent()).removeView(OldView.view);
+                    sWebViews.set(OldID, null);
+                }
+            });
+        }
     }
 
     private static native void OnEvent(int id, String type, String text);
-    private static ArrayList<BossWebView> sActivities = new ArrayList<>();
+    private static Activity sActivity = null;
+    private static ArrayList<BossWebView> sWebViews = new ArrayList<>();
 
     public BossWebView(int id, Context context, String url, boolean clearcache)
     {
@@ -82,6 +94,7 @@ public class BossWebView
         {
             public boolean shouldOverrideUrlLoading(WebView view, String url)
             {
+                Log.d("TAG", "### BossWebView: shouldOverrideUrlLoading(" + url + ")");
                 OnEvent(MyID, "UrlChanged", url);
                 view.loadUrl(url);
                 return false;
