@@ -1,3 +1,5 @@
+// author BOSS
+
 /** @mainpage
 
     <table>
@@ -1353,6 +1355,23 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::Reset()
   }
 }
 
+#define access boss_fakewin_access // added by BOSS
+#define wfopen boss_fakewin_wfopen // added by BOSS
+#define _wfopen boss_fakewin_wfopen // added by BOSS
+#define wfopen_s boss_fakewin_wfopen_s // added by BOSS
+#define _wfopen_s boss_fakewin_wfopen_s // added by BOSS
+#define fopen boss_fakewin_fopen // added by BOSS
+#define fopen_s boss_fakewin_fopen_s // added by BOSS
+#define fseek boss_fakewin_fseek // added by BOSS
+#define ftell boss_fakewin_ftell // added by BOSS
+#define rewind boss_fakewin_rewind // added by BOSS
+#define fread boss_fakewin_fread // added by BOSS
+#define fwrite boss_fakewin_fwrite // added by BOSS
+#define fgetc boss_fakewin_fgetc // added by BOSS
+#define fgets boss_fakewin_fgets // added by BOSS
+#define ungetc boss_fakewin_ungetc // added by BOSS
+#define fclose boss_fakewin_fclose // added by BOSS
+
 template<class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
 SI_Error
 CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::LoadFile(
@@ -2412,7 +2431,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::SaveFile(
 #if __STDC_WANT_SECURE_LIB__ && !_WIN32_WCE
   _wfopen_s(&fp, a_pwszFile, L"wb");
 #else // !__STDC_WANT_SECURE_LIB__
-  fp = _wfopen(a_pwszFile, L"wb");
+  _wfopen(a_pwszFile, L"wb");
 #endif // __STDC_WANT_SECURE_LIB__
   if (!fp) return SI_FILE;
   SI_Error rc = SaveFile(fp, a_bAddSignature);

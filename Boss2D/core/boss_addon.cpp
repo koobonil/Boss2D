@@ -13,6 +13,7 @@ bool __LINK_ADDON_H264__();
 bool __LINK_ADDON_JPG__();
 bool __LINK_ADDON_OGG__();
 bool __LINK_ADDON_OPENCV__();
+bool __LINK_ADDON_SSL__();
 bool __LINK_ADDON_TESSERACT__();
 bool __LINK_ADDON_ZIP__();
 static bool _ =
@@ -24,6 +25,7 @@ static bool _ =
     __LINK_ADDON_JPG__() |
     __LINK_ADDON_OGG__() |
     __LINK_ADDON_OPENCV__() |
+    __LINK_ADDON_SSL__() |
     __LINK_ADDON_TESSERACT__() |
     __LINK_ADDON_ZIP__();
 
@@ -76,6 +78,7 @@ namespace BOSS
     BOSS_DEFINE_ADDON_FUNCTION(Curl, RequestString, chars, return "", id_curl, chars, chars, chars)
     BOSS_DEFINE_ADDON_FUNCTION(Curl, RequestBytes, bytes, return nullptr, id_curl, chars, sint32*, chars, chars)
     BOSS_DEFINE_ADDON_FUNCTION(Curl, RequestRedirectUrl, chars, return "", id_curl, chars, sint32, chars, chars)
+    BOSS_DEFINE_ADDON_FUNCTION(Curl, PutData, bool, return false, id_curl, chars, bytes, sint32, sint32, chars)
     BOSS_DEFINE_ADDON_FUNCTION(Curl, SendStream, void, return, id_curl, chars, AddOn::Curl::CurlReadCB, payload)
     BOSS_DEFINE_ADDON_FUNCTION(Curl, FtpUpload, bool, return false, id_curl, chars, chars, buffer)
     BOSS_DEFINE_ADDON_FUNCTION(Curl, FtpDownload, buffer, return nullptr, id_curl, chars, chars)
@@ -104,6 +107,9 @@ namespace BOSS
 
     chars AddOn::Curl::RequestRedirectUrl(id_curl curl, chars url, sint32 successcode, chars postdata, chars headerdata)
     {return Core_AddOn_Curl_RequestRedirectUrl()(curl, url, successcode, postdata, headerdata);}
+
+    bool AddOn::Curl::PutData(id_curl curl, chars url, bytes putdata, sint32 putsize, sint32 successcode, chars headerdata)
+    {return Core_AddOn_Curl_PutData()(curl, url, putdata, putsize, successcode, headerdata);}
 
     void AddOn::Curl::SendStream(id_curl curl, chars url, CurlReadCB cb, payload data)
     {Core_AddOn_Curl_SendStream()(curl, url, cb, data);}
@@ -220,6 +226,13 @@ namespace BOSS
 
     void AddOn::OpenCV::GetHoughLines(id_opencv opencv, HoughLinesCB cb, payload data)
     {Core_AddOn_OpenCV_GetHoughLines()(opencv, cb, data);}
+
+    ////////////////////////////////////////////////////////////////////////////////
+    static void Ssl_Error() {BOSS_ASSERT("Ssl애드온이 준비되지 않았습니다", false);}
+    BOSS_DEFINE_ADDON_FUNCTION(Ssl, ToMD5, chars, return "", bytes, sint32)
+
+    chars AddOn::Ssl::ToMD5(bytes binary, sint32 length)
+    {return Core_AddOn_Ssl_ToMD5()(binary, length);}
 
     ////////////////////////////////////////////////////////////////////////////////
     static void Tesseract_Error() {BOSS_ASSERT("Tesseract애드온이 준비되지 않았습니다", false);}

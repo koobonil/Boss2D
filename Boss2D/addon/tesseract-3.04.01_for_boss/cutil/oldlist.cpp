@@ -129,7 +129,7 @@ LIST delete_d(LIST list, void *key, int_compare is_equal) {
   LIST last_one = NIL_LIST;
 
   if (is_equal == NULL)
-    is_equal = ::is_same; // modified by BOSS, original code: is_equal = is_same;
+    is_equal = ::is_same; // modified by BOSS, original-code: is_equal = is_same;
 
   while (list != NIL_LIST) {
     if (!(*is_equal) (first_node (list), key)) {
@@ -414,7 +414,7 @@ LIST s_adjoin(LIST var_list, void *variable, int_compare compare) {
  **********************************************************************/
 LIST search(LIST list, void *key, int_compare is_equal) {
   if (is_equal == NULL)
-    is_equal = ::is_same; // modified by BOSS, original code: is_equal = is_same;
+    is_equal = ::is_same; // modified by BOSS, original-code: is_equal = is_same;
 
   iterate (list) if ((*is_equal) (first_node (list), key))
   return (list);

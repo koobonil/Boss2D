@@ -188,29 +188,29 @@ unsigned char *CubeUtils::GetImageData(Pix *pix, int left, int top,
  */
 bool CubeUtils::ReadFileToString(const string &file_name, string *str) {
   str->clear();
-  FILE *fp = fopen(file_name.c_str(), "rb");
+  FILE *fp = BOSS_TESSERACT_fopen(file_name.c_str(), "rb"); //original-code:fopen(file_name.c_str(), "rb");
   if (fp == NULL) {
     return false;
   }
 
   // get the size of the size
-  fseek(fp, 0, SEEK_END);
-  int file_size = ftell(fp);
+  BOSS_TESSERACT_fseek(fp, 0, SEEK_END); //original-code:fseek(fp, 0, SEEK_END);
+  int file_size = BOSS_TESSERACT_ftell(fp); //original-code:ftell(fp);
   if (file_size < 1) {
-    fclose(fp);
+    BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
     return false;
   }
   // adjust string size
   str->reserve(file_size);
   // read the contents
-  rewind(fp);
+  BOSS_TESSERACT_rewind(fp); //original-code:rewind(fp);
   char *buff = new char[file_size];
-  int read_bytes = fread(buff, 1, static_cast<int>(file_size), fp);
+  int read_bytes = BOSS_TESSERACT_fread(buff, 1, static_cast<int>(file_size), fp); //original-code:fread(buff, 1, static_cast<int>(file_size), fp);
   if (read_bytes == file_size) {
     str->append(buff, file_size);
   }
   delete []buff;
-  fclose(fp);
+  BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
   return (read_bytes == file_size);
 }
 

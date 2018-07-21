@@ -49,7 +49,7 @@ using tesseract::ShapeTable;
 
 // global variable to hold configuration parameters to control clustering
 // -M 0.625   -B 0.05   -I 1.0   -C 1e-6.
-CLUSTERCONFIG Config = { elliptical, 0.625f, 0.05f, 1.0f, 1e-6, 0 }; // modified by BOSS, original code:CLUSTERCONFIG Config = { elliptical, 0.625, 0.05, 1.0, 1e-6, 0 };
+CLUSTERCONFIG Config = { elliptical, 0.625f, 0.05f, 1.0f, 1e-6, 0 }; // modified by BOSS, original-code:CLUSTERCONFIG Config = { elliptical, 0.625, 0.05, 1.0, 1e-6, 0 };
 FEATURE_DEFS_STRUCT feature_defs;
 CCUtil ccutil;
 
@@ -120,7 +120,7 @@ ShapeTable* LoadShapeTable(const STRING& file_prefix) {
   ShapeTable* shape_table = NULL;
   STRING shape_table_file = file_prefix;
   shape_table_file += kShapeTableFileSuffix;
-  FILE* shape_fp = fopen(shape_table_file.string(), "rb");
+  FILE* shape_fp = BOSS_TESSERACT_fopen(shape_table_file.string(), "rb"); //original-code:fopen(shape_table_file.string(), "rb");
   if (shape_fp != NULL) {
     shape_table = new ShapeTable;
     if (!shape_table->DeSerialize(false, shape_fp)) {
@@ -133,7 +133,7 @@ ShapeTable* LoadShapeTable(const STRING& file_prefix) {
       tprintf("Read shape table %s of %d shapes\n",
               shape_table_file.string(), num_shapes);
     }
-    fclose(shape_fp);
+    BOSS_TESSERACT_fclose(shape_fp); //original-code:fclose(shape_fp);
   } else {
     tprintf("Warning: No shape table file present: %s\n",
             shape_table_file.string());
@@ -145,13 +145,13 @@ ShapeTable* LoadShapeTable(const STRING& file_prefix) {
 void WriteShapeTable(const STRING& file_prefix, const ShapeTable& shape_table) {
   STRING shape_table_file = file_prefix;
   shape_table_file += kShapeTableFileSuffix;
-  FILE* fp = fopen(shape_table_file.string(), "wb");
+  FILE* fp = BOSS_TESSERACT_fopen(shape_table_file.string(), "wb"); //original-code:fopen(shape_table_file.string(), "wb");
   if (fp != NULL) {
     if (!shape_table.Serialize(fp)) {
       fprintf(stderr, "Error writing shape table: %s\n",
               shape_table_file.string());
     }
-    fclose(fp);
+    BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
   } else {
     fprintf(stderr, "Error creating shape table: %s\n",
             shape_table_file.string());
@@ -245,25 +245,25 @@ MasterTrainer* LoadTrainingData(int argc, const char* const * argv,
     trainer->PostLoadCleanup();
     // Write the master trainer if required.
     if (!FLAGS_output_trainer.empty()) {
-      FILE* fp = fopen(FLAGS_output_trainer.c_str(), "wb");
+      FILE* fp = BOSS_TESSERACT_fopen(FLAGS_output_trainer.c_str(), "wb"); //original-code:fopen(FLAGS_output_trainer.c_str(), "wb");
       if (fp == NULL) {
         tprintf("Can't create saved trainer data!\n");
       } else {
         trainer->Serialize(fp);
-        fclose(fp);
+        BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
       }
     }
   } else {
     bool success = false;
     tprintf("Loading master trainer from file:%s\n",
             FLAGS_T.c_str());
-    FILE* fp = fopen(FLAGS_T.c_str(), "rb");
+    FILE* fp = BOSS_TESSERACT_fopen(FLAGS_T.c_str(), "rb"); //original-code:fopen(FLAGS_T.c_str(), "rb");
     if (fp == NULL) {
       tprintf("Can't read file %s to initialize master trainer\n",
               FLAGS_T.c_str());
     } else {
       success = trainer->DeSerialize(false, fp);
-      fclose(fp);
+      BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
     }
     if (!success) {
       tprintf("Deserialize of master trainer failed!\n");
@@ -403,7 +403,7 @@ void ReadTrainingSamples(const FEATURE_DEFS_STRUCT& feature_defs,
     char_sample->font_sample_count = 0;
   }
 
-  while (fgets(buffer, 2048, file) != NULL) {
+  while (BOSS_TESSERACT_fgets(buffer, 2048, file) != NULL) { //original-code:fgets(buffer, 2048, file) != NULL) {
     if (buffer[0] == '\n')
       continue;
 

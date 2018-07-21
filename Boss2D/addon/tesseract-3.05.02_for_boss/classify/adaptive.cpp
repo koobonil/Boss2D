@@ -319,29 +319,29 @@ ADAPT_CLASS ReadAdaptedClass(FILE *File) {
 
   /* first read high level adapted class structure */
   Class = (ADAPT_CLASS) Emalloc (sizeof (ADAPT_CLASS_STRUCT));
-  fread ((char *) Class, sizeof (ADAPT_CLASS_STRUCT), 1, File);
+  BOSS_TESSERACT_fread ((char *) Class, sizeof (ADAPT_CLASS_STRUCT), 1, File); //original-code:fread ((char *) Class, sizeof (ADAPT_CLASS_STRUCT), 1, File);
 
   /* then read in the definitions of the permanent protos and configs */
   Class->PermProtos = NewBitVector (MAX_NUM_PROTOS);
   Class->PermConfigs = NewBitVector (MAX_NUM_CONFIGS);
-  fread ((char *) Class->PermProtos, sizeof (uinT32),
+  BOSS_TESSERACT_fread ((char *) Class->PermProtos, sizeof (uinT32), //original-code:fread ((char *) Class->PermProtos, sizeof (uinT32),
     WordsInVectorOfSize (MAX_NUM_PROTOS), File);
-  fread ((char *) Class->PermConfigs, sizeof (uinT32),
+  BOSS_TESSERACT_fread ((char *) Class->PermConfigs, sizeof (uinT32), //original-code:fread ((char *) Class->PermConfigs, sizeof (uinT32),
     WordsInVectorOfSize (MAX_NUM_CONFIGS), File);
 
   /* then read in the list of temporary protos */
-  fread (&NumTempProtos, sizeof(NumTempProtos), 1, File);
+  BOSS_TESSERACT_fread (&NumTempProtos, sizeof(NumTempProtos), 1, File); //original-code:fread (&NumTempProtos, sizeof(NumTempProtos), 1, File);
   Class->TempProtos = NIL_LIST;
   for (i = 0; i < NumTempProtos; i++) {
     TempProto =
       (TEMP_PROTO) alloc_struct (sizeof (TEMP_PROTO_STRUCT),
       "TEMP_PROTO_STRUCT");
-    fread ((char *) TempProto, sizeof (TEMP_PROTO_STRUCT), 1, File);
+    BOSS_TESSERACT_fread ((char *) TempProto, sizeof (TEMP_PROTO_STRUCT), 1, File); //original-code:fread ((char *) TempProto, sizeof (TEMP_PROTO_STRUCT), 1, File);
     Class->TempProtos = push_last (Class->TempProtos, TempProto);
   }
 
   /* then read in the adapted configs */
-  fread (&NumConfigs, sizeof(NumConfigs), 1, File);
+  BOSS_TESSERACT_fread (&NumConfigs, sizeof(NumConfigs), 1, File); //original-code:fread (&NumConfigs, sizeof(NumConfigs), 1, File);
   for (i = 0; i < NumConfigs; i++)
     if (test_bit (Class->PermConfigs, i))
       Class->Config[i].Perm = ReadPermConfig (File);
@@ -372,7 +372,7 @@ ADAPT_TEMPLATES Classify::ReadAdaptedTemplates(FILE *File) {
 
   /* first read the high level adaptive template struct */
   Templates = (ADAPT_TEMPLATES) Emalloc (sizeof (ADAPT_TEMPLATES_STRUCT));
-  fread ((char *) Templates, sizeof (ADAPT_TEMPLATES_STRUCT), 1, File);
+  BOSS_TESSERACT_fread ((char *) Templates, sizeof (ADAPT_TEMPLATES_STRUCT), 1, File); //original-code:fread ((char *) Templates, sizeof (ADAPT_TEMPLATES_STRUCT), 1, File);
 
   /* then read in the basic integer templates */
   Templates->Templates = ReadIntTemplates (File);
@@ -403,11 +403,11 @@ PERM_CONFIG ReadPermConfig(FILE *File) {
   PERM_CONFIG Config = (PERM_CONFIG) alloc_struct(sizeof(PERM_CONFIG_STRUCT),
                                                   "PERM_CONFIG_STRUCT");
   uinT8 NumAmbigs;
-  fread ((char *) &NumAmbigs, sizeof(uinT8), 1, File);
+  BOSS_TESSERACT_fread ((char *) &NumAmbigs, sizeof(uinT8), 1, File); //original-code:fread ((char *) &NumAmbigs, sizeof(uinT8), 1, File);
   Config->Ambigs = new UNICHAR_ID[NumAmbigs + 1];
-  fread(Config->Ambigs, sizeof(UNICHAR_ID), NumAmbigs, File);
+  BOSS_TESSERACT_fread(Config->Ambigs, sizeof(UNICHAR_ID), NumAmbigs, File); //original-code:fread(Config->Ambigs, sizeof(UNICHAR_ID), NumAmbigs, File);
   Config->Ambigs[NumAmbigs] = -1;
-  fread(&(Config->FontinfoId), sizeof(int), 1, File);
+  BOSS_TESSERACT_fread(&(Config->FontinfoId), sizeof(int), 1, File); //original-code:fread(&(Config->FontinfoId), sizeof(int), 1, File);
 
   return (Config);
 
@@ -432,10 +432,10 @@ TEMP_CONFIG ReadTempConfig(FILE *File) {
   Config =
     (TEMP_CONFIG) alloc_struct (sizeof (TEMP_CONFIG_STRUCT),
     "TEMP_CONFIG_STRUCT");
-  fread ((char *) Config, sizeof (TEMP_CONFIG_STRUCT), 1, File);
+  BOSS_TESSERACT_fread ((char *) Config, sizeof (TEMP_CONFIG_STRUCT), 1, File); //original-code:fread ((char *) Config, sizeof (TEMP_CONFIG_STRUCT), 1, File);
 
   Config->Protos = NewBitVector (Config->ProtoVectorSize * BITSINLONG);
-  fread ((char *) Config->Protos, sizeof (uinT32),
+  BOSS_TESSERACT_fread ((char *) Config->Protos, sizeof (uinT32), //original-code:fread ((char *) Config->Protos, sizeof (uinT32),
     Config->ProtoVectorSize, File);
 
   return (Config);
@@ -462,25 +462,25 @@ void WriteAdaptedClass(FILE *File, ADAPT_CLASS Class, int NumConfigs) {
   int i;
 
   /* first write high level adapted class structure */
-  fwrite ((char *) Class, sizeof (ADAPT_CLASS_STRUCT), 1, File);
+  BOSS_TESSERACT_fwrite ((char *) Class, sizeof (ADAPT_CLASS_STRUCT), 1, File); //original-code:fwrite ((char *) Class, sizeof (ADAPT_CLASS_STRUCT), 1, File);
 
   /* then write out the definitions of the permanent protos and configs */
-  fwrite ((char *) Class->PermProtos, sizeof (uinT32),
+  BOSS_TESSERACT_fwrite ((char *) Class->PermProtos, sizeof (uinT32), //original-code:fwrite ((char *) Class->PermProtos, sizeof (uinT32),
     WordsInVectorOfSize (MAX_NUM_PROTOS), File);
-  fwrite ((char *) Class->PermConfigs, sizeof (uinT32),
+  BOSS_TESSERACT_fwrite ((char *) Class->PermConfigs, sizeof (uinT32), //original-code:fwrite ((char *) Class->PermConfigs, sizeof (uinT32),
     WordsInVectorOfSize (MAX_NUM_CONFIGS), File);
 
   /* then write out the list of temporary protos */
   NumTempProtos = count (Class->TempProtos);
-  fwrite ((char *) &NumTempProtos, sizeof (int), 1, File);
+  BOSS_TESSERACT_fwrite ((char *) &NumTempProtos, sizeof (int), 1, File); //original-code:fwrite ((char *) &NumTempProtos, sizeof (int), 1, File);
   TempProtos = Class->TempProtos;
   iterate (TempProtos) {
     void* proto = first_node(TempProtos);
-    fwrite ((char *) proto, sizeof (TEMP_PROTO_STRUCT), 1, File);
+    BOSS_TESSERACT_fwrite ((char *) proto, sizeof (TEMP_PROTO_STRUCT), 1, File); //original-code:fwrite ((char *) proto, sizeof (TEMP_PROTO_STRUCT), 1, File);
   }
 
   /* then write out the adapted configs */
-  fwrite ((char *) &NumConfigs, sizeof (int), 1, File);
+  BOSS_TESSERACT_fwrite ((char *) &NumConfigs, sizeof (int), 1, File); //original-code:fwrite ((char *) &NumConfigs, sizeof (int), 1, File);
   for (i = 0; i < NumConfigs; i++)
     if (test_bit (Class->PermConfigs, i))
       WritePermConfig (File, Class->Config[i].Perm);
@@ -506,7 +506,7 @@ void Classify::WriteAdaptedTemplates(FILE *File, ADAPT_TEMPLATES Templates) {
   int i;
 
   /* first write the high level adaptive template struct */
-  fwrite ((char *) Templates, sizeof (ADAPT_TEMPLATES_STRUCT), 1, File);
+  BOSS_TESSERACT_fwrite ((char *) Templates, sizeof (ADAPT_TEMPLATES_STRUCT), 1, File); //original-code:fwrite ((char *) Templates, sizeof (ADAPT_TEMPLATES_STRUCT), 1, File);
 
   /* then write out the basic integer templates */
   WriteIntTemplates (File, Templates->Templates, unicharset);
@@ -538,9 +538,9 @@ void WritePermConfig(FILE *File, PERM_CONFIG Config) {
   assert (Config != NULL);
   while (Config->Ambigs[NumAmbigs] > 0) ++NumAmbigs;
 
-  fwrite((char *) &NumAmbigs, sizeof(uinT8), 1, File);
-  fwrite(Config->Ambigs, sizeof(UNICHAR_ID), NumAmbigs, File);
-  fwrite(&(Config->FontinfoId), sizeof(int), 1, File);
+  BOSS_TESSERACT_fwrite((char *) &NumAmbigs, sizeof(uinT8), 1, File); //original-code:fwrite((char *) &NumAmbigs, sizeof(uinT8), 1, File);
+  BOSS_TESSERACT_fwrite(Config->Ambigs, sizeof(UNICHAR_ID), NumAmbigs, File); //original-code:fwrite(Config->Ambigs, sizeof(UNICHAR_ID), NumAmbigs, File);
+  BOSS_TESSERACT_fwrite(&(Config->FontinfoId), sizeof(int), 1, File); //original-code:fwrite(&(Config->FontinfoId), sizeof(int), 1, File);
 }                                /* WritePermConfig */
 
 
@@ -561,8 +561,8 @@ void WriteTempConfig(FILE *File, TEMP_CONFIG Config) {
                                  /* contexts not yet implemented */
   assert (Config->ContextsSeen == NULL);
 
-  fwrite ((char *) Config, sizeof (TEMP_CONFIG_STRUCT), 1, File);
-  fwrite ((char *) Config->Protos, sizeof (uinT32),
+  BOSS_TESSERACT_fwrite ((char *) Config, sizeof (TEMP_CONFIG_STRUCT), 1, File); //original-code:fwrite ((char *) Config, sizeof (TEMP_CONFIG_STRUCT), 1, File);
+  BOSS_TESSERACT_fwrite ((char *) Config->Protos, sizeof (uinT32), //original-code:fwrite ((char *) Config->Protos, sizeof (uinT32),
     Config->ProtoVectorSize, File);
 
 }                                /* WriteTempConfig */

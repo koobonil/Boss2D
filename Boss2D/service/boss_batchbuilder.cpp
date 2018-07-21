@@ -5,11 +5,8 @@
 
 namespace BOSS
 {
-    BatchBuilder::BatchBuilder(chars dirname) : m_dirname(dirname)
+    BatchBuilder::BatchBuilder(chars dirname) : mDirName(dirname)
     {
-        m_ref_dsts = nullptr;
-        m_ref_srcs = nullptr;
-        m_ref_comment = nullptr;
     }
 
     BatchBuilder::~BatchBuilder()
@@ -18,26 +15,116 @@ namespace BOSS
 
     void BatchBuilder::Processing(chars filename)
     {
+		ReplaceDsts.Clear();
+        ReplaceSrcs.Clear();
+		AliasDsts.Clear();
+        AliasSrcs.Clear();
+		ReplaceComment = "";
+		AliasComment = "";
+
         String Command = ReadFile(filename);
         const String FindKey = "_BOSS_BATCH_COMMAND_";
         sint32 FindedPos = Command.Find(0, FindKey);
-        if(0 <= FindedPos)
+        while(0 <= FindedPos)
         {
+			sint32 NextFindedPos = Command.Find(FindedPos + 1, FindKey);
             Context JsonCommand(ST_Json, SO_OnlyReference, ((chars) Command) + FindedPos + FindKey.Length());
-            if(!String::Compare(JsonCommand("type").GetString(), "include-alias"))
-                Process_IncludeAlias(Command, FindedPos, JsonCommand("prm").GetString(),
-                    JsonCommand("restore-comment").GetString(nullptr));
+			if(!String::Compare(JsonCommand("type").GetString(), "replace"))
+			{
+				Process_Replace(Command, FindedPos, NextFindedPos, JsonCommand("prm").GetString());
+				ReplaceComment = JsonCommand("restore-comment").GetString();
+			}
+            else if(!String::Compare(JsonCommand("type").GetString(), "include-alias"))
+			{
+                Process_IncludeAlias(Command, FindedPos, NextFindedPos, JsonCommand("prm").GetString());
+				AliasComment = JsonCommand("restore-comment").GetString();
+			}
+			FindedPos = NextFindedPos;
         }
+
+		// 폴더순회
+        Platform::File::Search(mDirName, Process_SearchCB, this, true);
     }
 
-    void BatchBuilder::Process_IncludeAlias(const String& command, sint32 pos, chars prm, chars comment)
+	void BatchBuilder::Process_SearchCB(chars itemname, payload data)
+	{
+		if(Platform::File::ExistForDir(itemname))
+            Platform::File::Search(itemname, Process_SearchCB, data, true);
+        else
+        {
+            const String Filename = itemname;
+            if(!String::CompareNoCase(".c", Filename.Right(2))
+                || !String::CompareNoCase(".cc", Filename.Right(3))
+                || !String::CompareNoCase(".cpp", Filename.Right(4))
+                || !String::CompareNoCase(".h", Filename.Right(2))
+                || !String::CompareNoCase(".hpp", Filename.Right(4)))
+            {
+                BatchBuilder* This = (BatchBuilder*) data;
+				bool IsSourceCodeUpdated = false;
+				String SourceCode = This->ReadFile(itemname);
+
+				if(0 < This->ReplaceDsts.Count())
+				{
+					const String ResultCode = This->Build_Replace(SourceCode, This->ReplaceDsts, This->ReplaceSrcs, This->ReplaceComment);
+					if(0 < ResultCode.Length())
+					{
+						IsSourceCodeUpdated = true;
+						SourceCode = ResultCode;
+					}
+				}
+				if(0 < This->AliasDsts.Count())
+				{
+					const String ResultCode = This->Build_IncludeAlias(SourceCode, This->AliasDsts, This->AliasSrcs, This->AliasComment);
+					if(0 < ResultCode.Length())
+					{
+						IsSourceCodeUpdated = true;
+						SourceCode = ResultCode;
+					}
+				}
+
+				// 결과가 존재하면 파일로 구성
+				if(IsSourceCodeUpdated)
+				{
+					String NewSourcePath = This->mDirName + "_batched" + &itemname[This->mDirName.Length()];
+					id_file NewSourceFileID = Platform::File::OpenForWrite(NewSourcePath, true);
+					Platform::File::Write(NewSourceFileID, (bytes)(chars) SourceCode, SourceCode.Length());
+					Platform::File::Close(NewSourceFileID);
+				}
+            }
+        }
+	}
+
+	void BatchBuilder::Process_Replace(const String& command, sint32 pos, sint32 posend, chars prm)
+	{
+		// 기호수집
+        String FindPrm = String("#define ") + prm;
+        while(-1 < (pos = command.Find(pos, FindPrm)))
+		{
+			if(posend != -1 && posend < pos)
+				break;
+            chars FindFocus = &((chars) command)[pos] + FindPrm.Length();
+            String& NewDst = ReplaceDsts.AtAdding();
+            String& NewSrc = ReplaceSrcs.AtAdding();
+			NewSrc += prm;
+			// 패스기호 수집
+            while(*FindFocus != ' ' && *FindFocus != '\t')
+			{
+				NewDst += *FindFocus;
+                NewSrc += *FindFocus;
+                FindFocus++;
+			}
+			pos += FindFocus - &((chars) command)[pos];
+		}
+	}
+
+    void BatchBuilder::Process_IncludeAlias(const String& command, sint32 pos, sint32 posend, chars prm)
     {
         // 기호수집
         String FindPrm = String("#define ") + prm;
-        Strings AliasDsts;
-        Strings AliasSrcs;
         while(-1 < (pos = command.Find(pos, FindPrm)))
         {
+			if(posend != -1 && posend < pos)
+				break;
             chars FindFocus = &((chars) command)[pos] + FindPrm.Length();
             String& NewDst = AliasDsts.AtAdding();
             String& NewSrc = AliasSrcs.AtAdding();
@@ -113,43 +200,74 @@ namespace BOSS
             }
             pos += FindFocus - &((chars) command)[pos];
         }
-
-        // 폴더순회
-        m_ref_dsts = &AliasDsts;
-        m_ref_srcs = &AliasSrcs;
-        m_ref_comment = comment;
-        Platform::File::Search(m_dirname, Process_IncludeAliasCB, this, true);
     }
 
-    void BatchBuilder::Process_IncludeAliasCB(chars itemname, payload data)
-    {
-        if(Platform::File::ExistForDir(itemname))
-            Platform::File::Search(itemname, Process_IncludeAliasCB, data, true);
-        else
-        {
-            const String Filename = itemname;
-            if(!String::CompareNoCase(".c", Filename.Right(2))
-                || !String::CompareNoCase(".cc", Filename.Right(3))
-                || !String::CompareNoCase(".cpp", Filename.Right(4))
-                || !String::CompareNoCase(".h", Filename.Right(2))
-                || !String::CompareNoCase(".hpp", Filename.Right(4)))
-            {
-                BatchBuilder* This = (BatchBuilder*) data;
-                This->Build_IncludeAlias(itemname, *This->m_ref_dsts, *This->m_ref_srcs, This->m_ref_comment);
-            }
-        }
-    }
+	String BatchBuilder::Build_Replace(String source, const Strings& dsts, const Strings& srcs, chars comment)
+	{
+		String ResultCode;
+        // 비교대상을 변경목록에서 찾기(역순탐색)
+        for(sint32 i = dsts.Count() - 1; 0 <= i; --i)
+		{
+			String Result;
+			sint32 FindFocus = 0, CopyFocus = 0;
+			chars SourcePtr = (chars) source;
+			while(-1 < (FindFocus = source.Find(FindFocus, dsts[i])))
+			{
+				if(!String::Compare(srcs[i], &SourcePtr[FindFocus + dsts[i].Length() - srcs[i].Length()], srcs[i].Length()))
+				{
+					sint32 NewLineFocus = source.Find(FindFocus, "\n");
+					if(-1 < NewLineFocus)
+						FindFocus = NewLineFocus + 1;
+					else FindFocus += dsts[i].Length();
+				}
+				else
+				{
+					const char Front = (FindFocus == 0)? '\0' : SourcePtr[FindFocus - 1];
+					const char Rear = SourcePtr[FindFocus + dsts[i].Length()];
+					if(!('a' <= Front && Front <= 'z') && !('a' <= Rear && Rear <= 'z')
+					&& !('A' <= Front && Front <= 'Z') && !('A' <= Rear && Rear <= 'Z')
+					&& !('0' <= Front && Front <= '9') && !('0' <= Rear && Rear <= '9')
+					&& Front != '_' && Rear != '_')
+					{
+						// 지연시킨 복사수행
+						Result.Add(&SourcePtr[CopyFocus], FindFocus - CopyFocus);
+						CopyFocus = (FindFocus += dsts[i].Length());
+						// 변경목록 수정안을 복사
+						Result += srcs[i];
+						// 원본(비교대상)을 주석화
+						if(comment && *comment)
+						{
+							sint32 NewLineFocus = source.Find(FindFocus, "\n");
+							if(-1 < NewLineFocus)
+							{
+								if(SourcePtr[NewLineFocus - 1] == '\r') NewLineFocus--;
+								Result.Add(&SourcePtr[CopyFocus], NewLineFocus - CopyFocus);
+								Result += comment;
+								Result.Add(&SourcePtr[CopyFocus - dsts[i].Length()], NewLineFocus - (CopyFocus - dsts[i].Length()));
+								CopyFocus = FindFocus = NewLineFocus;
+							}
+						}
+					}
+					else FindFocus += dsts[i].Length();
+				}
+			}
+			if(0 < Result.Length())
+			{
+				Result.Add(&SourcePtr[CopyFocus], source.Length() - CopyFocus);
+				ResultCode = Result;
+				source = Result;
+			}
+		}
+		return ResultCode;
+	}
 
-    void BatchBuilder::Build_IncludeAlias(chars sourcepath, const Strings& dsts, const Strings& srcs, chars comment)
+    String BatchBuilder::Build_IncludeAlias(String source, const Strings& dsts, const Strings& srcs, chars comment)
     {
-        String SourceCode = ReadFile(sourcepath);
         String ResultCode;
-
-        // 결과구성
         sint32 FindFocus = 0, CopyFocus = 0;
         String FindKey = "include";
-        chars SourcePtr = (chars) SourceCode;
-        while(-1 < (FindFocus = SourceCode.Find(FindFocus, FindKey)))
+        chars SourcePtr = (chars) source;
+        while(-1 < (FindFocus = source.Find(FindFocus, FindKey)))
         {
             // #여부 확인
             bool HasSharp = false;
@@ -202,6 +320,7 @@ namespace BOSS
 
                 // 비교대상을 변경목록에서 찾기(역순탐색)
                 for(sint32 i = dsts.Count() - 1; 0 <= i; --i)
+				{
                     if(!dsts[i].Compare(IncludePath))
                     {
                         // 지연시킨 복사수행
@@ -210,25 +329,19 @@ namespace BOSS
                         // 변경목록 수정안을 복사
                         ResultCode += srcs[i];
                         // 원본(비교대상)을 주석화
-                        if(comment)
+                        if(comment && *comment)
                         {
                             ResultCode += comment;
                             ResultCode.Add(&SourcePtr[FindFocus], FindEnd - FindFocus + 1);
                         }
                         break;
                     }
+				}
             }
         }
-
-        // 결과가 존재하면 파일로 구성
-        if(0 < ResultCode.Length())
-        {
-            String NewSourcePath = m_dirname + "_batched" + &sourcepath[m_dirname.Length()];
-            id_file NewSourceFileID = Platform::File::OpenForWrite(NewSourcePath, true);
-            Platform::File::Write(NewSourceFileID, (bytes)(chars) ResultCode, ResultCode.Length());
-            Platform::File::Write(NewSourceFileID, (bytes) &SourcePtr[CopyFocus], SourceCode.Length() - CopyFocus);
-            Platform::File::Close(NewSourceFileID);
-        }
+		if(0 < ResultCode.Length())
+			ResultCode.Add(&SourcePtr[CopyFocus], source.Length() - CopyFocus);
+		return ResultCode;
     }
 
     String BatchBuilder::ReadFile(chars filename)

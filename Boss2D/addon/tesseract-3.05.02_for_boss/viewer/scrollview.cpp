@@ -46,7 +46,7 @@ const int kSvPort = 8461;
 const int kMaxMsgSize = 4096;
 const int kMaxIntPairSize = 45;  // Holds %d,%d, for up to 64 bit.
 
-#include "svutil.h"
+#include BOSS_TESSERACT_U_svutil_h //original-code:"svutil.h"
 
 #include BOSS_OPENALPR_U_allheaders_h //original-code:"allheaders.h"
 

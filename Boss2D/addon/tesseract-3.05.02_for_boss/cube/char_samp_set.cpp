@@ -89,17 +89,17 @@ CharSampSet * CharSampSet::FromCharDumpFile(string file_name) {
   FILE *fp;
   unsigned int val32;
   // open the file
-  fp = fopen(file_name.c_str(), "rb");
+  fp = BOSS_TESSERACT_fopen(file_name.c_str(), "rb"); //original-code:fopen(file_name.c_str(), "rb");
   if (fp == NULL) {
     return NULL;
   }
   // read and verify marker
-  if (fread(&val32, 1, sizeof(val32), fp) != sizeof(val32)) {
-    fclose(fp);
+  if (BOSS_TESSERACT_fread(&val32, 1, sizeof(val32), fp) != sizeof(val32)) { //original-code:fread(&val32, 1, sizeof(val32), fp) != sizeof(val32)) {
+    BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
     return NULL;
   }
   if (val32 != 0xfefeabd0) {
-    fclose(fp);
+    BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
     return NULL;
   }
   // create an object
@@ -108,7 +108,7 @@ CharSampSet * CharSampSet::FromCharDumpFile(string file_name) {
     delete samp_set;
     samp_set = NULL;
   }
-  fclose(fp);
+  BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
   return samp_set;
 }
 
@@ -117,14 +117,14 @@ FILE *CharSampSet::CreateCharDumpFile(string file_name) {
   FILE *fp;
   unsigned int val32;
   // create the file
-  fp =  fopen(file_name.c_str(), "wb");
+  fp =  BOSS_TESSERACT_fopen(file_name.c_str(), "wb"); //original-code:fopen(file_name.c_str(), "wb");
   if (!fp) {
     return NULL;
   }
   // read and verify marker
   val32 = 0xfefeabd0;
-  if (fwrite(&val32, 1, sizeof(val32), fp) != sizeof(val32)) {
-    fclose(fp);
+  if (BOSS_TESSERACT_fwrite(&val32, 1, sizeof(val32), fp) != sizeof(val32)) { //original-code:fwrite(&val32, 1, sizeof(val32), fp) != sizeof(val32)) {
+    BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
     return NULL;
   }
   return fp;

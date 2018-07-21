@@ -207,6 +207,17 @@ namespace BOSS
         }
 
         /*!
+        \brief 교환
+        \param other : 교환할 인스턴스
+        */
+        void Change(Object&& other)
+        {
+            const Share* temp = share;
+            share = other.share;
+            other.share = temp;
+        }
+
+        /*!
         \brief 생성자
         \param doalloc : 버퍼 생성여부
         */

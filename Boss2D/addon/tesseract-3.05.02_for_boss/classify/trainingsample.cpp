@@ -52,25 +52,25 @@ TrainingSample::~TrainingSample() {
 // It is assumed these can all be reconstructed from what is saved.
 // Writes to the given file. Returns false in case of error.
 bool TrainingSample::Serialize(FILE* fp) const {
-  if (fwrite(&class_id_, sizeof(class_id_), 1, fp) != 1) return false;
-  if (fwrite(&font_id_, sizeof(font_id_), 1, fp) != 1) return false;
-  if (fwrite(&page_num_, sizeof(page_num_), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fwrite(&class_id_, sizeof(class_id_), 1, fp) != 1) return false; //original-code:fwrite(&class_id_, sizeof(class_id_), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fwrite(&font_id_, sizeof(font_id_), 1, fp) != 1) return false; //original-code:fwrite(&font_id_, sizeof(font_id_), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fwrite(&page_num_, sizeof(page_num_), 1, fp) != 1) return false; //original-code:fwrite(&page_num_, sizeof(page_num_), 1, fp) != 1) return false;
   if (!bounding_box_.Serialize(fp)) return false;
-  if (fwrite(&num_features_, sizeof(num_features_), 1, fp) != 1) return false;
-  if (fwrite(&num_micro_features_, sizeof(num_micro_features_), 1, fp) != 1)
+  if (BOSS_TESSERACT_fwrite(&num_features_, sizeof(num_features_), 1, fp) != 1) return false; //original-code:fwrite(&num_features_, sizeof(num_features_), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fwrite(&num_micro_features_, sizeof(num_micro_features_), 1, fp) != 1) //original-code:fwrite(&num_micro_features_, sizeof(num_micro_features_), 1, fp) != 1)
     return false;
-  if (fwrite(&outline_length_, sizeof(outline_length_), 1, fp) != 1)
+  if (BOSS_TESSERACT_fwrite(&outline_length_, sizeof(outline_length_), 1, fp) != 1) //original-code:fwrite(&outline_length_, sizeof(outline_length_), 1, fp) != 1)
     return false;
-  if (static_cast<int>(fwrite(features_, sizeof(*features_), num_features_, fp))
+  if (static_cast<int>(BOSS_TESSERACT_fwrite(features_, sizeof(*features_), num_features_, fp)) //original-code:fwrite(features_, sizeof(*features_), num_features_, fp))
       != num_features_)
     return false;
-  if (static_cast<int>(fwrite(micro_features_, sizeof(*micro_features_),
+  if (static_cast<int>(BOSS_TESSERACT_fwrite(micro_features_, sizeof(*micro_features_), //original-code:fwrite(micro_features_, sizeof(*micro_features_),
                               num_micro_features_,
                               fp)) != num_micro_features_)
     return false;
-  if (fwrite(cn_feature_, sizeof(*cn_feature_), kNumCNParams, fp) !=
+  if (BOSS_TESSERACT_fwrite(cn_feature_, sizeof(*cn_feature_), kNumCNParams, fp) != //original-code:fwrite(cn_feature_, sizeof(*cn_feature_), kNumCNParams, fp) !=
       kNumCNParams) return false;
-  if (fwrite(geo_feature_, sizeof(*geo_feature_), GeoCount, fp) != GeoCount)
+  if (BOSS_TESSERACT_fwrite(geo_feature_, sizeof(*geo_feature_), GeoCount, fp) != GeoCount) //original-code:fwrite(geo_feature_, sizeof(*geo_feature_), GeoCount, fp) != GeoCount)
     return false;
   return true;
 }
@@ -87,14 +87,14 @@ TrainingSample* TrainingSample::DeSerializeCreate(bool swap, FILE* fp) {
 // Reads from the given file. Returns false in case of error.
 // If swap is true, assumes a big/little-endian swap is needed.
 bool TrainingSample::DeSerialize(bool swap, FILE* fp) {
-  if (fread(&class_id_, sizeof(class_id_), 1, fp) != 1) return false;
-  if (fread(&font_id_, sizeof(font_id_), 1, fp) != 1) return false;
-  if (fread(&page_num_, sizeof(page_num_), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fread(&class_id_, sizeof(class_id_), 1, fp) != 1) return false; //original-code:fread(&class_id_, sizeof(class_id_), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fread(&font_id_, sizeof(font_id_), 1, fp) != 1) return false; //original-code:fread(&font_id_, sizeof(font_id_), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fread(&page_num_, sizeof(page_num_), 1, fp) != 1) return false; //original-code:fread(&page_num_, sizeof(page_num_), 1, fp) != 1) return false;
   if (!bounding_box_.DeSerialize(swap, fp)) return false;
-  if (fread(&num_features_, sizeof(num_features_), 1, fp) != 1) return false;
-  if (fread(&num_micro_features_, sizeof(num_micro_features_), 1, fp) != 1)
+  if (BOSS_TESSERACT_fread(&num_features_, sizeof(num_features_), 1, fp) != 1) return false; //original-code:fread(&num_features_, sizeof(num_features_), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fread(&num_micro_features_, sizeof(num_micro_features_), 1, fp) != 1) //original-code:fread(&num_micro_features_, sizeof(num_micro_features_), 1, fp) != 1)
     return false;
-  if (fread(&outline_length_, sizeof(outline_length_), 1, fp) != 1)
+  if (BOSS_TESSERACT_fread(&outline_length_, sizeof(outline_length_), 1, fp) != 1) //original-code:fread(&outline_length_, sizeof(outline_length_), 1, fp) != 1)
     return false;
   if (swap) {
     ReverseN(&class_id_, sizeof(class_id_));
@@ -104,18 +104,18 @@ bool TrainingSample::DeSerialize(bool swap, FILE* fp) {
   }
   delete [] features_;
   features_ = new INT_FEATURE_STRUCT[num_features_];
-  if (static_cast<int>(fread(features_, sizeof(*features_), num_features_, fp))
+  if (static_cast<int>(BOSS_TESSERACT_fread(features_, sizeof(*features_), num_features_, fp)) //original-code:fread(features_, sizeof(*features_), num_features_, fp))
       != num_features_)
     return false;
   delete [] micro_features_;
   micro_features_ = new MicroFeature[num_micro_features_];
-  if (static_cast<int>(fread(micro_features_, sizeof(*micro_features_),
+  if (static_cast<int>(BOSS_TESSERACT_fread(micro_features_, sizeof(*micro_features_), //original-code:fread(micro_features_, sizeof(*micro_features_),
                              num_micro_features_,
                              fp)) != num_micro_features_)
     return false;
-  if (fread(cn_feature_, sizeof(*cn_feature_), kNumCNParams, fp) !=
+  if (BOSS_TESSERACT_fread(cn_feature_, sizeof(*cn_feature_), kNumCNParams, fp) != //original-code:fread(cn_feature_, sizeof(*cn_feature_), kNumCNParams, fp) !=
             kNumCNParams) return false;
-  if (fread(geo_feature_, sizeof(*geo_feature_), GeoCount, fp) != GeoCount)
+  if (BOSS_TESSERACT_fread(geo_feature_, sizeof(*geo_feature_), GeoCount, fp) != GeoCount) //original-code:fread(geo_feature_, sizeof(*geo_feature_), GeoCount, fp) != GeoCount)
     return false;
   return true;
 }

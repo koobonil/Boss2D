@@ -65,10 +65,13 @@ namespace alpr
   {
     if (pzPath == NULL) return false;
 
-    bool fExists = false;
-    std::ifstream f(pzPath);
-    fExists = f.is_open();
-    f.close();
+    bool fExists = false; 
+    // removed by BOSS: std::ifstream f(pzPath);
+    // removed by BOSS: fExists = f.is_open();
+    // removed by BOSS: f.close();
+	auto Result = boss_fopen(pzPath, "r"); // added by BOSS
+	if(Result) fExists = true; // added by BOSS
+	boss_fclose(Result); // added by BOSS
     return fExists;
   }
 

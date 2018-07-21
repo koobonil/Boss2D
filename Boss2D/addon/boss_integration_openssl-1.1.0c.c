@@ -2,7 +2,7 @@
 #if BOSS_NEED_ADDON_CURL | BOSS_NEED_ADDON_GIT
 
 #include <addon/boss_fakewin.h>
-#include "boss_integration_openssl-1.1.0c.h"
+#include <addon/boss_integration_openssl-1.1.0c.h>
 
 #if BOSS_WINDOWS
     #pragma comment(lib, "advapi32.lib")
@@ -95,6 +95,7 @@
 #include <addon/openssl-1.1.0c_for_boss/crypto/sha/sha512.c>
 #include <addon/openssl-1.1.0c_for_boss/crypto/sha/sha1_one.c>
 #include <addon/openssl-1.1.0c_for_boss/crypto/md5/md5_dgst.c>
+#include <addon/openssl-1.1.0c_for_boss/crypto/md5/md5_one.c>
 #include <addon/openssl-1.1.0c_for_boss/crypto/ec/ec_asn1.c>
 #include <addon/openssl-1.1.0c_for_boss/crypto/ec/ec_key.c>
 #include <addon/openssl-1.1.0c_for_boss/crypto/ec/ec_lib.c>

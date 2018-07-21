@@ -9,7 +9,7 @@
 
 
 
-#if BOSS_WINDOWS & !BOSS_WINDOWS_MINGW // modified by BOSS, original code: #ifdef WINDOWS
+#if BOSS_WINDOWS & !BOSS_WINDOWS_MINGW // modified by BOSS, original-code: #ifdef WINDOWS
     // Import windows only stuff
 	#include BOSS_FAKEWIN_V_windows_h //original-code:<windows.h>
 	#if _MSC_VER < 1900

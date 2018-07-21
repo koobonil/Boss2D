@@ -52,6 +52,7 @@ namespace BOSS
             static chars RequestString(id_curl curl, chars url, chars postdata = nullptr, chars headerdata = nullptr);
             static bytes RequestBytes(id_curl curl, chars url, sint32* getsize, chars postdata = nullptr, chars headerdata = nullptr);
             static chars RequestRedirectUrl(id_curl curl, chars url, sint32 successcode, chars postdata = nullptr, chars headerdata = nullptr);
+            static bool PutData(id_curl curl, chars url, bytes putdata, sint32 putsize, sint32 successcode, chars headerdata = nullptr);
             static void SendStream(id_curl curl, chars url, CurlReadCB cb, payload data);
             static bool FtpUpload(id_curl curl, chars url, chars filename, buffer data);
             static buffer FtpDownload(id_curl curl, chars url, chars filename);
@@ -121,6 +122,13 @@ namespace BOSS
             static id_bitmap GetUpdatedImage(id_opencv opencv);
             static void GetFindContours(id_opencv opencv, FindContoursCB cb, payload data = nullptr);
             static void GetHoughLines(id_opencv opencv, HoughLinesCB cb, payload data = nullptr);
+        };
+
+        //! \brief SSL연동
+        class Ssl
+        {
+        public:
+            static chars ToMD5(bytes binary, sint32 length);
         };
 
         //! \brief TESSERACT연동

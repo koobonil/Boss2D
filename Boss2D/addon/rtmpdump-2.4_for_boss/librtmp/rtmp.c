@@ -543,7 +543,7 @@ static const char *optinfo[] = {
 
 static struct urlopt {
   AVal name;
-  long off; // modified by BOSS, original code: off_t off;
+  long off; // modified by BOSS, original-code: off_t off;
   int otype;
   int omisc;
   char *use;

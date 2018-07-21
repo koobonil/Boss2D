@@ -227,11 +227,11 @@ bool ConvNetCharClassifier::LoadFoldingSets(const string &data_file_path,
   fold_file_name += ".cube.fold";
 
   // folding sets are optional
-  FILE *fp = fopen(fold_file_name.c_str(), "rb");
+  FILE *fp = BOSS_TESSERACT_fopen(fold_file_name.c_str(), "rb"); //original-code:fopen(fold_file_name.c_str(), "rb");
   if (fp == NULL) {
     return true;
   }
-  fclose(fp);
+  BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
 
   string fold_sets_str;
   if (!CubeUtils::ReadFileToString(fold_file_name,
@@ -311,11 +311,11 @@ bool ConvNetCharClassifier::LoadNets(const string &data_file_path,
   char_net_file += ".cube.nn";
 
   // neural network is optional
-  FILE *fp = fopen(char_net_file.c_str(), "rb");
+  FILE *fp = BOSS_TESSERACT_fopen(char_net_file.c_str(), "rb"); //original-code:fopen(char_net_file.c_str(), "rb");
   if (fp == NULL) {
     return true;
   }
-  fclose(fp);
+  BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
 
   // load main net
   char_net_ = tesseract::NeuralNet::FromFile(char_net_file);

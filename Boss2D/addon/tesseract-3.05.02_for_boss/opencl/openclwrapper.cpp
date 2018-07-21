@@ -290,21 +290,21 @@ static ds_status readProFile(const char *fileName, char **content,
   *contentSize = 0;
   *content = NULL;
 
-  FILE *input = fopen(fileName, "rb");
+  FILE *input = BOSS_TESSERACT_fopen(fileName, "rb"); //original-code:fopen(fileName, "rb");
   if (input == NULL) {
     return DS_FILE_ERROR;
   }
 
-  fseek(input, 0L, SEEK_END);
-  size = ftell(input);
-  rewind(input);
+  BOSS_TESSERACT_fseek(input, 0L, SEEK_END); //original-code:fseek(input, 0L, SEEK_END);
+  size = BOSS_TESSERACT_ftell(input); //original-code:ftell(input);
+  BOSS_TESSERACT_rewind(input); //original-code:rewind(input);
   char *binary = (char *)malloc(size);
   if (binary == NULL) {
-    fclose(input);
+    BOSS_TESSERACT_fclose(input); //original-code:fclose(input);
     return DS_FILE_ERROR;
   }
-  fread(binary, sizeof(char), size, input);
-  fclose(input);
+  BOSS_TESSERACT_fread(binary, sizeof(char), size, input); //original-code:fread(binary, sizeof(char), size, input);
+  BOSS_TESSERACT_fclose(input); //original-code:fclose(input);
 
   *contentSize = size;
   *content = binary;
@@ -502,57 +502,57 @@ static ds_status writeProfileToFile(ds_profile *profile,
 
   if (profile == NULL) return DS_INVALID_PROFILE;
 
-  FILE *profileFile = fopen(file, "wb");
+  FILE *profileFile = BOSS_TESSERACT_fopen(file, "wb"); //original-code:fopen(file, "wb");
   if (profileFile == NULL) {
     status = DS_FILE_ERROR;
   } else {
     unsigned int i;
 
     // write version string
-    fwrite(DS_TAG_VERSION, sizeof(char), strlen(DS_TAG_VERSION), profileFile);
-    fwrite(profile->version, sizeof(char), strlen(profile->version),
+    BOSS_TESSERACT_fwrite(DS_TAG_VERSION, sizeof(char), strlen(DS_TAG_VERSION), profileFile); //original-code:fwrite(DS_TAG_VERSION, sizeof(char), strlen(DS_TAG_VERSION), profileFile);
+    BOSS_TESSERACT_fwrite(profile->version, sizeof(char), strlen(profile->version), //original-code:fwrite(profile->version, sizeof(char), strlen(profile->version),
            profileFile);
-    fwrite(DS_TAG_VERSION_END, sizeof(char), strlen(DS_TAG_VERSION_END),
+    BOSS_TESSERACT_fwrite(DS_TAG_VERSION_END, sizeof(char), strlen(DS_TAG_VERSION_END), //original-code:fwrite(DS_TAG_VERSION_END, sizeof(char), strlen(DS_TAG_VERSION_END),
            profileFile);
-    fwrite("\n", sizeof(char), 1, profileFile);
+    BOSS_TESSERACT_fwrite("\n", sizeof(char), 1, profileFile); //original-code:fwrite("\n", sizeof(char), 1, profileFile);
 
     for (i = 0; i < profile->numDevices && status == DS_SUCCESS; i++) {
       void *serializedScore;
       unsigned int serializedScoreSize;
 
-      fwrite(DS_TAG_DEVICE, sizeof(char), strlen(DS_TAG_DEVICE), profileFile);
+      BOSS_TESSERACT_fwrite(DS_TAG_DEVICE, sizeof(char), strlen(DS_TAG_DEVICE), profileFile); //original-code:fwrite(DS_TAG_DEVICE, sizeof(char), strlen(DS_TAG_DEVICE), profileFile);
 
-      fwrite(DS_TAG_DEVICE_TYPE, sizeof(char), strlen(DS_TAG_DEVICE_TYPE),
+      BOSS_TESSERACT_fwrite(DS_TAG_DEVICE_TYPE, sizeof(char), strlen(DS_TAG_DEVICE_TYPE), //original-code:fwrite(DS_TAG_DEVICE_TYPE, sizeof(char), strlen(DS_TAG_DEVICE_TYPE),
              profileFile);
-      fwrite(&profile->devices[i].type, sizeof(ds_device_type), 1, profileFile);
-      fwrite(DS_TAG_DEVICE_TYPE_END, sizeof(char),
+      BOSS_TESSERACT_fwrite(&profile->devices[i].type, sizeof(ds_device_type), 1, profileFile); //original-code:fwrite(&profile->devices[i].type, sizeof(ds_device_type), 1, profileFile);
+      BOSS_TESSERACT_fwrite(DS_TAG_DEVICE_TYPE_END, sizeof(char), //original-code:fwrite(DS_TAG_DEVICE_TYPE_END, sizeof(char),
              strlen(DS_TAG_DEVICE_TYPE_END), profileFile);
 
       switch (profile->devices[i].type) {
         case DS_DEVICE_NATIVE_CPU: {
           // There's no need to emit a device name for the native CPU device.
           /*
-          fwrite(DS_TAG_DEVICE_NAME, sizeof(char), strlen(DS_TAG_DEVICE_NAME),
+          BOSS_TESSERACT_fwrite(DS_TAG_DEVICE_NAME, sizeof(char), strlen(DS_TAG_DEVICE_NAME), //original-code:fwrite(DS_TAG_DEVICE_NAME, sizeof(char), strlen(DS_TAG_DEVICE_NAME),
                  profileFile);
-          fwrite(DS_DEVICE_NATIVE_CPU_STRING,sizeof(char),
+          BOSS_TESSERACT_fwrite(DS_DEVICE_NATIVE_CPU_STRING,sizeof(char), //original-code:fwrite(DS_DEVICE_NATIVE_CPU_STRING,sizeof(char),
                  strlen(DS_DEVICE_NATIVE_CPU_STRING), profileFile);
-          fwrite(DS_TAG_DEVICE_NAME_END, sizeof(char),
+          BOSS_TESSERACT_fwrite(DS_TAG_DEVICE_NAME_END, sizeof(char), //original-code:fwrite(DS_TAG_DEVICE_NAME_END, sizeof(char),
                  strlen(DS_TAG_DEVICE_NAME_END), profileFile);
           */
         } break;
         case DS_DEVICE_OPENCL_DEVICE: {
-          fwrite(DS_TAG_DEVICE_NAME, sizeof(char), strlen(DS_TAG_DEVICE_NAME),
+          BOSS_TESSERACT_fwrite(DS_TAG_DEVICE_NAME, sizeof(char), strlen(DS_TAG_DEVICE_NAME), //original-code:fwrite(DS_TAG_DEVICE_NAME, sizeof(char), strlen(DS_TAG_DEVICE_NAME),
                  profileFile);
-          fwrite(profile->devices[i].oclDeviceName, sizeof(char),
+          BOSS_TESSERACT_fwrite(profile->devices[i].oclDeviceName, sizeof(char), //original-code:fwrite(profile->devices[i].oclDeviceName, sizeof(char),
                  strlen(profile->devices[i].oclDeviceName), profileFile);
-          fwrite(DS_TAG_DEVICE_NAME_END, sizeof(char),
+          BOSS_TESSERACT_fwrite(DS_TAG_DEVICE_NAME_END, sizeof(char), //original-code:fwrite(DS_TAG_DEVICE_NAME_END, sizeof(char),
                  strlen(DS_TAG_DEVICE_NAME_END), profileFile);
 
-          fwrite(DS_TAG_DEVICE_DRIVER_VERSION, sizeof(char),
+          BOSS_TESSERACT_fwrite(DS_TAG_DEVICE_DRIVER_VERSION, sizeof(char), //original-code:fwrite(DS_TAG_DEVICE_DRIVER_VERSION, sizeof(char),
                  strlen(DS_TAG_DEVICE_DRIVER_VERSION), profileFile);
-          fwrite(profile->devices[i].oclDriverVersion, sizeof(char),
+          BOSS_TESSERACT_fwrite(profile->devices[i].oclDriverVersion, sizeof(char), //original-code:fwrite(profile->devices[i].oclDriverVersion, sizeof(char),
                  strlen(profile->devices[i].oclDriverVersion), profileFile);
-          fwrite(DS_TAG_DEVICE_DRIVER_VERSION_END, sizeof(char),
+          BOSS_TESSERACT_fwrite(DS_TAG_DEVICE_DRIVER_VERSION_END, sizeof(char), //original-code:fwrite(DS_TAG_DEVICE_DRIVER_VERSION_END, sizeof(char),
                  strlen(DS_TAG_DEVICE_DRIVER_VERSION_END), profileFile);
         } break;
         default:
@@ -560,21 +560,21 @@ static ds_status writeProfileToFile(ds_profile *profile,
           break;
       };
 
-      fwrite(DS_TAG_SCORE, sizeof(char), strlen(DS_TAG_SCORE), profileFile);
+      BOSS_TESSERACT_fwrite(DS_TAG_SCORE, sizeof(char), strlen(DS_TAG_SCORE), profileFile); //original-code:fwrite(DS_TAG_SCORE, sizeof(char), strlen(DS_TAG_SCORE), profileFile);
       status = serializer(profile->devices + i, &serializedScore,
                           &serializedScoreSize);
       if (status == DS_SUCCESS && serializedScore != NULL &&
           serializedScoreSize > 0) {
-        fwrite(serializedScore, sizeof(char), serializedScoreSize, profileFile);
+        BOSS_TESSERACT_fwrite(serializedScore, sizeof(char), serializedScoreSize, profileFile); //original-code:fwrite(serializedScore, sizeof(char), serializedScoreSize, profileFile);
         free(serializedScore);
       }
-      fwrite(DS_TAG_SCORE_END, sizeof(char), strlen(DS_TAG_SCORE_END),
+      BOSS_TESSERACT_fwrite(DS_TAG_SCORE_END, sizeof(char), strlen(DS_TAG_SCORE_END), //original-code:fwrite(DS_TAG_SCORE_END, sizeof(char), strlen(DS_TAG_SCORE_END),
              profileFile);
-      fwrite(DS_TAG_DEVICE_END, sizeof(char), strlen(DS_TAG_DEVICE_END),
+      BOSS_TESSERACT_fwrite(DS_TAG_DEVICE_END, sizeof(char), strlen(DS_TAG_DEVICE_END), //original-code:fwrite(DS_TAG_DEVICE_END, sizeof(char), strlen(DS_TAG_DEVICE_END),
              profileFile);
-      fwrite("\n", sizeof(char), 1, profileFile);
+      BOSS_TESSERACT_fwrite("\n", sizeof(char), 1, profileFile); //original-code:fwrite("\n", sizeof(char), 1, profileFile);
     }
-    fclose(profileFile);
+    BOSS_TESSERACT_fclose(profileFile); //original-code:fclose(profileFile);
   }
   return status;
 }
@@ -880,7 +880,7 @@ int OpenclDevice::BinaryGenerated( const char * clFileName, FILE ** fhandle )
     cl_name[str - clFileName] = '\0';
     sprintf(fileName, "%s-%s.bin", cl_name, deviceName);
     legalizeFileName(fileName);
-    fd = fopen(fileName, "rb");
+    fd = BOSS_TESSERACT_fopen(fileName, "rb"); //original-code:fopen(fileName, "rb");
     status = (fd != NULL) ? 1 : 0;
     if (fd != NULL) {
       *fhandle = fd;
@@ -906,13 +906,13 @@ int OpenclDevice::CachedOfKernerPrg( const GPUEnv *gpuEnvCached, const char * cl
 int OpenclDevice::WriteBinaryToFile( const char* fileName, const char* birary, size_t numBytes )
 {
   FILE *output = NULL;
-  output = fopen(fileName, "wb");
+  output = BOSS_TESSERACT_fopen(fileName, "wb"); //original-code:fopen(fileName, "wb");
   if (output == NULL) {
     return 0;
     }
 
-    fwrite( birary, sizeof(char), numBytes, output );
-    fclose( output );
+    BOSS_TESSERACT_fwrite( birary, sizeof(char), numBytes, output ); //original-code:fwrite( birary, sizeof(char), numBytes, output );
+    BOSS_TESSERACT_fclose( output ); //original-code:fclose( output );
 
     return 1;
 
@@ -1058,9 +1058,9 @@ int OpenclDevice::CompileKernelFile( GPUEnv *gpuInfo, const char *buildOption )
 //PERF_COUNT_SUB("get numDevices")
         b_error = 0;
         length = 0;
-        b_error |= fseek( fd, 0, SEEK_END ) < 0;
-        b_error |= ( length = ftell(fd) ) <= 0;
-        b_error |= fseek( fd, 0, SEEK_SET ) < 0;
+        b_error |= BOSS_TESSERACT_fseek( fd, 0, SEEK_END ) < 0; //original-code:fseek( fd, 0, SEEK_END ) < 0;
+        b_error |= ( length = BOSS_TESSERACT_ftell(fd) ) <= 0; //original-code:ftell(fd) ) <= 0;
+        b_error |= BOSS_TESSERACT_fseek( fd, 0, SEEK_SET ) < 0; //original-code:fseek( fd, 0, SEEK_SET ) < 0;
         if ( b_error )
         {
             return 0;
@@ -1073,10 +1073,10 @@ int OpenclDevice::CompileKernelFile( GPUEnv *gpuInfo, const char *buildOption )
         }
 
         memset( binary, 0, length + 2 );
-        b_error |= fread( binary, 1, length, fd ) != length;
+        b_error |= BOSS_TESSERACT_fread( binary, 1, length, fd ) != length; //original-code:fread( binary, 1, length, fd ) != length;
 
 
-        fclose( fd );
+        BOSS_TESSERACT_fclose( fd ); //original-code:fclose( fd );
 //PERF_COUNT_SUB("read file")
         fd = NULL;
         // grab the handles to all of the devices in the context.
@@ -1169,10 +1169,10 @@ PERF_COUNT_END
             return 0;
         }
 
-        fd1 = fopen( "kernel-build.log", "w+" );
+        fd1 = BOSS_TESSERACT_fopen( "kernel-build.log", "w+" ); //original-code:fopen( "kernel-build.log", "w+" );
         if (fd1 != NULL) {
-          fwrite(buildLog, sizeof(char), length, fd1);
-          fclose(fd1);
+          BOSS_TESSERACT_fwrite(buildLog, sizeof(char), length, fd1); //original-code:fwrite(buildLog, sizeof(char), length, fd1);
+          BOSS_TESSERACT_fclose(fd1); //original-code:fclose(fd1);
         }
 
         free( buildLog );

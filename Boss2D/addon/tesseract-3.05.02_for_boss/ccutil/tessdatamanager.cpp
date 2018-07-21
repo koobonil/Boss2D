@@ -1,3 +1,5 @@
+// author BOSS
+
 ///////////////////////////////////////////////////////////////////////
 // File:        tessdatamanager.cpp
 // Description: Functions to handle loading/combining tesseract data files.
@@ -37,14 +39,14 @@ bool TessdataManager::Init(const char *data_file_name, int debug_level) {
   int i;
   debug_level_ = debug_level;
   data_file_name_ = data_file_name;
-  data_file_ = fopen(data_file_name, "rb");
+  data_file_ = BOSS_TESSERACT_fopen(data_file_name, "rb"); //original-code:fopen(data_file_name, "rb");
   if (data_file_ == NULL) {
     tprintf("Error opening data file %s\n", data_file_name);
     tprintf("Please make sure the TESSDATA_PREFIX environment variable is set "
             "to the parent directory of your \"tessdata\" directory.\n");
     return false;
   }
-  fread(&actual_tessdata_num_entries_, sizeof(inT32), 1, data_file_);
+  BOSS_TESSERACT_fread(&actual_tessdata_num_entries_, sizeof(inT32), 1, data_file_); //original-code:fread(&actual_tessdata_num_entries_, sizeof(inT32), 1, data_file_);
   swap_ = (actual_tessdata_num_entries_ > kMaxNumTessdataEntries);
   if (swap_) {
     ReverseN(&actual_tessdata_num_entries_,
@@ -54,7 +56,7 @@ bool TessdataManager::Init(const char *data_file_name, int debug_level) {
     // For forward compatibility, truncate to the number we can handle.
     actual_tessdata_num_entries_ = TESSDATA_NUM_ENTRIES;
   }
-  fread(offset_table_, sizeof(inT64),
+  BOSS_TESSERACT_fread(offset_table_, sizeof(inT64), //original-code:fread(offset_table_, sizeof(inT64),
         actual_tessdata_num_entries_, data_file_);
   if (swap_) {
     for (i = 0 ; i < actual_tessdata_num_entries_; ++i) {
@@ -82,9 +84,9 @@ void TessdataManager::CopyFile(FILE *input_file, FILE *output_file,
   char *chunk = new char[buffer_size];
   int bytes_read;
   char last_char = 0x0;
-  while ((bytes_read = fread(chunk, sizeof(char),
+  while ((bytes_read = BOSS_TESSERACT_fread(chunk, sizeof(char), //original-code:fread(chunk, sizeof(char),
                              buffer_size, input_file))) {
-    fwrite(chunk, sizeof(char), bytes_read, output_file);
+    BOSS_TESSERACT_fwrite(chunk, sizeof(char), bytes_read, output_file); //original-code:fwrite(chunk, sizeof(char), bytes_read, output_file);
     last_char = chunk[bytes_read-1];
     if (num_bytes_to_copy > 0) {
       num_bytes_copied += bytes_read;
@@ -103,14 +105,14 @@ bool TessdataManager::WriteMetadata(inT64 *offset_table,
                                     FILE *output_file) {
   inT32 num_entries = TESSDATA_NUM_ENTRIES;
   bool result = true;
-  if (fseek(output_file, 0, SEEK_SET) != 0 ||
-      fwrite(&num_entries, sizeof(inT32), 1, output_file) != 1 ||
-      fwrite(offset_table, sizeof(inT64), TESSDATA_NUM_ENTRIES,
+  if (BOSS_TESSERACT_fseek(output_file, 0, SEEK_SET) != 0 || //original-code:fseek(output_file, 0, SEEK_SET) != 0 ||
+      BOSS_TESSERACT_fwrite(&num_entries, sizeof(inT32), 1, output_file) != 1 || //original-code:fwrite(&num_entries, sizeof(inT32), 1, output_file) != 1 ||
+      BOSS_TESSERACT_fwrite(offset_table, sizeof(inT64), TESSDATA_NUM_ENTRIES, //original-code:fwrite(offset_table, sizeof(inT64), TESSDATA_NUM_ENTRIES,
              output_file) != TESSDATA_NUM_ENTRIES) {
-    fclose(output_file);
+    BOSS_TESSERACT_fclose(output_file); //original-code:fclose(output_file);
     result = false;
     tprintf("WriteMetadata failed in TessdataManager!\n");
-  } else if (fclose(output_file)) {
+  } else if (BOSS_TESSERACT_fclose(output_file)) { //original-code:fclose(output_file)) {
     result = false;
     tprintf("WriteMetadata failed to close file!\n");
   } else {
@@ -130,16 +132,16 @@ bool TessdataManager::CombineDataFiles(
   int i;
   inT64 offset_table[TESSDATA_NUM_ENTRIES];
   for (i = 0; i < TESSDATA_NUM_ENTRIES; ++i) offset_table[i] = -1;
-  FILE *output_file = fopen(output_filename, "wb");
+  FILE *output_file = BOSS_TESSERACT_fopen(output_filename, "wb"); //original-code:fopen(output_filename, "wb");
   if (output_file == NULL) {
     tprintf("Error opening %s for writing\n", output_filename);
     return false;
   }
   // Leave some space for recording the offset_table.
-  if (fseek(output_file,
+  if (BOSS_TESSERACT_fseek(output_file, //original-code:fseek(output_file,
             sizeof(inT32) + sizeof(inT64) * TESSDATA_NUM_ENTRIES, SEEK_SET)) {
     tprintf("Error seeking %s\n", output_filename);
-    fclose(output_file);
+    BOSS_TESSERACT_fclose(output_file); //original-code:fclose(output_file);
     return false;
   }
 
@@ -153,18 +155,18 @@ bool TessdataManager::CombineDataFiles(
         kTessdataFileSuffixes[i], &type, &text_file));
     STRING filename = language_data_path_prefix;
     filename += kTessdataFileSuffixes[i];
-    file_ptr[i] =  fopen(filename.string(), "rb");
+    file_ptr[i] =  BOSS_TESSERACT_fopen(filename.string(), "rb"); //original-code:fopen(filename.string(), "rb");
     if (file_ptr[i] != NULL) {
-      offset_table[type] = ftell(output_file);
+      offset_table[type] = BOSS_TESSERACT_ftell(output_file); //original-code:ftell(output_file);
       CopyFile(file_ptr[i], output_file, text_file, -1);
-      fclose(file_ptr[i]);
+      BOSS_TESSERACT_fclose(file_ptr[i]); //original-code:fclose(file_ptr[i]);
     }
   }
 
   // Make sure that the required components are present.
   if (file_ptr[TESSDATA_UNICHARSET] == NULL) {
     tprintf("Error opening %sunicharset file\n", language_data_path_prefix);
-    fclose(output_file);
+    BOSS_TESSERACT_fclose(output_file); //original-code:fclose(output_file);
     return false;
   }
   if (file_ptr[TESSDATA_INTTEMP] != NULL &&
@@ -173,7 +175,7 @@ bool TessdataManager::CombineDataFiles(
     tprintf("Error opening %spffmtable and/or %snormproto files"
             " while %sinttemp file was present\n", language_data_path_prefix,
             language_data_path_prefix, language_data_path_prefix);
-    fclose(output_file);
+    BOSS_TESSERACT_fclose(output_file); //original-code:fclose(output_file);
     return false;
   }
 
@@ -193,16 +195,16 @@ bool TessdataManager::OverwriteComponents(
     offset_table[i] = -1;
     file_ptr[i] = NULL;
   }
-  FILE *output_file = fopen(new_traineddata_filename, "wb");
+  FILE *output_file = BOSS_TESSERACT_fopen(new_traineddata_filename, "wb"); //original-code:fopen(new_traineddata_filename, "wb");
   if (output_file == NULL) {
     tprintf("Error opening %s for writing\n", new_traineddata_filename);
     return false;
   }
 
   // Leave some space for recording the offset_table.
-  if (fseek(output_file,
+  if (BOSS_TESSERACT_fseek(output_file, //original-code:fseek(output_file,
             sizeof(inT32) + sizeof(inT64) * TESSDATA_NUM_ENTRIES, SEEK_SET)) {
-    fclose(output_file);
+    BOSS_TESSERACT_fclose(output_file); //original-code:fclose(output_file);
     tprintf("Error seeking %s\n", new_traineddata_filename);
     return false;
   }
@@ -210,23 +212,23 @@ bool TessdataManager::OverwriteComponents(
   // Open the files with the new components.
   for (i = 0; i < num_new_components; ++i) {
     if (TessdataTypeFromFileName(component_filenames[i], &type, &text_file))
-      file_ptr[type] = fopen(component_filenames[i], "rb");
+      file_ptr[type] = BOSS_TESSERACT_fopen(component_filenames[i], "rb"); //original-code:fopen(component_filenames[i], "rb");
   }
 
   // Write updated data to the output traineddata file.
   for (i = 0; i < TESSDATA_NUM_ENTRIES; ++i) {
     if (file_ptr[i] != NULL) {
       // Get the data from the opened component file.
-      offset_table[i] = ftell(output_file);
+      offset_table[i] = BOSS_TESSERACT_ftell(output_file); //original-code:ftell(output_file);
       CopyFile(file_ptr[i], output_file, kTessdataFileIsText[i], -1);
-      fclose(file_ptr[i]);
+      BOSS_TESSERACT_fclose(file_ptr[i]); //original-code:fclose(file_ptr[i]);
     } else {
       // Get this data component from the loaded data file.
       if (SeekToStart(static_cast<TessdataType>(i))) {
-        offset_table[i] = ftell(output_file);
+        offset_table[i] = BOSS_TESSERACT_ftell(output_file); //original-code:ftell(output_file);
         CopyFile(data_file_, output_file, kTessdataFileIsText[i],
                  GetEndOffset(static_cast<TessdataType>(i)) -
-                 ftell(data_file_) + 1);
+                 BOSS_TESSERACT_ftell(data_file_) + 1); //original-code:ftell(data_file_) + 1);
       }
     }
   }
@@ -263,17 +265,17 @@ bool TessdataManager::ExtractToFile(const char *filename) {
       filename, &type, &text_file));
   if (!SeekToStart(type)) return false;
 
-  FILE *output_file = fopen(filename, "wb");
+  FILE *output_file = BOSS_TESSERACT_fopen(filename, "wb"); //original-code:fopen(filename, "wb");
   if (output_file == NULL) {
     tprintf("Error opening %s\n", filename);
     exit(1);
   }
-  inT64 begin_offset = ftell(GetDataFilePtr());
+  inT64 begin_offset = BOSS_TESSERACT_ftell(GetDataFilePtr()); //original-code:ftell(GetDataFilePtr());
   inT64 end_offset = GetEndOffset(type);
   tesseract::TessdataManager::CopyFile(
       GetDataFilePtr(), output_file, text_file,
       end_offset - begin_offset + 1);
-  fclose(output_file);
+  BOSS_TESSERACT_fclose(output_file); //original-code:fclose(output_file);
   return true;
 }
 

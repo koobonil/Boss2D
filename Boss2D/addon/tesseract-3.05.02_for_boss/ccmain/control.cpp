@@ -120,9 +120,9 @@ bool Tesseract::ProcessTargetWord(const TBOX& word_box,
     if (word_box.major_overlap(target_word_box)) {
       if (backup_config_file_ == NULL) {
         backup_config_file_ = kBackUpConfigFile;
-        FILE* config_fp = fopen(backup_config_file_, "wb");
+        FILE* config_fp = BOSS_TESSERACT_fopen(backup_config_file_, "wb"); //original-code:fopen(backup_config_file_, "wb");
         ParamUtils::PrintParams(config_fp, params());
-        fclose(config_fp);
+        BOSS_TESSERACT_fclose(config_fp); //original-code:fclose(config_fp);
         ParamUtils::ReadParamsFile(word_config,
                                    SET_PARAM_CONSTRAINT_DEBUG_ONLY,
                                    params());
@@ -295,26 +295,35 @@ bool Tesseract::recog_all_words(PAGE_RES* page_res,
                                 const TBOX* target_word_box,
                                 const char* word_config,
                                 int dopasses) {
+	BOSS_TRACE("@@@@@ recog_all-1(%d)", this);
   PAGE_RES_IT page_res_it(page_res);
 
+  BOSS_TRACE("@@@@@ recog_all-2", false);
   if (tessedit_minimal_rej_pass1) {
     tessedit_test_adaption.set_value (TRUE);
     tessedit_minimal_rejection.set_value (TRUE);
   }
 
+  BOSS_TRACE("@@@@@ recog_all-3", false);
   if (dopasses==0 || dopasses==1) {
+	  BOSS_TRACE("@@@@@ recog_all-4", false);
     page_res_it.restart_page();
     // ****************** Pass 1 *******************
 
+	BOSS_TRACE("@@@@@ recog_all-5", false);
     // If the adaptive classifier is full switch to one we prepared earlier,
     // ie on the previous page. If the current adaptive classifier is non-empty,
     // prepare a backup starting at this page, in case it fills up. Do all this
     // independently for each language.
+	BOSS_TRACE("@@@@@ recog_all-6 : %d", AdaptedTemplates);
     if (AdaptiveClassifierIsFull()) {
+		BOSS_TRACE("@@@@@ recog_all-7", false);
       SwitchAdaptiveClassifier();
     } else if (!AdaptiveClassifierIsEmpty()) {
+		BOSS_TRACE("@@@@@ recog_all-8", false);
       StartBackupAdaptiveClassifier();
     }
+	BOSS_TRACE("@@@@@ recog_all-9", false);
     // Now check the sub-langs as well.
     for (int i = 0; i < sub_langs_.size(); ++i) {
       if (sub_langs_[i]->AdaptiveClassifierIsFull()) {
@@ -323,6 +332,7 @@ bool Tesseract::recog_all_words(PAGE_RES* page_res,
         sub_langs_[i]->StartBackupAdaptiveClassifier();
       }
     }
+	BOSS_TRACE("@@@@@ recog_all-10", false);
     // Set up all words ready for recognition, so that if parallelism is on
     // all the input and output classes are ready to run the classifier.
     GenericVector<WordData> words;
@@ -331,6 +341,7 @@ bool Tesseract::recog_all_words(PAGE_RES* page_res,
       PrerecAllWordsPar(words);
     }
 
+	BOSS_TRACE("@@@@@ recog_all-11", false);
     stats_.word_count = words.size();
 
     stats_.dict_words = 0;
@@ -340,9 +351,11 @@ bool Tesseract::recog_all_words(PAGE_RES* page_res,
     stats_.good_char_count = 0;
     stats_.doc_good_char_quality = 0;
 
+	BOSS_TRACE("@@@@@ recog_all-12", false);
     most_recently_used_ = this;
     // Run pass 1 word recognition.
     if (!RecogAllWordsPassN(1, monitor, &page_res_it, &words)) return false;
+	BOSS_TRACE("@@@@@ recog_all-13", false);
     // Pass 1 post-processing.
     for (page_res_it.restart_page(); page_res_it.word() != NULL;
          page_res_it.forward()) {
@@ -365,14 +378,17 @@ bool Tesseract::recog_all_words(PAGE_RES* page_res,
     }
   }
 
+  BOSS_TRACE("@@@@@ recog_all-14", false);
   if (dopasses == 1) return true;
 
   // ****************** Pass 2 *******************
   if (tessedit_tess_adaption_mode != 0x0 && !tessedit_test_adaption &&
       AnyTessLang()) {
+	  BOSS_TRACE("@@@@@ recog_all-15", false);
     page_res_it.restart_page();
     GenericVector<WordData> words;
     SetupAllWordsPassN(2, target_word_box, word_config, page_res, &words);
+	BOSS_TRACE("@@@@@ recog_all-16", false);
     if (tessedit_parallelize) {
       PrerecAllWordsPar(words);
     }
@@ -381,6 +397,7 @@ bool Tesseract::recog_all_words(PAGE_RES* page_res,
     if (!RecogAllWordsPassN(2, monitor, &page_res_it, &words)) return false;
   }
 
+  BOSS_TRACE("@@@@@ recog_all-17", false);
   // The next passes can only be run if tesseract has been used, as cube
   // doesn't set all the necessary outputs in WERD_RES.
   if (AnyTessLang()) {
@@ -388,6 +405,7 @@ bool Tesseract::recog_all_words(PAGE_RES* page_res,
     // Fix fuzzy spaces.
     set_global_loc_code(LOC_FUZZY_SPACE);
 
+	BOSS_TRACE("@@@@@ recog_all-18", false);
     if (!tessedit_test_adaption && tessedit_fix_fuzzy_spaces
         && !tessedit_word_for_word && !right_to_left())
       fix_fuzzy_spaces(monitor, stats_.word_count, page_res);
@@ -396,6 +414,7 @@ bool Tesseract::recog_all_words(PAGE_RES* page_res,
     if (tessedit_enable_dict_correction) dictionary_correction_pass(page_res);
     if (tessedit_enable_bigram_correction) bigram_correction_pass(page_res);
 
+	BOSS_TRACE("@@@@@ recog_all-19", false);
     // ****************** Pass 5,6 *******************
     rejection_passes(page_res, monitor, target_word_box, word_config);
 
@@ -403,34 +422,42 @@ bool Tesseract::recog_all_words(PAGE_RES* page_res,
     // ****************** Pass 7 *******************
     // Cube combiner.
     // If cube is loaded and its combiner is present, run it.
+	BOSS_TRACE("@@@@@ recog_all-20", false);
     if (tessedit_ocr_engine_mode == OEM_TESSERACT_CUBE_COMBINED) {
       run_cube_combiner(page_res);
     }
 #endif
 
+	BOSS_TRACE("@@@@@ recog_all-21", false);
     // ****************** Pass 8 *******************
     font_recognition_pass(page_res);
 
+	BOSS_TRACE("@@@@@ recog_all-22", false);
     // ****************** Pass 9 *******************
     // Check the correctness of the final results.
     blamer_pass(page_res);
     script_pos_pass(page_res);
+	BOSS_TRACE("@@@@@ recog_all-23", false);
   }
 
+  BOSS_TRACE("@@@@@ recog_all-24", false);
   // Write results pass.
   set_global_loc_code(LOC_WRITE_RESULTS);
   // This is now redundant, but retained commented so show how to obtain
   // bounding boxes and style information.
 
+  BOSS_TRACE("@@@@@ recog_all-25", false);
   // changed by jetsoft
   // needed for dll to output memory structure
   if ((dopasses == 0 || dopasses == 2) && (monitor || tessedit_write_unlv))
     output_pass(page_res_it, target_word_box);
+  BOSS_TRACE("@@@@@ recog_all-26", false);
   // end jetsoft
   PageSegMode pageseg_mode = static_cast<PageSegMode>(
       static_cast<int>(tessedit_pageseg_mode));
   textord_.CleanupSingleRowResult(pageseg_mode, page_res);
 
+  BOSS_TRACE("@@@@@ recog_all-27", false);
   // Remove empty words, as these mess up the result iterators.
   for (page_res_it.restart_page(); page_res_it.word() != NULL;
        page_res_it.forward()) {
@@ -442,6 +469,7 @@ bool Tesseract::recog_all_words(PAGE_RES* page_res,
   if (monitor != NULL) {
     monitor->progress = 100;
   }
+  BOSS_TRACE("@@@@@ recog_all-28", false);
   return true;
 }
 

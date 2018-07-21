@@ -731,7 +731,7 @@ int TessBaseAPI::GetThresholdedImageScaleFactor() const {
 void TessBaseAPI::DumpPGM(const char* filename) {
   if (tesseract_ == NULL)
     return;
-  FILE *fp = fopen(filename, "wb");
+  FILE *fp = BOSS_TESSERACT_fopen(filename, "wb"); //original-code:fopen(filename, "wb");
   Pix* pix = tesseract_->pix_binary();
   int width = pixGetWidth(pix);
   int height = pixGetHeight(pix);
@@ -740,10 +740,10 @@ void TessBaseAPI::DumpPGM(const char* filename) {
   for (int y = 0; y < height; ++y, data += pixGetWpl(pix)) {
     for (int x = 0; x < width; ++x) {
       uinT8 b = GET_DATA_BIT(data, x) ? 0 : 255;
-      fwrite(&b, 1, 1, fp);
+      BOSS_TESSERACT_fwrite(&b, 1, 1, fp); //original-code:fwrite(&b, 1, 1, fp);
     }
   }
-  fclose(fp);
+  BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
 }
 
 #ifndef NO_CUBE_BUILD
@@ -829,18 +829,25 @@ PageIterator* TessBaseAPI::AnalyseLayout(bool merge_similar_words) {
  * internal structures.
  */
 int TessBaseAPI::Recognize(ETEXT_DESC* monitor) {
+
+	BOSS_TRACE("@@@@@ Reco-1", false);
   if (tesseract_ == NULL)
     return -1;
+  BOSS_TRACE("@@@@@ Reco-2", false);
   if (FindLines() != 0)
     return -1;
+  BOSS_TRACE("@@@@@ Reco-3", false);
   delete page_res_;
   if (block_list_->empty()) {
+	  BOSS_TRACE("@@@@@ Reco-4", false);
     page_res_ = new PAGE_RES(false, block_list_,
                              &tesseract_->prev_word_best_choice_);
     return 0; // Empty page.
   }
 
+  BOSS_TRACE("@@@@@ Reco-5", false);
   tesseract_->SetBlackAndWhitelist();
+  BOSS_TRACE("@@@@@ Reco-6", false);
   recognition_done_ = true;
   if (tesseract_->tessedit_resegment_from_line_boxes) {
     page_res_ = tesseract_->ApplyBoxes(*input_file_, true, block_list_);
@@ -851,14 +858,18 @@ int TessBaseAPI::Recognize(ETEXT_DESC* monitor) {
     page_res_ = new PAGE_RES(false,
                              block_list_, &tesseract_->prev_word_best_choice_);
   }
+  BOSS_TRACE("@@@@@ Reco-7", false);
   if (page_res_ == NULL) {
+	  BOSS_TRACE("@@@@@ Reco-8", false);
     return -1;
   }
   if (tesseract_->tessedit_make_boxes_from_boxes) {
+	  BOSS_TRACE("@@@@@ Reco-9", false);
     tesseract_->CorrectClassifyWords(page_res_);
     return 0;
   }
 
+  BOSS_TRACE("@@@@@ Reco-10", false);
   if (truth_cb_ != NULL) {
     tesseract_->wordrec_run_blamer.set_value(true);
     PageIterator *page_it = new PageIterator(
@@ -870,9 +881,11 @@ int TessBaseAPI::Recognize(ETEXT_DESC* monitor) {
     delete page_it;
   }
 
+  BOSS_TRACE("@@@@@ Reco-11", false);
   int result = 0;
   if (tesseract_->interactive_display_mode) {
     #ifndef GRAPHICS_DISABLED
+	  BOSS_TRACE("@@@@@ Reco-12", false);
     tesseract_->pgeditor_main(rect_width_, rect_height_, page_res_);
     #endif  // GRAPHICS_DISABLED
     // The page_res is invalid after an interactive session, so cleanup
@@ -881,26 +894,35 @@ int TessBaseAPI::Recognize(ETEXT_DESC* monitor) {
     page_res_ = NULL;
     return -1;
   } else if (tesseract_->tessedit_train_from_boxes) {
+	  BOSS_TRACE("@@@@@ Reco-13", false);
     STRING fontname;
     ExtractFontName(*output_file_, &fontname);
     tesseract_->ApplyBoxTraining(fontname, page_res_);
   } else if (tesseract_->tessedit_ambigs_training) {
+	  BOSS_TRACE("@@@@@ Reco-14", false);
     FILE *training_output_file = tesseract_->init_recog_training(*input_file_);
     // OCR the page segmented into words by tesseract.
     tesseract_->recog_training_segmented(
         *input_file_, page_res_, monitor, training_output_file);
-    fclose(training_output_file);
+    BOSS_TESSERACT_fclose(training_output_file); //original-code:fclose(training_output_file);
+	BOSS_TRACE("@@@@@ Reco-15", false);
   } else {
     // Now run the main recognition.
+	  BOSS_TRACE("@@@@@ Reco-16", false);
     bool wait_for_text = true;
     GetBoolVariable("paragraph_text_based", &wait_for_text);
+	BOSS_TRACE("@@@@@ Reco-17", false);
     if (!wait_for_text) DetectParagraphs(false);
+	BOSS_TRACE("@@@@@ Reco-18", false);
     if (tesseract_->recog_all_words(page_res_, monitor, NULL, NULL, 0)) {
+		BOSS_TRACE("@@@@@ Reco-19", false);
       if (wait_for_text) DetectParagraphs(true);
     } else {
       result = -1;
     }
+	BOSS_TRACE("@@@@@ Reco-20", false);
   }
+  BOSS_TRACE("@@@@@ Reco-21", false);
   return result;
 }
 
@@ -978,7 +1000,7 @@ bool TessBaseAPI::ProcessPagesFileList(FILE *flist,
   // Skip to the requested page number.
   for (int i = 0; i < page; i++) {
     if (flist) {
-      if (fgets(pagename, sizeof(pagename), flist) == NULL) break;
+      if (BOSS_TESSERACT_fgets(pagename, sizeof(pagename), flist) == NULL) break; //original-code:fgets(pagename, sizeof(pagename), flist) == NULL) break;
     }
   }
 
@@ -990,7 +1012,7 @@ bool TessBaseAPI::ProcessPagesFileList(FILE *flist,
   // Loop over all pages - or just the requested one
   while (true) {
     if (flist) {
-      if (fgets(pagename, sizeof(pagename), flist) == NULL) break;
+      if (BOSS_TESSERACT_fgets(pagename, sizeof(pagename), flist) == NULL) break; //original-code:fgets(pagename, sizeof(pagename), flist) == NULL) break;
     } else {
       if (page >= lines.size()) break;
       snprintf(pagename, sizeof(pagename), "%s", lines[page].c_str());
@@ -1031,8 +1053,8 @@ bool TessBaseAPI::ProcessPagesMultipageTiff(const l_uint8 *data,
   for (; ; ++page) {
     if (tessedit_page_number >= 0)
       page = tessedit_page_number;
-    pix = (data) ? pixReadMemTiff(data, size, page)// modified by BOSS, original code:pix = (data) ? pixReadMemFromMultipageTiff(data, size, &offset)
-                 : pixReadTiff(filename, page);// modified by BOSS, original code:             : pixReadFromMultipageTiff(filename, &offset);
+    pix = (data) ? pixReadMemTiff(data, size, page)// modified by BOSS, original-code:pix = (data) ? pixReadMemFromMultipageTiff(data, size, &offset)
+                 : pixReadTiff(filename, page);// modified by BOSS, original-code:             : pixReadFromMultipageTiff(filename, &offset);
     if (pix == NULL) break;
     tprintf("Page %d\n", page + 1);
     char page_str[kMaxIntSize];
@@ -1213,9 +1235,9 @@ bool TessBaseAPI::ProcessPage(Pix* pix, int page_index, const char* filename,
 
   if (failed && retry_config != NULL && retry_config[0] != '\0') {
     // Save current config variables before switching modes.
-    FILE* fp = fopen(kOldVarsFile, "wb");
+    FILE* fp = BOSS_TESSERACT_fopen(kOldVarsFile, "wb"); //original-code:fopen(kOldVarsFile, "wb");
     PrintVariables(fp);
-    fclose(fp);
+    BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
     // Switch to alternate mode for retry.
     ReadConfigFile(retry_config);
     SetImage(pix);
@@ -1360,7 +1382,7 @@ static void AddBaselineCoordsTohOCR(const PageIterator *it,
 
 static void AddIdTohOCR(STRING* hocr_str, const std::string base, int num1,
                         int num2) {
-  const size_t BUFSIZE = 2048;// modified by BOSS, original code:const size_t BUFSIZE = 64;
+  const size_t BUFSIZE = 2048;// modified by BOSS, original-code:const size_t BUFSIZE = 64;
   char id_buffer[BUFSIZE];
   if (num2 >= 0) {
     snprintf(id_buffer, BUFSIZE - 1, "%s_%d_%d", base.c_str(), num1, num2);

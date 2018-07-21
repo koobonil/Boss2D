@@ -37,12 +37,12 @@ namespace tesseract {
 // File::
 ///////////////////////////////////////////////////////////////////////////////
 FILE* File::Open(const string& filename, const string& mode) {
-  return fopen(filename.c_str(), mode.c_str());
+  return BOSS_TESSERACT_fopen(filename.c_str(), mode.c_str()); //original-code:fopen(filename.c_str(), mode.c_str());
 }
 
 FILE* File::OpenOrDie(const string& filename,
                       const string& mode) {
-  FILE* stream = fopen(filename.c_str(), mode.c_str());
+  FILE* stream = BOSS_TESSERACT_fopen(filename.c_str(), mode.c_str()); //original-code:fopen(filename.c_str(), mode.c_str());
   if (stream == NULL) {
     tprintf("Unable to open '%s' in mode '%s'\n", filename.c_str(),
             mode.c_str());
@@ -52,21 +52,21 @@ FILE* File::OpenOrDie(const string& filename,
 
 void File::WriteStringToFileOrDie(const string& str,
                                   const string& filename) {
-  FILE* stream = fopen(filename.c_str(), "wb");
+  FILE* stream = BOSS_TESSERACT_fopen(filename.c_str(), "wb"); //original-code:fopen(filename.c_str(), "wb");
   if (stream == NULL) {
     tprintf("Unable to open '%s' for writing\n", filename.c_str());
     return;
   }
   fputs(str.c_str(), stream);
-  ASSERT_HOST(fclose(stream) == 0);
+  ASSERT_HOST(BOSS_TESSERACT_fclose(stream) == 0); //original-code:fclose(stream) == 0);
 }
 
 bool File::Readable(const string& filename) {
-  FILE* stream = fopen(filename.c_str(), "rb");
+  FILE* stream = BOSS_TESSERACT_fopen(filename.c_str(), "rb"); //original-code:fopen(filename.c_str(), "rb");
   if (stream == NULL) {
     return false;
   }
-  fclose(stream);
+  BOSS_TESSERACT_fclose(stream); //original-code:fclose(stream);
   return true;
 }
 
@@ -129,28 +129,28 @@ bool File::DeleteMatchingFiles(const char* pattern) {
 ///////////////////////////////////////////////////////////////////////////////
 InputBuffer::InputBuffer(FILE* stream)
   : stream_(stream) {
-    fseek(stream_, 0, SEEK_END);
-    filesize_ = ftell(stream_);
-    fseek(stream_, 0, SEEK_SET);
+    BOSS_TESSERACT_fseek(stream_, 0, SEEK_END); //original-code:fseek(stream_, 0, SEEK_END);
+    filesize_ = BOSS_TESSERACT_ftell(stream_); //original-code:ftell(stream_);
+    BOSS_TESSERACT_fseek(stream_, 0, SEEK_SET); //original-code:fseek(stream_, 0, SEEK_SET);
 }
 
 InputBuffer::InputBuffer(FILE* stream, size_t)
   : stream_(stream) {
-    fseek(stream_, 0, SEEK_END);
-    filesize_ = ftell(stream_);
-    fseek(stream_, 0, SEEK_SET);
+    BOSS_TESSERACT_fseek(stream_, 0, SEEK_END); //original-code:fseek(stream_, 0, SEEK_END);
+    filesize_ = BOSS_TESSERACT_ftell(stream_); //original-code:ftell(stream_);
+    BOSS_TESSERACT_fseek(stream_, 0, SEEK_SET); //original-code:fseek(stream_, 0, SEEK_SET);
 }
 
 InputBuffer::~InputBuffer() {
   if (stream_ != NULL) {
-    fclose(stream_);
+    BOSS_TESSERACT_fclose(stream_); //original-code:fclose(stream_);
   }
 }
 
 bool InputBuffer::Read(string* out) {
   char buf[BUFSIZ + 1];
   int l;
-  while ((l = fread(buf, 1, BUFSIZ, stream_)) > 0) {
+  while ((l = BOSS_TESSERACT_fread(buf, 1, BUFSIZ, stream_)) > 0) { //original-code:fread(buf, 1, BUFSIZ, stream_)) > 0) {
     if (ferror(stream_)) {
       clearerr(stream_);
       return false;
@@ -162,7 +162,7 @@ bool InputBuffer::Read(string* out) {
 }
 
 bool InputBuffer::CloseFile() {
-  int ret = fclose(stream_);
+  int ret = BOSS_TESSERACT_fclose(stream_); //original-code:fclose(stream_);
   stream_ = NULL;
   return ret == 0;
 }
@@ -181,7 +181,7 @@ OutputBuffer::OutputBuffer(FILE* stream, size_t)
 
 OutputBuffer::~OutputBuffer() {
   if (stream_ != NULL) {
-    fclose(stream_);
+    BOSS_TESSERACT_fclose(stream_); //original-code:fclose(stream_);
   }
 }
 
@@ -190,7 +190,7 @@ void OutputBuffer::WriteString(const string& str) {
 }
 
 bool OutputBuffer::CloseFile() {
-  int ret = fclose(stream_);
+  int ret = BOSS_TESSERACT_fclose(stream_); //original-code:fclose(stream_);
   stream_ = NULL;
   return ret == 0;
 }

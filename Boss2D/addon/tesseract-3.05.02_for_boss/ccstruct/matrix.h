@@ -136,9 +136,9 @@ class GENERIC_2D_ARRAY {
   // Only works with bitwise-serializeable types!
   bool Serialize(FILE* fp) const {
     if (!SerializeSize(fp)) return false;
-    if (fwrite(&empty_, sizeof(empty_), 1, fp) != 1) return false;
+    if (BOSS_TESSERACT_fwrite(&empty_, sizeof(empty_), 1, fp) != 1) return false; //original-code:fwrite(&empty_, sizeof(empty_), 1, fp) != 1) return false;
     int size = num_elements();
-    if (fwrite(array_, sizeof(*array_), size, fp) != size) return false;
+    if (BOSS_TESSERACT_fwrite(array_, sizeof(*array_), size, fp) != size) return false; //original-code:fwrite(array_, sizeof(*array_), size, fp) != size) return false;
     return true;
   }
   bool Serialize(tesseract::TFile* fp) const {
@@ -154,10 +154,10 @@ class GENERIC_2D_ARRAY {
   // If swap is true, assumes a big/little-endian swap is needed.
   bool DeSerialize(bool swap, FILE* fp) {
     if (!DeSerializeSize(swap, fp)) return false;
-    if (fread(&empty_, sizeof(empty_), 1, fp) != 1) return false;
+    if (BOSS_TESSERACT_fread(&empty_, sizeof(empty_), 1, fp) != 1) return false; //original-code:fread(&empty_, sizeof(empty_), 1, fp) != 1) return false;
     if (swap) ReverseN(&empty_, sizeof(empty_));
     int size = num_elements();
-    if (fread(array_, sizeof(*array_), size, fp) != size) return false;
+    if (BOSS_TESSERACT_fread(array_, sizeof(*array_), size, fp) != size) return false; //original-code:fread(array_, sizeof(*array_), size, fp) != size) return false;
     if (swap) {
       for (int i = 0; i < size; ++i)
         ReverseN(&array_[i], sizeof(array_[i]));
@@ -462,9 +462,9 @@ class GENERIC_2D_ARRAY {
   // Factored helper to serialize the size.
   bool SerializeSize(FILE* fp) const {
     inT32 size = dim1_;
-    if (fwrite(&size, sizeof(size), 1, fp) != 1) return false;
+    if (BOSS_TESSERACT_fwrite(&size, sizeof(size), 1, fp) != 1) return false; //original-code:fwrite(&size, sizeof(size), 1, fp) != 1) return false;
     size = dim2_;
-    if (fwrite(&size, sizeof(size), 1, fp) != 1) return false;
+    if (BOSS_TESSERACT_fwrite(&size, sizeof(size), 1, fp) != 1) return false; //original-code:fwrite(&size, sizeof(size), 1, fp) != 1) return false;
     return true;
   }
   bool SerializeSize(tesseract::TFile* fp) const {
@@ -478,8 +478,8 @@ class GENERIC_2D_ARRAY {
   // If swap is true, assumes a big/little-endian swap is needed.
   bool DeSerializeSize(bool swap, FILE* fp) {
     inT32 size1, size2;
-    if (fread(&size1, sizeof(size1), 1, fp) != 1) return false;
-    if (fread(&size2, sizeof(size2), 1, fp) != 1) return false;
+    if (BOSS_TESSERACT_fread(&size1, sizeof(size1), 1, fp) != 1) return false; //original-code:fread(&size1, sizeof(size1), 1, fp) != 1) return false;
+    if (BOSS_TESSERACT_fread(&size2, sizeof(size2), 1, fp) != 1) return false; //original-code:fread(&size2, sizeof(size2), 1, fp) != 1) return false;
     if (swap) {
       ReverseN(&size1, sizeof(size1));
       ReverseN(&size2, sizeof(size2));

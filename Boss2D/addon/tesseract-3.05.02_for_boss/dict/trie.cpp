@@ -304,10 +304,10 @@ bool Trie::read_word_list(const char *filename,
   char string[CHARS_PER_LINE];
   int  word_count = 0;
 
-  word_file = fopen(filename, "rb");
+  word_file = BOSS_TESSERACT_fopen(filename, "rb"); //original-code:fopen(filename, "rb");
   if (word_file == NULL) return false;
 
-  while (fgets(string, CHARS_PER_LINE, word_file) != NULL) {
+  while (BOSS_TESSERACT_fgets(string, CHARS_PER_LINE, word_file) != NULL) { //original-code:fgets(string, CHARS_PER_LINE, word_file) != NULL) {
     chomp_string(string);  // remove newline
     WERD_CHOICE word(string, unicharset);
     if ((reverse_policy == RRP_REVERSE_IF_HAS_RTL &&
@@ -327,7 +327,7 @@ bool Trie::read_word_list(const char *filename,
   }
   if (debug_level_)
     tprintf("Read %d words total.\n", word_count);
-  fclose(word_file);
+  BOSS_TESSERACT_fclose(word_file); //original-code:fclose(word_file);
   return true;
 }
 
@@ -411,7 +411,7 @@ bool Trie::read_pattern_list(const char *filename,
     return false;
   }
 
-  FILE *pattern_file = fopen(filename, "rb");
+  FILE *pattern_file = BOSS_TESSERACT_fopen(filename, "rb"); //original-code:fopen(filename, "rb");
   if (pattern_file == NULL) {
     tprintf("Error opening pattern file %s\n", filename);
     return false;
@@ -419,7 +419,7 @@ bool Trie::read_pattern_list(const char *filename,
 
   int pattern_count = 0;
   char string[CHARS_PER_LINE];
-  while (fgets(string, CHARS_PER_LINE, pattern_file) != NULL) {
+  while (BOSS_TESSERACT_fgets(string, CHARS_PER_LINE, pattern_file) != NULL) { //original-code:fgets(string, CHARS_PER_LINE, pattern_file) != NULL) {
     chomp_string(string);  // remove newline
     // Parse the pattern and construct a unichar id vector.
     // Record the number of repetitions of each unichar in the parallel vector.
@@ -482,7 +482,7 @@ bool Trie::read_pattern_list(const char *filename,
   if (debug_level_) {
     tprintf("Read %d valid patterns from %s\n", pattern_count, filename);
   }
-  fclose(pattern_file);
+  BOSS_TESSERACT_fclose(pattern_file); //original-code:fclose(pattern_file);
   return true;
 }
 

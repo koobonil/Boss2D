@@ -284,6 +284,7 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     #undef _ltoa
     #undef _ultoa
     #undef _isnan
+    #undef _isinf
     #undef _finite
     #undef _splitpath
     #undef _strtoi64
@@ -1381,6 +1382,7 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
 
     extern "C" DWORD boss_fakewin_WaitForSingleObject(HANDLE hHandle, DWORD dwMilliseconds)
     {
+		if(!hHandle) return WAIT_FAILED;
         uint64 EndTime = (dwMilliseconds == INFINITE)? 0 : Platform::Utility::CurrentTimeMsec() + dwMilliseconds;
         while(EndTime == 0 || Platform::Utility::CurrentTimeMsec() < EndTime)
         {
@@ -1409,9 +1411,11 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         uint64 EndTime = (dwMilliseconds == INFINITE)? 0 : Platform::Utility::CurrentTimeMsec() + dwMilliseconds;
         while(EndTime == 0 || Platform::Utility::CurrentTimeMsec() < EndTime)
         {
-            bool Finded = false;
+            bool Exist = false, Finded = false;
             for(sint32 i = 0; i < nCount; ++i)
             {
+				if(!lpHandles[i]) continue;
+				Exist = true;
                 if(auto CurEvent = EventHandleManager::ST().ToEvent(lpHandles[i]))
                 {
                     if(CurEvent->on)
@@ -1427,6 +1431,8 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
                         Finded = true;
                 }
             }
+			if(!Exist)
+				return WAIT_FAILED;
             if(Finded)
                 return WAIT_OBJECT_0;
             Platform::Utility::Sleep(10, false, false);
@@ -1504,8 +1510,17 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     extern "C" LPVOID boss_fakewin_TlsGetValue(DWORD dwTlsIndex) {BOSS_ASSERT("########## TlsGetValue준비중", false); return 0;}
     extern "C" BOOL boss_fakewin_TlsSetValue(DWORD dwTlsIndex, LPVOID lpTlsValue) {BOSS_ASSERT("########## TlsSetValue준비중", false); return 0;}
 
-    extern "C" HANDLE boss_fakewin_CreateMutexA(LPSECURITY_ATTRIBUTES lpMutexAttributes, BOOL bInitialOwner, LPCSTR lpName) {BOSS_ASSERT("########## CreateMutexA준비중", false); return 0;}
-    extern "C" BOOL boss_fakewin_ReleaseMutex(HANDLE hMutex) {BOSS_ASSERT("########## ReleaseMutex준비중", false); return 0;}
+    extern "C" HANDLE boss_fakewin_CreateMutexA(LPSECURITY_ATTRIBUTES lpMutexAttributes, BOOL bInitialOwner, LPCSTR lpName)
+	{
+		//BOSS_ASSERT("########## CreateMutexA준비중", false);
+		return 0;
+	}
+
+    extern "C" BOOL boss_fakewin_ReleaseMutex(HANDLE hMutex)
+	{
+		//BOSS_ASSERT("########## ReleaseMutex준비중", false);
+		return 0;
+	}
 
     extern "C" HANDLE boss_fakewin_CreateSemaphoreA(LPSECURITY_ATTRIBUTES lpSemaphoreAttributes,
         LONG lInitialCount, LONG lMaximumCount, LPCSTR lpName)
@@ -1555,11 +1570,13 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
 
     extern "C" FILE* boss_fakewin_wfopen(const wchar_t* filename, const wchar_t* mode)
     {
+		BOSS_TRACE("########## wfopen");
         return boss_fakewin_fopen(String::FromWChars(filename), String::FromWChars(mode));
     }
 
     extern "C" errno_t boss_fakewin_wfopen_s(FILE** pfile, const wchar_t* filename, const wchar_t* mode)
     {
+		BOSS_TRACE("########## wfopen_s");
         if(pfile)
         {
             *pfile = boss_fakewin_wfopen(filename, mode);
@@ -1570,11 +1587,14 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
 
     extern "C" FILE* boss_fakewin_fopen(char const* filename, char const* mode)
     {
-        return (FILE*) boss_fopen(filename, mode);
+		auto Result = (FILE*) boss_fopen(filename, mode);
+        BOSS_TRACE("########## fopen(%s:%s) => 0x%08X", filename, mode, Result);
+        return Result;
     }
 
     extern "C" errno_t boss_fakewin_fopen_s(FILE** pfile, char const* filename, char const* mode)
     {
+		BOSS_TRACE("########## fopen_s");
         if(pfile)
         {
             *pfile = boss_fakewin_fopen(filename, mode);
@@ -1585,46 +1605,55 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
 
     extern "C" int boss_fakewin_fseek(FILE* stream, long int offset, int origin)
     {
+		BOSS_TRACE("########## fseek");
         return boss_fseek(stream, offset, origin);
     }
 
     extern "C" long int boss_fakewin_ftell(FILE* stream)
     {
+		BOSS_TRACE("########## ftell");
         return boss_ftell(stream);
     }
 
     extern "C" void boss_fakewin_rewind(FILE* stream)
     {
+		BOSS_TRACE("########## rewind");
         boss_rewind(stream);
     }
 
     extern "C" size_t boss_fakewin_fread(void* ptr, size_t size, size_t count, FILE* stream)
     {
+		BOSS_TRACE("########## fread");
         return boss_fread(ptr, size, count, stream);
     }
 
     extern "C" size_t boss_fakewin_fwrite(const void* ptr, size_t size, size_t count, FILE* stream)
     {
+		BOSS_TRACE("########## fwrite");
         return boss_fwrite(ptr, size, count, stream);
     }
 
     extern "C" int boss_fakewin_fgetc(FILE* stream)
     {
+		BOSS_TRACE("########## fgetc");
         return boss_fgetc(stream);
     }
 
     extern "C" char* boss_fakewin_fgets(char* str, int num, FILE* stream)
     {
+		BOSS_TRACE("########## fgets");
         return boss_fgets(str, num, stream);
     }
 
     extern "C" int boss_fakewin_ungetc(int character, FILE* stream)
     {
+		BOSS_TRACE("########## ungetc");
         return boss_ungetc(character, stream);
     }
 
     extern "C" int boss_fakewin_fclose(FILE* stream)
     {
+		BOSS_TRACE("########## fclose");
         return boss_fclose(stream);
     }
 
@@ -1975,6 +2004,15 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
             return 0;
         #endif
     }
+    extern "C" int boss_fakewin_isinf(double x)
+    {
+        #if BOSS_WINDOWS
+            return !_finite(x);
+        #else
+            BOSS_ASSERT("########## _isinf준비중", false);
+            return 0;
+        #endif
+    }
     extern "C" int boss_fakewin_finite(double x)
     {
         #if BOSS_WINDOWS
@@ -2002,12 +2040,12 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     }
     extern "C" errno_t boss_fakewin_set_errno(int value)
     {
-        BOSS_ASSERT("########## _set_errno준비중", false);
+		//BOSS_ASSERT("########## _set_errno준비중", false);
         return 0;
     }
     extern "C" LPCH boss_fakewin_GetEnvironmentStrings(void)
     {
-        return (LPCH)"";
+        return (LPCH) "";
     }
     extern "C" LPWCH boss_fakewin_GetEnvironmentStringsW(void)
     {
@@ -2509,75 +2547,4 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         return 0;
 	}
 
-
-    #if BOSS_MAC_OSX || BOSS_IPHONE
-        namespace std
-        {
-            #define stringstream
-            /*boss_fakewin_stringstream::boss_fakewin_stringstream()
-            {
-                mStr = (void*) new std::string();
-            }
-            boss_fakewin_stringstream::~boss_fakewin_stringstream()
-            {
-                delete (std::string*) mStr;
-            }
-            void boss_fakewin_stringstream::str(const char* s)
-            {
-                *((std::string*) mStr) = std::string(s);
-            }*/
-        }
-    #endif
-
-    #if !BOSS_LINUX & !BOSS_ANDROID
-        namespace std
-        {
-            #undef ifstream
-            /*boss_fakewin_ifstream::boss_fakewin_ifstream(const char* filename, ios_base::openmode mode)
-            {
-                std::string modeStr("r");
-                printf("Open file (read): %s\n", filename);
-                if (mode & ios_base::binary)
-                    modeStr += "b";
-
-                f = boss_fakewin_fopen(filename, modeStr.c_str());
-                if (f == NULL)
-                {
-                    printf("Can't open file: %s\n", filename);
-                    return;
-                }
-
-                boss_fakewin_fseek(f, 0, SEEK_END);
-                size_t sz = boss_fakewin_ftell(f);
-                if (sz > 0)
-                {
-                    char* buf = (char*) malloc(sz);
-                    boss_fakewin_fseek(f, 0, SEEK_SET);
-                    if (boss_fakewin_fread(buf, 1, sz, f) == sz)
-                    {
-                        this->str(std::string(buf, sz).c_str());
-                    }
-                    free(buf);
-                }
-            }
-
-            boss_fakewin_ifstream::~boss_fakewin_ifstream()
-            {
-                close();
-            }
-
-            bool boss_fakewin_ifstream::is_open() const
-            {
-                return f != NULL;
-            }
-
-            void boss_fakewin_ifstream::close()
-            {
-                if (f)
-                    boss_fakewin_fclose(f);
-                f = NULL;
-                this->str("");
-            }*/
-        }
-    #endif
 #endif

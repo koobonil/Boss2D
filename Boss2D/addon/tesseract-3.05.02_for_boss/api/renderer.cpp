@@ -38,7 +38,7 @@ TessResultRenderer::TessResultRenderer(const char *outputbase,
       happy_(true) {
   if (strcmp(outputbase, "-") && strcmp(outputbase, "stdout")) {
     STRING outfile = STRING(outputbase) + STRING(".") + STRING(file_extension_);
-    fout_ = fopen(outfile.string(), "wb");
+    fout_ = BOSS_TESSERACT_fopen(outfile.string(), "wb"); //original-code:fopen(outfile.string(), "wb");
     if (fout_ == NULL) {
       happy_ = false;
     }
@@ -48,7 +48,7 @@ TessResultRenderer::TessResultRenderer(const char *outputbase,
 TessResultRenderer::~TessResultRenderer() {
   if (fout_ != NULL) {
     if (fout_ != stdout)
-      fclose(fout_);
+      BOSS_TESSERACT_fclose(fout_); //original-code:fclose(fout_);
     else
       clearerr(fout_);
   }
@@ -103,7 +103,7 @@ void TessResultRenderer::AppendString(const char* s) {
 }
 
 void TessResultRenderer::AppendData(const char* s, int len) {
-  int n = fwrite(s, 1, len, fout_);
+  int n = BOSS_TESSERACT_fwrite(s, 1, len, fout_); //original-code:fwrite(s, 1, len, fout_);
   if (n != len) happy_ = false;
 }
 

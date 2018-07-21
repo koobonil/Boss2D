@@ -891,6 +891,11 @@
                 (uint64) (((const ClockClass*) clock)->GetNSecInSec() / 1000000);
         }
 
+        sint64 Platform::Clock::GetLocalMsecFromUTC()
+        {
+            return ClockClass::GetLocalTimeMSecFromUtc();
+        }
+
         void Platform::Clock::GetDetail(id_clock clock, sint64* nsec,
             sint32* sec, sint32* min, sint32* hour, sint32* day, sint32* month, sint32* year)
         {
@@ -1368,14 +1373,15 @@
             BOSS_ASSERT("image파라미터가 nullptr입니다", image);
 
             CanvasClass::get()->painter().setCompositionMode(CanvasClass::get()->mask());
-            //if(w == iw && h == ih) CanvasClass::get()->painter().drawPixmap(QPoint((sint32) x, (sint32) y), *((const QPixmap*) image),
-            //    QRect((sint32) ix, (sint32) iy, (sint32) iw, (sint32) ih));
-            //else CanvasClass::get()->painter().drawPixmap(QRect((sint32) x, (sint32) y, (sint32) w, (sint32) h),
-            //    *((const QPixmap*) image), QRect((sint32) ix, (sint32) iy, (sint32) iw, (sint32) ih));
-
             if(w == iw && h == ih)
-                CanvasClass::get()->painter().drawPixmap(QPointF(x, y), *((const QPixmap*) image), QRectF(ix, iy, iw, ih));
-            else CanvasClass::get()->painter().drawPixmap(QRectF(x, y, w, h), *((const QPixmap*) image), QRectF(ix, iy, iw, ih));
+                CanvasClass::get()->painter().drawPixmap(QPoint((sint32) x, (sint32) y), *((const QPixmap*) image),
+                    QRect((sint32) ix, (sint32) iy, (sint32) iw, (sint32) ih));
+            else CanvasClass::get()->painter().drawPixmap(QRect((sint32) x, (sint32) y, (sint32) w, (sint32) h),
+                *((const QPixmap*) image), QRect((sint32) ix, (sint32) iy, (sint32) iw, (sint32) ih));
+
+            //if(w == iw && h == ih)
+            //    CanvasClass::get()->painter().drawPixmap(QPointF(x, y), *((const QPixmap*) image), QRectF(ix, iy, iw, ih));
+            //else CanvasClass::get()->painter().drawPixmap(QRectF(x, y, w, h), *((const QPixmap*) image), QRectF(ix, iy, iw, ih));
         }
 
         static Qt::Alignment _ExchangeAlignment(UIFontAlign align)
@@ -1616,6 +1622,22 @@
             return (id_file_read) NewFile;
         }
 
+        static void _CreateMiddleDir(chars itemname)
+        {
+            String Dirname;
+            for(chars iChar = itemname; *iChar; ++iChar)
+            {
+                const char OneChar = *iChar;
+                if(OneChar == '/' || OneChar == '\\')
+                {
+                    const bool Result = QDir().mkdir(QString::fromUtf8(Dirname));
+                    BOSS_TRACE("_CreateMiddleDir(%s)%s", (chars) Dirname, Result? "" : " - Failed");
+                    Dirname += '/';
+                }
+                else Dirname += OneChar;
+            }
+        }
+
         id_file Platform::File::OpenForWrite(chars filename, bool autocreatedir)
         {
             QFile* NewFile = new QFile(QString::fromUtf8(filename).replace('\\', '/'));
@@ -1624,18 +1646,7 @@
                 delete NewFile;
                 if(autocreatedir)
                 {
-                    String Dirname;
-                    for(chars iChar = filename; *iChar; ++iChar)
-                    {
-                        const char OneChar = *iChar;
-                        if(OneChar == '/' || OneChar == '\\')
-                        {
-                            const bool Result = QDir().mkdir(QString::fromUtf8(Dirname));
-                            BOSS_TRACE("AutoCreateDir(%s)%s", (chars) Dirname, Result? "" : " - Failed");
-                            Dirname += '/';
-                        }
-                        else Dirname += OneChar;
-                    }
+                    _CreateMiddleDir(filename);
                     return OpenForWrite(filename, false);
                 }
                 else
@@ -1721,7 +1732,7 @@
                 return -1;
             }
 
-            const QStringList& List = TargetDir.entryList(QDir::Files | QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot);
+            const QStringList& List = TargetDir.entryList(QDir::Files | QDir::Dirs | QDir::Hidden | QDir::System | QDir::NoDotAndDotDot);
             BOSS_TRACE("Search(%s) - %d", (chars) PathUTF8, List.size());
 
             if(cb) for(sint32 i = 0, iend = List.size(); i < iend; ++i)
@@ -1735,7 +1746,7 @@
             return List.size();
         }
 
-        uint32 Platform::File::GetAttributes(wchars itemname, uint64* size, uint64* ctime, uint64* atime, uint64* mtime)
+        sint32 Platform::File::GetAttributes(wchars itemname, uint64* size, uint64* ctime, uint64* atime, uint64* mtime)
         {
             const String ItemnameUTF8 = String::FromWChars(PlatformImpl::Core::NormalPathW(itemname));
             const QString ItemnameQ = QString::fromUtf8(ItemnameUTF8).replace('\\', '/');
@@ -1743,7 +1754,7 @@
             QFileInfo CurInfo(ItemnameQ);
             if(!CurInfo.exists()) return -1; // INVALID_FILE_ATTRIBUTES
 
-            uint32 Result = 0;
+            sint32 Result = 0;
             if(!CurInfo.isWritable()) Result |= 0x1; // FILE_ATTRIBUTE_READONLY
             if(CurInfo.isHidden()) Result |= 0x2; // FILE_ATTRIBUTE_HIDDEN
             if(CurInfo.isDir()) Result |= 0x10; // FILE_ATTRIBUTE_DIRECTORY
@@ -1798,8 +1809,8 @@
         {
             const String ItemnameUTF8 = String::FromWChars(PlatformImpl::Core::NormalPathW(itemname));
             QFileInfo CurInfo(QString::fromUtf8(ItemnameUTF8).replace('\\', '/'));
-            const bool Result = CurInfo.exists();
 
+            const bool Result = CurInfo.exists();
             BOSS_TRACE("CanAccess(%s)%s", (chars) ItemnameUTF8, Result? "" : " - Failed");
             return Result;
         }
@@ -1808,17 +1819,41 @@
         {
             const String ItemnameUTF8 = String::FromWChars(PlatformImpl::Core::NormalPathW(itemname));
             QFileInfo CurInfo(QString::fromUtf8(ItemnameUTF8).replace('\\', '/'));
-            const bool Result = (CurInfo.exists() && CurInfo.isWritable());
 
+            const bool Result = (CurInfo.exists() && CurInfo.isWritable());
             BOSS_TRACE("CanWritable(%s)%s", (chars) ItemnameUTF8, Result? "" : " - Failed");
             return Result;
         }
 
-        bool Platform::File::Remove(wchars itemname)
+        static void _RemoveMiddleDir(chars itemname)
+        {
+            String Itemname, LastDirname;
+            for(chars iChar = itemname; *iChar; ++iChar)
+            {
+                const char OneChar = *iChar;
+                if(OneChar == '/' || OneChar == '\\')
+                {
+                    LastDirname = Itemname;
+                    Itemname += '/';
+                }
+                else Itemname += OneChar;
+            }
+            if(0 < LastDirname.Length())
+            {
+                const bool Result = QDir().rmdir(QString::fromUtf8(LastDirname));
+                BOSS_TRACE("_RemoveMiddleDir(%s)%s", (chars) LastDirname, Result? "" : " - Failed");
+                if(Result) _RemoveMiddleDir(LastDirname);
+            }
+        }
+
+        bool Platform::File::Remove(wchars itemname, bool autoremovedir)
         {
             const String ItemnameUTF8 = String::FromWChars(PlatformImpl::Core::NormalPathW(itemname));
-            const bool Result = QFile::remove(QString::fromUtf8(ItemnameUTF8).replace('\\', '/'));
+            const QString ItemnameQ = QString::fromUtf8(ItemnameUTF8).replace('\\', '/');
 
+            const bool Result = QFile::remove(ItemnameQ);
+            if(Result && autoremovedir)
+                _RemoveMiddleDir(ItemnameQ.toUtf8().constData());
             BOSS_TRACE("Remove(%s)%s", (chars) ItemnameUTF8, Result? "" : " - Failed");
             return Result;
         }
@@ -1827,10 +1862,10 @@
         {
             const String ExistingItemnameUTF8 = String::FromWChars(PlatformImpl::Core::NormalPathW(existing_itemname));
             const String NewItemnameUTF8 = String::FromWChars(PlatformImpl::Core::NormalPathW(new_itemname));
+
             const bool Result = QFile::rename(
                 QString::fromUtf8(ExistingItemnameUTF8).replace('\\', '/'),
                 QString::fromUtf8(NewItemnameUTF8).replace('\\', '/'));
-
             BOSS_TRACE("Rename(%s -> %s)%s", (chars) ExistingItemnameUTF8, (chars) NewItemnameUTF8, Result? "" : " - Failed");
             return Result;
         }
@@ -1840,7 +1875,7 @@
             return PlatformImpl::Wrap::File_Tempname(format, length);
         }
 
-        bool Platform::File::CreateDir(wchars dirname)
+        bool Platform::File::CreateDir(wchars dirname, bool autocreatedir)
         {
             const String DirnameUTF8 = String::FromWChars(PlatformImpl::Core::NormalPathW(dirname));
             const QString DirnameQ = QString::fromUtf8(DirnameUTF8).replace('\\', '/');
@@ -1851,23 +1886,39 @@
                 return true;
             }
 
-            const bool Result = QDir().mkdir(DirnameQ);
-            BOSS_TRACE("CreateDir(%s)%s", (chars) DirnameUTF8, Result? "" : " - Failed");
-            return Result;
+            if(!QDir().mkdir(DirnameQ))
+            {
+                if(autocreatedir)
+                {
+                    _CreateMiddleDir(DirnameQ.toUtf8().constData());
+                    return CreateDir(dirname, false);
+                }
+                else
+                {
+                    BOSS_TRACE("CreateDir(%s) - Failed", (chars) DirnameUTF8);
+                    return nullptr;
+                }
+            }
+            BOSS_TRACE("CreateDir(%s)", (chars) DirnameUTF8);
+            return true;
         }
 
-        bool Platform::File::RemoveDir(wchars dirname)
+        bool Platform::File::RemoveDir(wchars dirname, bool autoremovedir)
         {
             const String DirnameUTF8 = String::FromWChars(PlatformImpl::Core::NormalPathW(dirname));
             const QString DirnameQ = QString::fromUtf8(DirnameUTF8).replace('\\', '/');
 
             if(!QDir(DirnameQ).exists())
             {
+                if(autoremovedir)
+                    _RemoveMiddleDir(DirnameQ.toUtf8().constData());
                 BOSS_TRACE("RemoveDir(%s) - Skipped", (chars) DirnameUTF8);
                 return true;
             }
 
             const bool Result = QDir().rmdir(DirnameQ);
+            if(Result && autoremovedir)
+                _RemoveMiddleDir(DirnameQ.toUtf8().constData());
             BOSS_TRACE("RemoveDir(%s)%s", (chars) DirnameUTF8, Result? "" : " - Failed");
             return Result;
         }
@@ -2123,12 +2174,12 @@
         {
             static String Result = "";
             if(0 < Result.Length()) return Result;
+            QString RootQ = QStandardPaths::standardLocations(QStandardPaths::DataLocation).value(0);
             #if BOSS_ANDROID
                 String Root = getenv("SECONDARY_STORAGE");
                 Root.Replace(':', '\0');
-                QString RootQ = (chars) Root;
-            #else
-                QString RootQ = QStandardPaths::standardLocations(QStandardPaths::DataLocation).value(0);
+                if(File::ExistForDir(Root))
+                    RootQ = (chars) Root;
             #endif
             if(!QFileInfo(RootQ).exists()) QDir().mkdir(RootQ);
             Result = (RootQ + "/").toUtf8().constData();
@@ -2579,10 +2630,11 @@
                 CurWeb->Reload(url);
         }
 
-        void Platform::Web::Resize(h_web web, sint32 width, sint32 height)
+        bool Platform::Web::Resize(h_web web, sint32 width, sint32 height)
         {
             if(WebPrivate* CurWeb = (WebPrivate*) web.get())
-                CurWeb->Resize(width, height);
+                return CurWeb->Resize(width, height);
+			return false;
         }
 
         void Platform::Web::SendTouchEvent(h_web web, TouchType type, sint32 x, sint32 y)

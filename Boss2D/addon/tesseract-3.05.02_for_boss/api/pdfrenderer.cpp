@@ -667,21 +667,21 @@ bool TessPDFRenderer::BeginDocumentHandler() {
 
   n = snprintf(buf, sizeof(buf), "%s/pdf.ttf", datadir_);
   if (n >= sizeof(buf)) return false;
-  FILE *fp = fopen(buf, "rb");
+  FILE *fp = BOSS_TESSERACT_fopen(buf, "rb"); //original-code:fopen(buf, "rb");
   if (!fp) {
     tprintf("Can not open file \"%s\"!\n", buf);
     return false;
   }
-  fseek(fp, 0, SEEK_END);
-  long int size = ftell(fp);
-  fseek(fp, 0, SEEK_SET);
+  BOSS_TESSERACT_fseek(fp, 0, SEEK_END); //original-code:fseek(fp, 0, SEEK_END);
+  long int size = BOSS_TESSERACT_ftell(fp); //original-code:ftell(fp);
+  BOSS_TESSERACT_fseek(fp, 0, SEEK_SET); //original-code:fseek(fp, 0, SEEK_SET);
   char *buffer = new char[size];
-  if (fread(buffer, 1, size, fp) != size) {
-    fclose(fp);
+  if (BOSS_TESSERACT_fread(buffer, 1, size, fp) != size) { //original-code:fread(buffer, 1, size, fp) != size) {
+    BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
     delete[] buffer;
     return false;
   }
-  fclose(fp);
+  BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
   // FONTFILE2
   n = snprintf(buf, sizeof(buf),
                "8 0 obj\n"

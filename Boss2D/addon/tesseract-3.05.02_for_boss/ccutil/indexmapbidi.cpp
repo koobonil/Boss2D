@@ -42,7 +42,7 @@ void IndexMap::CopyFrom(const IndexMapBiDi& src) {
 // Writes to the given file. Returns false in case of error.
 bool IndexMap::Serialize(FILE* fp) const {
   inT32 sparse_size = sparse_size_;
-  if (fwrite(&sparse_size, sizeof(sparse_size), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fwrite(&sparse_size, sizeof(sparse_size), 1, fp) != 1) return false; //original-code:fwrite(&sparse_size, sizeof(sparse_size), 1, fp) != 1) return false;
   if (!compact_map_.Serialize(fp)) return false;
   return true;
 }
@@ -51,7 +51,7 @@ bool IndexMap::Serialize(FILE* fp) const {
 // If swap is true, assumes a big/little-endian swap is needed.
 bool IndexMap::DeSerialize(bool swap, FILE* fp) {
   inT32 sparse_size;
-  if (fread(&sparse_size, sizeof(sparse_size), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fread(&sparse_size, sizeof(sparse_size), 1, fp) != 1) return false; //original-code:fread(&sparse_size, sizeof(sparse_size), 1, fp) != 1) return false;
   if (swap)
     ReverseN(&sparse_size, sizeof(sparse_size));
   sparse_size_ = sparse_size;

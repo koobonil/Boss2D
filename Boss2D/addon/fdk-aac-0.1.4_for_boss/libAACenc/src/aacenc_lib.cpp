@@ -105,7 +105,7 @@ amm-info@iis.fraunhofer.de
 
 
 #include BOSS_FDKAAC_U_sbr_encoder_h //original-code:"sbr_encoder.h"
-#include "../../libSBRenc/src/sbr_ram.h" // Modified by BOSS: original-code:"../src/sbr_ram.h"
+#include "../../libSBRenc/src/sbr_ram.h" // modified by BOSS, original-code:"../src/sbr_ram.h"
 #include "channel_map.h"
 
 #include "psy_const.h"

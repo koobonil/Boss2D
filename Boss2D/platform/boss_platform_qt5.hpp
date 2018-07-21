@@ -1544,8 +1544,7 @@
             m_next->m_prev = this;
             if(!GetTimer().isValid())
             {
-                const sint64 LocalTimeMSecFromUtc = (sint64) (QDateTime::currentDateTime().utcOffset() * 1000);
-                GetTotalMSecFromJulianDay() = ((sint64) EpochToJulian(QDateTime::currentMSecsSinceEpoch())) + LocalTimeMSecFromUtc;
+                GetTotalMSecFromJulianDay() = ((sint64) EpochToJulian(QDateTime::currentMSecsSinceEpoch())) + GetLocalTimeMSecFromUtc();
                 GetTimer().start();
             }
             m_laptime = GetTimer().nsecsElapsed();
@@ -1570,8 +1569,7 @@
             QDateTime NewTime = QDateTime::fromString(
                 (chars) String::Format("%04d-%02d-%02d %02d:%02d:%02d",
                 year, month, day, hour, min, sec), "yyyy-MM-dd HH:mm:ss");
-            const sint64 LocalTimeMSecFromUtc = (sint64) (QDateTime::currentDateTime().utcOffset() * 1000);
-            const sint64 NewClockMSec = ((sint64) EpochToJulian(NewTime.toMSecsSinceEpoch())) + LocalTimeMSecFromUtc;
+            const sint64 NewClockMSec = ((sint64) EpochToJulian(NewTime.toMSecsSinceEpoch())) + GetLocalTimeMSecFromUtc();
             m_laptime = (NewClockMSec - GetTotalMSecFromJulianDay()) * 1000000 + nsec;
         }
 
@@ -1591,14 +1589,14 @@
         static void SetBaseTime(chars timestring)
         {
             QDateTime CurrentTime = QDateTime::fromString(timestring, "yyyy-MM-dd HH:mm:ss");
-            const sint64 LocalTimeMSecFromUtc = (sint64) (QDateTime::currentDateTime().utcOffset() * 1000);
-            GetTotalMSecFromJulianDay() = ((sint64) EpochToJulian(CurrentTime.toMSecsSinceEpoch())) + LocalTimeMSecFromUtc;
+            GetTotalMSecFromJulianDay() = ((sint64) EpochToJulian(CurrentTime.toMSecsSinceEpoch())) + GetLocalTimeMSecFromUtc();
 
             const sint64 ChangedNSec = GetTimer().restart() * 1000000;
             ClockClass* CurNode = GetHead();
             while((CurNode = CurNode->m_next) != GetHead())
                 CurNode->m_laptime -= ChangedNSec;
         }
+        static sint64 GetLocalTimeMSecFromUtc() {static sint64 _ = (sint64) (QDateTime::currentDateTime().utcOffset() * 1000); return _;}
 
     private:
         static ClockClass* GetHead() {static ClockClass _(0); return &_;}
@@ -2037,13 +2035,15 @@
             {
                 mView.load(QUrl(QString(url)));
             }
-            void Resize(sint32 width, sint32 height)
+            bool Resize(sint32 width, sint32 height)
             {
                 if(width != mLastImage.width() || height != mLastImage.height())
                 {
                     mView.resize(width, height);
                     mLastImage = QImage(width, height, QImage::Format_ARGB32);
+					return true;
                 }
+				return false;
             }
             void SetCallback(Platform::Web::EventCB cb, payload data)
             {
@@ -3687,20 +3687,14 @@
                         }
                     }
 
+                    QCameraViewfinderSettings NewSettings = mCameraService->GetSettings();
                     if(SavedWidth != -1 && SavedHeight != -1)
-                    {
-                        QCameraViewfinderSettings NewSettings = mCameraService->GetSettings();
                         NewSettings.setResolution(SavedWidth, SavedHeight);
-                        if(SavedMinFR != -1) NewSettings.setMinimumFrameRate(SavedMinFR);
-                        if(SavedMaxFR != -1) NewSettings.setMaximumFrameRate(SavedMaxFR);
-                        mCameraService->SetSettings(NewSettings);
-                        mCameraService->StartCamera();
-                    }
-                    else
-                    {
-                        delete mCameraService;
-                        mCameraService = nullptr;
-                    }
+                    else NewSettings.setResolution(640, 480);
+                    if(SavedMinFR != -1) NewSettings.setMinimumFrameRate(SavedMinFR);
+                    if(SavedMaxFR != -1) NewSettings.setMaximumFrameRate(SavedMaxFR);
+                    mCameraService->SetSettings(NewSettings);
+                    mCameraService->StartCamera();
                     break;
                 }
             }

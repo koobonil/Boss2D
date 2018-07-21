@@ -73,7 +73,7 @@ HEADERS += ../../Boss2D/addon/boss_integration_opencv-3.1.0_3rdparty_libjpeg.h
 HEADERS += ../../Boss2D/addon/boss_integration_openh264-1.6.0.h
 HEADERS += ../../Boss2D/addon/boss_integration_openssl-1.1.0c.h
 HEADERS += ../../Boss2D/addon/boss_integration_rtmpdump-2.4.h
-HEADERS += ../../Boss2D/addon/boss_integration_tesseract-3.04.01.h
+HEADERS += ../../Boss2D/addon/boss_integration_tesseract-3.05.02.h
 SOURCES += ../../Boss2D/addon/boss_addon_aac.cpp
 SOURCES += ../../Boss2D/addon/boss_addon_alpr.cpp
 SOURCES += ../../Boss2D/addon/boss_addon_curl.cpp
@@ -99,7 +99,7 @@ SOURCES += ../../Boss2D/addon/boss_integration_opencv-3.1.0_3rdparty_libjpeg.c
 SOURCES += ../../Boss2D/addon/boss_integration_openh264-1.6.0.cpp
 SOURCES += ../../Boss2D/addon/boss_integration_openssl-1.1.0c.c
 SOURCES += ../../Boss2D/addon/boss_integration_rtmpdump-2.4.c
-SOURCES += ../../Boss2D/addon/boss_integration_tesseract-3.04.01.cpp
+SOURCES += ../../Boss2D/addon/boss_integration_tesseract-3.05.02.cpp
 
 ###########################################################
 # CORE

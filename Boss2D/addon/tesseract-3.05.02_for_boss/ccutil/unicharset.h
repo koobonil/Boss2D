@@ -304,10 +304,10 @@ class UNICHARSET {
   // Opens the file indicated by filename and saves unicharset to that file.
   // Returns true if the operation is successful.
   bool save_to_file(const char * const filename) const {
-    FILE* file = fopen(filename, "w+b");
+    FILE* file = BOSS_TESSERACT_fopen(filename, "w+b"); //original-code:fopen(filename, "w+b");
     if (file == NULL) return false;
     bool result = save_to_file(file);
-    fclose(file);
+    BOSS_TESSERACT_fclose(file); //original-code:fclose(file);
     return result;
   }
 
@@ -316,7 +316,7 @@ class UNICHARSET {
   bool save_to_file(FILE *file) const {
     STRING str;
     if (!save_to_string(&str)) return false;
-    if (fwrite(&str[0], str.length(), 1, file) != 1) return false;
+    if (BOSS_TESSERACT_fwrite(&str[0], str.length(), 1, file) != 1) return false; //original-code:fwrite(&str[0], str.length(), 1, file) != 1) return false;
     return true;
   }
   bool save_to_file(tesseract::TFile *file) const {
@@ -344,10 +344,10 @@ class UNICHARSET {
   // from the given file. The previous data is lost.
   // Returns true if the operation is successful.
   bool load_from_file(const char* const filename, bool skip_fragments) {
-    FILE* file = fopen(filename, "rb");
+    FILE* file = BOSS_TESSERACT_fopen(filename, "rb"); //original-code:fopen(filename, "rb");
     if (file == NULL) return false;
     bool result = load_from_file(file, skip_fragments);
-    fclose(file);
+    BOSS_TESSERACT_fclose(file); //original-code:fclose(file);
     return result;
   }
   // returns true if the operation is successful.
@@ -946,7 +946,7 @@ class UNICHARSET {
                         UNICHAR_PROPERTIES* props) const;
 
   // Load ourselves from a "file" where our only interface to the file is
-  // an implementation of fgets().  This is the parsing primitive accessed by
+  // an implementation of BOSS_TESSERACT_fgets().  This is the parsing primitive accessed by //original-code:fgets().  This is the parsing primitive accessed by
   // the public routines load_from_file() and load_from_inmemory_file().
   bool load_via_fgets(TessResultCallback2<char *, char *, int> *fgets_cb,
                       bool skip_fragments);

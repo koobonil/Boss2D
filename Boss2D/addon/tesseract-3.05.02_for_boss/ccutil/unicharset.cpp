@@ -699,7 +699,7 @@ class InMemoryFilePointer {
   InMemoryFilePointer(const char *memory, int mem_size)
       : memory_(memory), fgets_ptr_(memory), mem_size_(mem_size) { }
 
-  char *fgets(char *orig_dst, int size) {
+  char *BOSS_TESSERACT_fgets(char *orig_dst, int size) { //original-code:fgets(char *orig_dst, int size) {
     const char *src_end = memory_ + mem_size_;
     char *dst_end = orig_dst + size - 1;
     if (size < 1) {
@@ -725,7 +725,7 @@ bool UNICHARSET::load_from_inmemory_file(
     const char *memory, int mem_size, bool skip_fragments) {
   InMemoryFilePointer mem_fp(memory, mem_size);
   TessResultCallback2<char *, char *, int> *fgets_cb =
-      NewPermanentTessCallback(&mem_fp, &InMemoryFilePointer::fgets);
+      NewPermanentTessCallback(&mem_fp, &InMemoryFilePointer::BOSS_TESSERACT_fgets); //original-code:fgets);
   bool success = load_via_fgets(fgets_cb, skip_fragments);
   delete fgets_cb;
   return success;
@@ -734,8 +734,8 @@ bool UNICHARSET::load_from_inmemory_file(
 class LocalFilePointer {
  public:
   LocalFilePointer(FILE *stream) : fp_(stream) {}
-  char *fgets(char *dst, int size) {
-    return ::fgets(dst, size, fp_);
+  char *BOSS_TESSERACT_fgets(char *dst, int size) { //original-code:fgets(char *dst, int size) {
+    return ::BOSS_TESSERACT_fgets(dst, size, fp_); //original-code:fgets(dst, size, fp_);
   }
  private:
   FILE *fp_;
@@ -744,7 +744,7 @@ class LocalFilePointer {
 bool UNICHARSET::load_from_file(FILE *file, bool skip_fragments) {
   LocalFilePointer lfp(file);
   TessResultCallback2<char *, char *, int> *fgets_cb =
-      NewPermanentTessCallback(&lfp, &LocalFilePointer::fgets);
+      NewPermanentTessCallback(&lfp, &LocalFilePointer::BOSS_TESSERACT_fgets); //original-code:fgets);
   bool success = load_via_fgets(fgets_cb, skip_fragments);
   delete fgets_cb;
   return success;

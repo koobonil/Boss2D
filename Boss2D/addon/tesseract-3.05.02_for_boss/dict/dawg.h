@@ -414,14 +414,14 @@ class SquishedDawg : public Dawg {
   }
   SquishedDawg(const char* filename, DawgType type,
                const STRING &lang, PermuterType perm, int debug_level) {
-    FILE *file = fopen(filename, "rb");
+    FILE *file = BOSS_TESSERACT_fopen(filename, "rb"); //original-code:fopen(filename, "rb");
     if (file == NULL) {
       tprintf("Failed to open dawg file %s\n", filename);
       exit(1);
     }
     read_squished_dawg(file, type, lang, perm, debug_level);
     num_forward_edges_in_node0 = num_forward_edges(0);
-    fclose(file);
+    BOSS_TESSERACT_fclose(file); //original-code:fclose(file);
   }
   SquishedDawg(EDGE_ARRAY edges, int num_edges, DawgType type,
                const STRING &lang, PermuterType perm,
@@ -480,13 +480,13 @@ class SquishedDawg : public Dawg {
   /// Opens the file with the given filename and writes the
   /// squished/reduced Dawg to the file.
   void write_squished_dawg(const char *filename) {
-    FILE *file = fopen(filename, "wb");
+    FILE *file = BOSS_TESSERACT_fopen(filename, "wb"); //original-code:fopen(filename, "wb");
     if (file == NULL) {
       tprintf("Error opening %s\n", filename);
       exit(1);
     }
     this->write_squished_dawg(file);
-    fclose(file);
+    BOSS_TESSERACT_fclose(file); //original-code:fclose(file);
   }
 
  private:

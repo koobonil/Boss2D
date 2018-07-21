@@ -35,11 +35,11 @@ void IntFeatureSpace::Init(uinT8 xbuckets, uinT8 ybuckets, uinT8 thetabuckets) {
 // Serializes the feature space definition to the given file.
 // Returns false on error.
 bool IntFeatureSpace::Serialize(FILE* fp) const {
-  if (fwrite(&x_buckets_, sizeof(x_buckets_), 1, fp) != 1)
+  if (BOSS_TESSERACT_fwrite(&x_buckets_, sizeof(x_buckets_), 1, fp) != 1) //original-code:fwrite(&x_buckets_, sizeof(x_buckets_), 1, fp) != 1)
     return false;
-  if (fwrite(&y_buckets_, sizeof(y_buckets_), 1, fp) != 1)
+  if (BOSS_TESSERACT_fwrite(&y_buckets_, sizeof(y_buckets_), 1, fp) != 1) //original-code:fwrite(&y_buckets_, sizeof(y_buckets_), 1, fp) != 1)
     return false;
-  if (fwrite(&theta_buckets_, sizeof(theta_buckets_), 1, fp) != 1)
+  if (BOSS_TESSERACT_fwrite(&theta_buckets_, sizeof(theta_buckets_), 1, fp) != 1) //original-code:fwrite(&theta_buckets_, sizeof(theta_buckets_), 1, fp) != 1)
     return false;
   return true;
 }
@@ -48,11 +48,11 @@ bool IntFeatureSpace::Serialize(FILE* fp) const {
 // If swap is true, the data is big/little-endian swapped.
 // Returns false on error.
 bool IntFeatureSpace::DeSerialize(bool swap, FILE* fp) {
-  if (fread(&x_buckets_, sizeof(x_buckets_), 1, fp) != 1)
+  if (BOSS_TESSERACT_fread(&x_buckets_, sizeof(x_buckets_), 1, fp) != 1) //original-code:fread(&x_buckets_, sizeof(x_buckets_), 1, fp) != 1)
     return false;
-  if (fread(&y_buckets_, sizeof(y_buckets_), 1, fp) != 1)
+  if (BOSS_TESSERACT_fread(&y_buckets_, sizeof(y_buckets_), 1, fp) != 1) //original-code:fread(&y_buckets_, sizeof(y_buckets_), 1, fp) != 1)
     return false;
-  if (fread(&theta_buckets_, sizeof(theta_buckets_), 1, fp) != 1)
+  if (BOSS_TESSERACT_fread(&theta_buckets_, sizeof(theta_buckets_), 1, fp) != 1) //original-code:fread(&theta_buckets_, sizeof(theta_buckets_), 1, fp) != 1)
     return false;
   return true;
 }

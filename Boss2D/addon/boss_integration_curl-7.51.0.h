@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include <boss.h>
 #include <addon/boss_fakewin.h>
-#include "boss_integration_openssl-1.1.0c.h"
-#include "boss_integration_rtmpdump-2.4.h"
+#include <addon/boss_integration_openssl-1.1.0c.h>
+#include <addon/boss_integration_rtmpdump-2.4.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // _BOSS_BATCH_COMMAND_ {"type" : "include-alias", "prm" : "BOSS_CURL_", "restore-comment" : " //original-code:"}

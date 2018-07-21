@@ -103,7 +103,7 @@ bool CharSet::LoadSupportedCharList(FILE *fp, UNICHARSET *tess_unicharset) {
   // init hash table
   memset(hash_bin_size_, 0, sizeof(hash_bin_size_));
   // read the char count
-  if (fgets(str_line, sizeof(str_line), fp) == NULL) {
+  if (BOSS_TESSERACT_fgets(str_line, sizeof(str_line), fp) == NULL) { //original-code:fgets(str_line, sizeof(str_line), fp) == NULL) {
     fprintf(stderr, "Cube ERROR (CharSet::InitMemory): could not "
             "read char count.\n");
     return false;
@@ -124,7 +124,7 @@ bool CharSet::LoadSupportedCharList(FILE *fp, UNICHARSET *tess_unicharset) {
   // Read in character strings and add to hash table
   for (int class_id = 0; class_id < class_cnt_; class_id++) {
     // Read the class string
-    if (fgets(str_line, sizeof(str_line), fp) == NULL) {
+    if (BOSS_TESSERACT_fgets(str_line, sizeof(str_line), fp) == NULL) { //original-code:fgets(str_line, sizeof(str_line), fp) == NULL) {
       fprintf(stderr, "Cube ERROR (CharSet::ReadAndHashStrings): "
               "could not read class string with class_id=%d.\n", class_id);
       return false;

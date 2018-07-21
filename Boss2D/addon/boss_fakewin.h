@@ -170,7 +170,7 @@
     typedef HINSTANCE HMODULE;
     typedef HKEY* PHKEY;
     typedef DWORD ACCESS_MASK;
-    typedef ACCESS_MASK REGSAM;
+    typedef DWORD REGSAM;
     typedef UINT_PTR WPARAM;
     typedef LONG_PTR LPARAM;
     typedef LONG_PTR LRESULT;
@@ -517,6 +517,7 @@
     #define _ltoa boss_fakewin_ltoa
     #define _ultoa boss_fakewin_ultoa
     #define _isnan boss_fakewin_isnan
+    #define _isinf boss_fakewin_isinf
     #define _finite boss_fakewin_finite
     #define _splitpath boss_fakewin_splitpath
     #define _strtoi64 boss_fakewin_strtoi64
@@ -597,94 +598,95 @@
         __time64_t      st_ctime;
     };
 
-    #ifdef __cplusplus
-        extern "C" {
-    #endif
-        int boss_fakewin_access(const char*,int);
-        int boss_fakewin_waccess(const wchar_t*,int);
-		int boss_fakewin_chmod(const char*,int);
-        int boss_fakewin_wchmod(const wchar_t*,int);
-        FILE* boss_fakewin_wfopen(const wchar_t*,const wchar_t*);
-        errno_t boss_fakewin_wfopen_s(FILE**, const wchar_t*, const wchar_t*);
-        FILE* boss_fakewin_fopen(char const*, char const*);
-        errno_t boss_fakewin_fopen_s(FILE**, char const*, char const*);
-        int boss_fakewin_fseek(FILE*,long int,int);
-        long int boss_fakewin_ftell(FILE*);
-        void boss_fakewin_rewind(FILE*);
-        size_t boss_fakewin_fread(void*,size_t,size_t,FILE*);
-        size_t boss_fakewin_fwrite(const void*,size_t,size_t,FILE*);
-        int boss_fakewin_fgetc(FILE* stream);
-        char* boss_fakewin_fgets(char*,int,FILE*);
-        int boss_fakewin_ungetc(int,FILE*);
-        int boss_fakewin_fclose(FILE*);
-        int boss_fakewin_wopen(const wchar_t*,int,int);
-        int boss_fakewin_close(int);
-        long boss_fakewin_read(int, void*, unsigned int);
-        long boss_fakewin_write(int, const void*, unsigned int);
-        intptr_t boss_fakewin_get_osfhandle(int);
-        long boss_fakewin_lseek(int, long, int);
-        __int64 boss_fakewin_lseeki64(int,__int64,int);
-        void* boss_fakewin_lfind(const void*,const void*,unsigned int*,unsigned int,int (*)(const void*, const void*));
-        errno_t boss_fakewin_chsize_s(int, __int64);
-        int boss_fakewin_stat(const char*,struct boss_fakewin_struct_stat*);
-		int boss_fakewin_stat64(const char*,struct boss_fakewin_struct_stat64*);
-        int boss_fakewin_fstat(int,struct boss_fakewin_struct_stat*);
-        int boss_fakewin_fstat64(int,struct boss_fakewin_struct_stat64*);
-        int boss_fakewin_wchdir(const wchar_t*);
-        int boss_fakewin_wmkdir(const wchar_t*);
-        int boss_fakewin_wrmdir(const wchar_t*);
-        int boss_fakewin_unlink(const char*);
-        int boss_fakewin_wunlink(const wchar_t*);
-        errno_t boss_fakewin_mktemp_s(char*,size_t);
-        wchar_t* boss_fakewin_wgetenv(const wchar_t*);
-        wchar_t* boss_fakewin_wgetcwd(wchar_t*,int);
-        void boss_fakewin_FD_SET(int fd, boss_fd_set* fdset);
-        void boss_fakewin_FD_ZERO(boss_fd_set* fdset);
-        int boss_fakewin_FD_ISSET(int fd, boss_fd_set* set);
-        void* boss_fakewin_alloca(size_t);
-        int boss_fakewin_fileno(FILE*);
-        int boss_fakewin_getch();
-        int boss_fakewin_getdrive();
-        unsigned long boss_fakewin_lrotl(unsigned long,int);
-		unsigned long boss_fakewin_lrotr(unsigned long,int);
-        unsigned int boss_fakewin_rotl(unsigned int,int);
-        int boss_fakewin_setmode(int,int);
-        int boss_fakewin_stricmp(const char*,const char*);
-        int boss_fakewin_strnicmp(const char*,const char*,size_t);
-        int boss_fakewin_mbsicmp(const unsigned char*, const unsigned char*);
-        int boss_fakewin_wcsicmp(wchar_t const*,wchar_t const*);
-        int boss_fakewin_vscprintf(const char*,va_list);
-        int boss_fakewin_vsnprintf_s(char*,size_t,size_t,const char*,va_list);
-        int boss_fakewin_vsnprintf(char*,size_t,const char*,va_list);
-        int boss_fakewin_vsnwprintf(wchar_t*,size_t,const wchar_t*,va_list);
-        uintptr_t boss_fakewin_beginthreadex(void*, unsigned, unsigned (*)(void*), void*, unsigned, unsigned*);
-        char* boss_fakewin_fullpath(char*,const char*,size_t);
-        char* boss_fakewin_ltoa(long,char*,int);
-        char* boss_fakewin_ultoa(unsigned long,char*,int);
-        int boss_fakewin_isnan(double);
-        int boss_fakewin_finite(double);
-        void boss_fakewin_splitpath(const char*,char*,char*,char*,char*);
-        __int64 boss_fakewin_strtoi64(const char*,char**,int);
-        unsigned __int64 boss_fakewin_strtoui64(const char*,char**,int);
-        errno_t boss_fakewin_set_errno(int);
-        unsigned short boss_fakewin_byteswap_ushort(unsigned short);
-        unsigned long boss_fakewin_byteswap_ulong(unsigned long);
-        unsigned __int64 boss_fakewin_byteswap_uint64(unsigned __int64);
-		size_t boss_fakewin_strlen(const char *str);
-        size_t boss_fakewin_wcslen(const wchar_t *str);
-		char* boss_fakewin_strerror(int errnum);
-		errno_t boss_fakewin_strerror_s(char *buf, rsize_t bufsz, errno_t errnum);
-		errno_t boss_fakewin_strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource);
-		errno_t boss_fakewin_wcscpy_s(wchar_t *strDestination, size_t numberOfElements, const wchar_t *strSource);
-		char* boss_fakewin_strcpy(char *strDestination, const char *strSource);
-		wchar_t* boss_fakewin_wcscpy(wchar_t *strDestination, const wchar_t *strSource);
-		char* boss_fakewin_strdup(const char *strSource);
-        wchar_t* boss_fakewin_wcsdup(const wchar_t *strSource);
-        char* boss_fakewin_strpbrk(const char *str, const char *strCharSet);
-        wchar_t* boss_fakewin_wcspbrk(const wchar_t *str, const wchar_t *strCharSet);
-    #ifdef __cplusplus
-        }
-    #endif
+	#ifdef __cplusplus
+		extern "C" {
+	#endif
+    int boss_fakewin_access(const char*,int);
+    int boss_fakewin_waccess(const wchar_t*,int);
+	int boss_fakewin_chmod(const char*,int);
+    int boss_fakewin_wchmod(const wchar_t*,int);
+    FILE* boss_fakewin_wfopen(const wchar_t*,const wchar_t*);
+    errno_t boss_fakewin_wfopen_s(FILE**, const wchar_t*, const wchar_t*);
+    FILE* boss_fakewin_fopen(char const*, char const*);
+    errno_t boss_fakewin_fopen_s(FILE**, char const*, char const*);
+    int boss_fakewin_fseek(FILE*,long int,int);
+    long int boss_fakewin_ftell(FILE*);
+    void boss_fakewin_rewind(FILE*);
+    size_t boss_fakewin_fread(void*,size_t,size_t,FILE*);
+    size_t boss_fakewin_fwrite(const void*,size_t,size_t,FILE*);
+    int boss_fakewin_fgetc(FILE* stream);
+    char* boss_fakewin_fgets(char*,int,FILE*);
+    int boss_fakewin_ungetc(int,FILE*);
+    int boss_fakewin_fclose(FILE*);
+    int boss_fakewin_wopen(const wchar_t*,int,int);
+    int boss_fakewin_close(int);
+    long boss_fakewin_read(int, void*, unsigned int);
+    long boss_fakewin_write(int, const void*, unsigned int);
+    intptr_t boss_fakewin_get_osfhandle(int);
+    long boss_fakewin_lseek(int, long, int);
+    __int64 boss_fakewin_lseeki64(int,__int64,int);
+    void* boss_fakewin_lfind(const void*,const void*,unsigned int*,unsigned int,int (*)(const void*, const void*));
+    errno_t boss_fakewin_chsize_s(int, __int64);
+    int boss_fakewin_stat(const char*,struct boss_fakewin_struct_stat*);
+	int boss_fakewin_stat64(const char*,struct boss_fakewin_struct_stat64*);
+    int boss_fakewin_fstat(int,struct boss_fakewin_struct_stat*);
+    int boss_fakewin_fstat64(int,struct boss_fakewin_struct_stat64*);
+    int boss_fakewin_wchdir(const wchar_t*);
+    int boss_fakewin_wmkdir(const wchar_t*);
+    int boss_fakewin_wrmdir(const wchar_t*);
+    int boss_fakewin_unlink(const char*);
+    int boss_fakewin_wunlink(const wchar_t*);
+    errno_t boss_fakewin_mktemp_s(char*,size_t);
+    wchar_t* boss_fakewin_wgetenv(const wchar_t*);
+    wchar_t* boss_fakewin_wgetcwd(wchar_t*,int);
+    void boss_fakewin_FD_SET(int fd, boss_fd_set* fdset);
+    void boss_fakewin_FD_ZERO(boss_fd_set* fdset);
+    int boss_fakewin_FD_ISSET(int fd, boss_fd_set* set);
+    void* boss_fakewin_alloca(size_t);
+    int boss_fakewin_fileno(FILE*);
+    int boss_fakewin_getch();
+    int boss_fakewin_getdrive();
+    unsigned long boss_fakewin_lrotl(unsigned long,int);
+	unsigned long boss_fakewin_lrotr(unsigned long,int);
+    unsigned int boss_fakewin_rotl(unsigned int,int);
+    int boss_fakewin_setmode(int,int);
+    int boss_fakewin_stricmp(const char*,const char*);
+    int boss_fakewin_strnicmp(const char*,const char*,size_t);
+    int boss_fakewin_mbsicmp(const unsigned char*, const unsigned char*);
+    int boss_fakewin_wcsicmp(wchar_t const*,wchar_t const*);
+    int boss_fakewin_vscprintf(const char*,va_list);
+    int boss_fakewin_vsnprintf_s(char*,size_t,size_t,const char*,va_list);
+    int boss_fakewin_vsnprintf(char*,size_t,const char*,va_list);
+    int boss_fakewin_vsnwprintf(wchar_t*,size_t,const wchar_t*,va_list);
+    uintptr_t boss_fakewin_beginthreadex(void*, unsigned, unsigned (*)(void*), void*, unsigned, unsigned*);
+    char* boss_fakewin_fullpath(char*,const char*,size_t);
+    char* boss_fakewin_ltoa(long,char*,int);
+    char* boss_fakewin_ultoa(unsigned long,char*,int);
+    int boss_fakewin_isnan(double);
+    int boss_fakewin_isinf(double);
+    int boss_fakewin_finite(double);
+    void boss_fakewin_splitpath(const char*,char*,char*,char*,char*);
+    __int64 boss_fakewin_strtoi64(const char*,char**,int);
+    unsigned __int64 boss_fakewin_strtoui64(const char*,char**,int);
+    errno_t boss_fakewin_set_errno(int);
+    unsigned short boss_fakewin_byteswap_ushort(unsigned short);
+    unsigned long boss_fakewin_byteswap_ulong(unsigned long);
+    unsigned __int64 boss_fakewin_byteswap_uint64(unsigned __int64);
+	size_t boss_fakewin_strlen(const char *str);
+    size_t boss_fakewin_wcslen(const wchar_t *str);
+	char* boss_fakewin_strerror(int errnum);
+	errno_t boss_fakewin_strerror_s(char *buf, rsize_t bufsz, errno_t errnum);
+	errno_t boss_fakewin_strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource);
+	errno_t boss_fakewin_wcscpy_s(wchar_t *strDestination, size_t numberOfElements, const wchar_t *strSource);
+	char* boss_fakewin_strcpy(char *strDestination, const char *strSource);
+	wchar_t* boss_fakewin_wcscpy(wchar_t *strDestination, const wchar_t *strSource);
+	char* boss_fakewin_strdup(const char *strSource);
+    wchar_t* boss_fakewin_wcsdup(const wchar_t *strSource);
+    char* boss_fakewin_strpbrk(const char *str, const char *strCharSet);
+    wchar_t* boss_fakewin_wcspbrk(const wchar_t *str, const wchar_t *strCharSet);
+	#ifdef __cplusplus
+		}
+	#endif
 
     #if BOSS_WINDOWS
         typedef unsigned long u_long;
@@ -723,101 +725,61 @@
         #  else
         #   define _vsntprintf _vsnprintf
         #  endif
-    #elif BOSS_MAC_OSX || BOSS_IPHONE
+    #elif BOSS_MAC_OSX | BOSS_IPHONE | BOSS_ANDROID
         typedef unsigned long u_long;
-        #ifdef __cplusplus
-            namespace std
-            {
-                #define stringstream boss_fakewin_class_stringstream
-                class boss_fakewin_class_stringstream
-                {
-                public:
-                    stringstream();
-                    ~stringstream();
-                    void str(const char* s);
-                private:
-                    void* mStr;
-                };
-                #define ios_base boss_fakewin_class_ios_base
-                class boss_fakewin_class_ios_base
-                {
-                public:
-                    enum openmode {in, binary};
-                };
-            }
-        #endif
         #define __POCC__ 0
         #define __POCC__OLDNAMES
     #endif
 
-    #ifdef __cplusplus
-        #if !BOSS_WINDOWS & !BOSS_LINUX & !BOSS_ANDROID
-            namespace std
-            {
-                #define ifstream boss_fakewin_class_ifstream
-                class boss_fakewin_class_ifstream : public stringstream
-                {
-                    FILE* f;
-                public:
-                    boss_fakewin_class_ifstream(const char* filename, ios_base::openmode mode = ios_base::in);
-                    ~boss_fakewin_class_ifstream();
-                    bool is_open() const;
-                    void close();
-                };
-            }
-        #endif
-    #endif
-	
-	
-#ifdef  UNICODE                     
-    #define __TEXT(quote)                    L##quote
-    #define LoadLibrary                      LoadLibraryW
-    #define GetEnvironmentStrings            GetEnvironmentStringsW
-    #define GetSystemDirectory               GetSystemDirectoryW
-    #define GetEnvironmentVariable           GetEnvironmentVariableW
-	#define ReadConsole                      ReadConsoleW
-	#define GetVersionEx                     GetVersionExW
-	#define FormatMessage                    FormatMessageW
-	#define ldap_err2string                  ldap_err2stringW
-	#define ldap_get_option                  ldap_get_optionW
-	#define ldap_set_option                  ldap_set_optionW
-	#define ldap_init                        ldap_initW
-	#define ldap_simple_bind                 ldap_simple_bindW
-	#define ldap_simple_bind_s               ldap_simple_bind_sW
-	#define ldap_search                      ldap_searchW
-	#define ldap_search_s                    ldap_search_sW
-	#define ldap_get_dn                      ldap_get_dnW
-	#define ldap_memfree                     ldap_memfreeW
-	#define ldap_first_attribute             ldap_first_attributeW
-	#define ldap_next_attribute              ldap_next_attributeW
-	#define ldap_get_values_len              ldap_get_values_lenW
-    #define _tcslen                          wcslen
-	#define _tcsclen                         wcslen
-	#define _tcscpy_s                        wcscpy_s
-	#define _tcscpy                          wcscpy
-	#define _tcsdup                          _wcsdup
-	#define _tcspbrk                         wcspbrk
-#else   /* UNICODE */               
-    #define __TEXT(quote)                    quote
-    #define LoadLibrary                      LoadLibraryA
-    #define GetEnvironmentStringsA           GetEnvironmentStrings
-    #define GetSystemDirectory               GetSystemDirectoryA
-    #define GetEnvironmentVariable           GetEnvironmentVariableA
-	#define ReadConsole                      ReadConsoleA
-	#define GetVersionEx                     GetVersionExA
-	#define FormatMessage                    FormatMessageA
-    #define ldap_err2string                  ldap_err2stringA
-	#define ldap_simple_bind                 ldap_simple_bindA
-	#define ldap_simple_bind_s               ldap_simple_bind_sA
-	#define ldap_search                      ldap_searchA
-	#define ldap_search_s                    ldap_search_sA	
-    #define _tcslen                          strlen
-	#define _tcsclen                         strlen
-	#define _tcscpy_s                        strcpy_s
-	#define _tcscpy                          strcpy
-	#define _tcsdup                          _strdup
-	#define _tcspbrk                         strpbrk
-#endif /* UNICODE */                
+	#ifdef  UNICODE                     
+		#define __TEXT(quote)                L##quote
+		#define LoadLibrary                  LoadLibraryW
+		#define GetEnvironmentStrings        GetEnvironmentStringsW
+		#define GetSystemDirectory           GetSystemDirectoryW
+		#define GetEnvironmentVariable       GetEnvironmentVariableW
+		#define ReadConsole                  ReadConsoleW
+		#define GetVersionEx                 GetVersionExW
+		#define FormatMessage                FormatMessageW
+		#define ldap_err2string              ldap_err2stringW
+		#define ldap_get_option              ldap_get_optionW
+		#define ldap_set_option              ldap_set_optionW
+		#define ldap_init                    ldap_initW
+		#define ldap_simple_bind             ldap_simple_bindW
+		#define ldap_simple_bind_s           ldap_simple_bind_sW
+		#define ldap_search                  ldap_searchW
+		#define ldap_search_s                ldap_search_sW
+		#define ldap_get_dn                  ldap_get_dnW
+		#define ldap_memfree                 ldap_memfreeW
+		#define ldap_first_attribute         ldap_first_attributeW
+		#define ldap_next_attribute          ldap_next_attributeW
+		#define ldap_get_values_len          ldap_get_values_lenW
+		#define _tcslen                      wcslen
+		#define _tcsclen                     wcslen
+		#define _tcscpy_s                    wcscpy_s
+		#define _tcscpy                      wcscpy
+		#define _tcsdup                      _wcsdup
+		#define _tcspbrk                     wcspbrk
+	#else   /* UNICODE */               
+		#define __TEXT(quote)                quote
+		#define LoadLibrary                  LoadLibraryA
+		#define GetEnvironmentStringsA       GetEnvironmentStrings
+		#define GetSystemDirectory           GetSystemDirectoryA
+		#define GetEnvironmentVariable       GetEnvironmentVariableA
+		#define ReadConsole                  ReadConsoleA
+		#define GetVersionEx                 GetVersionExA
+		#define FormatMessage                FormatMessageA
+		#define ldap_err2string              ldap_err2stringA
+		#define ldap_simple_bind             ldap_simple_bindA
+		#define ldap_simple_bind_s           ldap_simple_bind_sA
+		#define ldap_search                  ldap_searchA
+		#define ldap_search_s                ldap_search_sA	
+		#define _tcslen                      strlen
+		#define _tcsclen                     strlen
+		#define _tcscpy_s                    strcpy_s
+		#define _tcscpy                      strcpy
+		#define _tcsdup                      _strdup
+		#define _tcspbrk                     strpbrk
+	#endif /* UNICODE */
     #define TEXT(quote)                      __TEXT(quote) 
 
 	#define IN
@@ -999,6 +961,7 @@
     #define MOVEFILE_COPY_ALLOWED            0x00000002
     #define INFINITE                         0xFFFFFFFF  // Infinite timeout
     #define STATUS_WAIT_0                    ((DWORD) 0x00000000L)
+    #define WAIT_FAILED                      ((DWORD) 0xFFFFFFFF)
     #define WAIT_OBJECT_0                    ((STATUS_WAIT_0 ) + 0)
     #define FALSE                            0
     #define TRUE                             1

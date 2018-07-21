@@ -152,7 +152,7 @@ int main(int argc, char *argv[]) {
     TrainingPage = Efopen(PageName, "rb");
     ReadTrainingSamples(FeatureDefs, PROGRAM_FEATURE_TYPE,
                         100, NULL, TrainingPage, &CharList);
-    fclose(TrainingPage);
+    BOSS_TESSERACT_fclose(TrainingPage); //original-code:fclose(TrainingPage);
     ++num_fonts;
   }
   printf("Clustering ...\n");
@@ -255,7 +255,7 @@ void WriteNormProtos(const char *Directory, LIST LabeledProtoList,
     fprintf(File, "\n%s %d\n", LabeledProto->Label, N);
     WriteProtos(File, feature_desc->NumParams, LabeledProto->List, true, false);
   }
-  fclose (File);
+  BOSS_TESSERACT_fclose (File); //original-code:fclose (File);
 
 }  // WriteNormProtos
 

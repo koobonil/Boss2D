@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
   api.Init(tessdata_dir, lang.string(), tesseract::OEM_TESSERACT_ONLY,
            NULL, 0, &vars_vec, &vars_values, false);
   tesseract::Dict &dict = api.tesseract()->getDict();
-  FILE *input_file = fopen(input_file_str, "rb");
+  FILE *input_file = BOSS_TESSERACT_fopen(input_file_str, "rb"); //original-code:fopen(input_file_str, "rb");
   if (input_file == NULL) {
     tprintf("Failed to open input wordlist file %s\n", input_file_str);
     exit(1);
@@ -67,11 +67,11 @@ int main(int argc, char** argv) {
 
   // Read word list and call Dict::NoDangerousAmbig() for each word
   // to record ambiguities in the output file.
-  while (fgets(str, CHARS_PER_LINE, input_file) != NULL) {
+  while (BOSS_TESSERACT_fgets(str, CHARS_PER_LINE, input_file) != NULL) { //original-code:fgets(str, CHARS_PER_LINE, input_file) != NULL) {
     chomp_string(str);  // remove newline
     WERD_CHOICE word(str, dict.getUnicharset());
     dict.NoDangerousAmbig(&word, NULL, false, NULL);
   }
   // Clean up.
-  fclose(input_file);
+  BOSS_TESSERACT_fclose(input_file); //original-code:fclose(input_file);
 }

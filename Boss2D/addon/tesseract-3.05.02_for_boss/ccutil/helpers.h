@@ -1,3 +1,5 @@
+// author BOSS
+
 /* -*-C-*-
  ********************************************************************************
  *
@@ -82,7 +84,7 @@ inline void chomp_string(char *str) {
 
 // Advance the current pointer of the file if it points to a newline character.
 inline void SkipNewline(FILE *file) {
-  if (fgetc(file) != '\n') fseek(file, -1, SEEK_CUR);
+  if (BOSS_TESSERACT_fgetc(file) != '\n') BOSS_TESSERACT_fseek(file, -1, SEEK_CUR); //original-code:fgetc(file) != '\n') fseek(file, -1, SEEK_CUR); //original-code:fseek(file, -1, SEEK_CUR); //original-code:fgetc(file) != '\n') fseek(file, -1, SEEK_CUR);
 }
 
 // Swaps the two args pointed to by the pointers.

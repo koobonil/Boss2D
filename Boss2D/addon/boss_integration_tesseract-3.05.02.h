@@ -4,6 +4,25 @@
 #include <addon/boss_integration_openalpr-2.3.0_3rdparty_liblept.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+// _BOSS_BATCH_COMMAND_ {"type" : "replace", "prm" : "BOSS_TESSERACT_", "restore-comment" : " //original-code:"}
+
+#define BOSS_TESSERACT_wfopen                       boss_fakewin_wfopen
+#define BOSS_TESSERACT__wfopen                      boss_fakewin_wfopen
+#define BOSS_TESSERACT_wfopen_s                     boss_fakewin_wfopen_s
+#define BOSS_TESSERACT__wfopen_s                    boss_fakewin_wfopen_s
+#define BOSS_TESSERACT_fopen                        boss_fakewin_fopen
+#define BOSS_TESSERACT_fopen_s                      boss_fakewin_fopen_s
+#define BOSS_TESSERACT_fseek                        boss_fakewin_fseek
+#define BOSS_TESSERACT_ftell                        boss_fakewin_ftell
+#define BOSS_TESSERACT_rewind                       boss_fakewin_rewind
+#define BOSS_TESSERACT_fread                        boss_fakewin_fread
+#define BOSS_TESSERACT_fwrite                       boss_fakewin_fwrite
+#define BOSS_TESSERACT_fgetc                        boss_fakewin_fgetc
+#define BOSS_TESSERACT_fgets                        boss_fakewin_fgets
+#define BOSS_TESSERACT_ungetc                       boss_fakewin_ungetc
+#define BOSS_TESSERACT_fclose                       boss_fakewin_fclose
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 // _BOSS_BATCH_COMMAND_ {"type" : "include-alias", "prm" : "BOSS_TESSERACT_", "restore-comment" : " //original-code:"}
 #define BOSS_TESSERACT_V_mathfix_h                  <addon/tesseract-3.05.02_for_boss/vs2010/port/mathfix.h>
 

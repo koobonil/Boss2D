@@ -1,3 +1,5 @@
+// author BOSS
+
 /******************************************************************************
  ** Filename:    cutoffs.c
  ** Purpose:     Routines to manipulate an array of class cutoffs.
@@ -51,29 +53,36 @@ namespace tesseract {
  */
 void Classify::ReadNewCutoffs(FILE *CutoffFile, bool swap, inT64 end_offset,
                               CLASS_CUTOFF_ARRAY Cutoffs) {
+  BOSS_TRACE("@@@@@ ReadNewCutoffs-1", false);
   char Class[UNICHAR_LEN + 1];
   CLASS_ID ClassId;
   int Cutoff;
   int i;
 
+  BOSS_TRACE("@@@@@ ReadNewCutoffs-2", false);
   if (shape_table_ != NULL) {
     if (!shapetable_cutoffs_.DeSerialize(swap, CutoffFile)) {
       tprintf("Error during read of shapetable pffmtable!\n");
     }
   }
+  BOSS_TRACE("@@@@@ ReadNewCutoffs-3", false);
   for (i = 0; i < MAX_NUM_CLASSES; i++)
     Cutoffs[i] = MAX_CUTOFF;
 
-  while ((end_offset < 0 || ftell(CutoffFile) < end_offset) &&
+  BOSS_TRACE("@@@@@ ReadNewCutoffs-4", false);
+  while ((end_offset < 0 || BOSS_TESSERACT_ftell(CutoffFile) < end_offset) && //original-code:ftell(CutoffFile) < end_offset) &&
          tfscanf(CutoffFile, "%" REALLY_QUOTE_IT(UNICHAR_LEN) "s %d",
                 Class, &Cutoff) == 2) {
+	BOSS_TRACE("@@@@@ ReadNewCutoffs-5", false);
     if (strcmp(Class, "NULL") == 0) {
       ClassId = unicharset.unichar_to_id(" ");
     } else {
       ClassId = unicharset.unichar_to_id(Class);
     }
+	BOSS_TRACE("@@@@@ ReadNewCutoffs-6", false);
     Cutoffs[ClassId] = Cutoff;
     SkipNewline(CutoffFile);
+	BOSS_TRACE("@@@@@ ReadNewCutoffs-7", false);
   }
 }
 

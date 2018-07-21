@@ -1,3 +1,5 @@
+// author BOSS
+
 ///////////////////////////////////////////////////////////////////////
 // File:        tesseractclass.cpp
 // Description: The Tesseract class. It holds/owns everything needed

@@ -31,11 +31,11 @@
 #include BOSS_TESSERACT_U_params_h //original-code:"params.h"
 #include BOSS_TESSERACT_U_params_training_featdef_h //original-code:"params_training_featdef.h"
 
-#if (defined(_MSC_VER) && _MSC_VER < 1900) || defined(ANDROID)
+// removed by BOSS: #if (defined(_MSC_VER) && _MSC_VER < 1900) || defined(ANDROID)
 double log2(double n) {
   return log(n) / log(2.0);
 }
-#endif  // _MSC_VER
+// removed by BOSS: #endif  // _MSC_VER
 
 namespace tesseract {
 

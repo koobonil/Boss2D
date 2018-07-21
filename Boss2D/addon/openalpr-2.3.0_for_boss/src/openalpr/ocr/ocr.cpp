@@ -33,32 +33,41 @@ namespace alpr
   
   void OCR::performOCR(PipelineData* pipeline_data)
   {
+	  BOSS_TRACE("@@@@@ ocr-1", false);
     timespec startTime;
     getTimeMonotonic(&startTime);
 
+	BOSS_TRACE("@@@@@ ocr-2", false);
     segment(pipeline_data);
     
+	BOSS_TRACE("@@@@@ ocr-3", false);
     postProcessor.clear();
 
+	BOSS_TRACE("@@@@@ ocr-4", false);
     int absolute_charpos = 0;
 	int charlength = 0; // BOSS: 라인개념 대신 라스트인덱스개념으로 변경
     for (unsigned int line_idx = 0; line_idx < pipeline_data->textLines.size(); line_idx++)
     {
+		BOSS_TRACE("@@@@@ ocr-5", false);
       std::vector<OcrChar> chars = recognize_line(line_idx, pipeline_data);
       
+	  BOSS_TRACE("@@@@@ ocr-6", false);
       for (uint32_t i = 0; i < chars.size(); i++)
 	  {
 		postProcessor.addLetter(chars[i].letter, line_idx, charlength + chars[i].char_index, chars[i].confidence);
         // BOSS: 윗줄의 원본(postProcessor.addLetter(chars[i].letter, line_idx, chars[i].char_index, chars[i].confidence);)
 	  }
+	  BOSS_TRACE("@@@@@ ocr-7", false);
 	  charlength += pipeline_data->charRegions[line_idx].size(); // BOSS: 라인개념 대신 라스트인덱스개념으로 변경
     }
     
+	BOSS_TRACE("@@@@@ ocr-8", false);
     if (config->debugTiming)
     {
       timespec endTime;
       getTimeMonotonic(&endTime);
       std::cout << "OCR Time: " << diffclock(startTime, endTime) << "ms." << std::endl;
     }
+	BOSS_TRACE("@@@@@ ocr-9", false);
   }
 }

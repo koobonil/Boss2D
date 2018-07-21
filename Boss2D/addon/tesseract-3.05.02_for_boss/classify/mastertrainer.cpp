@@ -75,7 +75,7 @@ MasterTrainer::~MasterTrainer() {
 // enough data to get the samples back and display them.
 // Writes to the given file. Returns false in case of error.
 bool MasterTrainer::Serialize(FILE* fp) const {
-  if (fwrite(&norm_mode_, sizeof(norm_mode_), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fwrite(&norm_mode_, sizeof(norm_mode_), 1, fp) != 1) return false; //original-code:fwrite(&norm_mode_, sizeof(norm_mode_), 1, fp) != 1) return false;
   if (!unicharset_.save_to_file(fp)) return false;
   if (!feature_space_.Serialize(fp)) return false;
   if (!samples_.Serialize(fp)) return false;
@@ -91,7 +91,7 @@ bool MasterTrainer::Serialize(FILE* fp) const {
 // Reads from the given file. Returns false in case of error.
 // If swap is true, assumes a big/little-endian swap is needed.
 bool MasterTrainer::DeSerialize(bool swap, FILE* fp) {
-  if (fread(&norm_mode_, sizeof(norm_mode_), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fread(&norm_mode_, sizeof(norm_mode_), 1, fp) != 1) return false; //original-code:fread(&norm_mode_, sizeof(norm_mode_), 1, fp) != 1) return false;
   if (swap) {
     ReverseN(&norm_mode_, sizeof(norm_mode_));
   }
@@ -150,7 +150,7 @@ void MasterTrainer::ReadTrainingSamples(const char* page_name,
     return;
   }
   tr_filenames_.push_back(STRING(page_name));
-  while (fgets(buffer, sizeof(buffer), fp) != NULL) {
+  while (BOSS_TESSERACT_fgets(buffer, sizeof(buffer), fp) != NULL) { //original-code:fgets(buffer, sizeof(buffer), fp) != NULL) {
     if (buffer[0] == '\n')
       continue;
 
@@ -180,7 +180,7 @@ void MasterTrainer::ReadTrainingSamples(const char* page_name,
     FreeCharDescription(char_desc);
   }
   charsetsize_ = unicharset_.size();
-  fclose(fp);
+  BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
 }
 
 // Adds the given single sample to the trainer, setting the classid
@@ -220,7 +220,7 @@ void MasterTrainer::LoadPageImages(const char* filename) {
   int page;
   Pix* pix;
   for (page = 0; ; page++) {
-    pix = pixReadTiff(filename, page);// modified by BOSS, original code:pix = pixReadFromMultipageTiff(filename, &offset);
+    pix = pixReadTiff(filename, page);// modified by BOSS, original-code:pix = pixReadFromMultipageTiff(filename, &offset);
     if (!pix) break;
     page_images_.push_back(pix);
     //removed by BOSS:if (!offset) break;
@@ -356,7 +356,7 @@ void MasterTrainer::ReplicateAndRandomizeSamplesIfRequired() {
 // Loads the basic font properties file into fontinfo_table_.
 // Returns false on failure.
 bool MasterTrainer::LoadFontInfo(const char* filename) {
-  FILE* fp = fopen(filename, "rb");
+  FILE* fp = BOSS_TESSERACT_fopen(filename, "rb"); //original-code:fopen(filename, "rb");
   if (fp == NULL) {
     fprintf(stderr, "Failed to load font_properties from %s\n", filename);
     return false;
@@ -385,7 +385,7 @@ bool MasterTrainer::LoadFontInfo(const char* filename) {
       delete[] font_name;
     }
   }
-  fclose(fp);
+  BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
   return true;
 }
 
@@ -395,7 +395,7 @@ bool MasterTrainer::LoadXHeights(const char* filename) {
   tprintf("fontinfo table is of size %d\n", fontinfo_table_.size());
   xheights_.init_to_size(fontinfo_table_.size(), -1);
   if (filename == NULL) return true;
-  FILE *f = fopen(filename, "rb");
+  FILE *f = BOSS_TESSERACT_fopen(filename, "rb"); //original-code:fopen(filename, "rb");
   if (f == NULL) {
     fprintf(stderr, "Failed to load font xheights from %s\n", filename);
     return false;
@@ -421,7 +421,7 @@ bool MasterTrainer::LoadXHeights(const char* filename) {
   }
   if (xheight_count == 0) {
     fprintf(stderr, "No valid xheights in %s!\n", filename);
-    fclose(f);
+    BOSS_TESSERACT_fclose(f); //original-code:fclose(f);
     return false;
   }
   int mean_xheight = DivRounded(total_xheight, xheight_count);
@@ -429,20 +429,20 @@ bool MasterTrainer::LoadXHeights(const char* filename) {
     if (xheights_[i] < 0)
       xheights_[i] = mean_xheight;
   }
-  fclose(f);
+  BOSS_TESSERACT_fclose(f); //original-code:fclose(f);
   return true;
 }  // LoadXHeights
 
 // Reads spacing stats from filename and adds them to fontinfo_table.
 bool MasterTrainer::AddSpacingInfo(const char *filename) {
-  FILE* fontinfo_file = fopen(filename, "rb");
+  FILE* fontinfo_file = BOSS_TESSERACT_fopen(filename, "rb"); //original-code:fopen(filename, "rb");
   if (fontinfo_file == NULL)
     return true;  // We silently ignore missing files!
   // Find the fontinfo_id.
   int fontinfo_id = GetBestMatchingFontInfoId(filename);
   if (fontinfo_id < 0) {
     tprintf("No font found matching fontinfo filename %s\n", filename);
-    fclose(fontinfo_file);
+    BOSS_TESSERACT_fclose(fontinfo_file); //original-code:fclose(fontinfo_file);
     return false;
   }
   tprintf("Reading spacing from %s for font %d...\n", filename, fontinfo_id);
@@ -461,7 +461,7 @@ bool MasterTrainer::AddSpacingInfo(const char *filename) {
     if (tfscanf(fontinfo_file, "%s %d %d %d",
                 uch, &x_gap_before, &x_gap_after, &num_kerned) != 4) {
       tprintf("Bad format of font spacing file %s\n", filename);
-      fclose(fontinfo_file);
+      BOSS_TESSERACT_fclose(fontinfo_file); //original-code:fclose(fontinfo_file);
       return false;
     }
     bool valid = unicharset_.contains_unichar(uch);
@@ -473,7 +473,7 @@ bool MasterTrainer::AddSpacingInfo(const char *filename) {
     for (int k = 0; k < num_kerned; ++k) {
       if (tfscanf(fontinfo_file, "%s %d", kerned_uch, &x_gap) != 2) {
         tprintf("Bad format of font spacing file %s\n", filename);
-        fclose(fontinfo_file);
+        BOSS_TESSERACT_fclose(fontinfo_file); //original-code:fclose(fontinfo_file);
         delete spacing;
         return false;
       }
@@ -484,7 +484,7 @@ bool MasterTrainer::AddSpacingInfo(const char *filename) {
     }
     if (valid) fi->add_spacing(unicharset_.unichar_to_id(uch), spacing);
   }
-  fclose(fontinfo_file);
+  BOSS_TESSERACT_fclose(fontinfo_file); //original-code:fclose(fontinfo_file);
   return true;
 }
 
@@ -600,9 +600,9 @@ void MasterTrainer::WriteInttempAndPFFMTable(const UNICHARSET& unicharset,
   fontinfo_table_.MoveTo(&classify->get_fontinfo_table());
   INT_TEMPLATES int_templates = classify->CreateIntTemplates(float_classes,
                                                              shape_set);
-  FILE* fp = fopen(inttemp_file, "wb");
+  FILE* fp = BOSS_TESSERACT_fopen(inttemp_file, "wb"); //original-code:fopen(inttemp_file, "wb");
   classify->WriteIntTemplates(fp, int_templates, shape_set);
-  fclose(fp);
+  BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
   // Now write pffmtable. This is complicated by the fact that the adaptive
   // classifier still wants one indexed by unichar-id, but the static
   // classifier needs one indexed by its shape class id.
@@ -634,7 +634,7 @@ void MasterTrainer::WriteInttempAndPFFMTable(const UNICHARSET& unicharset,
     }
     shapetable_cutoffs.push_back(max_length);
   }
-  fp = fopen(pffmtable_file, "wb");
+  fp = BOSS_TESSERACT_fopen(pffmtable_file, "wb"); //original-code:fopen(pffmtable_file, "wb");
   shapetable_cutoffs.Serialize(fp);
   for (int c = 0; c < unicharset.size(); ++c) {
     const char *unichar = unicharset.id_to_unichar(c);
@@ -643,7 +643,7 @@ void MasterTrainer::WriteInttempAndPFFMTable(const UNICHARSET& unicharset,
     }
     fprintf(fp, "%s %d\n", unichar, unichar_cutoffs[c]);
   }
-  fclose(fp);
+  BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
   free_int_templates(int_templates);
   delete classify;
 }

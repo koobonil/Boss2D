@@ -65,14 +65,14 @@ int UnicharRating::FirstResultWithUnichar(
 
 // Writes to the given file. Returns false in case of error.
 bool UnicharAndFonts::Serialize(FILE* fp) const {
-  if (fwrite(&unichar_id, sizeof(unichar_id), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fwrite(&unichar_id, sizeof(unichar_id), 1, fp) != 1) return false; //original-code:fwrite(&unichar_id, sizeof(unichar_id), 1, fp) != 1) return false;
   if (!font_ids.Serialize(fp)) return false;
   return true;
 }
 // Reads from the given file. Returns false in case of error.
 // If swap is true, assumes a big/little-endian swap is needed.
 bool UnicharAndFonts::DeSerialize(bool swap, FILE* fp) {
-  if (fread(&unichar_id, sizeof(unichar_id), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fread(&unichar_id, sizeof(unichar_id), 1, fp) != 1) return false; //original-code:fread(&unichar_id, sizeof(unichar_id), 1, fp) != 1) return false;
   if (swap)
     ReverseN(&unichar_id, sizeof(unichar_id));
   if (!font_ids.DeSerialize(swap, fp)) return false;
@@ -89,7 +89,7 @@ int UnicharAndFonts::SortByUnicharId(const void* v1, const void* v2) {
 // Writes to the given file. Returns false in case of error.
 bool Shape::Serialize(FILE* fp) const {
   uinT8 sorted = unichars_sorted_;
-  if (fwrite(&sorted, sizeof(sorted), 1, fp) != 1)
+  if (BOSS_TESSERACT_fwrite(&sorted, sizeof(sorted), 1, fp) != 1) //original-code:fwrite(&sorted, sizeof(sorted), 1, fp) != 1)
     return false;
   if (!unichars_.SerializeClasses(fp)) return false;
   return true;
@@ -98,7 +98,7 @@ bool Shape::Serialize(FILE* fp) const {
 // If swap is true, assumes a big/little-endian swap is needed.
 bool Shape::DeSerialize(bool swap, FILE* fp) {
   uinT8 sorted;
-  if (fread(&sorted, sizeof(sorted), 1, fp) != 1)
+  if (BOSS_TESSERACT_fread(&sorted, sizeof(sorted), 1, fp) != 1) //original-code:fread(&sorted, sizeof(sorted), 1, fp) != 1)
     return false;
   unichars_sorted_ = sorted != 0;
   if (!unichars_.DeSerializeClasses(swap, fp)) return false;

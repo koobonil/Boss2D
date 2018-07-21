@@ -42,22 +42,22 @@ TrainingSampleSet::FontClassInfo::FontClassInfo()
 
 // Writes to the given file. Returns false in case of error.
 bool TrainingSampleSet::FontClassInfo::Serialize(FILE* fp) const {
-  if (fwrite(&num_raw_samples, sizeof(num_raw_samples), 1, fp) != 1)
+  if (BOSS_TESSERACT_fwrite(&num_raw_samples, sizeof(num_raw_samples), 1, fp) != 1) //original-code:fwrite(&num_raw_samples, sizeof(num_raw_samples), 1, fp) != 1)
     return false;
-  if (fwrite(&canonical_sample, sizeof(canonical_sample), 1, fp) != 1)
+  if (BOSS_TESSERACT_fwrite(&canonical_sample, sizeof(canonical_sample), 1, fp) != 1) //original-code:fwrite(&canonical_sample, sizeof(canonical_sample), 1, fp) != 1)
     return false;
-  if (fwrite(&canonical_dist, sizeof(canonical_dist), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fwrite(&canonical_dist, sizeof(canonical_dist), 1, fp) != 1) return false; //original-code:fwrite(&canonical_dist, sizeof(canonical_dist), 1, fp) != 1) return false;
   if (!samples.Serialize(fp)) return false;
   return true;
 }
 // Reads from the given file. Returns false in case of error.
 // If swap is true, assumes a big/little-endian swap is needed.
 bool TrainingSampleSet::FontClassInfo::DeSerialize(bool swap, FILE* fp) {
-  if (fread(&num_raw_samples, sizeof(num_raw_samples), 1, fp) != 1)
+  if (BOSS_TESSERACT_fread(&num_raw_samples, sizeof(num_raw_samples), 1, fp) != 1) //original-code:fread(&num_raw_samples, sizeof(num_raw_samples), 1, fp) != 1)
     return false;
-  if (fread(&canonical_sample, sizeof(canonical_sample), 1, fp) != 1)
+  if (BOSS_TESSERACT_fread(&canonical_sample, sizeof(canonical_sample), 1, fp) != 1) //original-code:fread(&canonical_sample, sizeof(canonical_sample), 1, fp) != 1)
     return false;
-  if (fread(&canonical_dist, sizeof(canonical_dist), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fread(&canonical_dist, sizeof(canonical_dist), 1, fp) != 1) return false; //original-code:fread(&canonical_dist, sizeof(canonical_dist), 1, fp) != 1) return false;
   if (!samples.DeSerialize(swap, fp)) return false;
   if (swap) {
     ReverseN(&num_raw_samples, sizeof(num_raw_samples));
@@ -82,7 +82,7 @@ bool TrainingSampleSet::Serialize(FILE* fp) const {
   if (!unicharset_.save_to_file(fp)) return false;
   if (!font_id_map_.Serialize(fp)) return false;
   inT8 not_null = font_class_array_ != NULL;
-  if (fwrite(&not_null, sizeof(not_null), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fwrite(&not_null, sizeof(not_null), 1, fp) != 1) return false; //original-code:fwrite(&not_null, sizeof(not_null), 1, fp) != 1) return false;
   if (not_null) {
     if (!font_class_array_->SerializeClasses(fp)) return false;
   }
@@ -99,7 +99,7 @@ bool TrainingSampleSet::DeSerialize(bool swap, FILE* fp) {
   delete font_class_array_;
   font_class_array_ = NULL;
   inT8 not_null;
-  if (fread(&not_null, sizeof(not_null), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fread(&not_null, sizeof(not_null), 1, fp) != 1) return false; //original-code:fread(&not_null, sizeof(not_null), 1, fp) != 1) return false;
   if (not_null) {
     FontClassInfo empty;
     font_class_array_ = new GENERIC_2D_ARRAY<FontClassInfo >(1, 1 , empty);

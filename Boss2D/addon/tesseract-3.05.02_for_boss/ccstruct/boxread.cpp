@@ -33,7 +33,7 @@ static const char* kMultiBlobLabelCode = "WordStr";
 FILE* OpenBoxFile(const STRING& fname) {
   STRING filename = BoxFileName(fname);
   FILE* box_file = NULL;
-  if (!(box_file = fopen(filename.string(), "rb"))) {
+  if (!(box_file = BOSS_TESSERACT_fopen(filename.string(), "rb"))) { //original-code:fopen(filename.string(), "rb"))) {
     CANTOPENFILE.error("read_next_box", TESSEXIT, "Can't open box file %s",
                        filename.string());
   }
@@ -130,7 +130,7 @@ bool ReadNextBox(int target_page, int *line_number, FILE* box_file,
   char buff[kBoxReadBufSize];   // boxfile read buffer
   char *buffptr = buff;
 
-  while (fgets(buff, sizeof(buff) - 1, box_file)) {
+  while (BOSS_TESSERACT_fgets(buff, sizeof(buff) - 1, box_file)) { //original-code:fgets(buff, sizeof(buff) - 1, box_file)) {
     (*line_number)++;
 
     buffptr = buff;
@@ -151,7 +151,7 @@ bool ReadNextBox(int target_page, int *line_number, FILE* box_file,
       return true;  // Successfully read a box.
     }
   }
-  fclose(box_file);
+  BOSS_TESSERACT_fclose(box_file); //original-code:fclose(box_file);
   return false;  // EOF
 }
 

@@ -59,7 +59,7 @@
 #include "config_auto.h"
 #endif
 
-#include "svutil.h"
+#include BOSS_TESSERACT_U_svutil_h //original-code:"svutil.h"
 
 SVMutex::SVMutex() {
 #ifdef _WIN32

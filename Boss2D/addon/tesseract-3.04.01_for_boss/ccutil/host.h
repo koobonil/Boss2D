@@ -97,7 +97,7 @@
 //typedef HANDLE FD*  PHANDLE;
 
 // definitions of portable data types (numbers and characters)
-typedef signed char inT8; // modified by BOSS, original code: typedef SIGNED char inT8;
+typedef signed char inT8; // modified by BOSS, original-code: typedef SIGNED char inT8;
 typedef unsigned char uinT8;
 typedef short inT16;
 typedef unsigned short uinT16;

@@ -82,7 +82,7 @@ int Dawg::check_for_words(const char *filename,
 
   word_file = open_file (filename, "r");
 
-  while (fgets (string, CHARS_PER_LINE, word_file) != NULL) {
+  while (BOSS_TESSERACT_fgets (string, CHARS_PER_LINE, word_file) != NULL) { //original-code:fgets (string, CHARS_PER_LINE, word_file) != NULL) {
     chomp_string(string);  // remove newline
     WERD_CHOICE word(string, unicharset);
     if (word.length() > 0 &&
@@ -96,7 +96,7 @@ int Dawg::check_for_words(const char *filename,
       tprintf("Failed to create a valid word from %s\n", string);
     }
   }
-  fclose (word_file);
+  BOSS_TESSERACT_fclose (word_file); //original-code:fclose (word_file);
   // Make sure the user sees this with fprintf instead of tprintf.
   if (debug_level_) tprintf("Number of lost words=%d\n", misses);
   return misses;
@@ -324,12 +324,12 @@ void SquishedDawg::read_squished_dawg(FILE *file,
   // Read the magic number and if it does not match kDawgMagicNumber
   // set swap to true to indicate that we need to switch endianness.
   inT16 magic;
-  fread(&magic, sizeof(inT16), 1, file);
+  BOSS_TESSERACT_fread(&magic, sizeof(inT16), 1, file); //original-code:fread(&magic, sizeof(inT16), 1, file);
   bool swap = (magic != kDawgMagicNumber);
 
   int unicharset_size;
-  fread(&unicharset_size, sizeof(inT32), 1, file);
-  fread(&num_edges_, sizeof(inT32), 1, file);
+  BOSS_TESSERACT_fread(&unicharset_size, sizeof(inT32), 1, file); //original-code:fread(&unicharset_size, sizeof(inT32), 1, file);
+  BOSS_TESSERACT_fread(&num_edges_, sizeof(inT32), 1, file); //original-code:fread(&num_edges_, sizeof(inT32), 1, file);
 
   if (swap) {
     ReverseN(&unicharset_size, sizeof(unicharset_size));
@@ -339,7 +339,7 @@ void SquishedDawg::read_squished_dawg(FILE *file,
   Dawg::init(type, lang, perm, unicharset_size, debug_level);
 
   edges_ = new EDGE_RECORD[num_edges_];
-  fread(&edges_[0], sizeof(EDGE_RECORD), num_edges_, file);
+  BOSS_TESSERACT_fread(&edges_[0], sizeof(EDGE_RECORD), num_edges_, file); //original-code:fread(&edges_[0], sizeof(EDGE_RECORD), num_edges_, file);
   EDGE_REF edge;
   if (swap) {
     for (edge = 0; edge < num_edges_; ++edge) {
@@ -398,8 +398,8 @@ void SquishedDawg::write_squished_dawg(FILE *file) {
 
   // Write the magic number to help detecting a change in endianness.
   inT16 magic = kDawgMagicNumber;
-  fwrite(&magic, sizeof(inT16), 1, file);
-  fwrite(&unicharset_size_, sizeof(inT32), 1, file);
+  BOSS_TESSERACT_fwrite(&magic, sizeof(inT16), 1, file); //original-code:fwrite(&magic, sizeof(inT16), 1, file);
+  BOSS_TESSERACT_fwrite(&unicharset_size_, sizeof(inT32), 1, file); //original-code:fwrite(&unicharset_size_, sizeof(inT32), 1, file);
 
   // Count the number of edges in this Dawg.
   num_edges = 0;
@@ -407,7 +407,7 @@ void SquishedDawg::write_squished_dawg(FILE *file) {
     if (forward_edge(edge))
       num_edges++;
 
-  fwrite(&num_edges, sizeof(inT32), 1, file);  // write edge count to file
+  BOSS_TESSERACT_fwrite(&num_edges, sizeof(inT32), 1, file);  // write edge count to file //original-code:fwrite(&num_edges, sizeof(inT32), 1, file);  // write edge count to file
 
   if (debug_level_) {
     tprintf("%d nodes in DAWG\n", node_count);
@@ -420,7 +420,7 @@ void SquishedDawg::write_squished_dawg(FILE *file) {
         old_index = next_node_from_edge_rec(edges_[edge]);
         set_next_node(edge, node_map[old_index]);
         temp_record = edges_[edge];
-        fwrite(&(temp_record), sizeof(EDGE_RECORD), 1, file);
+        BOSS_TESSERACT_fwrite(&(temp_record), sizeof(EDGE_RECORD), 1, file); //original-code:fwrite(&(temp_record), sizeof(EDGE_RECORD), 1, file);
         set_next_node(edge, old_index);
       } while (!last_edge(edge++));
 

@@ -81,7 +81,7 @@ long long_rand(long limit) {
  **********************************************************************/
 FILE *open_file(const char *filename, const char *mode) {
   FILE *thisfile = NULL;
-  if ((thisfile = fopen (filename, mode)) == NULL) {
+  if ((thisfile = BOSS_TESSERACT_fopen (filename, mode)) == NULL) { //original-code:fopen (filename, mode)) == NULL) {
     tprintf ("Could not open file, %s\n", filename);
     exit (1);
   }
@@ -92,8 +92,8 @@ FILE *open_file(const char *filename, const char *mode) {
 bool exists_file(const char *filename) {
   bool exists = false;
   FILE *f = NULL;
-  if ((f = fopen(filename, "rb")) != NULL) {
-    fclose(f);
+  if ((f = BOSS_TESSERACT_fopen(filename, "rb")) != NULL) { //original-code:fopen(filename, "rb")) != NULL) {
+    BOSS_TESSERACT_fclose(f); //original-code:fclose(f);
     exists = true;
   }
   return exists;

@@ -28,6 +28,7 @@ namespace BOSS
     BOSS_DECLARE_ADDON_FUNCTION(Curl, RequestString, chars, id_curl, chars, chars, chars)
     BOSS_DECLARE_ADDON_FUNCTION(Curl, RequestBytes, bytes, id_curl, chars, sint32*, chars, chars)
     BOSS_DECLARE_ADDON_FUNCTION(Curl, RequestRedirectUrl, chars, id_curl, chars, sint32, chars, chars)
+    BOSS_DECLARE_ADDON_FUNCTION(Curl, PutData, bool, id_curl, chars, bytes, sint32, sint32, chars)
     BOSS_DECLARE_ADDON_FUNCTION(Curl, SendStream, void, id_curl, chars, AddOn::Curl::CurlReadCB, payload)
     BOSS_DECLARE_ADDON_FUNCTION(Curl, FtpUpload, bool, id_curl, chars, chars, buffer)
     BOSS_DECLARE_ADDON_FUNCTION(Curl, FtpDownload, buffer, id_curl, chars, chars)
@@ -45,6 +46,7 @@ namespace BOSS
         Core_AddOn_Curl_RequestString() = Customized_AddOn_Curl_RequestString;
         Core_AddOn_Curl_RequestBytes() = Customized_AddOn_Curl_RequestBytes;
         Core_AddOn_Curl_RequestRedirectUrl() = Customized_AddOn_Curl_RequestRedirectUrl;
+        Core_AddOn_Curl_PutData() = Customized_AddOn_Curl_PutData;
         Core_AddOn_Curl_SendStream() = Customized_AddOn_Curl_SendStream;
         Core_AddOn_Curl_FtpUpload() = Customized_AddOn_Curl_FtpUpload;
         Core_AddOn_Curl_FtpDownload() = Customized_AddOn_Curl_FtpDownload;
@@ -147,25 +149,8 @@ namespace BOSS
         }
     }
 
-    static uint08s _RequestCore(id_curl curl, chars url, chars postdata, chars headerdata, String* redirect_url, sint32 successcode)
+    static curl_slist* _MakeCHeader(curl_slist* cheader, chars url)
     {
-        static uint08s Result;
-        Result.SubtractionAll();
-        if(!curl) return Result;
-        CURL* CurCurl = ((CurlStruct*) curl)->mId;
-
-        curl_easy_setopt(CurCurl, CURLOPT_URL, url);
-        curl_easy_setopt(CurCurl, CURLOPT_SSL_VERIFYPEER, 0L);
-        if(postdata)
-        {
-            curl_easy_setopt(CurCurl, CURLOPT_POST, 1);
-            curl_easy_setopt(CurCurl, CURLOPT_POSTFIELDS , postdata);
-            curl_easy_setopt(CurCurl, CURLOPT_POSTFIELDSIZE, boss_strlen(postdata));
-        }
-        else curl_easy_setopt(CurCurl, CURLOPT_POST, 0);
-        curl_easy_setopt(CurCurl, CURLOPT_WRITEDATA, &Result);
-        curl_easy_setopt(CurCurl, CURLOPT_WRITEFUNCTION, CurlWriteToUint08s);
-
         String Host;
         for(chars iurl = url + 2, ibegin = nullptr; true; ++iurl)
         {
@@ -199,14 +184,39 @@ namespace BOSS
         }
         Referer = "Referer: " + Referer;
 
-        curl_slist* cheader = nullptr;
-        cheader = curl_slist_append(cheader, "User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0");
         cheader = curl_slist_append(cheader, (chars) Host);
+        cheader = curl_slist_append(cheader, (chars) Referer);
+        return cheader;
+    }
+
+    static uint08s _RequestCore(id_curl curl, chars url, chars postdata, chars headerdata, String* redirect_url, sint32 successcode)
+    {
+        static uint08s Result;
+        Result.SubtractionAll();
+        if(!curl) return Result;
+        CURL* CurCurl = ((CurlStruct*) curl)->mId;
+
+        curl_easy_setopt(CurCurl, CURLOPT_URL, url);
+        curl_easy_setopt(CurCurl, CURLOPT_SSL_VERIFYPEER, 0L);
+        curl_easy_setopt(CurCurl, CURLOPT_UPLOAD, 0);
+        if(postdata)
+        {
+            curl_easy_setopt(CurCurl, CURLOPT_POST, 1);
+            curl_easy_setopt(CurCurl, CURLOPT_POSTFIELDS , postdata);
+            curl_easy_setopt(CurCurl, CURLOPT_POSTFIELDSIZE, boss_strlen(postdata));
+        }
+        else curl_easy_setopt(CurCurl, CURLOPT_POST, 0);
+        curl_easy_setopt(CurCurl, CURLOPT_WRITEDATA, &Result);
+        curl_easy_setopt(CurCurl, CURLOPT_WRITEFUNCTION, CurlWriteToUint08s);
+
+        curl_slist* cheader = nullptr;
+        cheader = _MakeCHeader(cheader, url);
+        cheader = curl_slist_append(cheader, "User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0");
         cheader = curl_slist_append(cheader, "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
         cheader = curl_slist_append(cheader, "Accept-Language: ko-kr,ko;q=0.8,en-us;q=0.5,en;q=0.3");
         cheader = curl_slist_append(cheader, "Connection: keep-alive");
-        cheader = curl_slist_append(cheader, (chars) Referer);
-        cheader = curl_slist_append(cheader, "Content-Type: application/x-www-form-urlencoded");
+        if(!headerdata || !!boss_strncmp(headerdata, "Content-Type:", 13))
+            cheader = curl_slist_append(cheader, "Content-Type: application/x-www-form-urlencoded");
         if(headerdata) cheader = curl_slist_append(cheader, headerdata);
         curl_easy_setopt(CurCurl, CURLOPT_HTTPHEADER, cheader);
 
@@ -256,6 +266,68 @@ namespace BOSS
         return Result;
     }
 
+    struct UploadData
+    {
+        const void* mData;
+        sint32 mLength;
+        sint32 mFocus;
+    };
+
+    size_t OnUpload(void* ptr, size_t size, size_t nitems, payload data)
+    {
+        auto Data = (UploadData*) data;
+        const size_t CopyLen = Math::Min(Data->mLength - Data->mFocus, size * nitems);
+        if(0 < CopyLen)
+        {
+            Memory::Copy((uint08*) ptr, Data->mData, CopyLen);
+            Data->mFocus += CopyLen;
+        }
+        return CopyLen;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    bool Customized_AddOn_Curl_PutData(id_curl curl, chars url, bytes putdata, sint32 putsize, sint32 successcode, chars headerdata)
+    {
+        if(!curl) return false;
+        CURL* CurCurl = ((CurlStruct*) curl)->mId;
+
+        UploadData NewData;
+        NewData.mLength = putsize;
+        NewData.mFocus = 0;
+        NewData.mData = putdata;
+
+        curl_easy_setopt(CurCurl, CURLOPT_URL, url);
+        curl_easy_setopt(CurCurl, CURLOPT_SSL_VERIFYPEER, 0L);
+        curl_easy_setopt(CurCurl, CURLOPT_POST, 0);
+        curl_easy_setopt(CurCurl, CURLOPT_UPLOAD, 1);
+        curl_easy_setopt(CurCurl, CURLOPT_READDATA, &NewData);
+        curl_easy_setopt(CurCurl, CURLOPT_READFUNCTION, OnUpload);
+        curl_easy_setopt(CurCurl, CURLOPT_WRITEDATA, nullptr);
+        curl_easy_setopt(CurCurl, CURLOPT_WRITEFUNCTION, nullptr);
+        curl_easy_setopt(CurCurl, CURLOPT_INFILESIZE_LARGE, (curl_off_t) NewData.mLength);
+
+        curl_slist* cheader = nullptr;
+        cheader = _MakeCHeader(cheader, url);
+        cheader = curl_slist_append(cheader, "User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0");
+        cheader = curl_slist_append(cheader, "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+        cheader = curl_slist_append(cheader, "Accept-Language: ko-kr,ko;q=0.8,en-us;q=0.5,en;q=0.3");
+        cheader = curl_slist_append(cheader, "Connection: keep-alive");
+        cheader = curl_slist_append(cheader, "Content-Type: application/bin");
+        if(headerdata) cheader = curl_slist_append(cheader, headerdata);
+        curl_easy_setopt(CurCurl, CURLOPT_HTTPHEADER, cheader);
+
+        CURLcode res = curl_easy_perform(CurCurl);
+        curl_slist_free_all(cheader);
+
+        if(res == CURLE_OK)
+        {
+            long statLong = 0;
+            if(CURLE_OK == curl_easy_getinfo(CurCurl, CURLINFO_HTTP_CODE, &statLong))
+                return (statLong == successcode);
+        }
+        return false;
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
     void Customized_AddOn_Curl_SendStream(id_curl curl, chars url, AddOn::Curl::CurlReadCB cb, payload data)
     {
@@ -274,25 +346,6 @@ namespace BOSS
         curl_easy_perform(CurCurl);
     }
 
-    struct FtpUploadData
-    {
-        const void* mData;
-        sint32 mLength;
-        sint32 mFocus;
-    };
-
-    size_t OnFtpUpload(void* ptr, size_t size, size_t nitems, payload data)
-    {
-        auto Data = (FtpUploadData*) data;
-        const size_t CopyLen = Math::Min(Data->mLength - Data->mFocus, size * nitems);
-        if(0 < CopyLen)
-        {
-            Memory::Copy((uint08*) ptr, Data->mData, CopyLen);
-            Data->mFocus += CopyLen;
-        }
-        return CopyLen;
-    }
-
     ////////////////////////////////////////////////////////////////////////////////
     bool Customized_AddOn_Curl_FtpUpload(id_curl curl, chars url, chars filename, buffer data)
     {
@@ -303,7 +356,7 @@ namespace BOSS
         }
         CURL* CurCurl = ((CurlStruct*) curl)->mId;
 
-        FtpUploadData NewData;
+        UploadData NewData;
         NewData.mLength = Buffer::SizeOf(data) * Buffer::CountOf(data);
         NewData.mFocus = 0;
         NewData.mData = data;
@@ -314,7 +367,7 @@ namespace BOSS
         curl_easy_setopt(CurCurl, CURLOPT_POST, 0);
         curl_easy_setopt(CurCurl, CURLOPT_UPLOAD, 1);
         curl_easy_setopt(CurCurl, CURLOPT_READDATA, &NewData);
-        curl_easy_setopt(CurCurl, CURLOPT_READFUNCTION, OnFtpUpload);
+        curl_easy_setopt(CurCurl, CURLOPT_READFUNCTION, OnUpload);
         curl_easy_setopt(CurCurl, CURLOPT_WRITEDATA, nullptr);
         curl_easy_setopt(CurCurl, CURLOPT_WRITEFUNCTION, nullptr);
         curl_easy_setopt(CurCurl, CURLOPT_INFILESIZE_LARGE, (curl_off_t) NewData.mLength);

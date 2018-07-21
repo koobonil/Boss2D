@@ -99,8 +99,8 @@ bool Classify::WriteTRFile(const STRING& filename) {
   FILE* fp = Efopen(tr_filename.string(), "wb");
   int len = tr_file_data_.length();
   bool result =
-      fwrite(&tr_file_data_[0], sizeof(tr_file_data_[0]), len, fp) == len;
-  fclose(fp);
+      BOSS_TESSERACT_fwrite(&tr_file_data_[0], sizeof(tr_file_data_[0]), len, fp) == len; //original-code:fwrite(&tr_file_data_[0], sizeof(tr_file_data_[0]), len, fp) == len;
+  BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
   tr_file_data_.truncate_at(0);
   return result;
 }

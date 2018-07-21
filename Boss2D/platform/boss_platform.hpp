@@ -21,6 +21,7 @@ namespace BOSS
         UIFA_LeftAscent, UIFA_CenterAscent, UIFA_RightAscent, UIFA_JustifyAscent,
         UIFA_LeftBottom, UIFA_CenterBottom, UIFA_RightBottom, UIFA_JustifyBottom};
     enum UIFontElide {UIFE_None, UIFE_Left, UIFE_Center, UIFE_Right};
+	enum UIStretchForm {UISF_Strong, UISF_Inner, UISF_Outer, UISF_Width, UISF_Height};
     enum UIEditType {UIET_String, UIET_Int, UIET_Float};
     enum UITestOrder {UITO_ScissorOn, UITO_ScissorOff};
     enum UIStack {UIS_PushPop, UIS_Push, UIS_Current, UIS_Pop};
@@ -546,6 +547,12 @@ namespace BOSS
             static uint64 GetMsec(id_clock clock);
 
             /*!
+            \brief UTC표준시에서 로컬시간까지의 거리
+            \return 로컬시간까지의 거리(ms)
+            */
+            static sint64 GetLocalMsecFromUTC();
+
+            /*!
             \brief 클럭의 세부정보
             \param clock : 대상 클럭
             \param nsec : 1초미만의 나노초(0 ~ 999,999,999)
@@ -978,7 +985,7 @@ namespace BOSS
             /*!
             \brief 파일열기(쓰기전용)
             \param filename : 파일명
-            \param autocreatedir : 폴더가 없을 경우 자동으로 생성
+            \param autocreatedir : 중간폴더가 없을 경우 자동으로 생성
             \return 파일ID
             \see Close
             */
@@ -1062,7 +1069,7 @@ namespace BOSS
             \param mtime : 파일수정시간 얻기
             \return 속성값
             */
-            static uint32 GetAttributes(wchars itemname, uint64* size = nullptr, uint64* ctime = nullptr, uint64* atime = nullptr, uint64* mtime = nullptr);
+            static sint32 GetAttributes(wchars itemname, uint64* size = nullptr, uint64* ctime = nullptr, uint64* atime = nullptr, uint64* mtime = nullptr);
 
             /*!
             \brief 아이템의 풀패스명 조사
@@ -1110,9 +1117,10 @@ namespace BOSS
             /*!
             \brief 아이템 삭제
             \param itemname : 삭제할 아이템명(파일 또는 폴더)
+            \param autoremovedir : 중간폴더가 빈폴더가 되어 필요없을 경우 자동으로 삭제
             \return 성공여부
             */
-            static bool Remove(wchars itemname);
+            static bool Remove(wchars itemname, bool autoremovedir = false);
 
             /*!
             \brief 아이템 이름변경
@@ -1133,16 +1141,18 @@ namespace BOSS
             /*!
             \brief 폴더 생성
             \param dirname : 생성할 폴더명
+            \param autocreatedir : 중간폴더가 없을 경우 자동으로 생성
             \return 성공여부
             */
-            static bool CreateDir(wchars dirname);
+            static bool CreateDir(wchars dirname, bool autocreatedir = false);
 
             /*!
             \brief 폴더 삭제
             \param dirname : 삭제할 폴더명
+            \param autoremovedir : 중간폴더가 빈폴더가 되어 필요없을 경우 자동으로 삭제
             \return 성공여부
             */
-            static bool RemoveDir(wchars dirname);
+            static bool RemoveDir(wchars dirname, bool autoremovedir = false);
 
             /*!
             \brief FD타입 파일열기
@@ -1570,8 +1580,9 @@ namespace BOSS
             \param web : 해당 웹핸들
             \param width : 웹페이지 가로길이(px)
             \param height : 웹페이지 세로길이(px)
+			\return 리사이징 실시여부
             */
-            static void Resize(h_web web, sint32 width, sint32 height);
+            static bool Resize(h_web web, sint32 width, sint32 height);
 
             /*!
             \brief 웹페이지에 터치이벤트 전달

@@ -1,3 +1,5 @@
+// author BOSS
+
 ///////////////////////////////////////////////////////////////////////
 // File:        tessdatamanager.h
 // Description: Functions to handle loading/combining tesseract data files.
@@ -168,7 +170,7 @@ class TessdataManager {
     if (offset_table_[tessdata_type] < 0) {
       return false;
     } else {
-      ASSERT_HOST(fseek(data_file_,
+      ASSERT_HOST(BOSS_TESSERACT_fseek(data_file_, //original-code:fseek(data_file_,
                         static_cast<size_t>(offset_table_[tessdata_type]),
                         SEEK_SET) == 0);
       return true;
@@ -191,7 +193,7 @@ class TessdataManager {
   /** Closes data_file_ (if it was opened by Init()). */
   inline void End() {
     if (data_file_ != NULL) {
-      fclose(data_file_);
+      BOSS_TESSERACT_fclose(data_file_); //original-code:fclose(data_file_);
       data_file_ = NULL;
     }
   }

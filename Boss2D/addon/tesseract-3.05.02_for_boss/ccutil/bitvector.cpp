@@ -136,9 +136,9 @@ void BitVector::Init(int length) {
 
 // Writes to the given file. Returns false in case of error.
 bool BitVector::Serialize(FILE* fp) const {
-  if (fwrite(&bit_size_, sizeof(bit_size_), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fwrite(&bit_size_, sizeof(bit_size_), 1, fp) != 1) return false; //original-code:fwrite(&bit_size_, sizeof(bit_size_), 1, fp) != 1) return false;
   int wordlen = WordLength();
-  if (static_cast<int>(fwrite(array_, sizeof(*array_), wordlen, fp)) != wordlen)
+  if (static_cast<int>(BOSS_TESSERACT_fwrite(array_, sizeof(*array_), wordlen, fp)) != wordlen) //original-code:fwrite(array_, sizeof(*array_), wordlen, fp)) != wordlen)
       return false;
   return true;
 }
@@ -147,13 +147,13 @@ bool BitVector::Serialize(FILE* fp) const {
 // If swap is true, assumes a big/little-endian swap is needed.
 bool BitVector::DeSerialize(bool swap, FILE* fp) {
   uinT32 new_bit_size;
-  if (fread(&new_bit_size, sizeof(new_bit_size), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fread(&new_bit_size, sizeof(new_bit_size), 1, fp) != 1) return false; //original-code:fread(&new_bit_size, sizeof(new_bit_size), 1, fp) != 1) return false;
   if (swap) {
     ReverseN(&new_bit_size, sizeof(new_bit_size));
   }
   Alloc(new_bit_size);
   int wordlen = WordLength();
-  if (static_cast<int>(fread(array_, sizeof(*array_), wordlen, fp)) != wordlen)
+  if (static_cast<int>(BOSS_TESSERACT_fread(array_, sizeof(*array_), wordlen, fp)) != wordlen) //original-code:fread(array_, sizeof(*array_), wordlen, fp)) != wordlen)
       return false;
   if (swap) {
     for (int i = 0; i < wordlen; ++i)

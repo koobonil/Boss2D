@@ -198,12 +198,22 @@ public class BossCameraManager
             mCamera = Camera.open();
             Camera.Parameters parameters = mCamera.getParameters();
             parameters.setPictureSize(mCameraWidth, mCameraHeight);
-            parameters.setPreviewSize(mCameraWidth, mCameraHeight);
-
-            List<String> focusModes = parameters.getSupportedFocusModes();
-            if(focusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE))
-                parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+            parameters.setFocusMode("continuous-picture");
             mCamera.setParameters(parameters);
+            mCamera.autoFocus(new Camera.AutoFocusCallback()
+            {
+                public void onAutoFocus(boolean anonymousBoolean, Camera anonymousCamera)
+                {
+                    Log.w("TAG", "### AUTO FOCUS: " + String.valueOf(anonymousBoolean));
+                }
+            });
+            mCamera.setAutoFocusMoveCallback(new Camera.AutoFocusMoveCallback()
+            {
+                public void onAutoFocusMoving(boolean anonymousBoolean, Camera anonymousCamera)
+                {
+                    Log.w("TAG", "### AUTO FOCUS Move: " + String.valueOf(anonymousBoolean));
+                }
+            });
             mCamera.setPreviewTexture(mSurfaceTexture);
             mCamera.startPreview();
         }

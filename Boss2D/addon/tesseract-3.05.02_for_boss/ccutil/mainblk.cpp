@@ -62,7 +62,7 @@ void CCUtil::main_setup(const char *argv0, const char *basename) {
     /* Use tessdata prefix from the environment. */
     datadir = tessdata_prefix;
 #if defined(_WIN32)
-  } else if (datadir == NULL || access(datadir.string(), 0) != 0) {
+  } else if (datadir == NULL || boss_fakewin_access(datadir.string(), 0) != 0) { // modified by BOSS, original-code: access(datadir.string(), 0) != 0) {
     /* Look for tessdata in directory of executable. */
     static char dir[128];
     static char exe[128];

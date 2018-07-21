@@ -250,6 +250,7 @@ NORM_PROTOS *Classify::ReadNormProtos(FILE *File, inT64 end_offset) {
   LIST Protos;
   int NumProtos;
 
+  BOSS_TRACE("@@@@@ ReadNormProtos-1");
   /* allocate and initialization data structure */
   NormProtos = (NORM_PROTOS *) Emalloc (sizeof (NORM_PROTOS));
   NormProtos->NumProtos = unicharset.size();
@@ -257,14 +258,18 @@ NORM_PROTOS *Classify::ReadNormProtos(FILE *File, inT64 end_offset) {
   for (i = 0; i < NormProtos->NumProtos; i++)
     NormProtos->Protos[i] = NIL_LIST;
 
+  BOSS_TRACE("@@@@@ ReadNormProtos-2");
   /* read file header and save in data structure */
   NormProtos->NumParams = ReadSampleSize (File);
   NormProtos->ParamDesc = ReadParamDesc (File, NormProtos->NumParams);
 
+  BOSS_TRACE("@@@@@ ReadNormProtos-3");
   /* read protos for each class into a separate list */
-  while ((end_offset < 0 || ftell(File) < end_offset) &&
+  while ((end_offset < 0 || BOSS_TESSERACT_ftell(File) < end_offset) && //original-code:ftell(File) < end_offset) &&
          tfscanf(File, "%s %d", unichar, &NumProtos) == 2) {
+	  BOSS_TRACE("@@@@@ ReadNormProtos-4");
     if (unicharset.contains_unichar(unichar)) {
+		BOSS_TRACE("@@@@@ ReadNormProtos-5");
       unichar_id = unicharset.unichar_to_id(unichar);
       Protos = NormProtos->Protos[unichar_id];
       for (i = 0; i < NumProtos; i++)
@@ -272,13 +277,16 @@ NORM_PROTOS *Classify::ReadNormProtos(FILE *File, inT64 end_offset) {
             push_last (Protos, ReadPrototype (File, NormProtos->NumParams));
       NormProtos->Protos[unichar_id] = Protos;
     } else {
+		BOSS_TRACE("@@@@@ ReadNormProtos-6");
       cprintf("Error: unichar %s in normproto file is not in unichar set.\n",
               unichar);
       for (i = 0; i < NumProtos; i++)
         FreePrototype(ReadPrototype (File, NormProtos->NumParams));
     }
+	BOSS_TRACE("@@@@@ ReadNormProtos-7");
     SkipNewline(File);
   }
+  BOSS_TRACE("@@@@@ ReadNormProtos-8");
   return (NormProtos);
 }                                /* ReadNormProtos */
 }  // namespace tesseract

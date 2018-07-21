@@ -83,18 +83,18 @@ void WordFeature::Draw(const GenericVector<WordFeature>& features,
 
 // Writes to the given file. Returns false in case of error.
 bool WordFeature::Serialize(FILE* fp) const {
-  if (fwrite(&x_, sizeof(x_), 1, fp) != 1) return false;
-  if (fwrite(&y_, sizeof(y_), 1, fp) != 1) return false;
-  if (fwrite(&dir_, sizeof(dir_), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fwrite(&x_, sizeof(x_), 1, fp) != 1) return false; //original-code:fwrite(&x_, sizeof(x_), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fwrite(&y_, sizeof(y_), 1, fp) != 1) return false; //original-code:fwrite(&y_, sizeof(y_), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fwrite(&dir_, sizeof(dir_), 1, fp) != 1) return false; //original-code:fwrite(&dir_, sizeof(dir_), 1, fp) != 1) return false;
   return true;
 }
 // Reads from the given file. Returns false in case of error.
 // If swap is true, assumes a big/little-endian swap is needed.
 bool WordFeature::DeSerialize(bool swap, FILE* fp) {
-  if (fread(&x_, sizeof(x_), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fread(&x_, sizeof(x_), 1, fp) != 1) return false; //original-code:fread(&x_, sizeof(x_), 1, fp) != 1) return false;
   if (swap) ReverseN(&x_, sizeof(x_));
-  if (fread(&y_, sizeof(y_), 1, fp) != 1) return false;
-  if (fread(&dir_, sizeof(dir_), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fread(&y_, sizeof(y_), 1, fp) != 1) return false; //original-code:fread(&y_, sizeof(y_), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fread(&dir_, sizeof(dir_), 1, fp) != 1) return false; //original-code:fread(&dir_, sizeof(dir_), 1, fp) != 1) return false;
   return true;
 }
 
@@ -459,7 +459,7 @@ const ImageData* DocumentData::GetPage(int index) {
     // while the caller is using it, so give it a chance to work.
 #if __cplusplus > 199711L && !defined(__MINGW32__)
     std::this_thread::sleep_for(std::chrono::seconds(1));
-#elif defined(_WIN32) // modified by BOSS, original code:#elif _WIN32  // MSVS
+#elif defined(_WIN32) // modified by BOSS, original-code:#elif _WIN32  // MSVS
     Sleep(1000);
 #else
     sleep(1);

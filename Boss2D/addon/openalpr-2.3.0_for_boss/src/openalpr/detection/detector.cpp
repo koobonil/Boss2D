@@ -64,6 +64,7 @@ namespace alpr
 
   vector<PlateRegion> Detector::detect(Mat frame, std::vector<cv::Rect> regionsOfInterest)
   {
+	  BOSS_TRACE("@@@@@ aaaaaaa", false);
 
     Mat frame_gray;
     
@@ -124,8 +125,9 @@ namespace alpr
       Size minPlateSize(config->minPlateSizeWidthPx * scale_factor, config->minPlateSizeHeightPx * scale_factor);
       Size maxPlateSize(maxWidth, maxHeight);
 
-    
+      BOSS_TRACE("@@@@@ bbbbbbb", false);
       vector<Rect> allRegions = find_plates(cropped, minPlateSize, maxPlateSize);
+      BOSS_TRACE("@@@@@ ccccccc", false);
 
       
       // Aggregate the Rect regions into a hierarchical representation
@@ -163,12 +165,15 @@ namespace alpr
         detectedRegions.push_back(orderedRegions[j]);
     }
 
+    BOSS_TRACE("@@@@@ dddddddd", false);
+
     // Show debug mask image
     if (detector_mask.mask_loaded && config->debugDetector && config->debugShowImages)
     {
       imshow("Detection Mask", mask_debug_img);
     }
     
+    BOSS_TRACE("@@@@@ eeeeeeeee", false);
     return detectedRegions;
   }
   

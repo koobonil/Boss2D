@@ -100,13 +100,13 @@ bool ParamsModel::Equivalent(const ParamsModel &that) const {
 bool ParamsModel::LoadFromFile(
     const char *lang,
     const char *full_path) {
-  FILE *fp = fopen(full_path, "rb");
+  FILE *fp = BOSS_TESSERACT_fopen(full_path, "rb"); //original-code:fopen(full_path, "rb");
   if (!fp) {
     tprintf("Error opening file %s\n", full_path);
     return false;
   }
   bool result = LoadFromFp(lang, fp, -1);
-  fclose(fp);
+  BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
   return result;
 }
 
@@ -120,8 +120,8 @@ bool ParamsModel::LoadFromFp(const char *lang, FILE *fp, inT64 end_offset) {
   GenericVector<float> &weights = weights_vec_[pass_];
   weights.init_to_size(PTRAIN_NUM_FEATURE_TYPES, 0.0);
 
-  while ((end_offset < 0 || ftell(fp) < end_offset) &&
-      fgets(line, kMaxLineSize, fp)) {
+  while ((end_offset < 0 || BOSS_TESSERACT_ftell(fp) < end_offset) && //original-code:ftell(fp) < end_offset) &&
+      BOSS_TESSERACT_fgets(line, kMaxLineSize, fp)) { //original-code:fgets(line, kMaxLineSize, fp)) {
     char *key = NULL;
     float value;
     if (!ParseLine(line, &key, &value))
@@ -155,7 +155,7 @@ bool ParamsModel::SaveToFile(const char *full_path) const {
     tprintf("Refusing to save ParamsModel that has not been initialized.\n");
     return false;
   }
-  FILE *fp = fopen(full_path, "wb");
+  FILE *fp = BOSS_TESSERACT_fopen(full_path, "wb"); //original-code:fopen(full_path, "wb");
   if (!fp) {
     tprintf("Could not open %s for writing.\n", full_path);
     return false;
@@ -167,7 +167,7 @@ bool ParamsModel::SaveToFile(const char *full_path) const {
       all_good = false;
     }
   }
-  fclose(fp);
+  BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
   return all_good;
 }
 

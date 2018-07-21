@@ -1,3 +1,5 @@
+// author BOSS
+
 // Copyright 2006 Google Inc.
 // All Rights Reserved.
 // Author: renn
@@ -74,8 +76,8 @@ inline size_t LongBit() {
 static inline int
 SkipSpace(FILE *s) {
   int p;
-  while (isspace(p = fgetc(s)));
-  ungetc(p, s);  // Make sure next char is available for reading
+  while (isspace(p = BOSS_TESSERACT_fgetc(s))); //original-code:fgetc(s)));
+  BOSS_TESSERACT_ungetc(p, s);  // Make sure next char is available for reading //original-code:ungetc(p, s);  // Make sure next char is available for reading
   return p;
 }
 
@@ -107,39 +109,39 @@ uintmax_t streamtoumax(FILE* s, int base) {
   uintmax_t v = 0;
   int d, c = 0;
 
-  for (c = fgetc(s);
+  for (c = BOSS_TESSERACT_fgetc(s); //original-code:fgetc(s);
     isspace(static_cast<unsigned char>(c)) && (c != EOF);
-    c = fgetc(s)) {}
+    c = BOSS_TESSERACT_fgetc(s)) {} //original-code:fgetc(s)) {}
 
   // Single optional + or -
   if (c == '-' || c == '+') {
     minus = (c == '-');
-    c = fgetc(s);
+    c = BOSS_TESSERACT_fgetc(s); //original-code:fgetc(s);
   }
 
   // Assign correct base
   if (base == 0) {
     if (c == '0') {
-      c = fgetc(s);
+      c = BOSS_TESSERACT_fgetc(s); //original-code:fgetc(s);
       if (c == 'x' || c == 'X') {
         base = 16;
-        c = fgetc(s);
+        c = BOSS_TESSERACT_fgetc(s); //original-code:fgetc(s);
       } else {
         base = 8;
       }
     }
   } else if (base == 16) {
     if (c == '0') {
-      c = fgetc(s);
-      if (c == 'x' || c == 'X') c = fgetc(s);
+      c = BOSS_TESSERACT_fgetc(s); //original-code:fgetc(s);
+      if (c == 'x' || c == 'X') c = BOSS_TESSERACT_fgetc(s); //original-code:fgetc(s);
     }
   }
 
   // Actual number parsing
-  for (; (c != EOF) && (d = DigitValue(c, base)) >= 0; c = fgetc(s))
+  for (; (c != EOF) && (d = DigitValue(c, base)) >= 0; c = BOSS_TESSERACT_fgetc(s)) //original-code:fgetc(s))
     v = v*base + d;
 
-  ungetc(c, s);
+  BOSS_TESSERACT_ungetc(c, s); //original-code:ungetc(c, s);
   return minus ? -v : v;
 }
 
@@ -150,21 +152,21 @@ double streamtofloat(FILE* s) {
   int k = 1;
   int w = 0;
 
-  for (c = fgetc(s);
+  for (c = BOSS_TESSERACT_fgetc(s); //original-code:fgetc(s);
     isspace(static_cast<unsigned char>(c)) && (c != EOF);
-    c = fgetc(s));
+    c = BOSS_TESSERACT_fgetc(s)); //original-code:fgetc(s));
 
   // Single optional + or -
   if (c == '-' || c == '+') {
     minus = (c == '-');
-    c = fgetc(s);
+    c = BOSS_TESSERACT_fgetc(s); //original-code:fgetc(s);
   }
 
   // Actual number parsing
-  for (; c != EOF && (d = DigitValue(c, 10)) >= 0; c = fgetc(s))
+  for (; c != EOF && (d = DigitValue(c, 10)) >= 0; c = BOSS_TESSERACT_fgetc(s)) //original-code:fgetc(s))
     v = v*10 + d;
   if (c == '.') {
-    for (c = fgetc(s); c != EOF && (d = DigitValue(c, 10)) >= 0; c = fgetc(s)) {
+    for (c = BOSS_TESSERACT_fgetc(s); c != EOF && (d = DigitValue(c, 10)) >= 0; c = BOSS_TESSERACT_fgetc(s)) { //original-code:fgetc(s); c != EOF && (d = DigitValue(c, 10)) >= 0; c = fgetc(s)) {
       w = w*10 + d;
       k *= 10;
     }
@@ -172,20 +174,20 @@ double streamtofloat(FILE* s) {
   double f  = static_cast<double>(v)
             + static_cast<double>(w) / static_cast<double>(k);
   if (c == 'e' || c == 'E') {
-    c = fgetc(s);
+    c = BOSS_TESSERACT_fgetc(s); //original-code:fgetc(s);
     int expsign = 1;
     if (c == '-' || c == '+') {
       expsign = (c == '-') ? -1 : 1;
-      c = fgetc(s);
+      c = BOSS_TESSERACT_fgetc(s); //original-code:fgetc(s);
     }
     int exponent = 0;
-    for (; (c != EOF) && (d = DigitValue(c, 10)) >= 0; c = fgetc(s)) {
+    for (; (c != EOF) && (d = DigitValue(c, 10)) >= 0; c = BOSS_TESSERACT_fgetc(s)) { //original-code:fgetc(s)) {
       exponent = exponent * 10 + d;
     }
     exponent *= expsign;
     f *= pow(10.0, static_cast<double>(exponent));
   }
-  ungetc(c, s);
+  BOSS_TESSERACT_ungetc(c, s); //original-code:ungetc(c, s);
 
   return minus ? -f : f;
 }
@@ -287,7 +289,7 @@ static int tvfscanf(FILE* stream, const char *format, va_list ap) {
       (CHAR_BIT * sizeof(long))];
   int matchinv = 0;   // Is match map inverted?
   unsigned char range_start = 0;
-  off_t start_off = ftell(stream);
+  off_t start_off = BOSS_TESSERACT_ftell(stream); //original-code:ftell(stream);
 
   // Skip leading spaces
   SkipSpace(stream);
@@ -301,7 +303,7 @@ static int tvfscanf(FILE* stream, const char *format, va_list ap) {
         } else if (isspace(static_cast<unsigned char>(ch))) {
           SkipSpace(stream);
         } else {
-          if (fgetc(stream) != ch)
+          if (BOSS_TESSERACT_fgetc(stream) != ch) //original-code:fgetc(stream) != ch)
             bail = BAIL_ERR;  // Match failure
         }
         break;
@@ -388,7 +390,7 @@ static int tvfscanf(FILE* stream, const char *format, va_list ap) {
             goto scan_int;
 
             case 'n':   // Number of characters consumed
-              val = ftell(stream) - start_off;
+              val = BOSS_TESSERACT_ftell(stream) - start_off; //original-code:ftell(stream) - start_off;
             goto set_integer;
 
             scan_int:
@@ -459,7 +461,7 @@ static int tvfscanf(FILE* stream, const char *format, va_list ap) {
               width = (flags & FL_WIDTH) ? width : 1; // Default width == 1
               sarg = va_arg(ap, char *);
               while (width--) {
-                if ((q = fgetc(stream)) <= 0) {
+                if ((q = BOSS_TESSERACT_fgetc(stream)) <= 0) { //original-code:fgetc(stream)) <= 0) {
                   bail = BAIL_EOF;
                   break;
                 }
@@ -475,9 +477,9 @@ static int tvfscanf(FILE* stream, const char *format, va_list ap) {
               char *sp;
               sp = sarg = va_arg(ap, char *);
               while (width--) {
-                q = fgetc(stream);
+                q = BOSS_TESSERACT_fgetc(stream); //original-code:fgetc(stream);
                 if (isspace(static_cast<unsigned char>(q)) || q <= 0) {
-                  ungetc(q, stream);
+                  BOSS_TESSERACT_ungetc(q, stream); //original-code:ungetc(q, stream);
                   break;
                 }
                 if (!(flags & FL_SPLAT)) *sp = q;
@@ -501,7 +503,7 @@ static int tvfscanf(FILE* stream, const char *format, va_list ap) {
             break;
 
             case '%':   // %% sequence
-              if (fgetc(stream) != '%' )
+              if (BOSS_TESSERACT_fgetc(stream) != '%' ) //original-code:fgetc(stream) != '%' )
                 bail = BAIL_ERR;
             break;
 
@@ -547,10 +549,10 @@ static int tvfscanf(FILE* stream, const char *format, va_list ap) {
       match_run:      // Match expression finished
         char* oarg = sarg;
         while (width) {
-          q = fgetc(stream);
+          q = BOSS_TESSERACT_fgetc(stream); //original-code:fgetc(stream);
           unsigned char qc = static_cast<unsigned char>(q);
           if (q <= 0 || !(TestBit(matchmap, qc)^matchinv)) {
-            ungetc(q, stream);
+            BOSS_TESSERACT_ungetc(q, stream); //original-code:ungetc(q, stream);
             break;
           }
           if (!(flags & FL_SPLAT)) *sarg = q;

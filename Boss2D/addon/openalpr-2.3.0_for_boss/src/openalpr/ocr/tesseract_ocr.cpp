@@ -60,23 +60,31 @@ namespace alpr
     
     std::vector<OcrChar> recognized_chars;
     
+	BOSS_TRACE("@@@@@ rec-1", false);
     for (unsigned int i = 0; i < pipeline_data->thresholds.size(); i++)
     {
+		BOSS_TRACE("@@@@@ rec-2", false);
       // Make it black text on white background
       bitwise_not(pipeline_data->thresholds[i], pipeline_data->thresholds[i]);
+	  BOSS_TRACE("@@@@@ rec-3", false);
       tesseract.SetImage((uchar*) pipeline_data->thresholds[i].data, 
                           pipeline_data->thresholds[i].size().width, pipeline_data->thresholds[i].size().height, 
                           pipeline_data->thresholds[i].channels(), pipeline_data->thresholds[i].step1());
 
       int absolute_charpos = 0;
 
+	  BOSS_TRACE("@@@@@ rec-4", false);
       for (unsigned int j = 0; j < pipeline_data->charRegions[line_idx].size(); j++)
       {
+		  BOSS_TRACE("@@@@@ rec-5", false);
         Rect expandedRegion = expandRect( pipeline_data->charRegions[line_idx][j], 2, 2, pipeline_data->thresholds[i].cols, pipeline_data->thresholds[i].rows) ;
 
+		BOSS_TRACE("@@@@@ rec-6", false);
         tesseract.SetRectangle(expandedRegion.x, expandedRegion.y, expandedRegion.width, expandedRegion.height);
+		BOSS_TRACE("@@@@@ rec-7", false);
         tesseract.Recognize(NULL);
 
+		BOSS_TRACE("@@@@@ rec-8", false);
         tesseract::ResultIterator* ri = tesseract.GetIterator();
         tesseract::PageIteratorLevel level = tesseract::RIL_SYMBOL;
         do
@@ -145,9 +153,10 @@ namespace alpr
 
         absolute_charpos++;
       }
-      
+      BOSS_TRACE("@@@@@ rec-9", false);
     }
     
+	BOSS_TRACE("@@@@@ rec-10", false);
     return recognized_chars;
   }
   void TesseractOcr::segment(PipelineData* pipeline_data) {

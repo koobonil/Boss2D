@@ -200,7 +200,7 @@ typedef int (*curl_xferinfo_callback)(void *clientp,
      time for those who feel adventurous. The practical minimum is about
      400 bytes since libcurl uses a buffer of this size as a scratch area
      (unrelated to network send operations). */
-#define CURL_MAX_WRITE_SIZE 1638400 // modified by BOSS, original code: 16384
+#define CURL_MAX_WRITE_SIZE 1638400 // modified by BOSS, original-code: 16384
 #endif
 
 #ifndef CURL_MAX_HTTP_HEADER

@@ -192,7 +192,7 @@ Dict::Dict(CCUtil *ccutil)
 Dict::~Dict() {
   End();
   delete hyphen_word_;
-  if (output_ambig_words_file_ != NULL) fclose(output_ambig_words_file_);
+  if (output_ambig_words_file_ != NULL) BOSS_TESSERACT_fclose(output_ambig_words_file_); //original-code:fclose(output_ambig_words_file_);
 }
 
 DawgCache *Dict::GlobalDawgCache() {
@@ -642,7 +642,7 @@ void Dict::add_document_word(const WERD_CHOICE &best_choice) {
     doc_word_file = open_file (filename, "a");
     fprintf(doc_word_file, "%s\n",
             best_choice.debug_string().string());
-    fclose(doc_word_file);
+    BOSS_TESSERACT_fclose(doc_word_file); //original-code:fclose(doc_word_file);
   }
   document_words_->add_word_to_dawg(best_choice);
 }

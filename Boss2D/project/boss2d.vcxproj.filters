@@ -294,6 +294,9 @@
     <ClCompile Include="..\addon\boss_integration_tesseract-3.05.02.cpp">
       <Filter>Boss2D\addon</Filter>
     </ClCompile>
+    <ClCompile Include="..\addon\boss_addon_ssl.cpp">
+      <Filter>Boss2D\addon</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\element\boss_clip.hpp">
@@ -558,6 +561,9 @@
       <Filter>Boss2D\addon</Filter>
     </ClInclude>
     <ClInclude Include="..\addon\boss_integration_tesseract-3.05.02.h">
+      <Filter>Boss2D\addon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\addon\boss_addon_ssl.hpp">
       <Filter>Boss2D\addon</Filter>
     </ClInclude>
   </ItemGroup>

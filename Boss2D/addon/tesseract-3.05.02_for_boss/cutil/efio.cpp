@@ -44,7 +44,7 @@ FILE *Efopen(const char *Name, const char *Mode) {
   FILE *File;
   char ErrorMessage[MAXERRORMESSAGE];
 
-  File = fopen (Name, Mode);
+  File = BOSS_TESSERACT_fopen (Name, Mode); //original-code:fopen (Name, Mode);
   if (File == NULL) {
     sprintf (ErrorMessage, "Unable to open %s", Name);
     DoError(FOPENERROR, ErrorMessage); 

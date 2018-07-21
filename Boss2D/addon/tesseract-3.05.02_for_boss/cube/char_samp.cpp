@@ -185,21 +185,21 @@ CharSamp *CharSamp::FromCharDumpFile(FILE *fp) {
   char_32 *label32;
 
   // read and check 32 bit marker
-  if (fread(&val32, 1, sizeof(val32), fp) != sizeof(val32)) {
+  if (BOSS_TESSERACT_fread(&val32, 1, sizeof(val32), fp) != sizeof(val32)) { //original-code:fread(&val32, 1, sizeof(val32), fp) != sizeof(val32)) {
     return NULL;
   }
   if (val32 != 0xabd0fefe) {
     return NULL;
   }
   // read label length,
-  if (fread(&val32, 1, sizeof(val32), fp) != sizeof(val32)) {
+  if (BOSS_TESSERACT_fread(&val32, 1, sizeof(val32), fp) != sizeof(val32)) { //original-code:fread(&val32, 1, sizeof(val32), fp) != sizeof(val32)) {
     return NULL;
   }
   // the label is not null terminated in the file
   if (val32 > 0 && val32 < MAX_UINT32) {
     label32 = new char_32[val32 + 1];
     // read label
-    if (fread(label32, 1, val32 * sizeof(*label32), fp) !=
+    if (BOSS_TESSERACT_fread(label32, 1, val32 * sizeof(*label32), fp) != //original-code:fread(label32, 1, val32 * sizeof(*label32), fp) !=
         (val32 * sizeof(*label32))) {
       delete [] label32;
       return NULL;
@@ -210,14 +210,14 @@ CharSamp *CharSamp::FromCharDumpFile(FILE *fp) {
     label32 = NULL;
   }
   // read coordinates
-  if (fread(&page, 1, sizeof(page), fp) != sizeof(page) ||
-      fread(&left, 1, sizeof(left), fp) != sizeof(left) ||
-      fread(&top, 1, sizeof(top), fp) != sizeof(top) ||
-      fread(&first_char, 1, sizeof(first_char), fp) != sizeof(first_char) ||
-      fread(&last_char, 1, sizeof(last_char), fp) != sizeof(last_char) ||
-      fread(&norm_top, 1, sizeof(norm_top), fp) != sizeof(norm_top) ||
-      fread(&norm_bottom, 1, sizeof(norm_bottom), fp) != sizeof(norm_bottom) ||
-      fread(&norm_aspect_ratio, 1, sizeof(norm_aspect_ratio), fp) !=
+  if (BOSS_TESSERACT_fread(&page, 1, sizeof(page), fp) != sizeof(page) || //original-code:fread(&page, 1, sizeof(page), fp) != sizeof(page) ||
+      BOSS_TESSERACT_fread(&left, 1, sizeof(left), fp) != sizeof(left) || //original-code:fread(&left, 1, sizeof(left), fp) != sizeof(left) ||
+      BOSS_TESSERACT_fread(&top, 1, sizeof(top), fp) != sizeof(top) || //original-code:fread(&top, 1, sizeof(top), fp) != sizeof(top) ||
+      BOSS_TESSERACT_fread(&first_char, 1, sizeof(first_char), fp) != sizeof(first_char) || //original-code:fread(&first_char, 1, sizeof(first_char), fp) != sizeof(first_char) ||
+      BOSS_TESSERACT_fread(&last_char, 1, sizeof(last_char), fp) != sizeof(last_char) || //original-code:fread(&last_char, 1, sizeof(last_char), fp) != sizeof(last_char) ||
+      BOSS_TESSERACT_fread(&norm_top, 1, sizeof(norm_top), fp) != sizeof(norm_top) || //original-code:fread(&norm_top, 1, sizeof(norm_top), fp) != sizeof(norm_top) ||
+      BOSS_TESSERACT_fread(&norm_bottom, 1, sizeof(norm_bottom), fp) != sizeof(norm_bottom) || //original-code:fread(&norm_bottom, 1, sizeof(norm_bottom), fp) != sizeof(norm_bottom) ||
+      BOSS_TESSERACT_fread(&norm_aspect_ratio, 1, sizeof(norm_aspect_ratio), fp) != //original-code:fread(&norm_aspect_ratio, 1, sizeof(norm_aspect_ratio), fp) !=
           sizeof(norm_aspect_ratio)) {
     delete [] label32;
     return NULL;
@@ -279,46 +279,46 @@ bool CharSamp::Save2CharDumpFile(FILE *fp) const {
   unsigned int val32;
   // write and check 32 bit marker
   val32 = 0xabd0fefe;
-  if (fwrite(&val32, 1, sizeof(val32), fp) != sizeof(val32)) {
+  if (BOSS_TESSERACT_fwrite(&val32, 1, sizeof(val32), fp) != sizeof(val32)) { //original-code:fwrite(&val32, 1, sizeof(val32), fp) != sizeof(val32)) {
     return false;
   }
   // write label length
   val32 = (label32_ == NULL) ? 0 : LabelLen(label32_);
-  if (fwrite(&val32, 1, sizeof(val32), fp) != sizeof(val32)) {
+  if (BOSS_TESSERACT_fwrite(&val32, 1, sizeof(val32), fp) != sizeof(val32)) { //original-code:fwrite(&val32, 1, sizeof(val32), fp) != sizeof(val32)) {
     return false;
   }
   // write label
   if (label32_ != NULL) {
-    if (fwrite(label32_, 1, val32 * sizeof(*label32_), fp) !=
+    if (BOSS_TESSERACT_fwrite(label32_, 1, val32 * sizeof(*label32_), fp) != //original-code:fwrite(label32_, 1, val32 * sizeof(*label32_), fp) !=
         (val32 * sizeof(*label32_))) {
       return false;
     }
   }
   // write coordinates
-  if (fwrite(&page_, 1, sizeof(page_), fp) != sizeof(page_)) {
+  if (BOSS_TESSERACT_fwrite(&page_, 1, sizeof(page_), fp) != sizeof(page_)) { //original-code:fwrite(&page_, 1, sizeof(page_), fp) != sizeof(page_)) {
     return false;
   }
-  if (fwrite(&left_, 1, sizeof(left_), fp) != sizeof(left_)) {
+  if (BOSS_TESSERACT_fwrite(&left_, 1, sizeof(left_), fp) != sizeof(left_)) { //original-code:fwrite(&left_, 1, sizeof(left_), fp) != sizeof(left_)) {
     return false;
   }
-  if (fwrite(&top_, 1, sizeof(top_), fp) != sizeof(top_)) {
+  if (BOSS_TESSERACT_fwrite(&top_, 1, sizeof(top_), fp) != sizeof(top_)) { //original-code:fwrite(&top_, 1, sizeof(top_), fp) != sizeof(top_)) {
     return false;
   }
-  if (fwrite(&first_char_, 1, sizeof(first_char_), fp) !=
+  if (BOSS_TESSERACT_fwrite(&first_char_, 1, sizeof(first_char_), fp) != //original-code:fwrite(&first_char_, 1, sizeof(first_char_), fp) !=
       sizeof(first_char_)) {
     return false;
   }
-  if (fwrite(&last_char_, 1, sizeof(last_char_), fp) != sizeof(last_char_)) {
+  if (BOSS_TESSERACT_fwrite(&last_char_, 1, sizeof(last_char_), fp) != sizeof(last_char_)) { //original-code:fwrite(&last_char_, 1, sizeof(last_char_), fp) != sizeof(last_char_)) {
     return false;
   }
-  if (fwrite(&norm_top_, 1, sizeof(norm_top_), fp) != sizeof(norm_top_)) {
+  if (BOSS_TESSERACT_fwrite(&norm_top_, 1, sizeof(norm_top_), fp) != sizeof(norm_top_)) { //original-code:fwrite(&norm_top_, 1, sizeof(norm_top_), fp) != sizeof(norm_top_)) {
     return false;
   }
-  if (fwrite(&norm_bottom_, 1, sizeof(norm_bottom_), fp) !=
+  if (BOSS_TESSERACT_fwrite(&norm_bottom_, 1, sizeof(norm_bottom_), fp) != //original-code:fwrite(&norm_bottom_, 1, sizeof(norm_bottom_), fp) !=
       sizeof(norm_bottom_)) {
     return false;
   }
-  if (fwrite(&norm_aspect_ratio_, 1, sizeof(norm_aspect_ratio_), fp) !=
+  if (BOSS_TESSERACT_fwrite(&norm_aspect_ratio_, 1, sizeof(norm_aspect_ratio_), fp) != //original-code:fwrite(&norm_aspect_ratio_, 1, sizeof(norm_aspect_ratio_), fp) !=
       sizeof(norm_aspect_ratio_)) {
     return false;
   }

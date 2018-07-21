@@ -82,7 +82,7 @@ typedef enum {
   Green_YELLOW
 } C_COL;                         /*starbase colours */
 
-void cprintf_callcpp_BOSS ( // modified by BOSS, original code:void cprintf (                   //Trace printf
+void cprintf_callcpp_BOSS ( // modified by BOSS, original-code:void cprintf (                   //Trace printf
 const char *format, ...          //special message
 );
 ScrollView *c_create_window(                   /*create a window */

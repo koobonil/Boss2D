@@ -147,8 +147,8 @@ STRING::~STRING() {
 // Writes to the given file. Returns false in case of error.
 bool STRING::Serialize(FILE* fp) const {
   inT32 len = length();
-  if (fwrite(&len, sizeof(len), 1, fp) != 1) return false;
-  if (static_cast<int>(fwrite(GetCStr(), 1, len, fp)) != len) return false;
+  if (BOSS_TESSERACT_fwrite(&len, sizeof(len), 1, fp) != 1) return false; //original-code:fwrite(&len, sizeof(len), 1, fp) != 1) return false;
+  if (static_cast<int>(BOSS_TESSERACT_fwrite(GetCStr(), 1, len, fp)) != len) return false; //original-code:fwrite(GetCStr(), 1, len, fp)) != len) return false;
   return true;
 }
 // Writes to the given file. Returns false in case of error.
@@ -162,11 +162,11 @@ bool STRING::Serialize(TFile* fp) const {
 // If swap is true, assumes a big/little-endian swap is needed.
 bool STRING::DeSerialize(bool swap, FILE* fp) {
   inT32 len;
-  if (fread(&len, sizeof(len), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fread(&len, sizeof(len), 1, fp) != 1) return false; //original-code:fread(&len, sizeof(len), 1, fp) != 1) return false;
   if (swap)
     ReverseN(&len, sizeof(len));
   truncate_at(len);
-  if (static_cast<int>(fread(GetCStr(), 1, len, fp)) != len) return false;
+  if (static_cast<int>(BOSS_TESSERACT_fread(GetCStr(), 1, len, fp)) != len) return false; //original-code:fread(GetCStr(), 1, len, fp)) != len) return false;
   return true;
 }
 // Reads from the given file. Returns false in case of error.

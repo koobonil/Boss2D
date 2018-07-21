@@ -668,6 +668,12 @@
             return 0;
         }
 
+        sint64 Platform::Clock::GetLocalMsecFromUTC()
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return 0;
+        }
+
         void Platform::Clock::GetDetail(id_clock clock, sint64* nsec,
             sint32* sec, sint32* min, sint32* hour, sint32* day, sint32* month, sint32* year)
         {
@@ -1108,7 +1114,7 @@
             return -1;
         }
 
-        uint32 Platform::File::GetAttributes(wchars itemname, uint64* size, uint64* ctime, uint64* atime, uint64* mtime)
+        sint32 Platform::File::GetAttributes(wchars itemname, uint64* size, uint64* ctime, uint64* atime, uint64* mtime)
         {
             const String ItemnameUTF8 = String::FromWChars(PlatformImpl::Core::NormalPathW(itemname));
 
@@ -1120,7 +1126,7 @@
                 if(lstat(ItemnameUTF8, &CurInfo) == -1)
                     return -1; // INVALID_FILE_ATTRIBUTES
 
-                uint32 Result = 0;
+                sint32 Result = 0;
                 if(!(CurInfo.st_mode & (S_IWUSR | S_IWGRP | S_IWOTH))) Result |= 0x1; // FILE_ATTRIBUTE_READONLY
                 #if !BOSS_ANDROID
                     if(CurInfo.st_flags & UF_HIDDEN) Result |= 0x2; // FILE_ATTRIBUTE_HIDDEN
@@ -1193,7 +1199,7 @@
             return false;
         }
 
-        bool Platform::File::Remove(wchars itemname)
+        bool Platform::File::Remove(wchars itemname, bool autoremovedir)
         {
             const String ItemnameUTF8 = String::FromWChars(PlatformImpl::Core::NormalPathW(itemname));
 
@@ -1215,7 +1221,7 @@
             return PlatformImpl::Wrap::File_Tempname(format, length);
         }
 
-        bool Platform::File::CreateDir(wchars dirname)
+        bool Platform::File::CreateDir(wchars dirname, bool autocreatedir)
         {
             const String DirnameUTF8 = String::FromWChars(PlatformImpl::Core::NormalPathW(dirname));
 
@@ -1223,7 +1229,7 @@
             return false;
         }
 
-        bool Platform::File::RemoveDir(wchars dirname)
+        bool Platform::File::RemoveDir(wchars dirname, bool autoremovedir)
         {
             const String DirnameUTF8 = String::FromWChars(PlatformImpl::Core::NormalPathW(dirname));
 
@@ -1630,9 +1636,10 @@
             BOSS_ASSERT("Further development is needed.", false);
         }
 
-        void Platform::Web::Resize(h_web web, sint32 width, sint32 height)
+        bool Platform::Web::Resize(h_web web, sint32 width, sint32 height)
         {
             BOSS_ASSERT("Further development is needed.", false);
+			return false;
         }
 
         void Platform::Web::SendTouchEvent(h_web web, TouchType type, sint32 x, sint32 y)

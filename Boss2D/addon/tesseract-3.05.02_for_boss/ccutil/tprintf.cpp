@@ -1,3 +1,5 @@
+// author BOSS
+
 /**********************************************************************
  * File:        tprintf.c
  * Description: Trace version of printf - portable between UX and NT
@@ -39,6 +41,9 @@ DLLSYM void
 tprintf_internal(                       // Trace printf
     const char *format, ...             // Message
 ) {
+
+  return; // added by BOSS
+
   tesseract::tprintfMutex.Lock();
   va_list args;                  // variable args
   static FILE *debugfp = NULL;   // debug file
@@ -58,9 +63,9 @@ tprintf_internal(                       // Trace printf
   va_end(args);
 
   if (debugfp == NULL && strlen(debug_file.string()) > 0) {
-    debugfp = fopen(debug_file.string(), "wb");
+    debugfp = BOSS_TESSERACT_fopen(debug_file.string(), "wb"); //original-code:fopen(debug_file.string(), "wb");
   } else if (debugfp != NULL && strlen(debug_file.string()) == 0) {
-    fclose(debugfp);
+    BOSS_TESSERACT_fclose(debugfp); //original-code:fclose(debugfp);
     debugfp = NULL;
   }
   if (debugfp != NULL)

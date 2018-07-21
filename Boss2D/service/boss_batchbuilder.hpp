@@ -17,19 +17,24 @@ namespace BOSS
 
     public:
         void Processing(chars filename);
+		static void Process_SearchCB(chars itemname, payload data);
 
     protected:
-        void Process_IncludeAlias(const String& command, sint32 pos, chars prm, chars comment);
-        static void Process_IncludeAliasCB(chars itemname, payload data);
-        void Build_IncludeAlias(chars sourcepath, const Strings& dsts, const Strings& srcs, chars comment);
+		void Process_Replace(const String& command, sint32 pos, sint32 posend, chars prm);
+        void Process_IncludeAlias(const String& command, sint32 pos, sint32 posend, chars prm);
+		String Build_Replace(String source, const Strings& dsts, const Strings& srcs, chars comment);
+        String Build_IncludeAlias(String source, const Strings& dsts, const Strings& srcs, chars comment);
 
     private:
         String ReadFile(chars filename);
 
     private:
-        const String m_dirname;
-        const Strings* m_ref_dsts;
-        const Strings* m_ref_srcs;
-        chars m_ref_comment;
+        const String mDirName;
+		Strings ReplaceDsts;
+        Strings ReplaceSrcs;
+		Strings AliasDsts;
+        Strings AliasSrcs;
+		String ReplaceComment;
+		String AliasComment;
     };
 }

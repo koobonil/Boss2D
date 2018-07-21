@@ -1,3 +1,5 @@
+// author BOSS
+
 ///////////////////////////////////////////////////////////////////////
 // File:        genericvector.h
 // Description: Generic vector class
@@ -158,7 +160,7 @@ class GenericVector {
   // The callback given must be permanent since they will be called more than
   // once. The given callback will be deleted at the end.
   // If the callbacks are NULL, then the data is simply read/written using
-  // fread (and swapping)/fwrite.
+  // BOSS_TESSERACT_fread (and swapping)/BOSS_TESSERACT_fwrite. //original-code:fwrite. //original-code:fread (and swapping)/BOSS_TESSERACT_fwrite. //original-code:fwrite.
   // Returns false on error or if the callback returns false.
   // DEPRECATED. Use [De]Serialize[Classes] instead.
   bool write(FILE* f, TessResultCallback2<bool, FILE*, T const &>* cb) const;
@@ -359,18 +361,18 @@ typedef bool (*FileWriter)(const GenericVector<char>& data,
 inline bool LoadDataFromFile(const STRING& filename,
                              GenericVector<char>* data) {
   bool result = false;
-  FILE* fp = fopen(filename.string(), "rb");
+  FILE* fp = BOSS_TESSERACT_fopen(filename.string(), "rb"); //original-code:fopen(filename.string(), "rb");
   if (fp != NULL) {
-    fseek(fp, 0, SEEK_END);
-    size_t size = ftell(fp);
-    fseek(fp, 0, SEEK_SET);
+    BOSS_TESSERACT_fseek(fp, 0, SEEK_END); //original-code:fseek(fp, 0, SEEK_END);
+    size_t size = BOSS_TESSERACT_ftell(fp); //original-code:ftell(fp);
+    BOSS_TESSERACT_fseek(fp, 0, SEEK_SET); //original-code:fseek(fp, 0, SEEK_SET);
     if (size > 0) {
       // reserve an extra byte in case caller wants to append a '\0' character
       data->reserve(size + 1);
       data->resize_no_init(size);
-      result = fread(&(*data)[0], 1, size, fp) == size;
+      result = BOSS_TESSERACT_fread(&(*data)[0], 1, size, fp) == size; //original-code:fread(&(*data)[0], 1, size, fp) == size;
     }
-    fclose(fp);
+    BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
   }
   return result;
 }
@@ -378,11 +380,11 @@ inline bool LoadDataFromFile(const STRING& filename,
 // returning false on error.
 inline bool SaveDataToFile(const GenericVector<char>& data,
                            const STRING& filename) {
-  FILE* fp = fopen(filename.string(), "wb");
+  FILE* fp = BOSS_TESSERACT_fopen(filename.string(), "wb"); //original-code:fopen(filename.string(), "wb");
   if (fp == NULL) return false;
   bool result =
-      static_cast<int>(fwrite(&data[0], 1, data.size(), fp)) == data.size();
-  fclose(fp);
+      static_cast<int>(BOSS_TESSERACT_fwrite(&data[0], 1, data.size(), fp)) == data.size(); //original-code:fwrite(&data[0], 1, data.size(), fp)) == data.size();
+  BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
   return result;
 }
 
@@ -513,10 +515,10 @@ class PointerVector : public GenericVector<T*> {
   // Returns false in case of error.
   bool Serialize(FILE* fp) const {
     inT32 used = GenericVector<T*>::size_used_;
-    if (fwrite(&used, sizeof(used), 1, fp) != 1) return false;
+    if (BOSS_TESSERACT_fwrite(&used, sizeof(used), 1, fp) != 1) return false; //original-code:fwrite(&used, sizeof(used), 1, fp) != 1) return false;
     for (int i = 0; i < used; ++i) {
       inT8 non_null = GenericVector<T*>::data_[i] != NULL;
-      if (fwrite(&non_null, sizeof(non_null), 1, fp) != 1) return false;
+      if (BOSS_TESSERACT_fwrite(&non_null, sizeof(non_null), 1, fp) != 1) return false; //original-code:fwrite(&non_null, sizeof(non_null), 1, fp) != 1) return false;
       if (non_null && !GenericVector<T*>::data_[i]->Serialize(fp)) return false;
     }
     return true;
@@ -540,13 +542,13 @@ class PointerVector : public GenericVector<T*> {
   // Returns false in case of error.
   bool DeSerialize(bool swap, FILE* fp) {
     inT32 reserved;
-    if (fread(&reserved, sizeof(reserved), 1, fp) != 1) return false;
+    if (BOSS_TESSERACT_fread(&reserved, sizeof(reserved), 1, fp) != 1) return false; //original-code:fread(&reserved, sizeof(reserved), 1, fp) != 1) return false;
     if (swap) Reverse32(&reserved);
     GenericVector<T*>::reserve(reserved);
     truncate(0);
     for (int i = 0; i < reserved; ++i) {
       inT8 non_null;
-      if (fread(&non_null, sizeof(non_null), 1, fp) != 1) return false;
+      if (BOSS_TESSERACT_fread(&non_null, sizeof(non_null), 1, fp) != 1) return false; //original-code:fread(&non_null, sizeof(non_null), 1, fp) != 1) return false;
       T* item = NULL;
       if (non_null) {
         item = new T;
@@ -864,8 +866,8 @@ void GenericVector<T>::delete_data_pointers() {
 template <typename T>
 bool GenericVector<T>::write(
     FILE* f, TessResultCallback2<bool, FILE*, T const &>* cb) const {
-  if (fwrite(&size_reserved_, sizeof(size_reserved_), 1, f) != 1) return false;
-  if (fwrite(&size_used_, sizeof(size_used_), 1, f) != 1) return false;
+  if (BOSS_TESSERACT_fwrite(&size_reserved_, sizeof(size_reserved_), 1, f) != 1) return false; //original-code:fwrite(&size_reserved_, sizeof(size_reserved_), 1, f) != 1) return false;
+  if (BOSS_TESSERACT_fwrite(&size_used_, sizeof(size_used_), 1, f) != 1) return false; //original-code:fwrite(&size_used_, sizeof(size_used_), 1, f) != 1) return false;
   if (cb != NULL) {
     for (int i = 0; i < size_used_; ++i) {
       if (!cb->Run(f, data_[i])) {
@@ -875,7 +877,7 @@ bool GenericVector<T>::write(
     }
     delete cb;
   } else {
-    if (fwrite(data_, sizeof(T), size_used_, f) != size_used_) return false;
+    if (BOSS_TESSERACT_fwrite(data_, sizeof(T), size_used_, f) != size_used_) return false; //original-code:fwrite(data_, sizeof(T), size_used_, f) != size_used_) return false;
   }
   return true;
 }
@@ -884,11 +886,14 @@ template <typename T>
 bool GenericVector<T>::read(FILE* f,
                             TessResultCallback3<bool, FILE*, T*, bool>* cb,
                             bool swap) {
+	BOSS_TRACE("@@@@@ GenericVector<T>::read-1");
   inT32 reserved;
-  if (fread(&reserved, sizeof(reserved), 1, f) != 1) return false;
+  if (BOSS_TESSERACT_fread(&reserved, sizeof(reserved), 1, f) != 1) return false; //original-code:fread(&reserved, sizeof(reserved), 1, f) != 1) return false;
+  BOSS_TRACE("@@@@@ GenericVector<T>::read-2");
   if (swap) Reverse32(&reserved);
   reserve(reserved);
-  if (fread(&size_used_, sizeof(size_used_), 1, f) != 1) return false;
+  BOSS_TRACE("@@@@@ GenericVector<T>::read-3");
+  if (BOSS_TESSERACT_fread(&size_used_, sizeof(size_used_), 1, f) != 1) return false; //original-code:fread(&size_used_, sizeof(size_used_), 1, f) != 1) return false;
   if (swap) Reverse32(&size_used_);
   if (cb != NULL) {
     for (int i = 0; i < size_used_; ++i) {
@@ -899,12 +904,13 @@ bool GenericVector<T>::read(FILE* f,
     }
     delete cb;
   } else {
-    if (fread(data_, sizeof(T), size_used_, f) != size_used_) return false;
+    if (BOSS_TESSERACT_fread(data_, sizeof(T), size_used_, f) != size_used_) return false; //original-code:fread(data_, sizeof(T), size_used_, f) != size_used_) return false;
     if (swap) {
       for (int i = 0; i < size_used_; ++i)
         ReverseN(&data_[i], sizeof(T));
     }
   }
+  BOSS_TRACE("@@@@@ GenericVector<T>::read-4");
   return true;
 }
 
@@ -912,8 +918,8 @@ bool GenericVector<T>::read(FILE* f,
 // read/write of T will work. Returns false in case of error.
 template <typename T>
 bool GenericVector<T>::Serialize(FILE* fp) const {
-  if (fwrite(&size_used_, sizeof(size_used_), 1, fp) != 1) return false;
-  if (fwrite(data_, sizeof(*data_), size_used_, fp) != size_used_) return false;
+  if (BOSS_TESSERACT_fwrite(&size_used_, sizeof(size_used_), 1, fp) != 1) return false; //original-code:fwrite(&size_used_, sizeof(size_used_), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fwrite(data_, sizeof(*data_), size_used_, fp) != size_used_) return false; //original-code:fwrite(data_, sizeof(*data_), size_used_, fp) != size_used_) return false;
   return true;
 }
 template <typename T>
@@ -930,11 +936,11 @@ bool GenericVector<T>::Serialize(tesseract::TFile* fp) const {
 template <typename T>
 bool GenericVector<T>::DeSerialize(bool swap, FILE* fp) {
   inT32 reserved;
-  if (fread(&reserved, sizeof(reserved), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fread(&reserved, sizeof(reserved), 1, fp) != 1) return false; //original-code:fread(&reserved, sizeof(reserved), 1, fp) != 1) return false;
   if (swap) Reverse32(&reserved);
   reserve(reserved);
   size_used_ = reserved;
-  if (fread(data_, sizeof(T), size_used_, fp) != size_used_) return false;
+  if (BOSS_TESSERACT_fread(data_, sizeof(T), size_used_, fp) != size_used_) return false; //original-code:fread(data_, sizeof(T), size_used_, fp) != size_used_) return false;
   if (swap) {
     for (int i = 0; i < size_used_; ++i)
       ReverseN(&data_[i], sizeof(data_[i]));
@@ -968,7 +974,7 @@ bool GenericVector<T>::SkipDeSerialize(bool swap, tesseract::TFile* fp) {
 // Returns false in case of error.
 template <typename T>
 bool GenericVector<T>::SerializeClasses(FILE* fp) const {
-  if (fwrite(&size_used_, sizeof(size_used_), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fwrite(&size_used_, sizeof(size_used_), 1, fp) != 1) return false; //original-code:fwrite(&size_used_, sizeof(size_used_), 1, fp) != 1) return false;
   for (int i = 0; i < size_used_; ++i) {
     if (!data_[i].Serialize(fp)) return false;
   }
@@ -991,7 +997,7 @@ bool GenericVector<T>::SerializeClasses(tesseract::TFile* fp) const {
 template <typename T>
 bool GenericVector<T>::DeSerializeClasses(bool swap, FILE* fp) {
   uinT32 reserved;
-  if (fread(&reserved, sizeof(reserved), 1, fp) != 1) return false;
+  if (BOSS_TESSERACT_fread(&reserved, sizeof(reserved), 1, fp) != 1) return false; //original-code:fread(&reserved, sizeof(reserved), 1, fp) != 1) return false;
   if (swap) Reverse32(&reserved);
   T empty;
   init_to_size(reserved, empty);

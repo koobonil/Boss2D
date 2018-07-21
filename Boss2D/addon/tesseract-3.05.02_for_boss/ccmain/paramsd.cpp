@@ -325,8 +325,8 @@ void ParamsEditor::WriteParams(char *filename,
   FILE *fp;                      // input file
   char msg_str[255];
                                  // if file exists
-  if ((fp = fopen (filename, "rb")) != NULL) {
-    fclose(fp);
+  if ((fp = BOSS_TESSERACT_fopen (filename, "rb")) != NULL) { //original-code:fopen (filename, "rb")) != NULL) {
+    BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
     sprintf (msg_str, "Overwrite file " "%s" "? (Y/N)", filename);
     int a = sv_window_->ShowYesNoDialog(msg_str);
     if (a == 'n') {
@@ -335,7 +335,7 @@ void ParamsEditor::WriteParams(char *filename,
   }
 
 
-  fp = fopen (filename, "wb");  // can we write to it?
+  fp = BOSS_TESSERACT_fopen (filename, "wb");  // can we write to it? //original-code:fopen (filename, "wb");  // can we write to it?
   if (fp == NULL) {
     sv_window_->AddMessage(
         "Can't write to file "
@@ -354,6 +354,6 @@ void ParamsEditor::WriteParams(char *filename,
               cur->GetName(), cur->GetValue().string(), cur->GetDescription());
     }
   }
-  fclose(fp);
+  BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
 }
 #endif

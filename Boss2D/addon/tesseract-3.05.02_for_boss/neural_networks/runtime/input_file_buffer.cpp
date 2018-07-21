@@ -27,7 +27,7 @@ InputFileBuffer::InputFileBuffer(const string &file_name)
 // virtual destructor
 InputFileBuffer::~InputFileBuffer() {
   if (fp_ != NULL) {
-    fclose(fp_);
+    BOSS_TESSERACT_fclose(fp_); //original-code:fclose(fp_);
   }
 }
 
@@ -35,11 +35,11 @@ InputFileBuffer::~InputFileBuffer() {
 int InputFileBuffer::Read(void *buffer, int bytes_to_read) {
   // open the file if necessary
   if (fp_ == NULL) {
-    fp_ = fopen(file_name_.c_str(), "rb");
+    fp_ = BOSS_TESSERACT_fopen(file_name_.c_str(), "rb"); //original-code:fopen(file_name_.c_str(), "rb");
     if (fp_ == NULL) {
       return 0;
     }
   }
-  return fread(buffer, 1, bytes_to_read, fp_);
+  return BOSS_TESSERACT_fread(buffer, 1, bytes_to_read, fp_); //original-code:fread(buffer, 1, bytes_to_read, fp_);
 }
 }

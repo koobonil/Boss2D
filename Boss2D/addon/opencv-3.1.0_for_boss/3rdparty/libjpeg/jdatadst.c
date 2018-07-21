@@ -193,7 +193,7 @@ term_mem_destination (j_compress_ptr cinfo)
  */
 
 GLOBAL(void)
-jpeg_stdio_dest (j_compress_ptr cinfo, void * outfile) // modified by BOSS, original code: FILE * outfile
+jpeg_stdio_dest (j_compress_ptr cinfo, void * outfile) // modified by BOSS, original-code: FILE * outfile
 {
   my_dest_ptr dest;
 

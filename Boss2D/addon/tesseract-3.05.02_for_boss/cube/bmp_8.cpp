@@ -217,7 +217,7 @@ bool Bmp8::LoadFromCharDumpFile(FILE *fp) {
   unsigned char *buff;
 
   // read and check 32 bit marker
-  if (fread(&val32, 1, sizeof(val32), fp) != sizeof(val32)) {
+  if (BOSS_TESSERACT_fread(&val32, 1, sizeof(val32), fp) != sizeof(val32)) { //original-code:fread(&val32, 1, sizeof(val32), fp) != sizeof(val32)) {
     return false;
   }
 
@@ -226,16 +226,16 @@ bool Bmp8::LoadFromCharDumpFile(FILE *fp) {
   }
 
   // read wid and hgt
-  if (fread(&wid, 1, sizeof(wid), fp) != sizeof(wid)) {
+  if (BOSS_TESSERACT_fread(&wid, 1, sizeof(wid), fp) != sizeof(wid)) { //original-code:fread(&wid, 1, sizeof(wid), fp) != sizeof(wid)) {
     return false;
   }
 
-  if (fread(&hgt, 1, sizeof(hgt), fp) != sizeof(hgt)) {
+  if (BOSS_TESSERACT_fread(&hgt, 1, sizeof(hgt), fp) != sizeof(hgt)) { //original-code:fread(&hgt, 1, sizeof(hgt), fp) != sizeof(hgt)) {
     return false;
   }
 
   // read buf size
-  if (fread(&buf_size, 1, sizeof(buf_size), fp) != sizeof(buf_size)) {
+  if (BOSS_TESSERACT_fread(&buf_size, 1, sizeof(buf_size), fp) != sizeof(buf_size)) { //original-code:fread(&buf_size, 1, sizeof(buf_size), fp) != sizeof(buf_size)) {
     return false;
   }
 
@@ -248,7 +248,7 @@ bool Bmp8::LoadFromCharDumpFile(FILE *fp) {
   // alloc memory & read the 3 channel buffer
   buff = new unsigned char[buf_size];
 
-  if (fread(buff, 1, buf_size, fp) != buf_size) {
+  if (BOSS_TESSERACT_fread(buff, 1, buf_size, fp) != buf_size) { //original-code:fread(buff, 1, buf_size, fp) != buf_size) {
     delete []buff;
     return false;
   }
@@ -495,25 +495,25 @@ bool Bmp8::SaveBmp2CharDumpFile(FILE *fp) const {
 
   // write and check 32 bit marker
   val32 = kMagicNumber;
-  if (fwrite(&val32, 1, sizeof(val32), fp) != sizeof(val32)) {
+  if (BOSS_TESSERACT_fwrite(&val32, 1, sizeof(val32), fp) != sizeof(val32)) { //original-code:fwrite(&val32, 1, sizeof(val32), fp) != sizeof(val32)) {
     return false;
   }
 
   // write wid and hgt
   wid = wid_;
-  if (fwrite(&wid, 1, sizeof(wid), fp) != sizeof(wid)) {
+  if (BOSS_TESSERACT_fwrite(&wid, 1, sizeof(wid), fp) != sizeof(wid)) { //original-code:fwrite(&wid, 1, sizeof(wid), fp) != sizeof(wid)) {
     return false;
   }
 
   hgt = hgt_;
-  if (fwrite(&hgt, 1, sizeof(hgt), fp) != sizeof(hgt)) {
+  if (BOSS_TESSERACT_fwrite(&hgt, 1, sizeof(hgt), fp) != sizeof(hgt)) { //original-code:fwrite(&hgt, 1, sizeof(hgt), fp) != sizeof(hgt)) {
     return false;
   }
 
   // write buf size
   pix_cnt = wid * hgt;
   buf_size = 3 * pix_cnt;
-  if (fwrite(&buf_size, 1, sizeof(buf_size), fp) != sizeof(buf_size)) {
+  if (BOSS_TESSERACT_fwrite(&buf_size, 1, sizeof(buf_size), fp) != sizeof(buf_size)) { //original-code:fwrite(&buf_size, 1, sizeof(buf_size), fp) != sizeof(buf_size)) {
     return false;
   }
 
@@ -529,7 +529,7 @@ bool Bmp8::SaveBmp2CharDumpFile(FILE *fp) const {
     }
   }
 
-  if (fwrite(buff, 1, buf_size, fp) != buf_size) {
+  if (BOSS_TESSERACT_fwrite(buff, 1, buf_size, fp) != buf_size) { //original-code:fwrite(buff, 1, buf_size, fp) != buf_size) {
     delete []buff;
     return false;
   }

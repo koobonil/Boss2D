@@ -275,9 +275,9 @@ NewPermanentTessCallback(R (*function)()) {
 
 
 // Specified by TR1 [4.7.2] Reference modifications.
-template <class T> struct remove_reference_tesscallback_BOSS; // modified by BOSS, original code:template <class T> struct remove_reference;
-template<typename T> struct remove_reference_tesscallback_BOSS { typedef T type; }; // modified by BOSS, original code:template<typename T> struct remove_reference { typedef T type; };
-template<typename T> struct remove_reference_tesscallback_BOSS<T&> { typedef T type; }; // modified by BOSS, original code:template<typename T> struct remove_reference<T&> { typedef T type; };
+template <class T> struct remove_reference_tesscallback_BOSS; // modified by BOSS, original-code:template <class T> struct remove_reference;
+template<typename T> struct remove_reference_tesscallback_BOSS { typedef T type; }; // modified by BOSS, original-code:template<typename T> struct remove_reference { typedef T type; };
+template<typename T> struct remove_reference_tesscallback_BOSS<T&> { typedef T type; }; // modified by BOSS, original-code:template<typename T> struct remove_reference<T&> { typedef T type; };
 #define remove_reference remove_reference_tesscallback_BOSS // added by BOSS
 
 // Identity<T>::type is a typedef of T. Useful for preventing the

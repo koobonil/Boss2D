@@ -659,14 +659,14 @@ int main(int argc, char** argv) {
   } else if (!FLAGS_render_per_font && !font_names.empty()) {
     string filename = FLAGS_outputbase.c_str();
     filename += ".fontlist.txt";
-    FILE* fp = fopen(filename.c_str(), "wb");
+    FILE* fp = BOSS_TESSERACT_fopen(filename.c_str(), "wb"); //original-code:fopen(filename.c_str(), "wb");
     if (fp == NULL) {
       tprintf("Failed to create output font list %s\n", filename.c_str());
     } else {
       for (int i = 0; i < font_names.size(); ++i) {
         fprintf(fp, "%s\n", font_names[i].c_str());
       }
-      fclose(fp);
+      BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
     }
   }
 

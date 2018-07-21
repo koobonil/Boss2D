@@ -36,7 +36,7 @@ CachedFile::CachedFile(string file_name) {
 
 CachedFile::~CachedFile() {
   if (fp_ != NULL) {
-    fclose(fp_);
+    BOSS_TESSERACT_fclose(fp_); //original-code:fclose(fp_);
     fp_ = NULL;
   }
 
@@ -52,20 +52,20 @@ bool CachedFile::Open() {
     return true;
   }
 
-  fp_ = fopen(file_name_.c_str(), "rb");
+  fp_ = BOSS_TESSERACT_fopen(file_name_.c_str(), "rb"); //original-code:fopen(file_name_.c_str(), "rb");
   if (fp_ == NULL) {
     return false;
   }
 
   // seek to the end
-  fseek(fp_, 0, SEEK_END);
+  BOSS_TESSERACT_fseek(fp_, 0, SEEK_END); //original-code:fseek(fp_, 0, SEEK_END);
   // get file size
-  file_size_ = ftell(fp_);
+  file_size_ = BOSS_TESSERACT_ftell(fp_); //original-code:ftell(fp_);
   if (file_size_ < 1) {
     return false;
   }
-  // rewind again
-  rewind(fp_);
+  // BOSS_TESSERACT_rewind again //original-code:rewind again
+  BOSS_TESSERACT_rewind(fp_); //original-code:rewind(fp_);
   // alloc memory for buffer
   buff_ = new unsigned char[kCacheSize];
   // init counters
@@ -105,7 +105,7 @@ int CachedFile::Read(void *read_buff, int bytes) {
     }
 
     // read the first chunck
-    if (fread(buff_, 1, buff_size_, fp_) != buff_size_) {
+    if (BOSS_TESSERACT_fread(buff_, 1, buff_size_, fp_) != buff_size_) { //original-code:fread(buff_, 1, buff_size_, fp_) != buff_size_) {
       return read_bytes;
     }
 

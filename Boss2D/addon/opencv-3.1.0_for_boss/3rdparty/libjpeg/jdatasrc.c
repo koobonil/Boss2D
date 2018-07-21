@@ -207,7 +207,7 @@ term_source (j_decompress_ptr cinfo)
  */
 
 GLOBAL(void)
-jpeg_stdio_src (j_decompress_ptr cinfo, void * infile) // modified by BOSS, original code: FILE * infile
+jpeg_stdio_src (j_decompress_ptr cinfo, void * infile) // modified by BOSS, original-code: FILE * infile
 {
   my_src_ptr src;
 

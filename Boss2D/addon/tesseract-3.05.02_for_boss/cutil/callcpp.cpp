@@ -39,7 +39,7 @@
 #include BOSS_TESSERACT_U_unichar_h //original-code:"unichar.h"
 
 void
-cprintf_callcpp_BOSS ( // modified by BOSS, original code:cprintf (                        //Trace printf
+cprintf_callcpp_BOSS ( // modified by BOSS, original-code:cprintf (                        //Trace printf
 const char *format, ...          //special message
 ) {
   va_list args;                  //variable args

@@ -60,14 +60,14 @@ void Tesseract::read_config_file(const char *filename,
   path += "configs/";
   path += filename;
   FILE* fp;
-  if ((fp = fopen(path.string(), "rb")) != NULL) {
-    fclose(fp);
+  if ((fp = BOSS_TESSERACT_fopen(path.string(), "rb")) != NULL) { //original-code:fopen(path.string(), "rb")) != NULL) {
+    BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
   } else {
     path = datadir;
     path += "tessconfigs/";
     path += filename;
-    if ((fp = fopen(path.string(), "rb")) != NULL) {
-      fclose(fp);
+    if ((fp = BOSS_TESSERACT_fopen(path.string(), "rb")) != NULL) { //original-code:fopen(path.string(), "rb")) != NULL) {
+      BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
     } else {
       path = filename;
     }
@@ -141,10 +141,10 @@ bool Tesseract::init_tesseract_lang_data(
   }
 
   if (((STRING &)tessedit_write_params_to_file).length() > 0) {
-    FILE *params_file = fopen(tessedit_write_params_to_file.string(), "wb");
+    FILE *params_file = BOSS_TESSERACT_fopen(tessedit_write_params_to_file.string(), "wb"); //original-code:fopen(tessedit_write_params_to_file.string(), "wb");
     if (params_file != NULL) {
       ParamUtils::PrintParams(params_file, this->params());
-      fclose(params_file);
+      BOSS_TESSERACT_fclose(params_file); //original-code:fclose(params_file);
       if (tessdata_manager_debug_level > 0) {
         tprintf("Wrote parameters to %s\n",
                 tessedit_write_params_to_file.string());

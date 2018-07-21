@@ -2038,7 +2038,7 @@ void TableFinder::WriteToPix(const FCOORD& reskew) {
 
   BOXA* table_array = boxaCreate(num_boxes);
   // text file containing detected table bounding boxes
-  FILE* fptr = fopen("tess-table.txt", "wb");
+  FILE* fptr = BOSS_TESSERACT_fopen("tess-table.txt", "wb"); //original-code:fopen("tess-table.txt", "wb");
   GridSearch<ColSegment, ColSegment_CLIST, ColSegment_C_IT>
       table_search(&table_grid_);
   table_search.StartFullSearch();
@@ -2060,7 +2060,7 @@ void TableFinder::WriteToPix(const FCOORD& reskew) {
     fprintf(fptr, "%d %d %d %d TABLE\n", box.left(),
             img_height - box.top(), box.right(), img_height - box.bottom());
   }
-  fclose(fptr);
+  BOSS_TESSERACT_fclose(fptr); //original-code:fclose(fptr);
   // paint table boxes on the debug image
   out = pixDrawBoxa(out, table_array, 5, 0x7fff0000);
 

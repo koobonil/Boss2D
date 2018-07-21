@@ -152,6 +152,7 @@ namespace alpr
       
       country_aggregator.addResults(sub_results);
     }
+	BOSS_TRACE("@@@@@ gggggggggg", false);
     response = country_aggregator.getAggregateResults();
 
     timespec endTime;
@@ -195,12 +196,12 @@ namespace alpr
         }
       }
 
-
+	  BOSS_TRACE("@@@@@ hhhhhhhhhhhhh", false);
       displayImage(config, "Main Image", img);
 
       // Sleep 1ms
       sleep_ms(1);
-
+	  BOSS_TRACE("@@@@@ iiiiiiiiiiiii", false);
     }
 
 
@@ -211,6 +212,7 @@ namespace alpr
       {}
     }
 
+	BOSS_TRACE("@@@@@ jjjjjjjjjjj", false);
     return response;
   }
 
@@ -240,26 +242,32 @@ namespace alpr
       }
     }
 
+	BOSS_TRACE("@@@@@ eeeeeeeeee-1", false);
     queue<PlateRegion> plateQueue;
     for (unsigned int i = 0; i < warpedPlateRegions.size(); i++)
       plateQueue.push(warpedPlateRegions[i]);
 
+	BOSS_TRACE("@@@@@ eeeeeeeeee-2", false);
     int platecount = 0;
     while(!plateQueue.empty())
     {
+		BOSS_TRACE("@@@@@ eeeeeeeeee-3", false);
       PlateRegion plateRegion = plateQueue.front();
       plateQueue.pop();
 
       PipelineData pipeline_data(colorImg, grayImg, plateRegion.rect, config);
       pipeline_data.prewarp = prewarp;
 
+	  BOSS_TRACE("@@@@@ eeeeeeeeee-4", false);
       timespec platestarttime;
       getTimeMonotonic(&platestarttime);
 
       LicensePlateCandidate lp(&pipeline_data);
 
+	  BOSS_TRACE("@@@@@ eeeeeeeeee-5", false);
       lp.recognize();
 
+	  BOSS_TRACE("@@@@@ eeeeeeeeee-6", false);
 	  // BOSS Begin : Å»¶ô»çÀ¯
 	  if(pipeline_data.disqualified)
 	  {
@@ -275,6 +283,7 @@ namespace alpr
 	  }
 	  // BOSS End
 
+	  BOSS_TRACE("@@@@@ eeeeeeeeee-7", false);
       bool plateDetected = false;
       if (pipeline_data.disqualified && config->debugGeneral)
       {
@@ -282,10 +291,12 @@ namespace alpr
       }
       if (!pipeline_data.disqualified)
       {
+		  BOSS_TRACE("@@@@@ eeeeeeeeee-8", false);
         AlprPlateResult plateResult;
         
         plateResult.country = config->country;
         
+		BOSS_TRACE("@@@@@ eeeeeeeeee-9", false);
         // If there's only one pattern for a country, use it.  Otherwise use the default
         if (country_recognizers.ocr->postProcessor.getPatterns().size() == 1)
           plateResult.region = country_recognizers.ocr->postProcessor.getPatterns()[0];
@@ -296,6 +307,7 @@ namespace alpr
         plateResult.plate_index = platecount++;
         plateResult.requested_topn = topN;
 
+		BOSS_TRACE("@@@@@ eeeeeeeeee-10", false);
         // If using prewarp, remap the plate corners to the original image
         vector<Point2f> cornerPoints = pipeline_data.plate_corners;
         cornerPoints = prewarp->projectPoints(cornerPoints, true);
@@ -306,7 +318,7 @@ namespace alpr
           plateResult.plate_points[pointidx].y = (int) cornerPoints[pointidx].y;
         }
 
-        
+        BOSS_TRACE("@@@@@ eeeeeeeeee-11", false);
         #ifndef SKIP_STATE_DETECTION
         if (detectRegion && country_recognizers.stateDetector->isLoaded())
         {
@@ -314,7 +326,7 @@ namespace alpr
                                                                                pipeline_data.color_deskewed.elemSize(),
                                                                                pipeline_data.color_deskewed.cols,
                                                                                pipeline_data.color_deskewed.rows);
-
+		  BOSS_TRACE("@@@@@ eeeeeeeeee-12", false);
           if (state_candidates.size() > 0)
           {
             plateResult.region = state_candidates[0].state_code;
@@ -323,6 +335,7 @@ namespace alpr
         }
         #endif
 
+		BOSS_TRACE("@@@@@ eeeeeeeeee-13", false);
         if (plateResult.region.length() > 0 && country_recognizers.ocr->postProcessor.regionIsValid(plateResult.region) == false)
         {
           std::cerr << "Invalid pattern provided: " << plateResult.region << std::endl;
@@ -332,9 +345,11 @@ namespace alpr
         country_recognizers.ocr->performOCR(&pipeline_data);
         country_recognizers.ocr->postProcessor.analyze(plateResult.region, topN);
 
+		BOSS_TRACE("@@@@@ eeeeeeeeee-14", false);
         timespec resultsStartTime;
         getTimeMonotonic(&resultsStartTime);
 
+		BOSS_TRACE("@@@@@ eeeeeeeeee-15", false);
         const vector<PPResult> ppResults = country_recognizers.ocr->postProcessor.getResults();
 
         int bestPlateIndex = 0;
@@ -350,11 +365,13 @@ namespace alpr
             isBestPlateSelected = true;
           }
 
+		  BOSS_TRACE("@@@@@ eeeeeeeeee-16", false);
           AlprPlate aplate;
           aplate.characters = ppResults[pp].letters;
           aplate.overall_confidence = ppResults[pp].totalscore;
           aplate.matches_template = ppResults[pp].matchesTemplate;
 
+		  BOSS_TRACE("@@@@@ eeeeeeeeee-17", false);
           // Grab detailed results for each character
           for (unsigned int c_idx = 0; c_idx < ppResults[pp].letter_details.size(); c_idx++)
           {
@@ -372,6 +389,7 @@ namespace alpr
           plateResult.topNPlates.push_back(aplate);
         }
 
+		BOSS_TRACE("@@@@@ eeeeeeeeee-18", false);
         if (plateResult.topNPlates.size() > bestPlateIndex)
         {
           AlprPlate bestPlate;
@@ -383,6 +401,7 @@ namespace alpr
           plateResult.bestPlate = bestPlate;
         }
 
+		BOSS_TRACE("@@@@@ eeeeeeeeee-19", false);
         timespec plateEndTime;
         getTimeMonotonic(&plateEndTime);
         plateResult.processing_time_ms = diffclock(platestarttime, plateEndTime);
@@ -391,6 +410,7 @@ namespace alpr
           cout << "Result Generation Time: " << diffclock(resultsStartTime, plateEndTime) << "ms." << endl;
         }
 
+		BOSS_TRACE("@@@@@ eeeeeeeeee-20", false);
         if (plateResult.topNPlates.size() > 0)
         {
           plateDetected = true;
@@ -398,6 +418,7 @@ namespace alpr
         }
       }
 
+	  BOSS_TRACE("@@@@@ eeeeeeeeee-21", false);
       if (!plateDetected)
       {
         // Not a valid plate
@@ -410,14 +431,17 @@ namespace alpr
 
     }
 
+	BOSS_TRACE("@@@@@ eeeeeeeeee-22", false);
     // Unwarp plate regions if necessary
     prewarp->projectPlateRegions(warpedPlateRegions, grayImg.cols, grayImg.rows, true);
     response.plateRegions = warpedPlateRegions;
 
+	BOSS_TRACE("@@@@@ eeeeeeeeee-23", false);
     timespec endTime;
     getTimeMonotonic(&endTime);
     response.results.total_processing_time_ms = diffclock(startTime, endTime);
 
+	BOSS_TRACE("@@@@@ ffffffffff", false);
     return response;
   }
 

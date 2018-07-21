@@ -1,3 +1,5 @@
+// author BOSS
+
 /******************************************************************************
  ** Filename:    intproto.c
  ** Purpose:     Definition of data structures for integer protos.
@@ -746,7 +748,6 @@ void free_int_templates(INT_TEMPLATES templates) {
   Efree(templates);
 }
 
-
 namespace tesseract {
 /**
  * This routine reads a set of integer templates from
@@ -770,6 +771,7 @@ INT_TEMPLATES Classify::ReadIntTemplates(FILE *File) {
   uinT8 *Lengths;
   PROTO_SET ProtoSet;
 
+  BOSS_TRACE("@@@@@ ReadIntTemplates-1");
   /* variables for conversion from older inttemp formats */
   int b, bit_number, last_cp_bit_number, new_b, new_i, new_w;
   CLASS_ID class_id, max_class_id;
@@ -783,16 +785,19 @@ INT_TEMPLATES Classify::ReadIntTemplates(FILE *File) {
   int MaxNumConfigs = MAX_NUM_CONFIGS;
   int WerdsPerConfigVec = WERDS_PER_CONFIG_VEC;
 
+  BOSS_TRACE("@@@@@ ReadIntTemplates-2");
   /* first read the high level template struct */
   Templates = NewIntTemplates();
+  BOSS_TRACE("@@@@@ ReadIntTemplates-3");
   // Read Templates in parts for 64 bit compatibility.
-  if (fread(&unicharset_size, sizeof(int), 1, File) != 1)
+  if (BOSS_TESSERACT_fread(&unicharset_size, sizeof(int), 1, File) != 1) //original-code:fread(&unicharset_size, sizeof(int), 1, File) != 1)
     cprintf("Bad read of inttemp!\n");
-  if (fread(&Templates->NumClasses,
+  if (BOSS_TESSERACT_fread(&Templates->NumClasses, //original-code:fread(&Templates->NumClasses,
             sizeof(Templates->NumClasses), 1, File) != 1 ||
-      fread(&Templates->NumClassPruners,
+      BOSS_TESSERACT_fread(&Templates->NumClassPruners, //original-code:fread(&Templates->NumClassPruners,
             sizeof(Templates->NumClassPruners), 1, File) != 1)
     cprintf("Bad read of inttemp!\n");
+  BOSS_TRACE("@@@@@ ReadIntTemplates-4");
   // Swap status is determined automatically.
   swap = Templates->NumClassPruners < 0 ||
     Templates->NumClassPruners > MAX_NUM_CLASS_PRUNERS;
@@ -801,16 +806,18 @@ INT_TEMPLATES Classify::ReadIntTemplates(FILE *File) {
     Reverse32(&Templates->NumClasses);
     Reverse32(&unicharset_size);
   }
+  BOSS_TRACE("@@@@@ ReadIntTemplates-5");
   if (Templates->NumClasses < 0) {
     // This file has a version id!
     version_id = -Templates->NumClasses;
-    if (fread(&Templates->NumClasses, sizeof(Templates->NumClasses),
+    if (BOSS_TESSERACT_fread(&Templates->NumClasses, sizeof(Templates->NumClasses), //original-code:fread(&Templates->NumClasses, sizeof(Templates->NumClasses),
               1, File) != 1)
       cprintf("Bad read of inttemp!\n");
     if (swap)
       Reverse32(&Templates->NumClasses);
   }
 
+  BOSS_TRACE("@@@@@ ReadIntTemplates-6");
   if (version_id < 3) {
     MaxNumConfigs = OLD_MAX_NUM_CONFIGS;
     WerdsPerConfigVec = OLD_WERDS_PER_CONFIG_VEC;
@@ -818,11 +825,11 @@ INT_TEMPLATES Classify::ReadIntTemplates(FILE *File) {
 
   if (version_id < 2) {
     for (i = 0; i < unicharset_size; ++i) {
-      if (fread(&IndexFor[i], sizeof(inT16), 1, File) != 1)
+      if (BOSS_TESSERACT_fread(&IndexFor[i], sizeof(inT16), 1, File) != 1) //original-code:fread(&IndexFor[i], sizeof(inT16), 1, File) != 1)
         cprintf("Bad read of inttemp!\n");
     }
     for (i = 0; i < Templates->NumClasses; ++i) {
-      if (fread(&ClassIdFor[i], sizeof(CLASS_ID), 1, File) != 1)
+      if (BOSS_TESSERACT_fread(&ClassIdFor[i], sizeof(CLASS_ID), 1, File) != 1) //original-code:fread(&ClassIdFor[i], sizeof(CLASS_ID), 1, File) != 1)
         cprintf("Bad read of inttemp!\n");
     }
     if (swap) {
@@ -833,11 +840,12 @@ INT_TEMPLATES Classify::ReadIntTemplates(FILE *File) {
     }
   }
 
+  BOSS_TRACE("@@@@@ ReadIntTemplates-7");
   /* then read in the class pruners */
   for (i = 0; i < Templates->NumClassPruners; i++) {
     Pruner = new CLASS_PRUNER_STRUCT;
     if ((nread =
-         fread(Pruner, 1, sizeof(CLASS_PRUNER_STRUCT),
+         BOSS_TESSERACT_fread(Pruner, 1, sizeof(CLASS_PRUNER_STRUCT), //original-code:fread(Pruner, 1, sizeof(CLASS_PRUNER_STRUCT),
                 File)) != sizeof(CLASS_PRUNER_STRUCT))
       cprintf("Bad read of inttemp!\n");
     if (swap) {
@@ -858,6 +866,7 @@ INT_TEMPLATES Classify::ReadIntTemplates(FILE *File) {
     }
   }
 
+  BOSS_TRACE("@@@@@ ReadIntTemplates-8");
   /* fix class pruners if they came from an old version of inttemp */
   if (version_id < 2) {
     // Allocate enough class pruners to cover all the class ids.
@@ -910,25 +919,26 @@ INT_TEMPLATES Classify::ReadIntTemplates(FILE *File) {
     }
   }
 
+  BOSS_TRACE("@@@@@ ReadIntTemplates-9");
   /* then read in each class */
   for (i = 0; i < Templates->NumClasses; i++) {
     /* first read in the high level struct for the class */
     Class = (INT_CLASS) Emalloc (sizeof (INT_CLASS_STRUCT));
-    if (fread(&Class->NumProtos, sizeof(Class->NumProtos), 1, File) != 1 ||
-        fread(&Class->NumProtoSets, sizeof(Class->NumProtoSets), 1, File) != 1 ||
-        fread(&Class->NumConfigs, sizeof(Class->NumConfigs), 1, File) != 1)
+    if (BOSS_TESSERACT_fread(&Class->NumProtos, sizeof(Class->NumProtos), 1, File) != 1 || //original-code:fread(&Class->NumProtos, sizeof(Class->NumProtos), 1, File) != 1 ||
+        BOSS_TESSERACT_fread(&Class->NumProtoSets, sizeof(Class->NumProtoSets), 1, File) != 1 || //original-code:fread(&Class->NumProtoSets, sizeof(Class->NumProtoSets), 1, File) != 1 ||
+        BOSS_TESSERACT_fread(&Class->NumConfigs, sizeof(Class->NumConfigs), 1, File) != 1) //original-code:fread(&Class->NumConfigs, sizeof(Class->NumConfigs), 1, File) != 1)
       cprintf ("Bad read of inttemp!\n");
     if (version_id == 0) {
       // Only version 0 writes 5 pointless pointers to the file.
       for (j = 0; j < 5; ++j) {
         int junk;
-        if (fread(&junk, sizeof(junk), 1, File) != 1)
+        if (BOSS_TESSERACT_fread(&junk, sizeof(junk), 1, File) != 1) //original-code:fread(&junk, sizeof(junk), 1, File) != 1)
           cprintf ("Bad read of inttemp!\n");
       }
     }
     if (version_id < 4) {
       for (j = 0; j < MaxNumConfigs; ++j) {
-        if (fread(&Class->ConfigLengths[j], sizeof(uinT16), 1, File) != 1)
+        if (BOSS_TESSERACT_fread(&Class->ConfigLengths[j], sizeof(uinT16), 1, File) != 1) //original-code:fread(&Class->ConfigLengths[j], sizeof(uinT16), 1, File) != 1)
           cprintf ("Bad read of inttemp!\n");
       }
       if (swap) {
@@ -939,7 +949,7 @@ INT_TEMPLATES Classify::ReadIntTemplates(FILE *File) {
     } else {
       ASSERT_HOST(Class->NumConfigs < MaxNumConfigs);
       for (j = 0; j < Class->NumConfigs; ++j) {
-        if (fread(&Class->ConfigLengths[j], sizeof(uinT16), 1, File) != 1)
+        if (BOSS_TESSERACT_fread(&Class->ConfigLengths[j], sizeof(uinT16), 1, File) != 1) //original-code:fread(&Class->ConfigLengths[j], sizeof(uinT16), 1, File) != 1)
           cprintf ("Bad read of inttemp!\n");
       }
       if (swap) {
@@ -959,7 +969,7 @@ INT_TEMPLATES Classify::ReadIntTemplates(FILE *File) {
     if (MaxNumIntProtosIn (Class) > 0) {
       Lengths = (uinT8 *)Emalloc(sizeof(uinT8) * MaxNumIntProtosIn(Class));
       if ((nread =
-           fread((char *)Lengths, sizeof(uinT8),
+           BOSS_TESSERACT_fread((char *)Lengths, sizeof(uinT8), //original-code:fread((char *)Lengths, sizeof(uinT8),
                  MaxNumIntProtosIn(Class), File)) != MaxNumIntProtosIn (Class))
         cprintf ("Bad read of inttemp!\n");
     }
@@ -970,27 +980,27 @@ INT_TEMPLATES Classify::ReadIntTemplates(FILE *File) {
       ProtoSet = (PROTO_SET)Emalloc(sizeof(PROTO_SET_STRUCT));
       if (version_id < 3) {
         if ((nread =
-             fread((char *) &ProtoSet->ProtoPruner, 1,
+             BOSS_TESSERACT_fread((char *) &ProtoSet->ProtoPruner, 1, //original-code:fread((char *) &ProtoSet->ProtoPruner, 1,
                     sizeof(PROTO_PRUNER), File)) != sizeof(PROTO_PRUNER))
           cprintf("Bad read of inttemp!\n");
         for (x = 0; x < PROTOS_PER_PROTO_SET; x++) {
-          if ((nread = fread((char *) &ProtoSet->Protos[x].A, 1,
+          if ((nread = BOSS_TESSERACT_fread((char *) &ProtoSet->Protos[x].A, 1, //original-code:fread((char *) &ProtoSet->Protos[x].A, 1,
                              sizeof(inT8), File)) != sizeof(inT8) ||
-              (nread = fread((char *) &ProtoSet->Protos[x].B, 1,
+              (nread = BOSS_TESSERACT_fread((char *) &ProtoSet->Protos[x].B, 1, //original-code:fread((char *) &ProtoSet->Protos[x].B, 1,
                              sizeof(uinT8), File)) != sizeof(uinT8) ||
-              (nread = fread((char *) &ProtoSet->Protos[x].C, 1,
+              (nread = BOSS_TESSERACT_fread((char *) &ProtoSet->Protos[x].C, 1, //original-code:fread((char *) &ProtoSet->Protos[x].C, 1,
                              sizeof(inT8), File)) != sizeof(inT8) ||
-              (nread = fread((char *) &ProtoSet->Protos[x].Angle, 1,
+              (nread = BOSS_TESSERACT_fread((char *) &ProtoSet->Protos[x].Angle, 1, //original-code:fread((char *) &ProtoSet->Protos[x].Angle, 1,
                              sizeof(uinT8), File)) != sizeof(uinT8))
             cprintf("Bad read of inttemp!\n");
           for (y = 0; y < WerdsPerConfigVec; y++)
-            if ((nread = fread((char *) &ProtoSet->Protos[x].Configs[y], 1,
+            if ((nread = BOSS_TESSERACT_fread((char *) &ProtoSet->Protos[x].Configs[y], 1, //original-code:fread((char *) &ProtoSet->Protos[x].Configs[y], 1,
                                sizeof(uinT32), File)) != sizeof(uinT32))
               cprintf("Bad read of inttemp!\n");
         }
       } else {
         if ((nread =
-             fread((char *) ProtoSet, 1, sizeof(PROTO_SET_STRUCT),
+             BOSS_TESSERACT_fread((char *) ProtoSet, 1, sizeof(PROTO_SET_STRUCT), //original-code:fread((char *) ProtoSet, 1, sizeof(PROTO_SET_STRUCT),
                    File)) != sizeof(PROTO_SET_STRUCT))
           cprintf("Bad read of inttemp!\n");
       }
@@ -1008,12 +1018,13 @@ INT_TEMPLATES Classify::ReadIntTemplates(FILE *File) {
     if (version_id < 4)
       Class->font_set_id = -1;
     else {
-      fread(&Class->font_set_id, sizeof(int), 1, File);
+      BOSS_TESSERACT_fread(&Class->font_set_id, sizeof(int), 1, File); //original-code:fread(&Class->font_set_id, sizeof(int), 1, File);
       if (swap)
         Reverse32(&Class->font_set_id);
     }
   }
 
+  BOSS_TRACE("@@@@@ ReadIntTemplates-10:%d", version_id);
   if (version_id < 2) {
     /* add an empty NULL class with class id 0 */
     assert(UnusedClassIdIn (Templates, 0));
@@ -1046,11 +1057,13 @@ INT_TEMPLATES Classify::ReadIntTemplates(FILE *File) {
     this->fontset_table_.read(File, NewPermanentTessCallback(read_set), swap);
   }
 
+  BOSS_TRACE("@@@@@ ReadIntTemplates-11");
   // Clean up.
   delete[] IndexFor;
   delete[] ClassIdFor;
   delete[] TempClassPruner;
 
+  BOSS_TRACE("@@@@@ ReadIntTemplates-12");
   return (Templates);
 }                                /* ReadIntTemplates */
 
@@ -1140,15 +1153,15 @@ void Classify::WriteIntTemplates(FILE *File, INT_TEMPLATES Templates,
   }
 
   /* first write the high level template struct */
-  fwrite(&unicharset_size, sizeof(unicharset_size), 1, File);
-  fwrite(&version_id, sizeof(version_id), 1, File);
-  fwrite(&Templates->NumClassPruners, sizeof(Templates->NumClassPruners),
+  BOSS_TESSERACT_fwrite(&unicharset_size, sizeof(unicharset_size), 1, File); //original-code:fwrite(&unicharset_size, sizeof(unicharset_size), 1, File);
+  BOSS_TESSERACT_fwrite(&version_id, sizeof(version_id), 1, File); //original-code:fwrite(&version_id, sizeof(version_id), 1, File);
+  BOSS_TESSERACT_fwrite(&Templates->NumClassPruners, sizeof(Templates->NumClassPruners), //original-code:fwrite(&Templates->NumClassPruners, sizeof(Templates->NumClassPruners),
          1, File);
-  fwrite(&Templates->NumClasses, sizeof(Templates->NumClasses), 1, File);
+  BOSS_TESSERACT_fwrite(&Templates->NumClasses, sizeof(Templates->NumClasses), 1, File); //original-code:fwrite(&Templates->NumClasses, sizeof(Templates->NumClasses), 1, File);
 
   /* then write out the class pruners */
   for (i = 0; i < Templates->NumClassPruners; i++)
-    fwrite(Templates->ClassPruners[i],
+    BOSS_TESSERACT_fwrite(Templates->ClassPruners[i], //original-code:fwrite(Templates->ClassPruners[i],
            sizeof(CLASS_PRUNER_STRUCT), 1, File);
 
   /* then write out each class */
@@ -1156,27 +1169,27 @@ void Classify::WriteIntTemplates(FILE *File, INT_TEMPLATES Templates,
     Class = Templates->Class[i];
 
     /* first write out the high level struct for the class */
-    fwrite(&Class->NumProtos, sizeof(Class->NumProtos), 1, File);
-    fwrite(&Class->NumProtoSets, sizeof(Class->NumProtoSets), 1, File);
+    BOSS_TESSERACT_fwrite(&Class->NumProtos, sizeof(Class->NumProtos), 1, File); //original-code:fwrite(&Class->NumProtos, sizeof(Class->NumProtos), 1, File);
+    BOSS_TESSERACT_fwrite(&Class->NumProtoSets, sizeof(Class->NumProtoSets), 1, File); //original-code:fwrite(&Class->NumProtoSets, sizeof(Class->NumProtoSets), 1, File);
     ASSERT_HOST(Class->NumConfigs == this->fontset_table_.get(Class->font_set_id).size);
-    fwrite(&Class->NumConfigs, sizeof(Class->NumConfigs), 1, File);
+    BOSS_TESSERACT_fwrite(&Class->NumConfigs, sizeof(Class->NumConfigs), 1, File); //original-code:fwrite(&Class->NumConfigs, sizeof(Class->NumConfigs), 1, File);
     for (j = 0; j < Class->NumConfigs; ++j) {
-      fwrite(&Class->ConfigLengths[j], sizeof(uinT16), 1, File);
+      BOSS_TESSERACT_fwrite(&Class->ConfigLengths[j], sizeof(uinT16), 1, File); //original-code:fwrite(&Class->ConfigLengths[j], sizeof(uinT16), 1, File);
     }
 
     /* then write out the proto lengths */
     if (MaxNumIntProtosIn (Class) > 0) {
-      fwrite ((char *) (Class->ProtoLengths), sizeof (uinT8),
+      BOSS_TESSERACT_fwrite ((char *) (Class->ProtoLengths), sizeof (uinT8), //original-code:fwrite ((char *) (Class->ProtoLengths), sizeof (uinT8),
               MaxNumIntProtosIn (Class), File);
     }
 
     /* then write out the proto sets */
     for (j = 0; j < Class->NumProtoSets; j++)
-      fwrite ((char *) Class->ProtoSets[j],
+      BOSS_TESSERACT_fwrite ((char *) Class->ProtoSets[j], //original-code:fwrite ((char *) Class->ProtoSets[j],
               sizeof (PROTO_SET_STRUCT), 1, File);
 
     /* then write the fonts info */
-    fwrite(&Class->font_set_id, sizeof(int), 1, File);
+    BOSS_TESSERACT_fwrite(&Class->font_set_id, sizeof(int), 1, File); //original-code:fwrite(&Class->font_set_id, sizeof(int), 1, File);
   }
 
   /* Write the fonts info tables */

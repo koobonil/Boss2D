@@ -226,11 +226,11 @@ TESS_API void TESS_CALL TessBaseAPIPrintVariables(const TessBaseAPI* handle, FIL
 
 TESS_API BOOL TESS_CALL TessBaseAPIPrintVariablesToFile(const TessBaseAPI* handle, const char* filename)
 {
-    FILE* fp = fopen(filename, "w");
+    FILE* fp = BOSS_TESSERACT_fopen(filename, "w"); //original-code:fopen(filename, "w");
     if (fp != NULL)
     {
         handle->PrintVariables(fp);
-        fclose(fp);
+        BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
         return TRUE;
     }
     return FALSE;

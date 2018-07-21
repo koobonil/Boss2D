@@ -48,7 +48,7 @@ bool read_unlv_file(                    //print list of sides
   BLOCK_IT block_it = blocks;    //block iterator
 
   name += UNLV_EXT;              //add extension
-  if ((pdfp = fopen (name.string (), "rb")) == NULL) {
+  if ((pdfp = BOSS_TESSERACT_fopen (name.string (), "rb")) == NULL) { //original-code:fopen (name.string (), "rb")) == NULL) {
     return false;                //didn't read one
   } else {
     while (tfscanf(pdfp, "%d %d %d %d %*s", &x, &y, &width, &height) >= 4) {
@@ -59,7 +59,7 @@ bool read_unlv_file(                    //print list of sides
                                  //on end of list
       block_it.add_to_end (block);
     }
-    fclose(pdfp);
+    BOSS_TESSERACT_fclose(pdfp); //original-code:fclose(pdfp);
   }
   return true;
 }

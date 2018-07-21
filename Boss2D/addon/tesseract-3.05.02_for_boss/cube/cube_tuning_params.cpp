@@ -182,7 +182,7 @@ bool CubeTuningParams::Load(string tuning_params_file) {
 
 // Save the parameters to a file
 bool CubeTuningParams::Save(string file_name) {
-  FILE *params_file = fopen(file_name.c_str(), "wb");
+  FILE *params_file = BOSS_TESSERACT_fopen(file_name.c_str(), "wb"); //original-code:fopen(file_name.c_str(), "wb");
   if (params_file == NULL) {
     fprintf(stderr, "Cube ERROR (CubeTuningParams::Save): error opening file "
             "%s for write.\n", file_name.c_str());
@@ -207,7 +207,7 @@ bool CubeTuningParams::Save(string file_name) {
   fprintf(params_file, "OODWgt=%.4f\n", ood_wgt_);
   fprintf(params_file, "NumWgt=%.4f\n", num_wgt_);
 
-  fclose(params_file);
+  BOSS_TESSERACT_fclose(params_file); //original-code:fclose(params_file);
   return true;
 }
 }

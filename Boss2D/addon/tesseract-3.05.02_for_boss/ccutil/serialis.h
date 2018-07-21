@@ -62,12 +62,12 @@ class TFile {
   // From an open file and an end offset.
   bool Open(FILE* fp, inT64 end_offset);
 
-  // Reads a line like fgets. Returns NULL on EOF, otherwise buffer.
+  // Reads a line like BOSS_TESSERACT_fgets. Returns NULL on EOF, otherwise buffer. //original-code:fgets. Returns NULL on EOF, otherwise buffer.
   // Reads at most buffer_size bytes, including '\0' terminator, even if
   // the line is longer. Does nothing if buffer_size <= 0.
   // To use fscanf use FGets and sscanf.
   char* FGets(char* buffer, int buffer_size);
-  // Replicates fread, returning the number of items read.
+  // Replicates BOSS_TESSERACT_fread, returning the number of items read. //original-code:fread, returning the number of items read.
   int FRead(void* buffer, int size, int count);
   // Resets the TFile as if it has been Opened, but nothing read.
   // Only allowed while reading!
@@ -79,7 +79,7 @@ class TFile {
   void OpenWrite(GenericVector<char>* data);
   bool CloseWrite(const STRING& filename, FileWriter writer);
 
-  // Replicates fwrite, returning the number of items written.
+  // Replicates BOSS_TESSERACT_fwrite, returning the number of items written. //original-code:fwrite, returning the number of items written.
   // To use fprintf, use snprintf and FWrite.
   int FWrite(const void* buffer, int size, int count);
 

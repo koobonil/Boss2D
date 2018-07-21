@@ -52,13 +52,13 @@ bool ParamUtils::ReadParamsFile(const char *file,
     nameoffset = 0;
   }
 
-  fp = fopen(file + nameoffset, "rb");
+  fp = BOSS_TESSERACT_fopen(file + nameoffset, "rb"); //original-code:fopen(file + nameoffset, "rb");
   if (fp == NULL) {
     tprintf("read_params_file: Can't open %s\n", file + nameoffset);
     return true;
   }
   const bool anyerr = ReadParamsFromFp(fp, -1, constraint, member_params);
-  fclose(fp);
+  BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
   return anyerr;
 }
 
@@ -70,8 +70,8 @@ bool ParamUtils::ReadParamsFromFp(FILE *fp, inT64 end_offset,
   bool foundit;                  // found parameter
   char *valptr;                  // value field
 
-  while ((end_offset < 0 || ftell(fp) < end_offset) &&
-         fgets(line, MAX_PATH, fp)) {
+  while ((end_offset < 0 || BOSS_TESSERACT_ftell(fp) < end_offset) && //original-code:ftell(fp) < end_offset) &&
+         BOSS_TESSERACT_fgets(line, MAX_PATH, fp)) { //original-code:fgets(line, MAX_PATH, fp)) {
     if (line[0] != '\r' && line[0] != '\n' && line[0] != '#') {
       chomp_string(line);  // remove newline
       for (valptr = line; *valptr && *valptr != ' ' && *valptr != '\t';

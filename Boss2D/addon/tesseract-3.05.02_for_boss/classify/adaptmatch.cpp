@@ -1,3 +1,5 @@
+// author BOSS
+
 /******************************************************************************
  ** Filename:    adaptmatch.c
  ** Purpose:     High level adaptive matcher.
@@ -460,7 +462,7 @@ void Classify::EndAdaptiveClassifier() {
   if (AdaptedTemplates != NULL &&
       classify_enable_adaptive_matcher && classify_save_adapted_templates) {
     Filename = imagefile + ADAPT_TEMPLATE_SUFFIX;
-    File = fopen (Filename.string(), "wb");
+    File = BOSS_TESSERACT_fopen (Filename.string(), "wb"); //original-code:fopen (Filename.string(), "wb");
     if (File == NULL)
       cprintf ("Unable to save adapted templates to %s!\n", Filename.string());
     else {
@@ -468,7 +470,7 @@ void Classify::EndAdaptiveClassifier() {
       fflush(stdout);
       WriteAdaptedTemplates(File, AdaptedTemplates);
       cprintf ("\n");
-      fclose(File);
+      BOSS_TESSERACT_fclose(File); //original-code:fclose(File);
     }
   }
 
@@ -525,6 +527,7 @@ void Classify::EndAdaptiveClassifier() {
  *  @note History: Mon Mar 11 12:49:34 1991, DSJ, Created.
  */
 void Classify::InitAdaptiveClassifier(bool load_pre_trained_templates) {
+	BOSS_TRACE("@@@@@ InitAdaptiveClassifier-0", false);
   if (!classify_enable_adaptive_matcher)
     return;
   if (AllProtosOn != NULL)
@@ -535,12 +538,16 @@ void Classify::InitAdaptiveClassifier(bool load_pre_trained_templates) {
   if (language_data_path_prefix.length() > 0 &&
       load_pre_trained_templates) {
     ASSERT_HOST(tessdata_manager.SeekToStart(TESSDATA_INTTEMP));
+	BOSS_TRACE("@@@@@ InitAdaptiveClassifier-0.1", false);
     PreTrainedTemplates =
       ReadIntTemplates(tessdata_manager.GetDataFilePtr());
+	BOSS_TRACE("@@@@@ InitAdaptiveClassifier-0.2", false);
     if (tessdata_manager.DebugLevel() > 0) tprintf("Loaded inttemp\n");
 
     if (tessdata_manager.SeekToStart(TESSDATA_SHAPE_TABLE)) {
+	  BOSS_TRACE("@@@@@ InitAdaptiveClassifier-0.3", false);
       shape_table_ = new ShapeTable(unicharset);
+	  BOSS_TRACE("@@@@@ InitAdaptiveClassifier-0.4", false);
       if (!shape_table_->DeSerialize(tessdata_manager.swap(),
                                      tessdata_manager.GetDataFilePtr())) {
         tprintf("Error loading shape table!\n");
@@ -549,19 +556,25 @@ void Classify::InitAdaptiveClassifier(bool load_pre_trained_templates) {
       } else if (tessdata_manager.DebugLevel() > 0) {
         tprintf("Successfully loaded shape table!\n");
       }
+	  BOSS_TRACE("@@@@@ InitAdaptiveClassifier-0.5", false);
     }
 
+	BOSS_TRACE("@@@@@ InitAdaptiveClassifier-0.6", false);
     ASSERT_HOST(tessdata_manager.SeekToStart(TESSDATA_PFFMTABLE));
+	BOSS_TRACE("@@@@@ InitAdaptiveClassifier-0.7", false);
     ReadNewCutoffs(tessdata_manager.GetDataFilePtr(),
                    tessdata_manager.swap(),
                    tessdata_manager.GetEndOffset(TESSDATA_PFFMTABLE),
                    CharNormCutoffs);
+	BOSS_TRACE("@@@@@ InitAdaptiveClassifier-0.8", false);
     if (tessdata_manager.DebugLevel() > 0) tprintf("Loaded pffmtable\n");
 
     ASSERT_HOST(tessdata_manager.SeekToStart(TESSDATA_NORMPROTO));
+	BOSS_TRACE("@@@@@ InitAdaptiveClassifier-0.9", false);
     NormProtos =
       ReadNormProtos(tessdata_manager.GetDataFilePtr(),
                      tessdata_manager.GetEndOffset(TESSDATA_NORMPROTO));
+	BOSS_TRACE("@@@@@ InitAdaptiveClassifier-0.10", false);
     if (tessdata_manager.DebugLevel() > 0) tprintf("Loaded normproto\n");
     static_classifier_ = new TessClassifier(false, this);
   }
@@ -581,13 +594,15 @@ void Classify::InitAdaptiveClassifier(bool load_pre_trained_templates) {
      BaselineCutoffs[i] = 0;
   }
 
+  BOSS_TRACE("@@@@@ InitAdaptiveClassifier-1", false);
+
   if (classify_use_pre_adapted_templates) {
     FILE *File;
     STRING Filename;
 
     Filename = imagefile;
     Filename += ADAPT_TEMPLATE_SUFFIX;
-    File = fopen(Filename.string(), "rb");
+    File = BOSS_TESSERACT_fopen(Filename.string(), "rb"); //original-code:fopen(Filename.string(), "rb");
     if (File == NULL) {
       AdaptedTemplates = NewAdaptedTemplates(true);
     } else {
@@ -596,7 +611,7 @@ void Classify::InitAdaptiveClassifier(bool load_pre_trained_templates) {
       fflush(stdout);
       AdaptedTemplates = ReadAdaptedTemplates(File);
       cprintf("\n");
-      fclose(File);
+      BOSS_TESSERACT_fclose(File); //original-code:fclose(File);
       PrintAdaptedTemplates(stdout, AdaptedTemplates);
 
       for (int i = 0; i < AdaptedTemplates->Templates->NumClasses; i++) {
@@ -606,7 +621,9 @@ void Classify::InitAdaptiveClassifier(bool load_pre_trained_templates) {
   } else {
     if (AdaptedTemplates != NULL)
       free_adapted_templates(AdaptedTemplates);
+	BOSS_TRACE("@@@@@ InitAdaptiveClassifier-2", false);
     AdaptedTemplates = NewAdaptedTemplates(true);
+	BOSS_TRACE("@@@@@ InitAdaptiveClassifier-3:%d", AdaptedTemplates);
   }
 }                                /* InitAdaptiveClassifier */
 

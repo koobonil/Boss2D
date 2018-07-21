@@ -55,11 +55,11 @@ bool TesseractCubeCombiner::LoadCombinerNet() {
                           ".tesseract_cube.nn";
 
   // Return false if file does not exist
-  FILE *fp = fopen(net_file_name.c_str(), "rb");
+  FILE *fp = BOSS_TESSERACT_fopen(net_file_name.c_str(), "rb"); //original-code:fopen(net_file_name.c_str(), "rb");
   if (fp == NULL)
     return false;
   else
-    fclose(fp);
+    BOSS_TESSERACT_fclose(fp); //original-code:fclose(fp);
 
   // Load and validate net
   combiner_net_ = NeuralNet::FromFile(net_file_name);

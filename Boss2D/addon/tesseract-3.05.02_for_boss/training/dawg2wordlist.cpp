@@ -28,7 +28,7 @@ const int kDictDebugLevel = 1;
 tesseract::Dawg *LoadSquishedDawg(const UNICHARSET &unicharset,
                                   const char *filename) {
   const int kDictDebugLevel = 1;
-  FILE *dawg_file = fopen(filename, "rb");
+  FILE *dawg_file = BOSS_TESSERACT_fopen(filename, "rb"); //original-code:fopen(filename, "rb");
   if (dawg_file == NULL) {
     tprintf("Could not open %s for reading.\n", filename);
     return NULL;
@@ -38,7 +38,7 @@ tesseract::Dawg *LoadSquishedDawg(const UNICHARSET &unicharset,
       dawg_file, tesseract::DAWG_TYPE_WORD, "eng", SYSTEM_DAWG_PERM,
       kDictDebugLevel);
   tprintf("Word list loaded.\n");
-  fclose(dawg_file);
+  BOSS_TESSERACT_fclose(dawg_file); //original-code:fclose(dawg_file);
   return retval;
 }
 
@@ -54,7 +54,7 @@ class WordOutputter {
 int WriteDawgAsWordlist(const UNICHARSET &unicharset,
                         const tesseract::Dawg *dawg,
                         const char *outfile_name) {
-  FILE *out = fopen(outfile_name, "wb");
+  FILE *out = BOSS_TESSERACT_fopen(outfile_name, "wb"); //original-code:fopen(outfile_name, "wb");
   if (out == NULL) {
     tprintf("Could not open %s for writing.\n", outfile_name);
     return 1;
@@ -64,7 +64,7 @@ int WriteDawgAsWordlist(const UNICHARSET &unicharset,
       NewPermanentTessCallback(&outputter, &WordOutputter::output_word);
   dawg->iterate_words(unicharset, print_word_cb);
   delete print_word_cb;
-  return fclose(out);
+  return BOSS_TESSERACT_fclose(out); //original-code:fclose(out);
 }
 
 int main(int argc, char *argv[]) {
