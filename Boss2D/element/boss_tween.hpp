@@ -22,6 +22,7 @@ namespace BOSS
     public:
         Tween1D& operator=(const Tween1D& rhs);
         inline float value() const {return m_value;}
+        inline float target() const {return m_valueEnd;}
 
     public:
         void Reset(float value);

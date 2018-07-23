@@ -285,7 +285,11 @@
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
             if(!Platform::Utility::IsFullScreen())
-                g_window->move(x, y);
+            {
+                auto TitleBarHeight = QApplication::style()->pixelMetric(QStyle::PM_TitleBarHeight);
+                auto WindowFrame = QApplication::style()->pixelMetric(QStyle::PM_MdiSubWindowFrameWidth);
+                g_window->move(x - WindowFrame, y - TitleBarHeight - WindowFrame / 2);
+            }
         }
 
         void Platform::SetWindowSize(sint32 width, sint32 height)
