@@ -174,13 +174,6 @@ namespace BOSS
         static float Atan(const float x, const float y);
 
         /*!
-        \brief PI값 얻기
-        \return PI값
-        */
-        inline static float PI()
-        {return 3.1415926535897932385f;}
-
-        /*!
         \brief 각도를 라디안으로 변환하기
         \param deg : 각도
         \return 라디안
@@ -211,5 +204,40 @@ namespace BOSS
         \return 랜덤값(0.0f에서 1.0f포함까지)
         */
         static float Random();
+
+        /*!
+        \brief PI값 얻기
+        \return PI값
+        */
+        inline static float PI()
+        {return 3.1415926535897932385F;}
+
+        /*!
+        \brief float의 최대값 얻기
+        \return float의 최대값
+        */
+        inline static float FloatMax()
+        {return 3.40282346638528859812e+38F;}
+
+        /*!
+        \brief float의 최소값 얻기
+        \return float의 최소값
+        */
+        inline static float FloatMin()
+        {return 1.17549435082228750797e-38F;}
+
+        /*!
+        \brief double의 최대값 얻기
+        \return double의 최대값
+        */
+        inline static double DoubleMax()
+        {return (double) 1.79769313486231570815e+308L;}
+
+        /*!
+        \brief double의 최소값 얻기
+        \return double의 최소값
+        */
+        inline static double DoubleMin()
+        {return (double) 2.22507385850720138309e-308L;}
     };
 }
