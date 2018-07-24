@@ -56,6 +56,15 @@
 #define ZAY_INNER_UI_SCISSOR(PANEL, V, ...) \
     if(auto _ = (PANEL)._push_clip_ui(V, V, (PANEL).w() - (V), (PANEL).h() - (V), true, __VA_ARGS__))
 
+#define ZAY_MOVE(PANEL, X, Y) \
+    if(auto _ = (PANEL)._push_clip(X, Y, (PANEL).w() + (X), (PANEL).h() + (Y), false))
+#define ZAY_MOVE_UI(PANEL, X, Y, ...) \
+    if(auto _ = (PANEL)._push_clip_ui(X, Y, (PANEL).w() + (X), (PANEL).h() + (Y), false, __VA_ARGS__))
+#define ZAY_MOVE_SCISSOR(PANEL, X, Y) \
+    if(auto _ = (PANEL)._push_clip(X, Y, (PANEL).w() + (X), (PANEL).h() + (Y), true))
+#define ZAY_MOVE_UI_SCISSOR(PANEL, X, Y, ...) \
+    if(auto _ = (PANEL)._push_clip_ui(X, Y, (PANEL).w() + (X), (PANEL).h() + (Y), true, __VA_ARGS__))
+
 #define ZAY_CHILD(PANEL) \
     if(auto _ = (PANEL)._push_clip_by_child(0, 0, 0xFFFF, 0xFFFF, false))
 #define ZAY_CHILD_UI(PANEL, ...) \
