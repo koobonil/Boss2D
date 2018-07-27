@@ -1413,13 +1413,22 @@ namespace BOSS
             static bool Disconnect(id_socket socket, sint32 timeout = 3000);
 
             /*!
+            \brief UDP서비스개시
+            \param socket : 소켓ID
+            \param port : 포트번호
+            \param timeout : 타임아웃
+            \return 성공여부
+            \see OpenForUdp, Close
+            */
+            static bool BindForUdp(id_socket socket, uint16 port, sint32 timeout = 3000);
+
+            /*!
             \brief 대기중인 읽기용 버퍼조사
             \param socket : 소켓ID
-            \param timeout : 타임아웃
             \return 읽을 수 있는 길이
             \see Recv
             */
-            static sint32 RecvAvailable(id_socket socket, sint32 timeout);
+            static sint32 RecvAvailable(id_socket socket);
 
             /*!
             \brief 소켓읽기
@@ -1427,10 +1436,13 @@ namespace BOSS
             \param data : 읽어올 데이터
             \param size : 데이터의 길이
             \param timeout : 타임아웃
+            \param ip_udp : UDP소켓일 경우, 접속자의 IP
+            \param ip_port : UDP소켓일 경우, 접속자의 포트번호
             \return 실제로 읽어온 길이
             \see RecvAvailable
             */
-            static sint32 Recv(id_socket socket, uint08* data, sint32 size, sint32 timeout = 3000);
+            static sint32 Recv(id_socket socket, uint08* data, sint32 size, sint32 timeout = 3000,
+                ip4address* ip_udp = nullptr, uint16* port_udp = nullptr);
 
             /*!
             \brief 소켓쓰기
@@ -1538,6 +1550,17 @@ namespace BOSS
             \return 성공여부
             */
             static bool KickPeer(id_server server, sint32 peerid);
+
+            /*!
+            \brief 특정 송신자의 정보를 반환
+            \param server : 서버ID
+            \param peerid : 송신자ID
+            \param ip4 : IP4주소를 요청
+            \param ip6 : IP6주소를 요청
+            \param port : 포트번호를 요청
+            \return 성공여부
+            */
+            static bool GetPeerInfo(id_server server, sint32 peerid, ip4address* ip4 = nullptr, ip6address* ip6 = nullptr, uint16* port = nullptr);
         };
 
         ////////////////////////////////////////////////////////////////////////////////

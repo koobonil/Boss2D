@@ -2264,21 +2264,30 @@
         class SocketBox
         {
         public:
-            SocketBox() : m_threadId(Platform::Utility::CurrentThreadID()) {m_socket = nullptr;}
+            SocketBox() : m_threadId(Platform::Utility::CurrentThreadID())
+            {
+                m_socket = nullptr;
+                m_udp = false;
+                m_udpip.clear();
+                m_udpport = 0;
+            }
             ~SocketBox() {delete m_socket;}
 
         public:
             bool CheckState(chars name)
             {
-                if(!m_socket->isValid())
+                if(!m_udp)
                 {
-                    BOSS_TRACE("%s(-1) - Socket is broken", name);
-                    return false;
-                }
-                if(m_socket->state() == QAbstractSocket::UnconnectedState)
-                {
-                    BOSS_TRACE("%s(-1) - Socket is unconnected", name);
-                    return false;
+                    if(!m_socket->isValid())
+                    {
+                        BOSS_TRACE("%s(-1) - Socket is broken", name);
+                        return false;
+                    }
+                    if(m_socket->state() == QAbstractSocket::UnconnectedState)
+                    {
+                        BOSS_TRACE("%s(-1) - Socket is unconnected", name);
+                        return false;
+                    }
                 }
                 return true;
             }
@@ -2286,6 +2295,9 @@
         public:
             const uint64 m_threadId;
             QAbstractSocket* m_socket;
+            bool m_udp;
+            QHostAddress m_udpip;
+            quint16 m_udpport;
 
         private:
             class STClass
@@ -2301,13 +2313,14 @@
             static inline STClass& ST() {static STClass _; return _;}
 
         public:
-            static SocketBox& Create(id_socket& result)
+            static void Create(id_socket& result, bool udp)
             {
                 Mutex::Lock(ST().m_mutex);
                 SocketBox* Ptr = &ST().m_map[++ST().m_lastId];
                 result = (id_socket) AnyTypeToPtr(ST().m_lastId);
                 Mutex::Unlock(ST().m_mutex);
-                return *Ptr;
+                Ptr->m_socket = (udp)? (QAbstractSocket*) new QUdpSocket() : (QAbstractSocket*) new QTcpSocket();
+                Ptr->m_udp = udp;
             }
             static SocketBox* Access(id_socket id)
             {
@@ -2329,14 +2342,14 @@
         id_socket Platform::Socket::OpenForTcp()
         {
             id_socket Result = nullptr;
-            SocketBox::Create(Result).m_socket = new QTcpSocket();
+            SocketBox::Create(Result, false);
             return Result;
         }
 
         id_socket Platform::Socket::OpenForUdp()
         {
             id_socket Result = nullptr;
-            SocketBox::Create(Result).m_socket = new QUdpSocket();
+            SocketBox::Create(Result, true);
             return Result;
         }
 
@@ -2361,9 +2374,19 @@
             SocketBox* CurSocketBox = SocketBox::Access(socket);
             if(!CurSocketBox) return false;
 
-            CurSocketBox->m_socket->connectToHost(QString::fromUtf8(domain), port);
-            const bool Result = CurSocketBox->m_socket->waitForConnected(timeout);
-            BOSS_TRACE("Connect(%s)%s", domain, Result? "" : " - Failed");
+            bool Result = false;
+            if(CurSocketBox->m_udp)
+            {
+                Result = true;
+                CurSocketBox->m_udpip.setAddress(domain);
+                CurSocketBox->m_udpport = port;
+            }
+            else
+            {
+                CurSocketBox->m_socket->connectToHost(QString::fromUtf8(domain), port);
+                Result = CurSocketBox->m_socket->waitForConnected(timeout);
+            }
+            BOSS_TRACE("Connect(%s:%d)%s", domain, (sint32) port, Result? "" : " - Failed");
             return Result;
         }
 
@@ -2372,34 +2395,85 @@
             SocketBox* CurSocketBox = SocketBox::Access(socket);
             if(!CurSocketBox) return false;
 
-            CurSocketBox->m_socket->abort();
-            const bool Result = (CurSocketBox->m_socket->state() == QAbstractSocket::UnconnectedState ||
-                CurSocketBox->m_socket->waitForDisconnected(timeout));
+            bool Result = false;
+            if(CurSocketBox->m_udp)
+            {
+                Result = true;
+                CurSocketBox->m_udpip.clear();
+                CurSocketBox->m_udpport = 0;
+            }
+            else
+            {
+                CurSocketBox->m_socket->abort();
+                Result = (CurSocketBox->m_socket->state() == QAbstractSocket::UnconnectedState ||
+                    CurSocketBox->m_socket->waitForDisconnected(timeout));
+            }
             BOSS_TRACE("Disconnect()%s", Result? "" : " - Failed");
             return Result;
         }
 
-        sint32 Platform::Socket::RecvAvailable(id_socket socket, sint32 timeout)
+        bool Platform::Socket::BindForUdp(id_socket socket, uint16 port, sint32 timeout)
+        {
+            SocketBox* CurSocketBox = SocketBox::Access(socket);
+            if(!CurSocketBox) return false;
+
+            bool Result = false;
+            if(CurSocketBox->m_udp)
+            {
+                auto UdpSocket = (QUdpSocket*) CurSocketBox->m_socket;
+                Result = UdpSocket->bind(port);
+            }
+            return Result;
+        }
+
+        sint32 Platform::Socket::RecvAvailable(id_socket socket)
         {
             SocketBox* CurSocketBox = SocketBox::Access(socket);
             if(!CurSocketBox || !CurSocketBox->CheckState("RecvAvailable"))
                 return -1;
+
+            if(CurSocketBox->m_udp)
+            {
+                auto UdpSocket = (QUdpSocket*) CurSocketBox->m_socket;
+                return (UdpSocket->hasPendingDatagrams())? UdpSocket->pendingDatagramSize() : 0;
+            }
             return CurSocketBox->m_socket->bytesAvailable();
         }
 
-        sint32 Platform::Socket::Recv(id_socket socket, uint08* data, sint32 size, sint32 timeout)
+        sint32 Platform::Socket::Recv(id_socket socket, uint08* data, sint32 size, sint32 timeout, ip4address* ip_udp, uint16* port_udp)
         {
             SocketBox* CurSocketBox = SocketBox::Access(socket);
             if(!CurSocketBox || !CurSocketBox->CheckState("Recv"))
                 return -1;
 
-            if(CurSocketBox->m_socket->bytesAvailable() == 0 &&
-                !CurSocketBox->m_socket->waitForReadyRead(timeout))
+            sint32 Result = -1;
+            if(CurSocketBox->m_udp)
             {
-                BOSS_TRACE("Recv(-10035) - WSAEWOULDBLOCK");
-                return -10035; // WSAEWOULDBLOCK
+                auto UdpSocket = (QUdpSocket*) CurSocketBox->m_socket;
+                if(ip_udp || port_udp)
+                {
+                    QHostAddress GetIP;
+                    quint16 GetPort = 0;
+                    Result = UdpSocket->readDatagram((char*) data, size, &GetIP, &GetPort);
+                    if(ip_udp)
+                    {
+                        auto IPv4Address = GetIP.toIPv4Address();
+                        *ip_udp = *((ip4address*) &IPv4Address);
+                    }
+                    if(port_udp) *port_udp = GetPort;
+                }
+                else Result = UdpSocket->readDatagram((char*) data, size);
             }
-            const sint32 Result = CurSocketBox->m_socket->read((char*) data, size);
+            else
+            {
+                if(CurSocketBox->m_socket->bytesAvailable() == 0 &&
+                    !CurSocketBox->m_socket->waitForReadyRead(timeout))
+                {
+                    BOSS_TRACE("Recv(-10035) - WSAEWOULDBLOCK");
+                    return -10035; // WSAEWOULDBLOCK
+                }
+                Result = CurSocketBox->m_socket->read((char*) data, size);
+            }
             BOSS_TRACE("Recv(%d)%s", Result, (0 <= Result)? "" : " - Failed");
             return Result;
         }
@@ -2410,7 +2484,12 @@
             if(!CurSocketBox || !CurSocketBox->CheckState("Send"))
                 return -1;
 
-            if(CurSocketBox->m_socket->write((chars) data, size) < size ||
+            if(CurSocketBox->m_udp)
+            {
+                auto UdpSocket = (QUdpSocket*) CurSocketBox->m_socket;
+                UdpSocket->writeDatagram((chars) data, size, CurSocketBox->m_udpip, CurSocketBox->m_udpport);
+            }
+            else if(CurSocketBox->m_socket->write((chars) data, size) < size ||
                 !CurSocketBox->m_socket->waitForBytesWritten(timeout))
             {
                 BOSS_TRACE("Send(-1) - Failed");
@@ -2604,6 +2683,13 @@
         {
             if(TCPAgent* CurAgent = (TCPAgent*) server)
                 return CurAgent->KickPeer(peerid);
+            return false;
+        }
+
+        bool Platform::Server::GetPeerInfo(id_server server, sint32 peerid, ip4address* ip4, ip6address* ip6, uint16* port)
+        {
+            if(TCPAgent* CurAgent = (TCPAgent*) server)
+                return CurAgent->GetPeerAddress(peerid, ip4, ip6, port);
             return false;
         }
 

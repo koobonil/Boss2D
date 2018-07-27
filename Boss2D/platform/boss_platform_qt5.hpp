@@ -1937,6 +1937,29 @@
             }
             return false;
         }
+
+        bool GetPeerAddress(int peerid, ip4address* ip4, ip6address* ip6, uint16* port)
+        {
+            if(QTcpSocket* Peer = Peers[peerid])
+            {
+                if(ip4)
+                {
+                    auto IPv4Address = Peer->peerAddress().toIPv4Address();
+                    ip4->ip[0] = (IPv4Address >> 24) & 0xFF;
+                    ip4->ip[1] = (IPv4Address >> 16) & 0xFF;
+                    ip4->ip[2] = (IPv4Address >>  8) & 0xFF;
+                    ip4->ip[3] = (IPv4Address >>  0) & 0xFF;
+                }
+                if(ip6)
+                {
+                    auto IPv6Address = Peer->peerAddress().toIPv6Address();
+                    *ip6 = *((ip6address*) &IPv6Address);
+                }
+                if(port) *port = Peer->peerPort();
+                return true;
+            }
+            return false;
+        }
     };
 
     class WebEngineViewForExtraDesktop : public QObject
@@ -3280,7 +3303,7 @@
                 {
                     switch(*((uint32*) &mLastImage[0]))
                     {
-                    case codeid(NV21):
+                    case codeid("NV21"):
                         {
                             BOSS_TRACE("DecodeImage(RAW8) - Mid-A");
                             width = *((sint32*) &mLastImage[4]);
@@ -3320,7 +3343,7 @@
                             BOSS_TRACE("DecodeImage(RAW8) - Mid-B");
                         }
                         break;
-                    case codeid(JPEG):
+                    case codeid("JPEG"):
                         BOSS_TRACE("DecodeImage(JPEG)");
                         if(id_bitmap NewBitmap = AddOn::Jpg::ToBmp(&mLastImage[4], mLastImage.Count()))
                         {
@@ -3381,7 +3404,7 @@
                             ((sint32*) paramData)[2], ((sint32*) paramData)[3], length);
                         Mutex::Lock(Me->mMutex);
                         Me->mLastImage.SubtractionAll();
-                        const uint32 TypeCode = codeid(JPEG);
+                        const uint32 TypeCode = codeid("JPEG");
                         Memory::Copy(Me->mLastImage.AtDumpingAdded(4), &TypeCode, 4);
                         Memory::Copy(Me->mLastImage.AtDumpingAdded(length), paramData, length);
                         Mutex::Unlock(Me->mMutex);
@@ -3409,7 +3432,7 @@
                             ((sint32*) paramData)[2], ((sint32*) paramData)[3], length);
                         Mutex::Lock(Me->mMutex);
                         Me->mLastImage.SubtractionAll();
-                        const uint32 TypeCode = codeid(NV21);
+                        const uint32 TypeCode = codeid("NV21");
                         Memory::Copy(Me->mLastImage.AtDumpingAdded(4), &TypeCode, 4);
                         Memory::Copy(Me->mLastImage.AtDumpingAdded(4), &width, 4);
                         Memory::Copy(Me->mLastImage.AtDumpingAdded(4), &height, 4);

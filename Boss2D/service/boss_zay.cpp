@@ -868,7 +868,7 @@ namespace BOSS
     ZayPanel::StackBinder ZayPanel::_push_zoom(float zoom)
     {
         float& NewZoom = m_stack_zoom.AtAdding();
-        const float& LastZoom = m_stack_zoom[-2];
+        const float LastZoom = m_stack_zoom[-2];
         NewZoom = LastZoom * zoom;
         Platform::Graphics::SetZoom(NewZoom);
 
@@ -881,6 +881,26 @@ namespace BOSS
         Rect& NewRect = m_stack_scissor.AtAdding();
         const Rect& LastRect = m_stack_scissor[-2];
         NewRect = Rect(LastRect.l / zoom, LastRect.t / zoom, LastRect.r / zoom, LastRect.b / zoom);
+
+        Platform::Graphics::SetScissor(NewRect.l, NewRect.t, NewRect.Width(), NewRect.Height());
+        return StackBinder(this, ST_Zoom);
+    }
+
+    ZayPanel::StackBinder ZayPanel::_push_zoom_clear()
+    {
+        m_stack_zoom.AtAdding() = 1;
+        const float LastZoom = m_stack_zoom[-2];
+        Platform::Graphics::SetZoom(1);
+
+        Clip& NewClip = m_stack_clip.AtAdding();
+        const Clip& LastClip = m_stack_clip[-2];
+        NewClip = Clip(LastClip.l * LastZoom, LastClip.t * LastZoom, LastClip.r * LastZoom, LastClip.b * LastZoom, true);
+        m_clipped_width = NewClip.Width();
+        m_clipped_height = NewClip.Height();
+
+        Rect& NewRect = m_stack_scissor.AtAdding();
+        const Rect& LastRect = m_stack_scissor[-2];
+        NewRect = Rect(LastRect.l * LastZoom, LastRect.t * LastZoom, LastRect.r * LastZoom, LastRect.b * LastZoom);
 
         Platform::Graphics::SetScissor(NewRect.l, NewRect.t, NewRect.Width(), NewRect.Height());
         return StackBinder(this, ST_Zoom);

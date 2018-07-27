@@ -1348,13 +1348,19 @@
             return false;
         }
 
-        sint32 Platform::Socket::RecvAvailable(id_socket socket, sint32 timeout)
+        bool Platform::Socket::BindForUdp(id_socket socket, uint16 port, sint32 timeout)
+        {
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+            return false;
+        }
+
+        sint32 Platform::Socket::RecvAvailable(id_socket socket)
         {
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
             return -1;
         }
 
-        sint32 Platform::Socket::Recv(id_socket socket, uint08* data, sint32 size, sint32 timeout)
+        sint32 Platform::Socket::Recv(id_socket socket, uint08* data, sint32 size, sint32 timeout, ip4address* ip_udp, uint16* port_udp)
         {
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
             return -1;
@@ -1498,6 +1504,12 @@
         }
 
         bool Platform::Server::KickPeer(id_server server, sint32 peerid)
+        {
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+            return false;
+        }
+
+        bool Platform::Server::GetPeerInfo(id_server server, sint32 peerid, ip4address* ip4, ip6address* ip6, uint16* port)
         {
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
             return false;

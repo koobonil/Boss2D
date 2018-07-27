@@ -113,6 +113,8 @@
     if(auto _ = (PANEL)._push_font(__VA_ARGS__))
 #define ZAY_ZOOM(PANEL, ZOOM) \
     if(auto _ = (PANEL)._push_zoom(ZOOM))
+#define ZAY_ZOOM_CLEAR(PANEL) \
+    if(auto _ = (PANEL)._push_zoom_clear())
 
 // 서브패널관련
 #define ZAY_MAKE_SUB(PANEL, SURFACE) \
@@ -343,6 +345,7 @@ namespace BOSS
         StackBinder _push_mask(MaskRole role);
         StackBinder _push_font(float size, chars name = nullptr);
         StackBinder _push_zoom(float zoom);
+        StackBinder _push_zoom_clear();
         StackBinder _push_pass();
     private:
         void _pop_clip();

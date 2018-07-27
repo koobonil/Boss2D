@@ -23,6 +23,8 @@ namespace BOSS
     typedef const wchar_t*                    wchars;
     typedef const wchar_t*                    wchars_endless;
     typedef unsigned int                      argb32;
+    typedef struct {unsigned char ip[4];}     ip4address;
+    typedef struct {unsigned char ip[16];}    ip6address;
 
     typedef struct {sint32 x, y;}             point64;
     typedef struct {float x, y;}              point64f;
@@ -121,7 +123,9 @@ inline void operator delete[](void*, sblock) {}
 
 // About constant
 #if defined(__GNUC__) || defined(__ARMCC_VERSION)
-    #define ox100000000 0x100000000LL
+    #define Signed64(NUMBER)   NUMBER##LL
+    #define Unsigned64(NUMBER) NUMBER##ULL
+    #define ox100000000        0x100000000LL
     #define ox00000000000000FF 0x00000000000000FFULL
     #define ox000000000000FF00 0x000000000000FF00ULL
     #define ox0000000000FF0000 0x0000000000FF0000ULL
@@ -140,7 +144,9 @@ inline void operator delete[](void*, sblock) {}
     #define EpochToJulian(UTC) (((uint64) UTC) + 210866803200000ULL)
     #define JulianToEpoch(JUL) (((uint64) JUL) - 210866803200000ULL)
 #else
-    #define ox100000000 0x100000000i64
+    #define Signed64(NUMBER)   NUMBER##i64
+    #define Unsigned64(NUMBER) NUMBER##ui64
+    #define ox100000000        0x100000000i64
     #define ox00000000000000FF 0x00000000000000FFui64
     #define ox000000000000FF00 0x000000000000FF00ui64
     #define ox0000000000FF0000 0x0000000000FF0000ui64
@@ -174,7 +180,7 @@ inline void operator delete[](void*, sblock) {}
 // About code styling
 #define branch       if(false)
 #define jump(QUERY)  else if(QUERY)
-#define codeid(NAME) ((#NAME[0] & 0xFF) | ((#NAME[1] & 0xFF) << 8) | ((#NAME[2] & 0xFF) << 16) | ((#NAME[3] & 0xFF) << 24))
+#define codeid(NAME) ((NAME[0] & 0xFF) | ((NAME[1] & 0xFF) << 8) | ((NAME[2] & 0xFF) << 16) | ((NAME[3] & 0xFF) << 24))
 
 // About declare
 #define BOSS_DECLARE_ID(NAME) \
