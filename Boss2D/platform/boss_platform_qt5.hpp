@@ -2144,10 +2144,14 @@
             void Reload(chars url)
             {
             }
-            void Resize(sint32 width, sint32 height)
+            bool Resize(sint32 width, sint32 height)
             {
                 if(width != mLastImage.width() || height != mLastImage.height())
+                {
                     mLastImage = QImage(width, height, QImage::Format_ARGB32);
+                    return true;
+                }
+                return false;
             }
             void SetCallback(Platform::Web::EventCB cb, payload data)
             {
