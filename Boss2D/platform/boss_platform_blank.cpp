@@ -1453,6 +1453,12 @@
             return &CurServent;
         }
 
+        ip4address Platform::Socket::GetLocalAddress()
+        {
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+            return {};
+        }
+
         ////////////////////////////////////////////////////////////////////////////////
         // SERVER
         ////////////////////////////////////////////////////////////////////////////////

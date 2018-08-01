@@ -1567,6 +1567,12 @@
             return &CurServent;
         }
 
+        ip4address Platform::Socket::GetLocalAddress()
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return {};
+        }
+
         ////////////////////////////////////////////////////////////////////////////////
         // SERVER
         ////////////////////////////////////////////////////////////////////////////////

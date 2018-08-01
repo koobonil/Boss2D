@@ -2339,6 +2339,66 @@
             }
         };
 
+        class Hostent
+        {
+        public:
+            Hostent() :
+                h_addrtype(2), // AF_INET
+                h_length(4) // IPv4
+            {
+                h_name = nullptr;
+                h_aliases = nullptr;
+                h_addr_list = nullptr;
+            }
+
+            ~Hostent()
+            {
+                delete[] h_name;
+                if(h_aliases)
+                for(chars* ptr_aliases = h_aliases; *ptr_aliases; ++ptr_aliases)
+                    delete[] *ptr_aliases;
+                delete[] h_aliases;
+                if(h_addr_list)
+                for(bytes* ptr_addr_list = h_addr_list; *ptr_addr_list; ++ptr_addr_list)
+                    delete[] *ptr_addr_list;
+                delete[] h_addr_list;
+            }
+
+        public:
+            chars h_name;
+            chars* h_aliases;
+            const sint16 h_addrtype;
+            const sint16 h_length;
+            bytes* h_addr_list;
+        };
+
+        class Servent
+        {
+        public:
+            Servent()
+            {
+                s_name = nullptr;
+                s_aliases = nullptr;
+                s_port = 0;
+                s_proto = nullptr;
+            }
+
+            ~Servent()
+            {
+                delete[] s_name;
+                for(chars* ptr_aliases = s_aliases; ptr_aliases; ++ptr_aliases)
+                    delete[] *ptr_aliases;
+                delete[] s_aliases;
+                delete[] s_proto;
+            }
+
+        public:
+            chars s_name;
+            chars* s_aliases;
+            sint16 s_port;
+            chars s_proto;
+        };
+
         id_socket Platform::Socket::OpenForTcp()
         {
             id_socket Result = nullptr;
@@ -2378,7 +2438,8 @@
             if(CurSocketBox->m_udp)
             {
                 Result = true;
-                CurSocketBox->m_udpip.setAddress(domain);
+                Hostent* CurHostent = (Hostent*) GetHostByName(domain);
+                CurSocketBox->m_udpip.setAddress(*((quint32*) CurHostent->h_addr_list[0]));
                 CurSocketBox->m_udpport = port;
             }
             else
@@ -2458,7 +2519,10 @@
                     if(ip_udp)
                     {
                         auto IPv4Address = GetIP.toIPv4Address();
-                        *ip_udp = *((ip4address*) &IPv4Address);
+                        ip_udp->ip[0] = (IPv4Address >> 24) & 0xFF;
+                        ip_udp->ip[1] = (IPv4Address >> 16) & 0xFF;
+                        ip_udp->ip[2] = (IPv4Address >>  8) & 0xFF;
+                        ip_udp->ip[3] = (IPv4Address >>  0) & 0xFF;
                     }
                     if(port_udp) *port_udp = GetPort;
                 }
@@ -2487,7 +2551,11 @@
             if(CurSocketBox->m_udp)
             {
                 auto UdpSocket = (QUdpSocket*) CurSocketBox->m_socket;
-                UdpSocket->writeDatagram((chars) data, size, CurSocketBox->m_udpip, CurSocketBox->m_udpport);
+                if(UdpSocket->writeDatagram((chars) data, size, CurSocketBox->m_udpip, CurSocketBox->m_udpport) < size)
+                {
+                    BOSS_TRACE("Send(-1) - Failed");
+                    return -1;
+                }
             }
             else if(CurSocketBox->m_socket->write((chars) data, size) < size ||
                 !CurSocketBox->m_socket->waitForBytesWritten(timeout))
@@ -2498,39 +2566,6 @@
             BOSS_TRACE("Send(%d)", size);
             return size;
         }
-
-        class Hostent
-        {
-        public:
-            Hostent() :
-                h_addrtype(2), // AF_INET
-                h_length(4) // IPv4
-            {
-                h_name = nullptr;
-                h_aliases = nullptr;
-                h_addr_list = nullptr;
-            }
-
-            ~Hostent()
-            {
-                delete[] h_name;
-                if(h_aliases)
-                for(chars* ptr_aliases = h_aliases; *ptr_aliases; ++ptr_aliases)
-                    delete[] *ptr_aliases;
-                delete[] h_aliases;
-                if(h_addr_list)
-                for(bytes* ptr_addr_list = h_addr_list; *ptr_addr_list; ++ptr_addr_list)
-                    delete[] *ptr_addr_list;
-                delete[] h_addr_list;
-            }
-
-        public:
-            chars h_name;
-            chars* h_aliases;
-            const sint16 h_addrtype;
-            const sint16 h_length;
-            bytes* h_addr_list;
-        };
 
         void* Platform::Socket::GetHostByName(chars name)
         {
@@ -2563,33 +2598,6 @@
             return &CurHostent;
         }
 
-        class Servent
-        {
-        public:
-            Servent()
-            {
-                s_name = nullptr;
-                s_aliases = nullptr;
-                s_port = 0;
-                s_proto = nullptr;
-            }
-
-            ~Servent()
-            {
-                delete[] s_name;
-                for(chars* ptr_aliases = s_aliases; ptr_aliases; ++ptr_aliases)
-                    delete[] *ptr_aliases;
-                delete[] s_aliases;
-                delete[] s_proto;
-            }
-
-        public:
-            chars s_name;
-            chars* s_aliases;
-            sint16 s_port;
-            chars s_proto;
-        };
-
         void* Platform::Socket::GetServByName(chars name, chars proto)
         {
             static Map<Servent> ServentMap;
@@ -2607,6 +2615,23 @@
                 CurServent.s_port = (sint16) Parser(ServName).ReadInt();
             }
             return &CurServent;
+        }
+
+        ip4address Platform::Socket::GetLocalAddress()
+        {
+            ip4address Result = {};
+            foreach(const QHostAddress& CurAddress, QNetworkInterface::allAddresses())
+            {
+                if(CurAddress.protocol() == QAbstractSocket::IPv4Protocol && CurAddress != QHostAddress(QHostAddress::LocalHost))
+                {
+                    auto IPv4Address = CurAddress.toIPv4Address();
+                    Result.ip[0] = (IPv4Address >> 24) & 0xFF;
+                    Result.ip[1] = (IPv4Address >> 16) & 0xFF;
+                    Result.ip[2] = (IPv4Address >>  8) & 0xFF;
+                    Result.ip[3] = (IPv4Address >>  0) & 0xFF;
+                }
+            }
+            return Result;
         }
 
         ////////////////////////////////////////////////////////////////////////////////

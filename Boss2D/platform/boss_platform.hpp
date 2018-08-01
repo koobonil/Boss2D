@@ -1468,6 +1468,12 @@ namespace BOSS
             \return servent구조체
             */
             static void* GetServByName(chars name, chars proto);
+
+            /*!
+            \brief 자신의 IP주소 얻기
+            \return IP주소
+            */
+            static ip4address GetLocalAddress();
         };
 
         ////////////////////////////////////////////////////////////////////////////////
