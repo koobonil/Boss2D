@@ -8,6 +8,7 @@
 bool __LINK_ADDON_AAC__();
 bool __LINK_ADDON_ALPR__();
 bool __LINK_ADDON_CURL__();
+bool __LINK_ADDON_FREETYPE__();
 bool __LINK_ADDON_GIT__();
 bool __LINK_ADDON_H264__();
 bool __LINK_ADDON_JPG__();
@@ -20,6 +21,7 @@ static bool _ =
     __LINK_ADDON_AAC__() |
     __LINK_ADDON_ALPR__() |
     __LINK_ADDON_CURL__() |
+    __LINK_ADDON_FREETYPE__() |
     __LINK_ADDON_GIT__() |
     __LINK_ADDON_H264__() |
     __LINK_ADDON_JPG__() |
@@ -131,6 +133,25 @@ namespace BOSS
 
     sint32 AddOn::Curl::FtpSearch(id_curl curl, chars url, chars dirname, SearchCB cb, payload data)
     {return Core_AddOn_Curl_FtpSearch()(curl, url, dirname, cb, data);}
+
+    ////////////////////////////////////////////////////////////////////////////////
+    static void FreeType_Error() {BOSS_ASSERT("FreeType애드온이 준비되지 않았습니다", false);}
+    BOSS_DEFINE_ADDON_FUNCTION(FreeType, Create, id_freetype, return nullptr, buffer)
+    BOSS_DEFINE_ADDON_FUNCTION(FreeType, Release, void, return, id_freetype)
+    BOSS_DEFINE_ADDON_FUNCTION(FreeType, ToBmp, id_bitmap, return nullptr, id_freetype, sint32, uint32)
+    BOSS_DEFINE_ADDON_FUNCTION(FreeType, GetInfo, void, return, id_freetype, sint32, uint32, sint32*, sint32*)
+
+    id_freetype AddOn::FreeType::Create(buffer ttf)
+    {return Core_AddOn_FreeType_Create()(ttf);}
+
+    void AddOn::FreeType::Release(id_freetype freetype)
+    {Core_AddOn_FreeType_Release()(freetype);}
+
+    id_bitmap AddOn::FreeType::ToBmp(id_freetype freetype, sint32 height, uint32 code)
+    {return Core_AddOn_FreeType_ToBmp()(freetype, height, code);}
+
+    void AddOn::FreeType::GetInfo(id_freetype freetype, sint32 height, uint32 code, sint32* width, sint32* ascent)
+    {Core_AddOn_FreeType_GetInfo()(freetype, height, code, width, ascent);}
 
     ////////////////////////////////////////////////////////////////////////////////
     static void Git_Error() {BOSS_ASSERT("Git애드온이 준비되지 않았습니다", false);}

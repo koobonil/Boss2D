@@ -51,6 +51,7 @@ equals(QT_ADD_PLUGINS_FIREBASE, "ok"){
 HEADERS += ../../Boss2D/addon/boss_addon_aac.hpp
 HEADERS += ../../Boss2D/addon/boss_addon_alpr.hpp
 HEADERS += ../../Boss2D/addon/boss_addon_curl.hpp
+HEADERS += ../../Boss2D/addon/boss_addon_freetype.hpp
 HEADERS += ../../Boss2D/addon/boss_addon_git.hpp
 HEADERS += ../../Boss2D/addon/boss_addon_h264.hpp
 HEADERS += ../../Boss2D/addon/boss_addon_jpg.hpp
@@ -78,6 +79,7 @@ HEADERS += ../../Boss2D/addon/boss_integration_tesseract-3.05.02.h
 SOURCES += ../../Boss2D/addon/boss_addon_aac.cpp
 SOURCES += ../../Boss2D/addon/boss_addon_alpr.cpp
 SOURCES += ../../Boss2D/addon/boss_addon_curl.cpp
+SOURCES += ../../Boss2D/addon/boss_addon_freetype.cpp
 SOURCES += ../../Boss2D/addon/boss_addon_git.cpp
 SOURCES += ../../Boss2D/addon/boss_addon_h264.cpp
 SOURCES += ../../Boss2D/addon/boss_addon_jpg.cpp

@@ -1,5 +1,5 @@
 ﻿#include <boss.h>
-#if BOSS_NEED_ADDON_CURL | BOSS_NEED_ADDON_GIT
+#if BOSS_NEED_ADDON_CURL | BOSS_NEED_ADDON_GIT | BOSS_NEED_ADDON_SSL
 
 #include <addon/boss_fakewin.h>
 #include <addon/boss_integration_openssl-1.1.0c.h>

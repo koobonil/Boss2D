@@ -6,6 +6,7 @@ namespace BOSS
     BOSS_DECLARE_ID(id_acc);
     BOSS_DECLARE_ID(id_alpr);
     BOSS_DECLARE_ID(id_curl);
+    BOSS_DECLARE_ID(id_freetype);
     BOSS_DECLARE_ID(id_git);
     BOSS_DECLARE_ID(id_h264);
     BOSS_DECLARE_ID(id_jpg);
@@ -60,6 +61,16 @@ namespace BOSS
             static bool FtpCreateFolder(id_curl curl, chars url, chars dirname);
             static bool FtpDeleteFolder(id_curl curl, chars url, chars dirname);
             static sint32 FtpSearch(id_curl curl, chars url, chars dirname, SearchCB cb, payload data);
+        };
+
+        //! \brief FREETYPE연동
+        class FreeType
+        {
+        public:
+            static id_freetype Create(buffer ttf);
+            static void Release(id_freetype freetype);
+            static id_bitmap ToBmp(id_freetype freetype, sint32 height, uint32 code);
+            static void GetInfo(id_freetype freetype, sint32 height, uint32 code, sint32* width, sint32* ascent);
         };
 
         //! \brief GIT연동

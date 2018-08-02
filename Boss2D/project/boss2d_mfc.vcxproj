@@ -20,17 +20,19 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{EF5C0617-444B-4C79-8273-CEC642C286D1}</ProjectGuid>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="..\addon\boss_addon_aac.cpp" />
     <ClCompile Include="..\addon\boss_addon_alpr.cpp" />
     <ClCompile Include="..\addon\boss_addon_curl.cpp" />
+    <ClCompile Include="..\addon\boss_addon_freetype.cpp" />
     <ClCompile Include="..\addon\boss_addon_git.cpp" />
     <ClCompile Include="..\addon\boss_addon_h264.cpp" />
     <ClCompile Include="..\addon\boss_addon_jpg.cpp" />
     <ClCompile Include="..\addon\boss_addon_ogg.cpp" />
     <ClCompile Include="..\addon\boss_addon_opencv.cpp" />
+    <ClCompile Include="..\addon\boss_addon_ssl.cpp" />
     <ClCompile Include="..\addon\boss_addon_tesseract.cpp" />
     <ClCompile Include="..\addon\boss_addon_zip.cpp" />
     <ClCompile Include="..\addon\boss_fakewin.cpp" />
@@ -109,11 +111,13 @@
     <ClInclude Include="..\addon\boss_addon_aac.hpp" />
     <ClInclude Include="..\addon\boss_addon_alpr.hpp" />
     <ClInclude Include="..\addon\boss_addon_curl.hpp" />
+    <ClInclude Include="..\addon\boss_addon_freetype.hpp" />
     <ClInclude Include="..\addon\boss_addon_git.hpp" />
     <ClInclude Include="..\addon\boss_addon_h264.hpp" />
     <ClInclude Include="..\addon\boss_addon_jpg.hpp" />
     <ClInclude Include="..\addon\boss_addon_ogg.hpp" />
     <ClInclude Include="..\addon\boss_addon_opencv.hpp" />
+    <ClInclude Include="..\addon\boss_addon_ssl.hpp" />
     <ClInclude Include="..\addon\boss_addon_tesseract.hpp" />
     <ClInclude Include="..\addon\boss_addon_zip.hpp" />
     <ClInclude Include="..\addon\boss_fakewin.h" />
