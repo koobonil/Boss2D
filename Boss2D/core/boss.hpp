@@ -257,6 +257,13 @@ inline void operator delete[](void*, sblock) {}
     typedef RET_TYPE (*Type_AddOn_##GROUP##_##NAME)(__VA_ARGS__); \
     Type_AddOn_##GROUP##_##NAME& Core_AddOn_##GROUP##_##NAME() \
     {static Type_AddOn_##GROUP##_##NAME _ = Default_AddOn_##GROUP##_##NAME; return _;}
+#define BOSS_DECLARE_STANDARD_CLASS(NAME) \
+    public: \
+    NAME(const NAME&) = default; \
+    NAME& operator=(const NAME&) = default; \
+    NAME(NAME&&) = default; \
+    NAME& operator=(NAME&&) = default; \
+    private:
 #define BOSS_DECLARE_NONCOPYABLE_CLASS(NAME) \
     public: \
     NAME(const NAME& rhs) {operator=(rhs);} \
