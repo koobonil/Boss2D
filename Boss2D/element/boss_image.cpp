@@ -473,6 +473,32 @@ namespace BOSS
         return true;
     }
 
+    id_bitmap Image::ChangeBitmap(id_bitmap bitmap)
+    {
+        // 초기화
+        id_bitmap OldBitmap = m_bitmap;
+        m_bitmap = nullptr;
+        ResetBitmap();
+        ResetData();
+
+        // 복제
+        const sint32 Width = Bmp::GetWidth(bitmap);
+        const sint32 Height = Bmp::GetHeight(bitmap);
+        const sint32 BitCount = Bmp::GetBitCount(bitmap);
+        if(BitCount == 32)
+            m_bitmap = bitmap;
+        else
+        {
+            m_bitmap = Bmp::Clone(bitmap);
+            Bmp::Remove(bitmap);
+        }
+
+        // 데이터화
+        MakeData(0, 0, Width, Height);
+        RecalcData();
+        return OldBitmap;
+    }
+
     void Image::Crear()
     {
         ResetBitmap();

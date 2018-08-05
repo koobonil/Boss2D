@@ -23,6 +23,7 @@ namespace BOSS
         bool LoadBitmap(id_bitmap_read bitmap);
         bool LoadBitmapFromBits(bytes bits, sint32 width, sint32 height, sint32 bitcount, bool flip);
         bool LoadUIBitmap(id_bitmap_read bitmap);
+        id_bitmap ChangeBitmap(id_bitmap bitmap);
         void Crear();
         id_bitmap CopiedBitmap(sint32 l = 0, sint32 t = 0, sint32 r = -1, sint32 b = -1) const;
         void ChangeToMagentaAlpha();
