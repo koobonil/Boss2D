@@ -2353,6 +2353,12 @@
 
             ~Hostent()
             {
+                Clear();
+            }
+
+        public:
+            void Clear()
+            {
                 delete[] h_name;
                 if(h_aliases)
                 for(chars* ptr_aliases = h_aliases; *ptr_aliases; ++ptr_aliases)
@@ -2362,6 +2368,9 @@
                 for(bytes* ptr_addr_list = h_addr_list; *ptr_addr_list; ++ptr_addr_list)
                     delete[] *ptr_addr_list;
                 delete[] h_addr_list;
+                h_name = nullptr;
+                h_aliases = nullptr;
+                h_addr_list = nullptr;
             }
 
         public:
@@ -2385,11 +2394,21 @@
 
             ~Servent()
             {
+                Clear();
+            }
+
+        public:
+            void Clear()
+            {
                 delete[] s_name;
                 for(chars* ptr_aliases = s_aliases; ptr_aliases; ++ptr_aliases)
                     delete[] *ptr_aliases;
                 delete[] s_aliases;
                 delete[] s_proto;
+                s_name = nullptr;
+                s_aliases = nullptr;
+                s_port = 0;
+                s_proto = nullptr;
             }
 
         public:
@@ -2439,7 +2458,8 @@
             {
                 Result = true;
                 Hostent* CurHostent = (Hostent*) GetHostByName(domain);
-                CurSocketBox->m_udpip.setAddress(*((quint32*) CurHostent->h_addr_list[0]));
+                quint32 ip4Address = *((quint32*) CurHostent->h_addr_list[0]);
+                CurSocketBox->m_udpip.setAddress(ip4Address);
                 CurSocketBox->m_udpport = port;
             }
             else
@@ -2569,52 +2589,50 @@
 
         void* Platform::Socket::GetHostByName(chars name)
         {
-            static Map<Hostent> HostentMap;
-            if(HostentMap.Access(name))
-                HostentMap.Remove(name);
-
             const QHostInfo& HostInfo = QHostInfo::fromName(name);
             const sint32 HostAddressCount = HostInfo.addresses().size();
             if(HostAddressCount == 0) return nullptr;
-            Hostent& CurHostent = HostentMap(name);
+
+            Hostent& LastHostent = *BOSS_STORAGE_SYS(Hostent);
+            LastHostent.Clear();
 
             // h_name
             String HostName = HostInfo.hostName().toUtf8().constData();
             char* NewName = new char[HostName.Length() + 1];
             Memory::Copy(NewName, (chars) HostName, HostName.Length() + 1);
-            CurHostent.h_name = NewName;
+            LastHostent.h_name = NewName;
 
             // h_addr_list
-            CurHostent.h_addr_list = new bytes[HostAddressCount + 1];
-            CurHostent.h_addr_list[HostAddressCount] = nullptr;
+            LastHostent.h_addr_list = new bytes[HostAddressCount + 1];
+            LastHostent.h_addr_list[HostAddressCount] = nullptr;
             for(sint32 i = 0; i < HostAddressCount; ++i)
             {
                 const QHostAddress& CurAddress = HostInfo.addresses().at(i);
                 const uint32 IPv4 = CurAddress.toIPv4Address();
                 uint08* NewIPv4 = new uint08[4];
                 Memory::Copy(NewIPv4, &IPv4, 4);
-                CurHostent.h_addr_list[i] = NewIPv4;
+                LastHostent.h_addr_list[i] = NewIPv4;
             }
-            return &CurHostent;
+            return &LastHostent;
         }
 
         void* Platform::Socket::GetServByName(chars name, chars proto)
         {
-            static Map<Servent> ServentMap;
-            Servent& CurServent = ServentMap(name);
+            Servent& LastServent = *BOSS_STORAGE_SYS(Servent);
+            LastServent.Clear();
 
-            if(!CurServent.s_name)
+            if(!LastServent.s_name)
             {
                 // s_name
                 String ServName = name;
                 char* NewName = new char[ServName.Length() + 1];
                 Memory::Copy(NewName, (chars) ServName, ServName.Length() + 1);
-                CurServent.s_name = NewName;
+                LastServent.s_name = NewName;
 
                 // s_port
-                CurServent.s_port = (sint16) Parser(ServName).ReadInt();
+                LastServent.s_port = (sint16) Parser(ServName).ReadInt();
             }
-            return &CurServent;
+            return &LastServent;
         }
 
         ip4address Platform::Socket::GetLocalAddress()
