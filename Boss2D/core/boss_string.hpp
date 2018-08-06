@@ -267,9 +267,10 @@ namespace BOSS
         /*!
         \brief 어셋으로 저장
         \param filename : 파일명
+        \param bom : BOM코드 삽입
         \return 성공여부
         */
-        bool ToAsset(chars filename) const;
+        bool ToAsset(chars filename, bool bom = false) const;
 
     public:
         /*!

@@ -300,10 +300,11 @@ namespace BOSS
         return String(&m_words[-length - 1], length);
     }
 
-    bool String::ToAsset(chars filename) const
+    bool String::ToAsset(chars filename, bool bom) const
     {
         if(id_asset TextAsset = Asset::OpenForWrite(filename, true))
         {
+            if(bom) Asset::Write(TextAsset, (bytes) "\xEF\xBB\xBF", 3);
             Asset::Write(TextAsset, (bytes) &m_words[0], Length());
             Asset::Close(TextAsset);
             return true;
@@ -338,11 +339,33 @@ namespace BOSS
     {
         id_asset_read TextAsset = Asset::OpenForRead(filename, assetpath);
         if(!TextAsset) return String();
+        // UTF-8                "EF BB BF"
+        // UTF-16 Big Endian    "FE FF"
+        // UTF-16 Little Endian "FF FE"
+        // UTF-32 Big Endian    "00 00 FE FF"
+        // UTF-32 Little Endian "FF FE 00 00"
 
         String Result;
-        const sint32 TextSize = Asset::Size(TextAsset);
-        Result.m_words.AtWherever(TextSize) = '\0';
-        Asset::Read(TextAsset, (uint08*) Result.m_words.AtDumping(0, TextSize + 1), TextSize);
+        sint32 TextSize = Asset::Size(TextAsset);
+        if(3 <= TextSize)
+        {
+            char BOMTest[3];
+            Asset::Read(TextAsset, (uint08*) BOMTest, 3);
+            if(BOMTest[0] == (char) 0xEF && BOMTest[1] == (char) 0xBB && BOMTest[2] == (char) 0xBF)
+            {
+                TextSize -= 3;
+                Result.m_words.AtWherever(TextSize) = '\0';
+                Asset::Read(TextAsset, (uint08*) Result.m_words.AtDumping(0, TextSize), TextSize);
+            }
+            else
+            {
+                Result.m_words.AtWherever(TextSize) = '\0';
+                Result.m_words.At(0) = BOMTest[0];
+                Result.m_words.At(1) = BOMTest[1];
+                Result.m_words.At(2) = BOMTest[2];
+                Asset::Read(TextAsset, (uint08*) Result.m_words.AtDumping(3, TextSize - 3), TextSize - 3);
+            }
+        }
         Asset::Close(TextAsset);
         return Result;
     }
