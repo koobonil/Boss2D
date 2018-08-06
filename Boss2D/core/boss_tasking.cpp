@@ -142,6 +142,7 @@ private:
 static void _TaskCore(void* arg)
 {
     TaskingClass* This = (TaskingClass*) arg;
+    const buffer FirstSelf = This->m_self;
 
     sint32 NextSleep = 0;
     while(0 <= NextSleep && This->GetState() == TaskingClass::BS_Both)
@@ -153,6 +154,13 @@ static void _TaskCore(void* arg)
         }
         else Platform::Utility::Sleep(NextSleep, false, false);
         NextSleep = This->m_cb(This->m_self, This->m_query, This->m_answer, (id_common) &This->m_common);
+    }
+
+    // 스레드 내부에서 만든 버퍼라면 스레드종료전 삭제
+    if(FirstSelf != This->m_self)
+    {
+        Buffer::Free(This->m_self);
+        This->m_self = nullptr;
     }
 
     This->DoDie();
