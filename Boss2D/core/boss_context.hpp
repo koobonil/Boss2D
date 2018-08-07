@@ -31,7 +31,7 @@ namespace BOSS
         \return 해당 자식콘텍스트의 인스턴스
         */
         inline Context& At(sint32 index)
-        {return m_indexableChild.AtWherever(index);}
+        {return m_indexableChild[index];}
 
         /*!
         \brief 자신의 값 설정
@@ -152,7 +152,7 @@ namespace BOSS
         inline const Context& operator[](sint32 index) const
         {
             if(0 <= index && index < m_indexableChild.Count())
-                return m_indexableChild[index];
+                return *m_indexableChild.Access(index);
             return NullChild();
         }
 
@@ -428,7 +428,7 @@ namespace BOSS
 
         // 자식연결
         Map<Context> m_namableChild;
-        Array<Context, datatype_class_nomemcpy, 0> m_indexableChild;
+        Map<Context> m_indexableChild;
 
         // 자기데이터
         chars m_valueOffset;

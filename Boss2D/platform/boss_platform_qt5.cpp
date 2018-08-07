@@ -2264,7 +2264,7 @@
         class SocketBox
         {
         public:
-            SocketBox() : m_threadId(Platform::Utility::CurrentThreadID())
+            SocketBox()
             {
                 m_socket = nullptr;
                 m_udp = false;
@@ -2293,7 +2293,6 @@
             }
 
         public:
-            const uint64 m_threadId;
             QAbstractSocket* m_socket;
             bool m_udp;
             QHostAddress m_udpip;
@@ -2303,39 +2302,35 @@
             class STClass
             {
             public:
-                STClass() {m_lastId = 0; m_mutex = Mutex::Open();}
-                ~STClass() {Mutex::Close(m_mutex);}
+                STClass()
+                {
+                    static uint64 LastThreadID = 0;
+                    m_lastId = (++LastThreadID) << 32;
+                }
+                ~STClass() {}
             public:
                 Map<SocketBox> m_map;
                 ublock m_lastId;
-                id_mutex m_mutex;
             };
-            static inline STClass& ST() {static STClass _; return _;}
+            static inline STClass& ST() {return *BOSS_STORAGE_SYS(STClass);}
 
         public:
             static void Create(id_socket& result, bool udp)
             {
-                Mutex::Lock(ST().m_mutex);
-                SocketBox* Ptr = &ST().m_map[++ST().m_lastId];
-                result = (id_socket) AnyTypeToPtr(ST().m_lastId);
-                Mutex::Unlock(ST().m_mutex);
+                STClass& CurClass = ST();
+                SocketBox* Ptr = &CurClass.m_map[++CurClass.m_lastId];
+                result = (id_socket) AnyTypeToPtr(CurClass.m_lastId);
                 Ptr->m_socket = (udp)? (QAbstractSocket*) new QUdpSocket() : (QAbstractSocket*) new QTcpSocket();
                 Ptr->m_udp = udp;
             }
             static SocketBox* Access(id_socket id)
             {
-                Mutex::Lock(ST().m_mutex);
-                SocketBox* Ptr = ST().m_map.Access(PtrToUint64(id));
-                BOSS_ASSERT("id_socket는 생성한 스레드에서만 접근할 수 있습니다",
-                    !Ptr || Ptr->m_threadId == Platform::Utility::CurrentThreadID());
-                Mutex::Unlock(ST().m_mutex);
-                return Ptr;
+                BOSS_ASSERT("타 스레드에서 생성된 소켓입니다", (ST().m_lastId >> 32) == (((ublock) id) >> 32));
+                return ST().m_map.Access(PtrToUint64(id));
             }
             static void Remove(id_socket id)
             {
-                Mutex::Lock(ST().m_mutex);
                 ST().m_map.Remove(PtrToUint64(id));
-                Mutex::Unlock(ST().m_mutex);
             }
         };
 

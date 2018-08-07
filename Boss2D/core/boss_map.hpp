@@ -55,6 +55,12 @@ namespace BOSS
         TYPE& operator[](sint64 key) {BOSS_ASSERT("key가 음수값입니다", 0 <= key); return CreativeByIndexable((uint64) key);}
 
         /*!
+        \brief 정수식 마지막 검색키 추가생성 및 접근
+        \return 해당 객체
+        */
+        TYPE& AtAdding() {return CreativeByIndexable((uint32) Info->Count);}
+
+        /*!
         \brief 문자열(UTF8/CP949)식 접근(생성가능)
         \param key : 검색키
         \param length : 검색키의 길이(-1이면 자동설정)

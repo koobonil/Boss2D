@@ -786,8 +786,7 @@ namespace BOSS
 
     const wchararray& WString::BlankString()
     {
-        static const wchararray _(L'\0');
-        return _;
+        return *BOSS_STORAGE_SYS(wchararray, L'\0');
     }
 }
 

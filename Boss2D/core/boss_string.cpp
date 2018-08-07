@@ -519,8 +519,7 @@ namespace BOSS
 
     const chararray& String::BlankString()
     {
-        static const chararray _('\0');
-        return _;
+        return *BOSS_STORAGE_SYS(chararray, '\0');
     }
 
     const sint32* String::GetFindMap() const

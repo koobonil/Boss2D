@@ -28,7 +28,7 @@ namespace BOSS
     {
         m_source.Clear();
         m_namableChild.Reset();
-        m_indexableChild.Clear();
+        m_indexableChild.Reset();
         Set(nullptr);
     }
 
@@ -64,7 +64,7 @@ namespace BOSS
         {
             dst += "[\r\n";
             for(sint32 i = 0, iend = m_indexableChild.Count(); i < iend; ++i)
-                m_indexableChild[i].SaveJsonCore(tab + 1, String::FromInteger(i), dst, true, i + 1 == iend);
+                m_indexableChild.Access(i)->SaveJsonCore(tab + 1, String::FromInteger(i), dst, true, i + 1 == iend);
             dst += "]\r\n";
         }
         return dst;
@@ -89,7 +89,7 @@ namespace BOSS
     String Context::SaveXml(String dst) const
     {
         for(sint32 i = 0, iend = m_indexableChild.Count(); i < iend; ++i)
-            m_indexableChild[i].SaveXmlCore(0, String::FromInteger(i), dst);
+            m_indexableChild.Access(i)->SaveXmlCore(0, String::FromInteger(i), dst);
         return dst;
     }
 
@@ -99,7 +99,7 @@ namespace BOSS
             return false;
 
         m_namableChild.Reset();
-        m_indexableChild.Clear();
+        m_indexableChild.Reset();
 
         bytes SrcFocus = src + GetBinHeader().Length() + 1 + sizeof(sint32) + 1;
         LoadBinCore(SrcFocus);
@@ -117,7 +117,7 @@ namespace BOSS
     bool Context::LoadPrm(chars src, sint32 length)
     {
         m_namableChild.Reset();
-        m_indexableChild.Clear();
+        m_indexableChild.Reset();
 
         const String SrcString(src, length);
         sint32 PosBegin = 0;
@@ -165,12 +165,12 @@ namespace BOSS
             sint32 tab = -1;
             m_namableChild.AccessByCallback(DebugPrintCoreCB, &tab);
             for(sint32 i = 0, iend = m_indexableChild.Count(); i < iend; ++i)
-                m_indexableChild[i].DebugPrintCore(0, String::FromInteger(i), true);
+                m_indexableChild.Access(i)->DebugPrintCore(0, String::FromInteger(i), true);
             BOSS_TRACE("=================================================");
         #endif
     }
 
-    Context::Context() : m_indexableChild(Array<Context, datatype_class_nomemcpy, 0>::Null())
+    Context::Context()
     {
         m_valueOffset = nullptr;
         m_valueLength = 0;
@@ -201,7 +201,7 @@ namespace BOSS
         operator=(ToReference(rhs));
     }
 
-    Context::Context(bytes src) : m_indexableChild(Array<Context, datatype_class_nomemcpy, 0>::Null())
+    Context::Context(bytes src)
     {
         m_valueOffset = nullptr;
         m_valueLength = 0;
@@ -212,7 +212,7 @@ namespace BOSS
         LoadBin(src);
     }
 
-    Context::Context(ScriptType type, buffer src) : m_indexableChild(Array<Context, datatype_class_nomemcpy, 0>::Null())
+    Context::Context(ScriptType type, buffer src)
     {
         m_valueOffset = nullptr;
         m_valueLength = 0;
@@ -227,7 +227,7 @@ namespace BOSS
         }
     }
 
-    Context::Context(ScriptType type, ScriptOption option, chars src, sint32 length) : m_indexableChild(Array<Context, datatype_class_nomemcpy, 0>::Null())
+    Context::Context(ScriptType type, ScriptOption option, chars src, sint32 length)
     {
         m_valueOffset = nullptr;
         m_valueLength = 0;
@@ -351,10 +351,11 @@ namespace BOSS
         case ':':
             if(0 < LastLength)
             {
+                Context* LastObject = CurStack[-1].Object;
                 Context* NewChild = nullptr;
                 if(LastLength == 3 && LastOffset[0] == '~' && LastOffset[1] == '[' && LastOffset[2] == ']')
-                    NewChild = CurStack[-1].Object->m_indexableChild.AtAdding().InitSource(this);
-                else NewChild = CurStack[-1].Object->m_namableChild(LastOffset, LastLength).InitSource(this);
+                    NewChild = LastObject->m_indexableChild.AtAdding().InitSource(this);
+                else NewChild = LastObject->m_namableChild(LastOffset, LastLength).InitSource(this);
                 CurStack.AtAdding().Object = NewChild;
                 LastLength = 0;
             }
@@ -376,7 +377,8 @@ namespace BOSS
                     if(EndMark == ']')
                     {
                         CurStack.At(-1).ChildIsIndexable = true;
-                        Context* NewChild = CurStack[-1].Object->m_indexableChild.AtAdding().InitSource(this);
+                        Context* LastObject = CurStack[-1].Object;
+                        Context* NewChild = LastObject->m_indexableChild.AtAdding().InitSource(this);
                         CurStack.AtAdding().Object = NewChild;
                     }
                 }
@@ -393,19 +395,22 @@ namespace BOSS
             }
             if(0 < LastLength)
             {
-                CurStack[-1].Object->SetValue(LastOffset, LastLength);
+                Context* LastObject = CurStack[-1].Object;
+                LastObject->SetValue(LastOffset, LastLength);
                 LastLength = 0;
             }
             else if(String::Compare(EtcString, "null"))
             {
-                CurStack[-1].Object->Set(EtcString, EtcString.Length());
+                Context* LastObject = CurStack[-1].Object;
+                LastObject->Set(EtcString, EtcString.Length());
                 EtcString.Empty();
             }
 
             CurStack.SubtractionOne();
             if(*src == ',' && CurStack[-1].ChildIsIndexable)
             {
-                Context* NewChild = CurStack[-1].Object->m_indexableChild.AtAdding().InitSource(this);
+                Context* LastObject = CurStack[-1].Object;
+                Context* NewChild = LastObject->m_indexableChild.AtAdding().InitSource(this);
                 CurStack.AtAdding().Object = NewChild;
             }
             else if((*src == '}' || *src == ']') && CurStack.Count() == 2)
@@ -506,7 +511,7 @@ namespace BOSS
             dst += "[\r\n";
 
             for(sint32 i = 0, iend = m_indexableChild.Count(); i < iend; ++i)
-                m_indexableChild[i].SaveJsonCore(tab + 1, String::FromInteger(i), dst, true, i + 1 == iend);
+                m_indexableChild.Access(i)->SaveJsonCore(tab + 1, String::FromInteger(i), dst, true, i + 1 == iend);
 
             for(sint32 i = 0; i < tab; ++i)
                 dst += '\t';
@@ -702,7 +707,7 @@ namespace BOSS
                 dst += ">\r\n";
             }
             for(sint32 i = 0, iend = TreeOption->m_indexableChild.Count(); i < iend; ++i)
-                TreeOption->m_indexableChild[i].SaveXmlCore(tab + 1, String::FromInteger(i), dst);
+                TreeOption->m_indexableChild.Access(i)->SaveXmlCore(tab + 1, String::FromInteger(i), dst);
             dst += TabString;
         }
 
@@ -780,14 +785,13 @@ namespace BOSS
         // 배열식 자식
         if(0 < DataField[3])
         {
-            m_indexableChild.AtWherever(DataField[3] - 1);
             for(sint32 i = 0; i < DataField[3]; ++i)
             {
                 // 자기명칭 스킵
                 src += sizeof(sint32) + 1;
 
                 // 자식루프
-                Context& NewChild = m_indexableChild.At(i);
+                Context& NewChild = m_indexableChild[i];
                 src = NewChild.LoadBinCore(src);
             }
         }
@@ -830,8 +834,8 @@ namespace BOSS
         // 배열식 자식
         for(sint32 i = 0; i < IChildCount; ++i)
         {
-            const Context& CurChild = m_indexableChild[i];
-            CurChild.SaveBinCore(dst);
+            const Context* CurChild = m_indexableChild.Access(i);
+            CurChild->SaveBinCore(dst);
         }
     }
 
@@ -852,7 +856,7 @@ namespace BOSS
         const void* param[6] = {this, key, value, &length, result, &option};
         m_namableChild.AccessByCallback(CollectCoreCB, param);
         for(sint32 i = 0, iend = m_indexableChild.Count(); i < iend; ++i)
-            m_indexableChild[i].CollectCore(this, key, value, length, result, option);
+            m_indexableChild.Access(i)->CollectCore(this, key, value, length, result, option);
     }
 
     void Context::CollectCoreCB(const MapPath* path, Context* data, payload param)
@@ -878,7 +882,7 @@ namespace BOSS
 
             m_namableChild.AccessByCallback(DebugPrintCoreCB, &tab);
             for(sint32 i = 0, iend = m_indexableChild.Count(); i < iend; ++i)
-                m_indexableChild[i].DebugPrintCore(tab + 1, String::FromInteger(i), true);
+                m_indexableChild.Access(i)->DebugPrintCore(tab + 1, String::FromInteger(i), true);
         #endif
     }
 
