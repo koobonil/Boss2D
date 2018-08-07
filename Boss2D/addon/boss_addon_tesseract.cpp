@@ -30,7 +30,7 @@ bool __LINK_ADDON_TESSERACT__() {return true;} // 링크옵션 /OPT:NOREF가 안
 // 등록과정
 namespace BOSS
 {
-    BOSS_DECLARE_ADDON_FUNCTION(Tesseract, Create, id_tesseract, chars, chars)
+    BOSS_DECLARE_ADDON_FUNCTION(Tesseract, Create, id_tesseract, chars, chars, chars)
     BOSS_DECLARE_ADDON_FUNCTION(Tesseract, Release, void, id_tesseract)
     BOSS_DECLARE_ADDON_FUNCTION(Tesseract, Training, void, id_tesseract, chars)
 
@@ -70,20 +70,22 @@ namespace BOSS
     {
         m_tifpath = rhs.m_tifpath;
         m_otherpath = rhs.m_otherpath;
+        m_filepath = rhs.m_filepath;
         return *this;
     }
 
-    void TesseractClass::Init(chars tifpath, chars boxpath)
+    void TesseractClass::Init(chars tifpath, chars boxpath, chars filepath)
     {
-        BOSS_ASSERT("tifpath나 boxpath는 nullptr가 될 수 없습니다", tifpath && boxpath);
+        BOSS_ASSERT("tifpath/boxpath/filepath는 nullptr가 될 수 없습니다", tifpath && boxpath && filepath);
         m_tifpath = tifpath;
         m_otherpath = boxpath;
+        m_filepath = filepath;
     }
 
-    id_tesseract Customized_AddOn_Tesseract_Create(chars tifpath, chars boxpath)
+    id_tesseract Customized_AddOn_Tesseract_Create(chars tifpath, chars boxpath, chars filepath)
     {
         TesseractClass* NewTesseract = (TesseractClass*) Buffer::Alloc<TesseractClass>(BOSS_DBG 1);
-        NewTesseract->Init(tifpath, boxpath);
+        NewTesseract->Init(tifpath, boxpath, filepath);
         return (id_tesseract) NewTesseract;
     }
 
@@ -104,7 +106,7 @@ namespace BOSS
 
         const String LangCode = OutName.Left(FirstDot);
         const String FontName = OutName.Left(SecondDot).Right(SecondDot - FirstDot - 1);
-        const String FilePath = Platform::File::RootForAssets() + "ocr_creator";
+        const String FilePath = CurTesseract->GetFilePath();
         const String TifPath = FilePath + "/" + CurTesseract->GetTifPath();
         const String OutPath = FilePath + "/" + OutName;
         const String TrPath = FilePath + "/" + OutName + ".tr";

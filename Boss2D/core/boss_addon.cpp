@@ -257,12 +257,12 @@ namespace BOSS
 
     ////////////////////////////////////////////////////////////////////////////////
     static void Tesseract_Error() {BOSS_ASSERT("Tesseract애드온이 준비되지 않았습니다", false);}
-    BOSS_DEFINE_ADDON_FUNCTION(Tesseract, Create, id_tesseract, return nullptr, chars, chars)
+    BOSS_DEFINE_ADDON_FUNCTION(Tesseract, Create, id_tesseract, return nullptr, chars, chars, chars)
     BOSS_DEFINE_ADDON_FUNCTION(Tesseract, Release, void, return, id_tesseract)
     BOSS_DEFINE_ADDON_FUNCTION(Tesseract, Training, void, return, id_tesseract, chars)
 
-    id_tesseract AddOn::Tesseract::Create(chars tifpath, chars otherpath)
-    {return Core_AddOn_Tesseract_Create()(tifpath, otherpath);}
+    id_tesseract AddOn::Tesseract::Create(chars tifpath, chars otherpath, chars filepath)
+    {return Core_AddOn_Tesseract_Create()(tifpath, otherpath, filepath);}
 
     void AddOn::Tesseract::Release(id_tesseract tesseract)
     {Core_AddOn_Tesseract_Release()(tesseract);}

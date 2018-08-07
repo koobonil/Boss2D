@@ -146,7 +146,7 @@ namespace BOSS
         class Tesseract
         {
         public:
-            static id_tesseract Create(chars tifpath, chars otherpath);
+            static id_tesseract Create(chars tifpath, chars otherpath, chars filepath);
             static void Release(id_tesseract tesseract);
             static void Training(id_tesseract tesseract, chars workname);
         };
