@@ -485,7 +485,7 @@ static sint32 gLastFileID = -1;
     }
 #endif
 
-extern "C" void* boss_fopen(char const* filename, char const* mode)
+extern "C" boss_file boss_fopen(char const* filename, char const* mode)
 {
     const String ParsedFilename = FileClass::GetParsedFilename(filename);
     filename = ParsedFilename;
@@ -515,7 +515,7 @@ extern "C" void* boss_fopen(char const* filename, char const* mode)
             NewFile->mTypeAssets = false;
             NewFile->mFilePointer = NewFilePointer;
             NewFile->mNeedSave = SaveFlag;
-            return NewFile;
+            return (boss_file) NewFile;
         }
         else if(!SaveFlag)
         {
@@ -547,7 +547,7 @@ extern "C" void* boss_fopen(char const* filename, char const* mode)
             NewFile->mTypeAssets = true;
             NewFile->mFilePointer = NewAssetsPointer;
             NewFile->mNeedSave = false;
-            return NewFile;
+            return (boss_file) NewFile;
         }
     }
     else if(!AssetsFlag)
@@ -561,14 +561,14 @@ extern "C" void* boss_fopen(char const* filename, char const* mode)
         NewFile->mNeedSave = true;
         NewFile->mContent = new uint08s();
         NewFile->mFileSize = 0;
-        return NewFile;
+        return (boss_file) NewFile;
     }
     return nullptr;
 }
 
-extern "C" int boss_fclose(void* stream)
+extern "C" int boss_fclose(boss_file file)
 {
-    FileClass* CurFile = (FileClass*) stream;
+    FileClass* CurFile = (FileClass*) file;
     if(CurFile)
     {
         gAllFiles.Remove(CurFile->mFileID);
@@ -577,9 +577,9 @@ extern "C" int boss_fclose(void* stream)
     return EOF;
 }
 
-extern "C" int boss_fseek(void* stream, long int offset, int origin)
+extern "C" int boss_fseek(boss_file file, long int offset, int origin)
 {
-    FileClass* CurFile = (FileClass*) stream;
+    FileClass* CurFile = (FileClass*) file;
     if(CurFile)
     {
         switch(origin)
@@ -600,17 +600,17 @@ extern "C" int boss_fseek(void* stream, long int offset, int origin)
     return EOF;
 }
 
-extern "C" long int boss_ftell(void* stream)
+extern "C" long int boss_ftell(boss_file file)
 {
-    FileClass* CurFile = (FileClass*) stream;
+    FileClass* CurFile = (FileClass*) file;
     if(CurFile)
         return CurFile->mFileOffset;
     return EOF;
 }
 
-extern "C" size_t boss_fread(void* ptr, size_t size, size_t count, void* stream)
+extern "C" size_t boss_fread(void* ptr, size_t size, size_t count, boss_file file)
 {
-    FileClass* CurFile = (FileClass*) stream;
+    FileClass* CurFile = (FileClass*) file;
     if(CurFile)
     {
         CurFile->ValidContent();
@@ -626,9 +626,9 @@ extern "C" size_t boss_fread(void* ptr, size_t size, size_t count, void* stream)
     return 0;
 }
 
-extern "C" size_t boss_fwrite(const void* ptr, size_t size, size_t count, void* stream)
+extern "C" size_t boss_fwrite(const void* ptr, size_t size, size_t count, boss_file file)
 {
-    FileClass* CurFile = (FileClass*) stream;
+    FileClass* CurFile = (FileClass*) file;
     if(CurFile)
     {
         CurFile->ValidContent();
@@ -641,9 +641,9 @@ extern "C" size_t boss_fwrite(const void* ptr, size_t size, size_t count, void* 
     return 0;
 }
 
-extern "C" int boss_fgetc(void* stream)
+extern "C" int boss_fgetc(boss_file file)
 {
-    FileClass* CurFile = (FileClass*) stream;
+    FileClass* CurFile = (FileClass*) file;
     if(CurFile)
     {
         CurFile->ValidContent();
@@ -653,9 +653,9 @@ extern "C" int boss_fgetc(void* stream)
     return EOF;
 }
 
-extern "C" int boss_ungetc(int character, void* stream)
+extern "C" int boss_ungetc(int character, boss_file file)
 {
-    FileClass* CurFile = (FileClass*) stream;
+    FileClass* CurFile = (FileClass*) file;
     if(CurFile)
     {
         CurFile->ValidContent();
@@ -669,16 +669,16 @@ extern "C" int boss_ungetc(int character, void* stream)
     return EOF;
 }
 
-extern "C" void boss_rewind(void* stream)
+extern "C" void boss_rewind(boss_file file)
 {
-    FileClass* CurFile = (FileClass*) stream;
+    FileClass* CurFile = (FileClass*) file;
     if(CurFile)
         CurFile->mFileOffset = 0;
 }
 
-extern "C" char* boss_fgets(char* str, int num, void* stream)
+extern "C" char* boss_fgets(char* str, int num, boss_file file)
 {
-    FileClass* CurFile = (FileClass*) stream;
+    FileClass* CurFile = (FileClass*) file;
     if(CurFile)
     {
         CurFile->ValidContent();
@@ -743,7 +743,7 @@ public:
 static Map<DirClass> gAllDirs;
 static sint32 gLastDirID = -1;
 
-extern "C" void* boss_opendir(const char* dirname)
+extern "C" boss_dir boss_opendir(const char* dirname)
 {
     const String ParsedDirname = FileClass::GetParsedFilename(dirname);
     dirname = ParsedDirname;
@@ -811,7 +811,7 @@ extern "C" void* boss_opendir(const char* dirname)
         NewDir->mDirHandle = (void*) NewDirHandle;
         NewDir->mDirPointer = (void*) NewFindFileData;
         NewDir->mNextFlag = true;
-        return NewDir;
+        return (boss_dir) NewDir;
     }
     else
     {
@@ -862,12 +862,12 @@ extern "C" void* boss_opendir(const char* dirname)
         NewDir->mDirHandle = (void*) NewDirHandle;
         NewDir->mDirPointer = (void*) NewFindFileData;
         NewDir->mNextFlag = true;
-        return NewDir;
+        return (boss_dir) NewDir;
     }
     return nullptr;
 }
 
-extern "C" void* boss_readdir(void* dir)
+extern "C" boss_dirent boss_readdir(boss_dir dir)
 {
     DirClass* CurDir = (DirClass*) dir;
     if(CurDir)
@@ -877,21 +877,21 @@ extern "C" void* boss_readdir(void* dir)
             {
                 CurDir->mLastFilePath = String::FromWChars(((WIN32_FIND_DATAW*) CurDir->mDirPointer)->cFileName);
                 CurDir->mNextFlag = FindNextFileW((HANDLE) CurDir->mDirHandle, (WIN32_FIND_DATAW*) CurDir->mDirPointer);
-                return (void*)(chars) CurDir->mLastFilePath;
+                return (boss_dirent) (chars) CurDir->mLastFilePath;
             }
         #elif BOSS_LINUX
             struct dirent* CurDirEnt = readdir((DIR*) CurDir->mDirHandle);
             if(CurDirEnt)
             {
                 CurDir->mLastFilePath = CurDirEnt->d_name;
-                return (void*)(chars) CurDir->mLastFilePath;
+                return (boss_dirent) (chars) CurDir->mLastFilePath;
             }
         #elif BOSS_MAC_OSX || BOSS_IPHONE
             struct dirent* CurDirEnt = readdir((DIR*) CurDir->mDirHandle);
             if(CurDirEnt)
             {
                 CurDir->mLastFilePath = CurDirEnt->d_name;
-                return (void*)(chars) CurDir->mLastFilePath;
+                return (boss_dirent) (chars) CurDir->mLastFilePath;
             }
         #elif BOSS_ANDROID
             if(CurDir->mTypeAssets)
@@ -901,7 +901,7 @@ extern "C" void* boss_readdir(void* dir)
                     CurDir->mLastFilePath = (chars) CurDir->mDirPointer;
                     CurDir->mDirPointer = (void*) AAssetDir_getNextFileName((AAssetDir*) CurDir->mDirHandle);
                     CurDir->mNextFlag = (CurDir->mDirPointer != nullptr);
-                    return (void*)(chars) CurDir->mLastFilePath;
+                    return (boss_dirent) (chars) CurDir->mLastFilePath;
                 }
             }
             else
@@ -910,7 +910,7 @@ extern "C" void* boss_readdir(void* dir)
                 if(CurDirEnt)
                 {
                     CurDir->mLastFilePath = CurDirEnt->d_name;
-                    return (void*)(chars) CurDir->mLastFilePath;
+                    return (boss_dirent) (chars) CurDir->mLastFilePath;
                 }
             }
         #else
@@ -920,12 +920,12 @@ extern "C" void* boss_readdir(void* dir)
     return nullptr;
 }
 
-const char* boss_getdirname(void* dirent)
+const char* boss_getdirname(boss_dirent dirent)
 {
     return (chars) dirent;
 }
 
-extern "C" int boss_closedir(void* dir)
+extern "C" int boss_closedir(boss_dir dir)
 {
     DirClass* CurDir = (DirClass*) dir;
     if(CurDir)

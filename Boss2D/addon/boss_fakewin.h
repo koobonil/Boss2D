@@ -555,6 +555,10 @@
     #define fgets _fgets
     #define ungetc _ungetc
     #define fclose _fclose
+    #define lseek _lseek
+    #define lseeki64 _lseeki64
+    #define chsize_s _chsize_s
+    #define fileno _fileno
     #define unlink _unlink
     #define ltoa _ltoa
     #define _snprintf boss_snprintf

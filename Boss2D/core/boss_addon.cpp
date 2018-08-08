@@ -16,6 +16,7 @@ bool __LINK_ADDON_OGG__();
 bool __LINK_ADDON_OPENCV__();
 bool __LINK_ADDON_SSL__();
 bool __LINK_ADDON_TESSERACT__();
+bool __LINK_ADDON_TIF__();
 bool __LINK_ADDON_ZIP__();
 static bool _ =
     __LINK_ADDON_AAC__() |
@@ -29,6 +30,7 @@ static bool _ =
     __LINK_ADDON_OPENCV__() |
     __LINK_ADDON_SSL__() |
     __LINK_ADDON_TESSERACT__() |
+    __LINK_ADDON_TIF__() |
     __LINK_ADDON_ZIP__();
 
 namespace BOSS
@@ -269,6 +271,21 @@ namespace BOSS
 
     void AddOn::Tesseract::Training(id_tesseract tesseract, chars workname)
     {Core_AddOn_Tesseract_Training()(tesseract, workname);}
+
+    ////////////////////////////////////////////////////////////////////////////////
+    static void Tif_Error() {BOSS_ASSERT("Tif애드온이 준비되지 않았습니다", false);}
+    BOSS_DEFINE_ADDON_FUNCTION(Tif, Create, id_tif, return nullptr, id_bitmap_read)
+    BOSS_DEFINE_ADDON_FUNCTION(Tif, Release, void, return, id_tif)
+    BOSS_DEFINE_ADDON_FUNCTION(Tif, ToBmp, id_bitmap, return nullptr, bytes, sint32)
+
+    id_tif AddOn::Tif::Create(id_bitmap_read bmp)
+    {return Core_AddOn_Tif_Create()(bmp);}
+
+    void AddOn::Tif::Release(id_tif tif)
+    {Core_AddOn_Tif_Release()(tif);}
+
+    id_bitmap AddOn::Tif::ToBmp(bytes tif, sint32 length)
+    {return Core_AddOn_Tif_ToBmp()(tif, length);}
 
     ////////////////////////////////////////////////////////////////////////////////
     static void Zip_Error() {BOSS_ASSERT("Zip애드온이 준비되지 않았습니다", false);}

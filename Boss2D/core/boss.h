@@ -250,20 +250,23 @@
     ////////////////////////////////////////////////////////////////////////////////
     // File
     ////////////////////////////////////////////////////////////////////////////////
-    void* boss_fopen(char const* filename, char const* mode);
-    int boss_fclose(void* stream);
-    int boss_fseek(void* stream, long int offset, int origin);
-    long int boss_ftell(void* stream);
-    size_t boss_fread(void* ptr, size_t size, size_t count, void* stream);
-    size_t boss_fwrite(const void* ptr, size_t size, size_t count, void* stream);
-    int boss_fgetc(void* stream);
-    int boss_ungetc(int character, void* stream);
-    void boss_rewind(void* stream);
-    char* boss_fgets(char* str, int num, void* stream);
-    void* boss_opendir(const char* dirname);
-    void* boss_readdir(void* dir);
-    const char* boss_getdirname(void* dirent);
-    int boss_closedir(void* dir);
+    typedef void* boss_file;
+    typedef void* boss_dir;
+    typedef void* boss_dirent;
+    boss_file boss_fopen(char const* filename, char const* mode);
+    int boss_fclose(boss_file file);
+    int boss_fseek(boss_file file, long int offset, int origin);
+    long int boss_ftell(boss_file file);
+    size_t boss_fread(void* ptr, size_t size, size_t count, boss_file file);
+    size_t boss_fwrite(const void* ptr, size_t size, size_t count, boss_file file);
+    int boss_fgetc(boss_file file);
+    int boss_ungetc(int character, boss_file file);
+    void boss_rewind(boss_file file);
+    char* boss_fgets(char* str, int num, boss_file file);
+    boss_dir boss_opendir(const char* dirname);
+    boss_dirent boss_readdir(boss_dir dir);
+    const char* boss_getdirname(boss_dirent dirent);
+    int boss_closedir(boss_dir dir);
 
     ////////////////////////////////////////////////////////////////////////////////
     // Socket

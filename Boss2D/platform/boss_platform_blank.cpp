@@ -1154,6 +1154,12 @@
             return -1;
         }
 
+        sint32 Platform::File::FDOpenFrom(boss_file file)
+        {
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+            return -1;
+        }
+
         void Platform::File::FDOpenRetain(sint32 fd)
         {
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);

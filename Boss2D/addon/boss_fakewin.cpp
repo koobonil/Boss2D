@@ -322,6 +322,10 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     #undef fgets
     #undef ungetc
     #undef fclose
+    #undef lseek
+    #undef lseeki64
+    #undef chsize_s
+    #undef fileno
     #undef unlink
     #undef ltoa
     #undef _snprintf
@@ -1606,55 +1610,55 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     extern "C" int boss_fakewin_fseek(FILE* stream, long int offset, int origin)
     {
 		BOSS_TRACE("########## fseek");
-        return boss_fseek(stream, offset, origin);
+        return boss_fseek((boss_file) stream, offset, origin);
     }
 
     extern "C" long int boss_fakewin_ftell(FILE* stream)
     {
 		BOSS_TRACE("########## ftell");
-        return boss_ftell(stream);
+        return boss_ftell((boss_file) stream);
     }
 
     extern "C" void boss_fakewin_rewind(FILE* stream)
     {
 		BOSS_TRACE("########## rewind");
-        boss_rewind(stream);
+        boss_rewind((boss_file) stream);
     }
 
     extern "C" size_t boss_fakewin_fread(void* ptr, size_t size, size_t count, FILE* stream)
     {
 		BOSS_TRACE("########## fread");
-        return boss_fread(ptr, size, count, stream);
+        return boss_fread(ptr, size, count, (boss_file) stream);
     }
 
     extern "C" size_t boss_fakewin_fwrite(const void* ptr, size_t size, size_t count, FILE* stream)
     {
 		BOSS_TRACE("########## fwrite");
-        return boss_fwrite(ptr, size, count, stream);
+        return boss_fwrite(ptr, size, count, (boss_file) stream);
     }
 
     extern "C" int boss_fakewin_fgetc(FILE* stream)
     {
 		BOSS_TRACE("########## fgetc");
-        return boss_fgetc(stream);
+        return boss_fgetc((boss_file) stream);
     }
 
     extern "C" char* boss_fakewin_fgets(char* str, int num, FILE* stream)
     {
 		BOSS_TRACE("########## fgets");
-        return boss_fgets(str, num, stream);
+        return boss_fgets(str, num, (boss_file) stream);
     }
 
     extern "C" int boss_fakewin_ungetc(int character, FILE* stream)
     {
 		BOSS_TRACE("########## ungetc");
-        return boss_ungetc(character, stream);
+        return boss_ungetc(character, (boss_file) stream);
     }
 
     extern "C" int boss_fakewin_fclose(FILE* stream)
     {
 		BOSS_TRACE("########## fclose");
-        return boss_fclose(stream);
+        return boss_fclose((boss_file) stream);
     }
 
     extern "C" int boss_fakewin_wopen(const wchar_t* filename, int oflag, int pmode)
@@ -1867,11 +1871,7 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
 
     extern "C" int boss_fakewin_fileno(FILE* _File)
     {
-        #if BOSS_WINDOWS
-            return _fileno(_File);
-        #else
-            BOSS_ASSERT("########## 준비중", false); return 0;
-        #endif
+        return Platform::File::FDOpenFrom((boss_file) _File);
     }
 
     extern "C" int boss_fakewin_getch()

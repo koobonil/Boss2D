@@ -1245,6 +1245,12 @@
             return -1;
         }
 
+        sint32 Platform::File::FDOpenFrom(boss_file file)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return -1;
+        }
+
         void Platform::File::FDOpenRetain(sint32 fd)
         {
             BOSS_ASSERT("Further development is needed.", false);

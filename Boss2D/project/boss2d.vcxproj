@@ -30,6 +30,7 @@
     <ClCompile Include="..\addon\boss_addon_ssl.cpp" />
     <ClCompile Include="..\addon\boss_addon_tesseract.cpp" />
     <ClCompile Include="..\addon\boss_addon_freetype.cpp" />
+    <ClCompile Include="..\addon\boss_addon_tif.cpp" />
     <ClCompile Include="..\addon\boss_addon_zip.cpp" />
     <ClCompile Include="..\addon\boss_fakewin.cpp" />
     <ClCompile Include="..\addon\boss_integration_curl-7.51.0.c" />
@@ -123,6 +124,7 @@
     <ClInclude Include="..\addon\boss_addon_ssl.hpp" />
     <ClInclude Include="..\addon\boss_addon_tesseract.hpp" />
     <ClInclude Include="..\addon\boss_addon_freetype.hpp" />
+    <ClInclude Include="..\addon\boss_addon_tif.hpp" />
     <ClInclude Include="..\addon\boss_addon_zip.hpp" />
     <ClInclude Include="..\addon\boss_fakewin.h" />
     <ClInclude Include="..\addon\boss_integration_curl-7.51.0.h" />

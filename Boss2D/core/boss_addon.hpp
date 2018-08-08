@@ -10,8 +10,9 @@ namespace BOSS
     BOSS_DECLARE_ID(id_git);
     BOSS_DECLARE_ID(id_h264);
     BOSS_DECLARE_ID(id_jpg);
-    BOSS_DECLARE_ID(id_tesseract);
     BOSS_DECLARE_ID(id_opencv);
+    BOSS_DECLARE_ID(id_tesseract);
+    BOSS_DECLARE_ID(id_tif);
     BOSS_DECLARE_ID(id_zip);
 
     //! \brief 애드온지원
@@ -149,6 +150,15 @@ namespace BOSS
             static id_tesseract Create(chars tifpath, chars otherpath, chars filepath);
             static void Release(id_tesseract tesseract);
             static void Training(id_tesseract tesseract, chars workname);
+        };
+
+        //! \brief TIF연동
+        class Tif
+        {
+        public:
+            static id_tif Create(id_bitmap_read bmp);
+            static void Release(id_tif tif);
+            static id_bitmap ToBmp(bytes tif, sint32 length);
         };
 
         //! \brief ZIP연동

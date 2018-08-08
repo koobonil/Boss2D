@@ -1167,6 +1167,14 @@ namespace BOSS
             static sint32 FDOpen(wchars filename, bool writable, bool append, bool exclusive, bool truncate);
 
             /*!
+            \brief boss_file으로 FD타입 파일열기
+            \param file : boss_file객체
+            \return 파일FD
+            \see FDOpenRetain, FDClose
+            */
+            static sint32 FDOpenFrom(boss_file file);
+
+            /*!
             \brief FD타입 파일열기용 레퍼런스증가
             \param fd : 파일FD
             \see FDOpen, FDClose

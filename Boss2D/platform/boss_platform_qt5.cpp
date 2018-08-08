@@ -1980,6 +1980,12 @@
             return NewFD;
         }
 
+        sint32 Platform::File::FDOpenFrom(boss_file file)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return -1;
+        }
+
         void Platform::File::FDOpenRetain(sint32 fd)
         {
             if(auto CurManager = PlatformImpl::Core::GetManagerBy<FileManager, datatype_class_canmemcpy>(fd))
