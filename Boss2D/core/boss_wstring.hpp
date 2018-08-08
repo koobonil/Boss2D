@@ -270,7 +270,7 @@ namespace BOSS
         static sint32 CompareNoCase(wchars text, wchars other, sint32 maxlength = -1);
 
     private:
-        static const wchararray& BlankString();
+        static const wchararray& NullString();
 
     private:
         wchararray m_words;

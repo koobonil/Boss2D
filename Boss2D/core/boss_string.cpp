@@ -5,7 +5,7 @@
 
 namespace BOSS
 {
-    String::String() : m_words(BlankString()), m_findmap(sint32s::Null())
+    String::String() : m_words(NullString()), m_findmap(sint32s::Null())
     {
     }
 
@@ -29,7 +29,7 @@ namespace BOSS
     {
     }
 
-    String::String(chars rhs, sint32 length) : m_words(BlankString()), m_findmap(sint32s::Null())
+    String::String(chars rhs, sint32 length) : m_words(NullString()), m_findmap(sint32s::Null())
     {
         BOSS_ASSERT("정상적인 파라미터가 아닙니다", -1 <= length);
         if(rhs && *rhs != '\0' && length != 0)
@@ -45,7 +45,7 @@ namespace BOSS
         }
     }
 
-    String::String(char rhs) : m_words(BlankString()), m_findmap(sint32s::Null())
+    String::String(char rhs) : m_words(NullString()), m_findmap(sint32s::Null())
     {
         operator=(rhs);
     }
@@ -187,7 +187,7 @@ namespace BOSS
 
     void String::Empty()
     {
-        m_words = BlankString();
+        m_words = NullString();
         m_findmap = sint32s::Null();
     }
 
@@ -517,7 +517,7 @@ namespace BOSS
         return boss_strnicmp(text, other, maxlength);
     }
 
-    const chararray& String::BlankString()
+    const chararray& String::NullString()
     {
         return *BOSS_STORAGE_SYS(chararray, '\0');
     }

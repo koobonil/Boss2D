@@ -2,6 +2,7 @@
 #include <boss_map.hpp>
 #include <boss_object.hpp>
 #include <boss_parser.hpp>
+#include <boss_storage.hpp>
 #include <boss_string.hpp>
 
 namespace BOSS
@@ -32,6 +33,13 @@ namespace BOSS
         */
         inline Context& At(sint32 index)
         {return m_indexableChild[index];}
+
+        /*!
+        \brief 자식콘텍스트를 마지막에 추가후 접근(배열식)
+        \return 해당 자식콘텍스트의 인스턴스
+        */
+        inline Context& AtAdding()
+        {return m_indexableChild.AtAdding();}
 
         /*!
         \brief 자신의 값 설정
@@ -327,7 +335,7 @@ namespace BOSS
 
     private:
         static inline const Context& NullChild()
-        {static const Context _; return _;}
+        {return *BOSS_STORAGE_SYS(Context);}
 
     private:
         void SetValue(chars value, sint32 length);

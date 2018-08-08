@@ -345,7 +345,7 @@ namespace BOSS
         static sint32 CompareNoCase(chars text, chars other, sint32 maxlength = -1);
 
     private:
-        static const chararray& BlankString();
+        static const chararray& NullString();
         const sint32* GetFindMap() const;
 
     private:

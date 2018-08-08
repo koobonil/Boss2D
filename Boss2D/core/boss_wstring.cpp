@@ -179,7 +179,7 @@ static wchars WCharFromKssmFinder(char code1, char code2 = ' ')
 
 namespace BOSS
 {
-    WString::WString() : m_words(BlankString())
+    WString::WString() : m_words(NullString())
     {
     }
 
@@ -203,7 +203,7 @@ namespace BOSS
     {
     }
 
-    WString::WString(wchars rhs, sint32 length) : m_words(BlankString())
+    WString::WString(wchars rhs, sint32 length) : m_words(NullString())
     {
         BOSS_ASSERT("정상적인 파라미터가 아닙니다", -1 <= length);
         if(rhs && *rhs != L'\0' && length != 0)
@@ -219,7 +219,7 @@ namespace BOSS
         }
     }
 
-    WString::WString(wchar_t rhs) : m_words(BlankString())
+    WString::WString(wchar_t rhs) : m_words(NullString())
     {
         operator=(rhs);
     }
@@ -355,7 +355,7 @@ namespace BOSS
 
     void WString::Empty()
     {
-        m_words = BlankString();
+        m_words = NullString();
     }
 
     const wchar_t WString::operator[](sint32 index) const
@@ -784,7 +784,7 @@ namespace BOSS
         return boss_wcsnicmp(text, other, maxlength);
     }
 
-    const wchararray& WString::BlankString()
+    const wchararray& WString::NullString()
     {
         return *BOSS_STORAGE_SYS(wchararray, L'\0');
     }

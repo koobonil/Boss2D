@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <boss_share.hpp>
+#include <boss_storage.hpp>
 
 namespace BOSS
 {
@@ -310,20 +311,14 @@ namespace BOSS
         \return Null객체
         */
         static const Array& Null()
-        {
-            static const Array _;
-            return _;
-        }
+        {return *BOSS_STORAGE_SYS(Array);}
 
         /*!
         \brief Sample버퍼 얻기
         \return Sample버퍼
         */
         static const buffer& SampleBuffer()
-        {
-            static const buffer _ = Buffer::Alloc<TYPE, DATATYPE>(BOSS_DBG 0);
-            return _;
-        }
+        {static const buffer _ = Buffer::Alloc<TYPE, DATATYPE>(BOSS_DBG 0); return _;}
 
     private:
         const Share* share;

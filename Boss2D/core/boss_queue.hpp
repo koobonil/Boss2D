@@ -6,7 +6,7 @@ namespace BOSS
     typedef void (*QueueFreeCB)(void*);
 
     //! \brief 큐지원
-    template<typename TYPE, bool FORTHREAD = true, QueueFreeCB FREECB = nullptr, sint32 MAXCOUNT = 65536>
+    template<typename TYPE, bool FORTHREAD = true, QueueFreeCB FREECB = nullptr>
     class Queue
     {
     public:
@@ -20,7 +20,6 @@ namespace BOSS
             {
                 Head.Enqueue(data);
                 DataCount++;
-                BOSS_ASSERT("큐의 데이터수량이 경고수준입니다", DataCount != MAXCOUNT);
             }
             if(FORTHREAD) Mutex::Unlock(DataMutex);
         }

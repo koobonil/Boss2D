@@ -124,7 +124,8 @@ namespace BOSS
     private:
         static const String& BuildHeader();
         static jumper BuildCore(const Context& data, sint32s& col, Map<sint32>& map);
-        static inline const Zen& NullChild() {static Zen _; return _;}
+        static inline const Zen& NullChild()
+        {return *BOSS_STORAGE_SYS(Zen);}
 
     private:
         sint32s m_source;
