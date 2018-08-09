@@ -1,8 +1,8 @@
 ﻿#pragma once
 /*!
-\mainpage BOSS Engine
+\mainpage Boss2D AppEngine
 \section information 목적
-    - Qt기반 2D게임엔진
+    - Qt기반 2D앱엔진
 \section advanced 소개
     - core그룹: 코어라이브러리
     - element그룹: 단위모델지원
@@ -10,9 +10,9 @@
     - platform그룹: 하이브리드 환경제공
     - service그룹: 서비스레이어 기능제공
 \section developer 개발자
-    - FinalBossBehindTheDoor Inc.
+    - Bonex Gu
 \section contact 연락처
-    - robonex@finalbossbehindthedoor.com
+    - slacealic@gmail.com
 */
 
 // About disable warning
@@ -145,6 +145,12 @@
 #define size_t boss_size_t
 #define ssize_t boss_ssize_t
 
+// About code styling
+#define branch       if(false)
+#define jump(QUERY)  else if(QUERY)
+#define nothing      do{} while(0)
+#define codeid(NAME) ((NAME[0] & 0xFF) | ((NAME[1] & 0xFF) << 8) | ((NAME[2] & 0xFF) << 16) | ((NAME[3] & 0xFF) << 24))
+
 // About assert
 #if !BOSS_NDEBUG
     #define BOSS_DBG __FILE__,__LINE__,__FUNCTION__,
@@ -184,7 +190,7 @@
     #elif BOSS_WINDOWS || BOSS_LINUX || BOSS_MAC_OSX || BOSS_IPHONE
         #define BOSS_DBG_BREAK do{__builtin_trap();} while(0)
     #else
-        #define BOSS_DBG_BREAK do{} while(0)
+        #define BOSS_DBG_BREAK nothing
     #endif
 #else
     #define BOSS_DBG
@@ -207,7 +213,7 @@
 #if !BOSS_NDEBUG | BOSS_NEED_RELEASE_TRACE
     #define BOSS_TRACE(...) boss_platform_trace(__VA_ARGS__)
 #else
-    #define BOSS_TRACE(...) do{} while(0)
+    #define BOSS_TRACE(...) nothing
 #endif
 
 // About global function
@@ -253,7 +259,13 @@
     typedef void* boss_file;
     typedef void* boss_dir;
     typedef void* boss_dirent;
-    boss_file boss_fopen(char const* filename, char const* mode);
+    typedef enum boss_drive
+    {
+        drive_error = -1,
+        drive_absolute = 0, drive_relative, drive_assets, drive_memory
+    } boss_drive;
+    const char* boss_normalpath(const char* itemname, boss_drive* result);
+    boss_file boss_fopen(const char* filename, const char* mode);
     int boss_fclose(boss_file file);
     int boss_fseek(boss_file file, long int offset, int origin);
     long int boss_ftell(boss_file file);

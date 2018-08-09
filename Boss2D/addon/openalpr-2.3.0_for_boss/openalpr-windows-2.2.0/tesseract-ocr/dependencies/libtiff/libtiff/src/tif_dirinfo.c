@@ -796,7 +796,7 @@ _TIFFFindFieldInfoByName(TIFF* tif, const char *field_name, TIFFDataType dt)
 
         ret = (const TIFFFieldInfo **) lfind(&pkey,
 					     tif->tif_fieldinfo, 
-					     (unsigned int*) &tif->tif_nfields, // modified by BOSS, ¿øº»(&tif->tif_nfields,)
+					     (unsigned int*) &tif->tif_nfields, // modified by BOSS, original-code: &tif->tif_nfields,
 					     sizeof(TIFFFieldInfo *),
 					     tagNameCompare);
 	return tif->tif_foundfield = (ret ? *ret : NULL);

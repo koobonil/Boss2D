@@ -420,31 +420,6 @@ public:
     }
 
 public:
-    static String GetParsedFilename(char const* filename)
-    {
-        String ParsedFilename;
-        sint32 SavedSize = 0;
-        while(*filename != '\0')
-        {
-            const char NewChar = *filename;
-            if(NewChar == '\\' || NewChar == '/')
-            {
-                ParsedFilename += '/';
-                SavedSize = 0;
-            }
-            else
-            {
-                if(NewChar == ':')
-                    ParsedFilename = ParsedFilename.Right(SavedSize);
-                ParsedFilename += NewChar;
-                SavedSize++;
-            }
-            filename++;
-        }
-        return ParsedFilename;
-    }
-
-public:
     sint32 mFileID;
     bool mTypeAssets;
     void* mFilePointer;
@@ -485,28 +460,118 @@ static sint32 gLastFileID = -1;
     }
 #endif
 
-extern "C" boss_file boss_fopen(char const* filename, char const* mode)
+extern "C" const char* boss_normalpath(const char* itemname, boss_drive* result)
 {
-    const String ParsedFilename = FileClass::GetParsedFilename(filename);
-    filename = ParsedFilename;
-    const bool AssetsFlag = (filename[0] == 'a' && filename[1] == 's' && filename[2] == 's' &&
-        filename[3] == 'e' && filename[4] == 't' && filename[5] == 's' && filename[6] == ':');
+    static boss_drive LastDrive = drive_error;
+    static String LastNormalPath;
+
+    // boss_normalpath()의 결과로써 다시 boss_normalpath를 호출할 경우는 무시
+    if(itemname != (chars) LastNormalPath)
+    {
+        // 리눅스계열 패스식별자 스킵
+        if(itemname[0] == '\\' && itemname[1] == '\\' && itemname[2] == '?' && itemname[3] == '\\')
+            itemname += 4;
+
+        // 드라이브식별자 판단(itemname위치도 재조정, 중간에 등장할 경우도 고려)
+        LastDrive = drive_relative;
+        char DriveCode;
+        chars DirFocus = itemname;
+        for(chars item = itemname; *item != '\0'; ++item)
+        {
+            if(*item == '/' || *item == '\\')
+                DirFocus = item + 1;
+            else if(item[0] == ':' && (item[1] == '/' || item[1] == '\\'))
+            {
+                itemname = item + 2;
+                LastDrive = drive_error;
+                if(item - DirFocus == 1)
+                {
+                    if('A' <= *DirFocus && *DirFocus <= 'Z')
+                    {
+                        LastDrive = drive_absolute;
+                        DriveCode = *DirFocus;
+                    }
+                    else if('a' <= *DirFocus && *DirFocus <= 'z')
+                    {
+                        LastDrive = drive_absolute;
+                        DriveCode = 'A' + (*DirFocus - 'a');
+                    }
+                }
+                else if(item - DirFocus == 8)
+                {
+                    if(!boss_strnicmp(DirFocus, "relative", 8)) LastDrive = drive_relative;
+                }
+                else if(item - DirFocus == 6)
+                {
+                    if(!boss_strnicmp(DirFocus, "assets", 6)) LastDrive = drive_assets;
+                    else if(!boss_strnicmp(DirFocus, "memory", 6)) LastDrive = drive_memory;
+                }
+            }
+        }
+
+        // 노멀패스에 드라이브식별자를 붙임
+        branch;
+        jump(LastDrive == drive_absolute)
+        {
+            LastNormalPath = DriveCode;
+            LastNormalPath += ":/";
+        }
+        jump(LastDrive == drive_assets) LastNormalPath = "assets:/";
+        jump(LastDrive == drive_memory) LastNormalPath = "memory:/";
+        else LastNormalPath.Empty();
+
+        // 노멀패스에 하위 항목을 붙임
+        DirFocus = itemname;
+        for(chars item = itemname; *item != '\0'; ++item)
+        {
+            if(*item == '/' || *item == '\\')
+            {
+                branch;
+                jump(item - DirFocus == 0) nothing;
+                jump(item - DirFocus == 1 && DirFocus[0] == '.') nothing;
+                jump(item - DirFocus == 2 && DirFocus[0] == '.' && DirFocus[1] == '.')
+                {
+                    if(0 < LastNormalPath.Length()) LastNormalPath.Sub(1); // 끝 슬래시 제거후
+                    while(0 < LastNormalPath.Length() && LastNormalPath[-2] != '/')
+                        LastNormalPath.Sub(1); // 가능한한 슬래시를 만나기 전까지 제거
+                }
+                else
+                {
+                    LastNormalPath += String(DirFocus, item - DirFocus); // 디렉터리명을 붙임
+                    LastNormalPath += '/';
+                }
+                DirFocus = item + 1;
+            }
+        }
+        LastNormalPath += DirFocus; // 파일명을 붙임
+    }
+
+    if(result) *result = LastDrive;
+    return (chars) LastNormalPath;
+}
+
+extern "C" boss_file boss_fopen(const char* filename, const char* mode)
+{
+    boss_drive Drive = drive_error;
+    const String NormalFilename = boss_normalpath(filename, &Drive);
+    if(Drive == drive_error || Drive == drive_memory) return nullptr;
+    if(Drive == drive_absolute && NormalFilename[0] == 'Q')
+        filename = ((chars) NormalFilename) + 3; // "Q:/"
+    else if(Drive == drive_assets) filename = ((chars) NormalFilename) + 8; // "assets:/"
+    else filename = NormalFilename;
 
     bool ReadFlag = false, SaveFlag = false;
     while(*mode != '\0')
     {
         if(*mode == 'r') ReadFlag = true;
         else if(*mode == '+') SaveFlag = true;
-        else if(*mode == 'a')
-        {
-            BOSS_ASSERT("a모드는 준비중입니다", false);
-        }
+        else if(*mode == 'a') BOSS_ASSERT("a모드는 준비중입니다", false);
         mode++;
     }
 
     if(ReadFlag)
     {
-        if(!AssetsFlag)
+        if(Drive != drive_assets)
         {
             FILE* NewFilePointer = fopen(filename, (SaveFlag)? "r+b" : "rb");
             if(!NewFilePointer) return nullptr;
@@ -520,28 +585,21 @@ extern "C" boss_file boss_fopen(char const* filename, char const* mode)
         else if(!SaveFlag)
         {
             #if BOSS_WINDOWS
-                const String FilenameAtAssets = String("../assets") + &filename[7];
-                filename = FilenameAtAssets;
-                FILE* NewAssetsPointer = fopen(filename, "rb");
+                FILE* NewAssetsPointer = fopen(String("../assets/") + filename, "rb");
                 if(!NewAssetsPointer) return nullptr;
             #elif BOSS_LINUX
-                const String FilenameAtAssets = String("../assets") + &filename[7];
-                filename = FilenameAtAssets;
-                FILE* NewAssetsPointer = fopen(filename, "rb");
+                FILE* NewAssetsPointer = fopen(String("../assets/") + filename, "rb");
                 if(!NewAssetsPointer) return nullptr;
             #elif BOSS_ANDROID
-                const String FilenameAtAssets = &filename[8]; // "assets:/"
-                filename = FilenameAtAssets;
                 AAsset* NewAssetsPointer = AAssetManager_open(GetAAssetManager(), filename, AASSET_MODE_BUFFER);
                 if(!NewAssetsPointer) return nullptr;
             #elif BOSS_MAC_OSX || BOSS_IPHONE
-                const String FilenameAtAssets = String("../assets") + &filename[7];
-                filename = FilenameAtAssets;
-                FILE* NewAssetsPointer = fopen(filename, "rb");
+                FILE* NewAssetsPointer = fopen(String("../assets/") + filename, "rb");
                 if(!NewAssetsPointer) return nullptr;
             #else
                 #error 준비되지 않은 플랫폼입니다
             #endif
+
             FileClass* NewFile = &gAllFiles[++gLastFileID];
             NewFile->mFileID = gLastFileID;
             NewFile->mTypeAssets = true;
@@ -550,7 +608,7 @@ extern "C" boss_file boss_fopen(char const* filename, char const* mode)
             return (boss_file) NewFile;
         }
     }
-    else if(!AssetsFlag)
+    else if(Drive != drive_assets)
     {
         FILE* NewFilePointer = fopen(filename, "wb");
         if(!NewFilePointer) return nullptr;
@@ -745,66 +803,63 @@ static sint32 gLastDirID = -1;
 
 extern "C" boss_dir boss_opendir(const char* dirname)
 {
-    const String ParsedDirname = FileClass::GetParsedFilename(dirname);
-    dirname = ParsedDirname;
-    const bool AssetsFlag = (dirname[0] == 'a' && dirname[1] == 's' && dirname[2] == 's' &&
-        dirname[3] == 'e' && dirname[4] == 't' && dirname[5] == 's' && dirname[6] == ':');
+    boss_drive Drive = drive_error;
+    const String NormalFilename = boss_normalpath(dirname, &Drive);
+    if(Drive == drive_error || Drive == drive_memory) return nullptr;
+    if(Drive == drive_absolute && NormalFilename[0] == 'Q')
+        dirname = ((chars) NormalFilename) + 3; // "Q:/"
+    else if(Drive == drive_assets) dirname = ((chars) NormalFilename) + 8; // "assets:/"
+    else dirname = NormalFilename;
 
-    if(AssetsFlag)
+    if(Drive == drive_assets)
     {
         #if BOSS_WINDOWS
-            const String DirnameAtAssets = String("../assets") + &dirname[7];
-            dirname = DirnameAtAssets;
             WIN32_FIND_DATAW* NewFindFileData = new WIN32_FIND_DATAW();
-            HANDLE NewDirHandle = FindFirstFileW((wchars) WString::FromChars(dirname), NewFindFileData);
+            HANDLE NewDirHandle = FindFirstFileW((wchars) WString::FromChars(String("../assets/") + dirname), NewFindFileData);
             if(NewDirHandle == INVALID_HANDLE_VALUE)
             {
                 delete NewFindFileData;
                 return nullptr;
             }
-        #elif BOSS_LINUX
-            const String ParentPath = ".";
-            String DirnameAtAssets = &dirname[8]; // "assets:/"
-            if(2 < DirnameAtAssets.Length() && DirnameAtAssets[-3] == '/' && DirnameAtAssets[-2] == '*')
-                DirnameAtAssets.Sub(2);
-            dirname = DirnameAtAssets;
-            DIR* NewDirHandle = opendir((chars) (ParentPath + '/' + dirname));
-            if(!NewDirHandle) return nullptr;
-            void* NewFindFileData = nullptr;
-        #elif BOSS_MAC_OSX || BOSS_IPHONE
-            CFURLRef ResourceURL = CFBundleCopyResourcesDirectoryURL(CFBundleGetMainBundle());
-            #if BOSS_MAC_OSX
-                char TempString[1024];
-                if(!CFURLGetFileSystemRepresentation(ResourceURL, TRUE, (UInt8*) TempString, 1024))
-                    return nullptr;
-                const String ParentPath = TempString;
-            #else // 아이폰 및 시뮬레이터
-                const String ParentPath = CFStringGetCStringPtr(CFURLGetString(ResourceURL), kCFStringEncodingUTF8) + 7; // 7은 "file://"
-            #endif
-            CFRelease(ResourceURL);
-            String DirnameAtAssets = &dirname[8]; // "assets:/"
-            if(2 < DirnameAtAssets.Length() && DirnameAtAssets[-3] == '/' && DirnameAtAssets[-2] == '*')
-                DirnameAtAssets.Sub(2);
-            dirname = DirnameAtAssets;
-            DIR* NewDirHandle = opendir((chars) (ParentPath + '/' + dirname));
-            if(!NewDirHandle) return nullptr;
-            void* NewFindFileData = nullptr;
-        #elif BOSS_ANDROID
-            String DirnameAtAssets = &dirname[8]; // "assets:/"
-            if(2 < DirnameAtAssets.Length() && DirnameAtAssets[-3] == '/' && DirnameAtAssets[-2] == '*')
-                DirnameAtAssets.Sub(2);
-            dirname = DirnameAtAssets;
-            AAssetDir* NewDirHandle = AAssetManager_openDir(GetAAssetManager(), dirname);
-            if(!NewDirHandle) return nullptr;
-            chars NewFindFileData = AAssetDir_getNextFileName(NewDirHandle);
-            if(!NewFindFileData)
-            {
-                AAssetDir_close(NewDirHandle);
-                return nullptr;
-            }
         #else
-            #error 준비되지 않은 플랫폼입니다
+            String DirnameAtAssets = dirname;
+            if(2 < DirnameAtAssets.Length() && DirnameAtAssets[-3] == '/' && DirnameAtAssets[-2] == '*')
+                DirnameAtAssets.Sub(2);
+            dirname = DirnameAtAssets;
+
+            #if BOSS_LINUX
+                const String ParentPath = ".";
+                DIR* NewDirHandle = opendir((chars) (ParentPath + '/' + dirname));
+                if(!NewDirHandle) return nullptr;
+                void* NewFindFileData = nullptr;
+            #elif BOSS_MAC_OSX || BOSS_IPHONE
+                CFURLRef ResourceURL = CFBundleCopyResourcesDirectoryURL(CFBundleGetMainBundle());
+                #if BOSS_MAC_OSX
+                    char TempString[1024];
+                    if(!CFURLGetFileSystemRepresentation(ResourceURL, TRUE, (UInt8*) TempString, 1024))
+                        return nullptr;
+                    const String ParentPath = TempString;
+                #else // 아이폰 및 시뮬레이터
+                    const String ParentPath = CFStringGetCStringPtr(CFURLGetString(ResourceURL), kCFStringEncodingUTF8) + 7; // 7은 "file://"
+                #endif
+                CFRelease(ResourceURL);
+                DIR* NewDirHandle = opendir((chars) (ParentPath + '/' + dirname));
+                if(!NewDirHandle) return nullptr;
+                void* NewFindFileData = nullptr;
+            #elif BOSS_ANDROID
+                AAssetDir* NewDirHandle = AAssetManager_openDir(GetAAssetManager(), dirname);
+                if(!NewDirHandle) return nullptr;
+                chars NewFindFileData = AAssetDir_getNextFileName(NewDirHandle);
+                if(!NewFindFileData)
+                {
+                    AAssetDir_close(NewDirHandle);
+                    return nullptr;
+                }
+            #else
+                #error 준비되지 않은 플랫폼입니다
+            #endif
         #endif
+
         DirClass* NewDir = &gAllDirs[++gLastDirID];
         NewDir->mDirID = gLastDirID;
         NewDir->mTypeAssets = true;
@@ -823,29 +878,7 @@ extern "C" boss_dir boss_opendir(const char* dirname)
                 delete NewFindFileData;
                 return nullptr;
             }
-        #elif BOSS_LINUX
-            if(dirname[0] == 'Q' && dirname[1] == ':')
-                dirname += 2;
-            String DirnameAtAssets = dirname;
-            if(2 < DirnameAtAssets.Length() && DirnameAtAssets[-3] == '/' && DirnameAtAssets[-2] == '*')
-                DirnameAtAssets.Sub(2);
-            dirname = DirnameAtAssets;
-            DIR* NewDirHandle = opendir(dirname);
-            if(!NewDirHandle) return nullptr;
-            void* NewFindFileData = nullptr;
-        #elif BOSS_MAC_OSX || BOSS_IPHONE
-            if(dirname[0] == 'Q' && dirname[1] == ':')
-                dirname += 2;
-            String DirnameAtAssets = dirname;
-            if(2 < DirnameAtAssets.Length() && DirnameAtAssets[-3] == '/' && DirnameAtAssets[-2] == '*')
-                DirnameAtAssets.Sub(2);
-            dirname = DirnameAtAssets;
-            DIR* NewDirHandle = opendir(dirname);
-            if(!NewDirHandle) return nullptr;
-            void* NewFindFileData = nullptr;
-        #elif BOSS_ANDROID
-            if(dirname[0] == 'Q' && dirname[1] == ':')
-                dirname += 2;
+        #elif BOSS_LINUX | BOSS_MAC_OSX | BOSS_IPHONE | BOSS_ANDROID
             String DirnameAtAssets = dirname;
             if(2 < DirnameAtAssets.Length() && DirnameAtAssets[-3] == '/' && DirnameAtAssets[-2] == '*')
                 DirnameAtAssets.Sub(2);
@@ -856,6 +889,7 @@ extern "C" boss_dir boss_opendir(const char* dirname)
         #else
             #error 준비되지 않은 플랫폼입니다
         #endif
+
         DirClass* NewDir = &gAllDirs[++gLastDirID];
         NewDir->mDirID = gLastDirID;
         NewDir->mTypeAssets = false;

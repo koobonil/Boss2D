@@ -50,7 +50,7 @@ using tesseract::ShapeTable;
 
 // global variable to hold configuration parameters to control clustering
 // -M 0.625   -B 0.05   -I 1.0   -C 1e-6.
-CLUSTERCONFIG Config = { elliptical, 0.625f, 0.05f, 1.0f, 1e-6, 0 }; // modified by BOSS, ¿øº»(elliptical, 0.625, 0.05, 1.0, 1e-6, 0)
+CLUSTERCONFIG Config = { elliptical, 0.625f, 0.05f, 1.0f, 1e-6, 0 }; // modified by BOSS, original-code: elliptical, 0.625, 0.05, 1.0, 1e-6, 0
 FEATURE_DEFS_STRUCT feature_defs;
 CCUtil ccutil;
 

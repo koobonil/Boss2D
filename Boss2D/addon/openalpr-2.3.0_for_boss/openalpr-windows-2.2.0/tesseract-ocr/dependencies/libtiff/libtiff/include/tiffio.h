@@ -240,7 +240,7 @@ struct _TIFFRGBAImage {
  */
 typedef	int (*TIFFInitMethod)(TIFF*, int);
 typedef struct {
-	const char* name; // modified by BOSS, original-code: (char* name;)
+	const char* name; // modified by BOSS, original-code: char* name;
 	uint16		scheme;
 	TIFFInitMethod	init;
 } TIFFCodec;
@@ -310,7 +310,7 @@ typedef	struct {
         unsigned short field_bit;	/* bit in fieldsset bit vector */
 	unsigned char field_oktochange;	/* if true, can change while writing */
 	unsigned char field_passcount;	/* if true, pass dir count on set */
-	const char	*field_name;		/* ASCII name */ // modified by BOSS, original-code: (char	*field_name;)
+	const char	*field_name;		/* ASCII name */ // modified by BOSS, original-code: char	*field_name;
 } TIFFFieldInfo;
 
 typedef struct _TIFFTagValue {

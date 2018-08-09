@@ -1,3 +1,5 @@
+// author BOSS
+
 /***********************************************************************
  * Software License Agreement (BSD License)
  *
@@ -437,7 +439,7 @@ private:
     void getNeighbors(ResultSet<DistanceType>& result, const ElementType* vec, int maxCheck, float epsError)
     {
         int i;
-        BranchSt branch;
+        BranchSt _branch; // modified by BOSS, original-code: BranchSt branch;
 
         int checkCount = 0;
         Heap<BranchSt>* heap = new Heap<BranchSt>((int)size_);
@@ -449,8 +451,8 @@ private:
         }
 
         /* Keep searching other branches from heap until finished. */
-        while ( heap->popMin(branch) && (checkCount < maxCheck || !result.full() )) {
-            searchLevel(result, vec, branch.node, branch.mindist, checkCount, maxCheck, epsError, heap, checked);
+        while ( heap->popMin(_branch) && (checkCount < maxCheck || !result.full() )) { // modified by BOSS, original-code: while ( heap->popMin(branch) && (checkCount < maxCheck || !result.full() )) {
+            searchLevel(result, vec, _branch.node, _branch.mindist, checkCount, maxCheck, epsError, heap, checked); // modified by BOSS, original-code: searchLevel(result, vec, branch.node, branch.mindist, checkCount, maxCheck, epsError, heap, checked);
         }
 
         delete heap;

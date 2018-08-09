@@ -197,7 +197,7 @@ void
 TIFFPrintDirectory(TIFF* tif, FILE* fd, long flags)
 {
 	TIFFDirectory *td = &tif->tif_dir;
-        const char *sep; // modified by BOSS, original-code: (char *sep;)
+        const char *sep; // modified by BOSS, original-code: char *sep;
 	uint16 i;
 	long l, n;
 
@@ -564,7 +564,7 @@ TIFFPrintDirectory(TIFF* tif, FILE* fd, long flags)
 				raw_data = _TIFFmalloc(
 					_TIFFDataSize(fip->field_type)
 					* value_count);
-				tmp = (char*) raw_data; // modified by BOSS: ¿øº»(tmp = raw_data;)
+				tmp = (char*) raw_data; // modified by BOSS, original-code: tmp = raw_data;
 				mem_alloc = 1;
 				if(TIFFGetField(tif, tag, tmp,
 				tmp + _TIFFDataSize(fip->field_type)) != 1) {

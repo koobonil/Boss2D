@@ -1,3 +1,5 @@
+// author BOSS
+
 /***********************************************************************
  * Software License Agreement (BSD License)
  *
@@ -510,9 +512,9 @@ public:
             int checks = 0;
             findNN(root_, result, vec, checks, maxChecks, heap);
 
-            BranchSt branch;
-            while (heap->popMin(branch) && (checks<maxChecks || !result.full())) {
-                KMeansNodePtr node = branch.node;
+            BranchSt _branch; // modified by BOSS, original-code: BranchSt branch;
+            while (heap->popMin(_branch) && (checks<maxChecks || !result.full())) { // modified by BOSS, original-code: while (heap->popMin(branch) && (checks<maxChecks || !result.full())) {
+                KMeansNodePtr node = _branch.node; // modified by BOSS, original-code: KMeansNodePtr node = branch.node;
                 findNN(node, result, vec, checks, maxChecks, heap);
             }
             assert(result.full());

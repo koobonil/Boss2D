@@ -298,26 +298,22 @@ namespace BOSS
 
             chars NormalPath(chars itemname, bool QCodeTest)
             {
-                itemname = (itemname[0] == '\\' &&
-                    itemname[1] == '\\' &&
-                    itemname[2] == '?' &&
-                    itemname[3] == '\\')? itemname + 4 : itemname;
-                if(QCodeTest)
-                    itemname = (itemname[0] == 'Q' &&
-                        itemname[1] == ':')? itemname + 2 : itemname;
-                return itemname;
+                static String Result;
+                chars ItemName = boss_normalpath(itemname, nullptr);
+                if(QCodeTest && ItemName[0] == 'Q' && ItemName[1] == ':')
+                    ItemName += 2;
+                Result = ItemName;
+                return Result;
             }
 
             wchars NormalPathW(wchars itemname, bool QCodeTest)
             {
-                itemname = (itemname[0] == L'\\' &&
-                    itemname[1] == L'\\' &&
-                    itemname[2] == L'?' &&
-                    itemname[3] == L'\\')? itemname + 4 : itemname;
-                if(QCodeTest)
-                    itemname = (itemname[0] == L'Q' &&
-                        itemname[1] == L':')? itemname + 2 : itemname;
-                return itemname;
+                static WString Result;
+                chars ItemName = boss_normalpath(String::FromWChars(itemname), nullptr);
+                if(QCodeTest && ItemName[0] == 'Q' && ItemName[1] == ':')
+                    ItemName += 2;
+                Result = WString::FromChars(ItemName);
+                return Result;
             }
 
             static sint32 LastFD = -1;
