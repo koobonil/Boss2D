@@ -252,7 +252,19 @@ namespace BOSS
 
     ////////////////////////////////////////////////////////////////////////////////
     static void Ssl_Error() {BOSS_ASSERT("Ssl애드온이 준비되지 않았습니다", false);}
+    BOSS_DEFINE_ADDON_FUNCTION(Ssl, CreateMD5, id_md5, return nullptr, void)
+    BOSS_DEFINE_ADDON_FUNCTION(Ssl, ReleaseMD5, chars, return "", id_md5)
+    BOSS_DEFINE_ADDON_FUNCTION(Ssl, UpdateMD5, void, return, id_md5, bytes, sint32)
     BOSS_DEFINE_ADDON_FUNCTION(Ssl, ToMD5, chars, return "", bytes, sint32)
+
+    id_md5 AddOn::Ssl::CreateMD5(void)
+    {return Core_AddOn_Ssl_CreateMD5()();}
+
+    chars AddOn::Ssl::ReleaseMD5(id_md5 md5)
+    {return Core_AddOn_Ssl_ReleaseMD5()(md5);}
+
+    void AddOn::Ssl::UpdateMD5(id_md5 md5, bytes binary, sint32 length)
+    {Core_AddOn_Ssl_UpdateMD5()(md5, binary, length);}
 
     chars AddOn::Ssl::ToMD5(bytes binary, sint32 length)
     {return Core_AddOn_Ssl_ToMD5()(binary, length);}

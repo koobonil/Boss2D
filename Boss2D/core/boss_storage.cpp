@@ -1,110 +1,158 @@
 ﻿#include <boss.hpp>
 #include "boss_storage.hpp"
 
+class StorageUnit;
+
+// 관리객체
+class StorageClass
+{
+    friend class StorageUnit;
+
+public:
+    StorageClass(ClearType type, Storage::NewCB ncb, Storage::DeleteCB dcb);
+    ~StorageClass();
+
+public:
+    StorageUnit& GetValidUnit() const;
+    bool InvalidUnit() const;
+    static sint32 ClearLocalDataAll(ClearType type);
+
+private:
+    const ClearType mType;
+    const Storage::NewCB mNew;
+    const Storage::DeleteCB mDelete;
+    const sint32 mUnitID;
+};
+
 // 단위객체
 class StorageUnit
 {
+    friend class StorageClass;
+
 public:
-    Storage::DeleteCB Delete;
-    ClearType Type;
-    void* Ptr;
+    StorageUnit()
+    {
+        mRefClass = nullptr;
+        mInstance = nullptr;
+    }
+    ~StorageUnit()
+    {
+        if(mInstance)
+        {
+            mRefClass->mDelete(mInstance);
+            mInstance = nullptr;
+        }
+    }
+
 public:
-    StorageUnit() {Delete = nullptr; Type = CT_Null; Ptr = nullptr;}
-    ~StorageUnit() {}
+    inline ClearType type() const
+    {return mRefClass->mType;}
+
+    void* GetValidInstance()
+    {
+        if(!mInstance)
+            mInstance = mRefClass->mNew();
+        return mInstance;
+    }
+
+    bool InvalidInstance() const
+    {
+        // 결국 자기 자신(StorageUnit)이 파괴됨
+        return mRefClass->InvalidUnit();
+    }
+
+private:
+    const StorageClass* mRefClass;
+    void* mInstance;
 };
-typedef Array<StorageUnit, datatype_class_canmemcpy, 256> StorageUnits;
+typedef Map<StorageUnit> StorageUnitMap;
 
 // 전역변수
-static sint32 boss_storage_lastindex = -1;
+static sint32 boss_storage_unitcount = 0;
 #if HAS_CXX11_THREAD_LOCAL
-    thread_local StorageUnits* boss_storage_root;
+    thread_local StorageUnitMap* boss_storage_root;
 #elif defined(_MSC_VER)
-    __declspec(thread) StorageUnits* boss_storage_root;
+    __declspec(thread) StorageUnitMap* boss_storage_root;
 #elif defined(__GNUC__)
     #if BOSS_IPHONE
-        static StorageUnits* boss_storage_root; // 수정해야 함!!!!!
+        static StorageUnitMap* boss_storage_root; // 수정해야 함!!!!!
     #else
-        __thread StorageUnits* boss_storage_root;
+        __thread StorageUnitMap* boss_storage_root;
     #endif
 #else
     #error Unknown compiler
 #endif
 
-// 관리객체
-class StorageClass
+StorageClass::StorageClass(ClearType type, Storage::NewCB ncb, Storage::DeleteCB dcb)
+    : mType(type), mNew(ncb), mDelete(dcb), mUnitID(boss_storage_unitcount++)
 {
-public:
-    const sint32 Index;
+}
 
-public:
-    StorageUnit& GetLocalUnit()
-    {
-        if(!boss_storage_root)
-            boss_storage_root = new StorageUnits();
-        return boss_storage_root->AtWherever(Index);
-    }
+StorageClass::~StorageClass()
+{
+}
 
-    bool ClearLocalData()
-    {
-        StorageUnit& CurUnit = GetLocalUnit();
-        if(CurUnit.Ptr)
-        {
-            CurUnit.Delete(CurUnit.Ptr);
-            CurUnit.Ptr = nullptr;
-            return true;
-        }
-        return false;
-    }
+StorageUnit& StorageClass::GetValidUnit() const
+{
+    BOSS_ASSERT("영구제거된 스토리지에 다시 접근하려 합니다", boss_storage_root != (StorageUnitMap*) 1);
+    StorageUnitMap& UnitMap = (boss_storage_root)?
+        *boss_storage_root : *(boss_storage_root = new StorageUnitMap());
+    if(auto OldUnit = UnitMap.Access(mUnitID))
+        return *OldUnit;
+    StorageUnit& NewStorageUnit = UnitMap[mUnitID];
+    NewStorageUnit.mRefClass = this;
+    return NewStorageUnit;
+}
 
-    static sint32 ClearLocalDataAll(ClearType type)
+bool StorageClass::InvalidUnit() const
+{
+    BOSS_ASSERT("영구제거된 스토리지에 다시 접근하려 합니다", boss_storage_root != (StorageUnitMap*) 1);
+    return boss_storage_root->Remove(mUnitID);
+}
+
+sint32 StorageClass::ClearLocalDataAll(ClearType type)
+{
+    BOSS_ASSERT("영구제거된 스토리지에 다시 접근하려 합니다", boss_storage_root != (StorageUnitMap*) 1);
+    if(boss_storage_root)
     {
         sint32 ClearCount = 0;
-        if(boss_storage_root)
         for(sint32 i = boss_storage_root->Count() - 1; 0 <= i; --i)
         {
-            StorageUnit& CurUnit = boss_storage_root->At(i);
-            if(CurUnit.Type == type && CurUnit.Ptr)
-            {
-                CurUnit.Delete(CurUnit.Ptr);
-                CurUnit.Ptr = nullptr;
-                ClearCount++;
-            }
+            StorageUnit& CurUnit = *boss_storage_root->AccessByOrder(i);
+            if(CurUnit.type() == type)
+                ClearCount += CurUnit.InvalidInstance();
+        }
+        if(type == ClearType::CT_System)
+        {
+            delete boss_storage_root;
+            boss_storage_root = (StorageUnitMap*) 1; // 영구제거 표식
         }
         return ClearCount;
     }
-
-public:
-    StorageClass(Storage::DeleteCB cb, ClearType type) : Index(++boss_storage_lastindex)
-    {
-        StorageUnit& NewUnit = GetLocalUnit();
-        NewUnit.Delete = cb;
-        NewUnit.Type = type;
-    }
-    ~StorageClass() {}
-};
+    return 0;
+}
 
 namespace BOSS
 {
-    id_storage Storage::Create(DeleteCB cb, ClearType type)
+    id_storage Storage::Create(ClearType type, NewCB ncb, DeleteCB dcb)
     {
-        BOSS_ASSERT("cb인수가 nullptr입니다", cb);
-        StorageClass* NewStorage = new StorageClass(cb, type);
+        BOSS_ASSERT("ncb 또는 dcb가 nullptr입니다", ncb && dcb);
+        StorageClass* NewStorage = new StorageClass(type, ncb, dcb);
         return (id_storage) NewStorage;
     }
 
-    void** Storage::Bind(id_storage storage)
+    void* Storage::Bind(id_storage storage)
     {
         BOSS_ASSERT("storage인수가 nullptr입니다", storage);
         StorageClass* CurStorage = (StorageClass*) storage;
-        StorageUnit& CurUnit = CurStorage->GetLocalUnit();
-        return &CurUnit.Ptr;
+        return CurStorage->GetValidUnit().GetValidInstance();
     }
 
     bool Storage::Clear(id_storage storage)
     {
         BOSS_ASSERT("storage인수가 nullptr입니다", storage);
         StorageClass* CurStorage = (StorageClass*) storage;
-        return CurStorage->ClearLocalData();
+        return CurStorage->InvalidUnit();
     }
 
     sint32 Storage::ClearAll(ClearLevel level)

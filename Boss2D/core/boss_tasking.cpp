@@ -166,6 +166,9 @@ static void _TaskCore(void* arg)
     This->DoDie();
     if(This->SetStateByCheck(TaskingClass::BS_OnlyTask, TaskingClass::BS_OnlyUser))
         Buffer::Free((buffer) This);
+
+    // 스토리지(TLS) 영구제거
+    Storage::ClearAll(CL_SystemAndUser);
 }
 
 namespace BOSS

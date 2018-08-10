@@ -3,45 +3,52 @@
 #include <boss.hpp>
 
 #define BOSS_STORAGE(CLASS, ...) \
-    [&]()->CLASS* {static id_storage NewStorage = \
-    Storage::Create([](void* ptr)->void {delete (CLASS*) ptr;}); \
-    CLASS** Result = (CLASS**) Storage::Bind(NewStorage); \
-    return (*Result)? *Result : (*Result = new CLASS(__VA_ARGS__));}()
+    [&]()->CLASS* { \
+    static id_storage NewStorage = \
+        Storage::Create(CT_User, \
+            []()->void* {return new CLASS(__VA_ARGS__);}, \
+            [](void* ptr)->void {delete (CLASS*) ptr;}); \
+    return (CLASS*) Storage::Bind(NewStorage);}()
+
 #define BOSS_STORAGE_SYS(CLASS, ...) \
-    [&]()->CLASS* {static id_storage NewStorage = \
-    Storage::Create([](void* ptr)->void {delete (CLASS*) ptr;}, CT_System); \
-    CLASS** Result = (CLASS**) Storage::Bind(NewStorage); \
-    return (*Result)? *Result : (*Result = new CLASS(__VA_ARGS__));}()
+    [&]()->CLASS* { \
+    static id_storage NewStorage = \
+        Storage::Create(CT_System, \
+            []()->void* {return new CLASS(__VA_ARGS__);}, \
+            [](void* ptr)->void {delete (CLASS*) ptr;}); \
+    return (CLASS*) Storage::Bind(NewStorage);}()
 
 namespace BOSS
 {
     BOSS_DECLARE_ID(id_storage);
-    enum ClearType {CT_Null, CT_System, CT_User};
+    enum ClearType {CT_System, CT_User};
     enum ClearLevel {CL_SystemAndUser, CL_UserOnly};
 
     //! \brief 스토리지(TLS)지원
     class Storage
     {
     public:
+        typedef void* (*NewCB)();
         typedef void (*DeleteCB)(void*);
 
     public:
         /*!
         \brief 스토리지를 생성
-        \param cb : 객체소멸 콜백함수
-        \param type : 인스턴스 소멸을 위한 분류타입
+        \param type : 인스턴스 분류타입
+        \param ncb : 객체생성 콜백함수
+        \param dcb : 객체소멸 콜백함수
         \return 스토리지ID
         \see Bind, Clear, ClearAll
         */
-        static id_storage Create(DeleteCB cb, ClearType type = CT_User);
+        static id_storage Create(ClearType type, NewCB ncb, DeleteCB dcb);
 
         /*!
-        \brief 해당 스토리지에 스레드별 인스턴스를 연동(생성)
+        \brief 해당 스토리지에 스레드별 인스턴스를 연동(없으면 생성)
         \param storage : 스토리지ID
         \return 인스턴스의 주소
         \see Create
         */
-        static void** Bind(id_storage storage);
+        static void* Bind(id_storage storage);
 
         /*!
         \brief 해당 스토리지에 연동된 인스턴스를 소멸
@@ -53,7 +60,7 @@ namespace BOSS
 
         /*!
         \brief 모든 스토리지에 연동된 인스턴스를 소멸
-        \param level : 소멸수준
+        \param level : 소멸수준(CL_SystemAndUser는 영구제거)
         \return 소멸시행 수량
         \see Bind, Clear
         */

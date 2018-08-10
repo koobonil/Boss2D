@@ -129,6 +129,8 @@
 
                 g_window = nullptr;
             }
+
+            // 스토리지(TLS) 영구제거
             Storage::ClearAll(CL_SystemAndUser);
             return result;
         }

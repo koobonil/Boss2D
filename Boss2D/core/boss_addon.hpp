@@ -10,6 +10,7 @@ namespace BOSS
     BOSS_DECLARE_ID(id_git);
     BOSS_DECLARE_ID(id_h264);
     BOSS_DECLARE_ID(id_jpg);
+    BOSS_DECLARE_ID(id_md5);
     BOSS_DECLARE_ID(id_opencv);
     BOSS_DECLARE_ID(id_tesseract);
     BOSS_DECLARE_ID(id_tif);
@@ -140,6 +141,9 @@ namespace BOSS
         class Ssl
         {
         public:
+            static id_md5 CreateMD5(void);
+            static chars ReleaseMD5(id_md5 md5);
+            static void UpdateMD5(id_md5 md5, bytes binary, sint32 length);
             static chars ToMD5(bytes binary, sint32 length);
         };
 
