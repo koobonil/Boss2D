@@ -2459,10 +2459,40 @@
             bool Result = false;
             if(CurSocketBox->m_udp)
             {
+                // GetHostByName를 사용하지 않고 빠르게 IP구하기
+                sint32 FastIP[4] = {0, 0, 0, 0};
+                sint32 FastIPFocus = 0;
+                for(chars DomainFocus = domain; *DomainFocus != '\0'; ++DomainFocus)
+                {
+                    if('0' <= *DomainFocus && *DomainFocus <= '9')
+                    {
+                        FastIP[FastIPFocus] = FastIP[FastIPFocus] * 10;
+                        FastIP[FastIPFocus] += *DomainFocus - '0';
+                        if(FastIP[FastIPFocus] <= 255)
+                            continue;
+                    }
+                    else if(*DomainFocus == '.' && ++FastIPFocus < 4)
+                        continue;
+                    FastIPFocus = -1;
+                    break;
+                }
+
                 Result = true;
-                Hostent* CurHostent = (Hostent*) GetHostByName(domain);
-                quint32 ip4Address = *((quint32*) CurHostent->h_addr_list[0]);
-                CurSocketBox->m_udpip.setAddress(ip4Address);
+                if(FastIPFocus == 3)
+                {
+                    quint32 ip4Address =
+                        ((FastIP[0] & 0xFF) << 24) |
+                        ((FastIP[1] & 0xFF) << 16) |
+                        ((FastIP[2] & 0xFF) <<  8) |
+                        ((FastIP[3] & 0xFF) <<  0);
+                    CurSocketBox->m_udpip.setAddress(ip4Address);
+                }
+                else
+                {
+                    Hostent* CurHostent = (Hostent*) GetHostByName(domain);
+                    quint32 ip4Address = *((quint32*) CurHostent->h_addr_list[0]);
+                    CurSocketBox->m_udpip.setAddress(ip4Address);
+                }
                 CurSocketBox->m_udpport = port;
             }
             else
