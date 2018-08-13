@@ -1929,170 +1929,195 @@
             return Result;
         }
 
-        class FileManager
+        class FDFile
+        {
+            BOSS_DECLARE_NONCOPYABLE_CLASS(FDFile)
+        public:
+            FDFile()
+            {
+                mID = -1;
+                mFile = nullptr;
+                mShare = 0;
+            }
+            ~FDFile()
+            {
+                boss_fclose(mFile);
+            }
+        public:
+            void SetID(sint32 id)
+            {
+                mID = id;
+            }
+            sint32 SetFile(boss_file file, sint32 share)
+            {
+                mFile = file;
+                mShare = share;
+                return mID;
+            }
+            void AddShare()
+            {
+                if(0 < mShare)
+                    mShare++;
+            }
+            bool SubShare()
+            {
+                if(0 < mShare && 0 == --mShare)
+                {
+                    boss_fclose(mFile);
+                    mFile = nullptr;
+                    return true;
+                }
+                return false;
+            }
+        public:
+            inline boss_file file() {return mFile;}
+        private:
+            sint32 mID;
+            boss_file mFile;
+            sint32 mShare;
+        };
+
+        class FDFilePool
         {
         public:
-            FileManager() {file = nullptr;}
-            ~FileManager()
-            {
-                if(file)
-                {
-                    if(file->isOpen())
-                    {
-                        BOSS_ASSERT("잘못된 시나리오입니다", sharecount == 1);
-                        file->close();
-                    }
-                    delete file;
-                    file = nullptr;
-                }
-            }
-
-            FileManager(const FileManager& rhs) {BOSS_ASSERT("사용금지", false);}
-            FileManager& operator=(const FileManager& rhs) {BOSS_ASSERT("사용금지", false); return *this;}
-
+            FDFilePool() {mMutex = Mutex::Open();}
+            ~FDFilePool() {Mutex::Close(mMutex);}
+        private:
+            static sint32 MakeID() {static sint32 _ = -1; return ++_;}
         public:
-            QFile* file;
-            sint32 sharecount;
-        };
+            FDFile& New()
+            {
+                Mutex::Lock(mMutex);
+                const sint32 NewID = MakeID();
+                FDFile& NewFile = mMap[NewID];
+                NewFile.SetID(NewID);
+                Mutex::Unlock(mMutex);
+                return NewFile;
+            }
+            FDFile* Get(sint32 fd)
+            {
+                Mutex::Lock(mMutex);
+                FDFile* CurFile = mMap.Access(fd);
+                Mutex::Unlock(mMutex);
+                return CurFile;
+            }
+            void Delete(sint32 fd)
+            {
+                Mutex::Lock(mMutex);
+                mMap.Remove(fd);
+                Mutex::Unlock(mMutex);
+            }
+        private:
+            id_mutex mMutex;
+            Map<FDFile> mMap;
+        } gFilePool;
+
+        extern chars GetFileName(boss_file file);
+        extern sint64 GetFileOffset(boss_file file);
 
         sint32 Platform::File::FDOpen(wchars filename, bool writable, bool append, bool exclusive, bool truncate)
         {
-            const String FilenameUTF8 = String::FromWChars(PlatformImpl::Core::NormalPathW(filename));
-            QFile* NewQFile = new QFile(QString::fromUtf8(FilenameUTF8).replace('\\', '/'));
-            QIODevice::OpenMode Mode = (writable)? QIODevice::ReadWrite : QIODevice::ReadOnly;
-            if(append) Mode |= QIODevice::Append;
-
-            if((exclusive && NewQFile->exists()) || !NewQFile->open(Mode) || (truncate && !NewQFile->resize(0)))
-            {
-                BOSS_TRACE("FDOpen(%s[%c%c%c%c]) - Failed", (chars) FilenameUTF8,
-                    writable? 'W' : '_', append? 'A' : '_', exclusive? 'E' : '_', truncate? 'T' : '_');
-                delete NewQFile;
+            const String FileName = String::FromWChars(filename);
+            if(exclusive && File::Exist(FileName))
                 return -1;
+
+            chars Mode = nullptr;
+            if(writable)
+            {
+                if(append && !truncate)
+                    Mode = "ab";
+                else if(!truncate)
+                    Mode = "r+b";
+                else Mode = "wb";
+            }
+            else
+            {
+                if(truncate)
+                    Mode = "w+b";
+                else Mode = "rb";
             }
 
-            buffer NewManagerBuffer = Buffer::Alloc<FileManager>(BOSS_DBG 1);
-            auto NewManager = (FileManager*) NewManagerBuffer;
-            NewManager->file = NewQFile;
-            NewManager->sharecount = 1;
-            const sint32 NewFD = PlatformImpl::Core::CreateManager(NewManagerBuffer);
-
-            BOSS_TRACE("FDOpen(%s[%c%c%c%c], %d) - %d", (chars) FilenameUTF8,
-                writable? 'W' : '_', append? 'A' : '_', exclusive? 'E' : '_', truncate? 'T' : '_',
-                (sint32) NewQFile->size(), NewFD);
-            return NewFD;
+            FDFile& NewFile = gFilePool.New();
+            return NewFile.SetFile(boss_fopen(FileName, Mode), 1);
         }
 
         sint32 Platform::File::FDOpenFrom(boss_file file)
         {
-            BOSS_ASSERT("Further development is needed.", false);
-            return -1;
+            FDFile& NewFile = gFilePool.New();
+            return NewFile.SetFile(file, 0);
         }
 
         void Platform::File::FDOpenRetain(sint32 fd)
         {
-            if(auto CurManager = PlatformImpl::Core::GetManagerBy<FileManager, datatype_class_canmemcpy>(fd))
-            {
-                BOSS_TRACE("FDOpenRetain(%d)", fd);
-                CurManager->sharecount++;
-            }
-            else BOSS_TRACE("FDOpenRetain(%d) - Failed", fd);
+            FDFile* CurFile = gFilePool.Get(fd);
+            if(CurFile)
+                CurFile->AddShare();
         }
 
         bool Platform::File::FDClose(sint32 fd)
         {
-            if(auto OldManager = PlatformImpl::Core::GetManagerBy<FileManager, datatype_class_canmemcpy>(fd))
+            FDFile* OldFile = gFilePool.Get(fd);
+            if(OldFile)
             {
-                if(OldManager->sharecount == 1)
-                {
-                    BOSS_TRACE("FDClose(%d)", fd);
-                    PlatformImpl::Core::RemoveManager(fd);
-                }
-                else if(1 < OldManager->sharecount)
-                {
-                    BOSS_TRACE("FDClose(%d) - ShareCount:%d", fd, OldManager->sharecount);
-                    OldManager->sharecount--;
-                }
-                else BOSS_ASSERT("잘못된 retain값입니다", false);
+                if(OldFile->SubShare())
+                    gFilePool.Delete(fd);
                 return true;
             }
-            BOSS_TRACE("FDClose(%d) - Failed", fd);
             return false;
         }
 
         sint64 Platform::File::FDRead(sint32 fd, void* data, sint64 size)
         {
-            if(auto CurManager = PlatformImpl::Core::GetManagerBy<FileManager, datatype_class_canmemcpy>(fd))
-            {
-                const sint64 Result = CurManager->file->read((char*) data, size);
-                BOSS_TRACE("FDRead(%d, %d) - %d", fd, (sint32) size, (sint32) Result);
-                return Result;
-            }
-            BOSS_TRACE("FDRead(%d) - Failed", fd);
+            FDFile* CurFile = gFilePool.Get(fd);
+            if(CurFile)
+                return boss_fread(data, 1, size, CurFile->file());
             return -1;
         }
 
         sint64 Platform::File::FDWrite(sint32 fd, const void* data, sint64 size)
         {
-            if(auto CurManager = PlatformImpl::Core::GetManagerBy<FileManager, datatype_class_canmemcpy>(fd))
-            {
-                const sint64 Result = CurManager->file->write((const char*) data, size);
-                BOSS_TRACE("FDWrite(%d, %d) - %d", fd, (sint32) size, (sint32) Result);
-                return Result;
-            }
-            BOSS_TRACE("FDWrite(%d) - Failed", fd);
+            FDFile* CurFile = gFilePool.Get(fd);
+            if(CurFile)
+                return boss_fwrite(data, 1, size, CurFile->file());
             return -1;
         }
 
         sint64 Platform::File::FDSeek(sint32 fd, sint64 offset, sint32 origin)
         {
-            if(auto CurManager = PlatformImpl::Core::GetManagerBy<FileManager, datatype_class_canmemcpy>(fd))
+            FDFile* CurFile = gFilePool.Get(fd);
+            if(CurFile)
             {
-                sint64 NewOffset = 0;
-                switch(origin)
-                {
-                case 0: NewOffset = offset; break;
-                case 1: NewOffset = CurManager->file->pos() + offset; break;
-                case 2: NewOffset = CurManager->file->size() + offset; break;
-                }
-                const bool Result = CurManager->file->seek(NewOffset);
-                if(Result)
-                {
-                    BOSS_TRACE("FDSeek(%d, %d, %d) - %d", fd, (sint32) offset, origin, (sint32) NewOffset);
-                    return NewOffset;
-                }
-                else BOSS_TRACE("FDSeek(%d, %d, %d) - Failed", fd, (sint32) offset, origin);
+                const sint64 Result = boss_fseek(CurFile->file(), offset, origin);
+                if(Result == 0)
+                    return GetFileOffset(CurFile->file());
             }
-            else BOSS_TRACE("FDSeek(%d) - Failed", fd);
             return -1;
         }
 
         bool Platform::File::FDResize(sint32 fd, sint64 size)
         {
-            if(auto CurManager = PlatformImpl::Core::GetManagerBy<FileManager, datatype_class_canmemcpy>(fd))
-            {
-                const bool Result = CurManager->file->resize(size);
-                BOSS_TRACE("FDResize(%d, %d)%s", fd, (sint32) size, Result? "" : " - Failed");
-                return Result;
-            }
-            BOSS_TRACE("FDResize(%d) - Failed", fd);
+            BOSS_ASSERT("Further development is needed.", false);
             return false;
         }
 
         void* Platform::File::FDMap(sint32 fd, sint64 offset, sint64 size, bool readonly)
         {
-            return PlatformImpl::Wrap::File_FDMap(fd, offset, size, readonly);
+            BOSS_ASSERT("Further development is needed.", false);
+            return nullptr;
         }
 
         bool Platform::File::FDUnmap(const void* map)
         {
-            return PlatformImpl::Wrap::File_FDUnmap(map);
+            BOSS_ASSERT("Further development is needed.", false);
+            return false;
         }
 
         uint32 Platform::File::FDAttributes(sint32 fd, uint64* size, uint64* ctime, uint64* atime, uint64* mtime)
         {
-            if(auto CurManager = PlatformImpl::Core::GetManagerBy<FileManager, datatype_class_canmemcpy>(fd))
+            FDFile* CurFile = gFilePool.Get(fd);
+            if(CurFile)
             {
-                QFileInfo CurInfo(*CurManager->file);
+                QFileInfo CurInfo(GetFileName(CurFile->file()));
 
                 uint32 Result = 0;
                 if(!CurInfo.isWritable()) Result |= 0x1; // FILE_ATTRIBUTE_READONLY
@@ -2106,8 +2131,7 @@
                 if(mtime) *mtime = 10 * 1000 * EpochToWindow(CurInfo.lastModified().toMSecsSinceEpoch());
                 return Result;
             }
-            BOSS_TRACE("FDAttributes(%d) - Failed", fd);
-            return -1; // INVALID_FILE_ATTRIBUTES
+            return -1;
         }
 
         void Platform::File::ResetAssetsRoot(chars dirname)

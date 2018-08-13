@@ -469,7 +469,9 @@
     #define _fgetc boss_fakewin_fgetc
     #define _fgets boss_fakewin_fgets
     #define _ungetc boss_fakewin_ungetc
+    #define _fprintf boss_fakewin_fprintf
     #define _fclose boss_fakewin_fclose
+    #define _feof boss_fakewin_feof
     #define _wopen boss_fakewin_wopen
     #define _close boss_fakewin_close
     #define _read boss_fakewin_read
@@ -554,7 +556,9 @@
     #define fgetc _fgetc
     #define fgets _fgets
     #define ungetc _ungetc
+    #define fprintf _fprintf
     #define fclose _fclose
+    #define feof _feof
     #define lseek _lseek
     #define lseeki64 _lseeki64
     #define chsize_s _chsize_s
@@ -621,7 +625,9 @@
     int boss_fakewin_fgetc(FILE* stream);
     char* boss_fakewin_fgets(char*,int,FILE*);
     int boss_fakewin_ungetc(int,FILE*);
+    int boss_fakewin_fprintf(FILE*,const char*, ...);
     int boss_fakewin_fclose(FILE*);
+    int boss_fakewin_feof(FILE*);
     int boss_fakewin_wopen(const wchar_t*,int,int);
     int boss_fakewin_close(int);
     long boss_fakewin_read(int, void*, unsigned int);

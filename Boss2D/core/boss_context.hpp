@@ -32,7 +32,11 @@ namespace BOSS
         \return 해당 자식콘텍스트의 인스턴스
         */
         inline Context& At(sint32 index)
-        {return m_indexableChild[index];}
+        {
+            while(m_indexableChild.Count() < index)
+                m_indexableChild.AtAdding();
+			return m_indexableChild[index];
+		}
 
         /*!
         \brief 자식콘텍스트를 마지막에 추가후 접근(배열식)

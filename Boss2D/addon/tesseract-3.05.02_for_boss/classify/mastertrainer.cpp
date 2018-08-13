@@ -362,7 +362,7 @@ bool MasterTrainer::LoadFontInfo(const char* filename) {
     return false;
   }
   int italic, bold, fixed, serif, fraktur;
-  while (!feof(fp)) {
+  while (!BOSS_TESSERACT_feof(fp)) { //original-code:feof(fp)) {
     FontInfo fontinfo;
     char* font_name = new char[1024];
     fontinfo.name = font_name;
@@ -408,7 +408,7 @@ bool MasterTrainer::LoadXHeights(const char* filename) {
   int xht;
   int total_xheight = 0;
   int xheight_count = 0;
-  while (!feof(f)) {
+  while (!BOSS_TESSERACT_feof(f)) { //original-code:feof(f)) {
     if (tfscanf(f, "%1023s %d\n", buffer, &xht) != 2)
       continue;
     buffer[1023] = '\0';

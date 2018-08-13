@@ -267,12 +267,14 @@
     const char* boss_normalpath(const char* itemname, boss_drive* result);
     boss_file boss_fopen(const char* filename, const char* mode);
     int boss_fclose(boss_file file);
+    int boss_feof(boss_file file);
     int boss_fseek(boss_file file, long int offset, int origin);
     long int boss_ftell(boss_file file);
     size_t boss_fread(void* ptr, size_t size, size_t count, boss_file file);
     size_t boss_fwrite(const void* ptr, size_t size, size_t count, boss_file file);
     int boss_fgetc(boss_file file);
     int boss_ungetc(int character, boss_file file);
+    int boss_fprintf(boss_file file, const char* format, boss_va_list args);
     void boss_rewind(boss_file file);
     char* boss_fgets(char* str, int num, boss_file file);
     boss_dir boss_opendir(const char* dirname);

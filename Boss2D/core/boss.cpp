@@ -421,6 +421,7 @@ public:
 
 public:
     sint32 mFileID;
+    String mFileName;
     bool mTypeAssets;
     void* mFilePointer;
     bool mNeedSave;
@@ -430,6 +431,25 @@ public:
 };
 static Map<FileClass> gAllFiles;
 static sint32 gLastFileID = -1;
+
+namespace BOSS
+{
+    chars GetFileName(boss_file file)
+    {
+        FileClass* CurFile = (FileClass*) file;
+        if(CurFile)
+            return CurFile->mFileName;
+        return "";
+    }
+
+    sint64 GetFileOffset(boss_file file)
+    {
+        FileClass* CurFile = (FileClass*) file;
+        if(CurFile)
+            return CurFile->mFileOffset;
+        return -1;
+    }
+};
 
 #if BOSS_ANDROID
     extern JNIEnv* GetAndroidJNIEnv();
@@ -577,6 +597,7 @@ extern "C" boss_file boss_fopen(const char* filename, const char* mode)
             if(!NewFilePointer) return nullptr;
             FileClass* NewFile = &gAllFiles[++gLastFileID];
             NewFile->mFileID = gLastFileID;
+            NewFile->mFileName = filename;
             NewFile->mTypeAssets = false;
             NewFile->mFilePointer = NewFilePointer;
             NewFile->mNeedSave = SaveFlag;
@@ -585,16 +606,26 @@ extern "C" boss_file boss_fopen(const char* filename, const char* mode)
         else if(!SaveFlag)
         {
             #if BOSS_WINDOWS
-                FILE* NewAssetsPointer = fopen(String("../assets/") + filename, "rb");
+                const String NewFileName = String("../assets/") + filename;
+                FILE* NewAssetsPointer = fopen(NewFileName, "rb");
                 if(!NewAssetsPointer) return nullptr;
             #elif BOSS_LINUX
-                FILE* NewAssetsPointer = fopen(String("../assets/") + filename, "rb");
+                const String NewFileName = String("../assets/") + filename;
+                FILE* NewAssetsPointer = fopen(NewFileName, "rb");
+                if(!NewAssetsPointer) return nullptr;
+            #elif BOSS_MAC_OSX
+                BOSS_ASSERT("개발이 필요합니다!", false);
+                const String NewFileName = String("assets:/") + filename;
+                FILE* NewAssetsPointer = fopen(NewFileName, "rb");
+                if(!NewAssetsPointer) return nullptr;
+            #elif BOSS_IPHONE
+                BOSS_ASSERT("개발이 필요합니다!", false);
+                const String NewFileName = String("assets:/") + filename;
+                FILE* NewAssetsPointer = fopen(NewFileName, "rb");
                 if(!NewAssetsPointer) return nullptr;
             #elif BOSS_ANDROID
+                const String NewFileName = String("assets:/") + filename;
                 AAsset* NewAssetsPointer = AAssetManager_open(GetAAssetManager(), filename, AASSET_MODE_BUFFER);
-                if(!NewAssetsPointer) return nullptr;
-            #elif BOSS_MAC_OSX || BOSS_IPHONE
-                FILE* NewAssetsPointer = fopen(String("../assets/") + filename, "rb");
                 if(!NewAssetsPointer) return nullptr;
             #else
                 #error 준비되지 않은 플랫폼입니다
@@ -602,6 +633,7 @@ extern "C" boss_file boss_fopen(const char* filename, const char* mode)
 
             FileClass* NewFile = &gAllFiles[++gLastFileID];
             NewFile->mFileID = gLastFileID;
+            NewFile->mFileName = NewFileName;
             NewFile->mTypeAssets = true;
             NewFile->mFilePointer = NewAssetsPointer;
             NewFile->mNeedSave = false;
@@ -614,6 +646,7 @@ extern "C" boss_file boss_fopen(const char* filename, const char* mode)
         if(!NewFilePointer) return nullptr;
         FileClass* NewFile = &gAllFiles[++gLastFileID];
         NewFile->mFileID = gLastFileID;
+        NewFile->mFileName = filename;
         NewFile->mTypeAssets = false;
         NewFile->mFilePointer = NewFilePointer;
         NewFile->mNeedSave = true;
@@ -635,11 +668,23 @@ extern "C" int boss_fclose(boss_file file)
     return EOF;
 }
 
+extern "C" int boss_feof(boss_file file)
+{
+    FileClass* CurFile = (FileClass*) file;
+    if(CurFile)
+    {
+        if(CurFile->mFileOffset < CurFile->mFileSize)
+            return 0;
+    }
+    return EOF;
+}
+
 extern "C" int boss_fseek(boss_file file, long int offset, int origin)
 {
     FileClass* CurFile = (FileClass*) file;
     if(CurFile)
     {
+        CurFile->ValidSize();
         switch(origin)
         {
         case SEEK_SET:
@@ -649,9 +694,14 @@ extern "C" int boss_fseek(boss_file file, long int offset, int origin)
             CurFile->mFileOffset += offset;
             break;
         case SEEK_END:
-            CurFile->ValidSize();
             CurFile->mFileOffset = CurFile->mFileSize + offset;
             break;
+        }
+        if(CurFile->mFileSize < CurFile->mFileOffset)
+        {
+            uint08* CurDst = CurFile->mContent->AtDumping(CurFile->mFileSize, CurFile->mFileOffset - CurFile->mFileSize);
+            Memory::Set(CurDst, 0, CurFile->mFileOffset - CurFile->mFileSize);
+            CurFile->mFileSize = CurFile->mFileOffset;
         }
         return 0;
     }
@@ -723,6 +773,30 @@ extern "C" int boss_ungetc(int character, boss_file file)
             CurFile->mContent->At(CurFile->mFileOffset) = (uint08) character;
             return character;
         }
+    }
+    return EOF;
+}
+
+extern "C" int boss_fprintf(boss_file file, const char* format, boss_va_list args)
+{
+    FileClass* CurFile = (FileClass*) file;
+    if(CurFile)
+    {
+        const sint32 BufLen = boss_vsnprintf(nullptr, 0, format, args);
+        char* Buf = new char[BufLen];
+        boss_vsnprintf(Buf, BufLen, format, args);
+
+        const sint32 CopyLen = BufLen - 1;
+        if(file != stdin && file != stdout && file != stderr)
+        {
+            CurFile->ValidContent();
+            Memory::Copy(CurFile->mContent->AtDumping(CurFile->mFileOffset, CopyLen), Buf, CopyLen);
+            CurFile->mFileSize = CurFile->mContent->Count();
+            CurFile->mFileOffset += CopyLen;
+        }
+
+        delete[] Buf;
+        return CopyLen;
     }
     return EOF;
 }

@@ -73,7 +73,7 @@ bool CharSampSet::LoadCharSamples(FILE *fp) {
   // samples are created here and owned by the class
   own_samples_ = true;
   // start loading char samples
-  while (feof(fp) == 0) {
+  while (BOSS_TESSERACT_feof(fp) == 0) { //original-code:feof(fp) == 0) {
     CharSamp *new_samp = CharSamp::FromCharDumpFile(fp);
     if (new_samp != NULL) {
       if (Add(new_samp) == false) {

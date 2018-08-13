@@ -235,7 +235,9 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     #undef _fgetc
     #undef _fgets
     #undef _ungetc
+    #undef _fprintf
     #undef _fclose
+    #undef _feof
     #undef _wopen
     #undef _close
     #undef _read
@@ -321,7 +323,9 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     #undef fgetc
     #undef fgets
     #undef ungetc
+    #undef fprintf
     #undef fclose
+    #undef feof
     #undef lseek
     #undef lseeki64
     #undef chsize_s
@@ -1655,10 +1659,26 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         return boss_ungetc(character, (boss_file) stream);
     }
 
+    extern "C" int boss_fakewin_fprintf(FILE* stream, const char* format, ...)
+    {
+		BOSS_TRACE("########## fprintf");
+        va_list Args;
+        va_start(Args, format);
+        const sint32 Size = boss_fprintf((boss_file) stream, format, Args);
+        va_end(Args);
+        return Size;
+    }
+
     extern "C" int boss_fakewin_fclose(FILE* stream)
     {
 		BOSS_TRACE("########## fclose");
         return boss_fclose((boss_file) stream);
+    }
+
+    extern "C" int boss_fakewin_feof(FILE* stream)
+    {
+        BOSS_TRACE("########## feof");
+        return boss_feof((boss_file) stream);
     }
 
     extern "C" int boss_fakewin_wopen(const wchar_t* filename, int oflag, int pmode)

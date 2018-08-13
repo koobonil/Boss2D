@@ -13,9 +13,6 @@ namespace BOSS
             payload GetProcedureData(sint32 i);
             chars NormalPath(chars itemname, bool QCodeTest = true);
             wchars NormalPathW(wchars itemname, bool QCodeTest = true);
-            sint32 CreateManager(buffer manager);
-            void RemoveManager(sint32 id);
-            buffer GetManager(sint32 id);
             template<typename TYPE, datatype DATATYPE>
             TYPE* GetManagerBy(sint32 id)
             {
@@ -56,8 +53,6 @@ namespace BOSS
             WString File_GetShortName(wchars itemname);
             sint32 File_GetDriveCode();
             bool File_Tempname(char* format, sint32 length);
-            void* File_FDMap(sint32 fd, sint64 offset, sint64 size, bool readonly);
-            bool File_FDUnmap(const void* map);
             void File_ResetAssetsRoot(chars dirname);
             void File_ResetAssetsRemRoot(chars dirname);
 

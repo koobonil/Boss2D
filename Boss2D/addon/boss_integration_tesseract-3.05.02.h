@@ -21,6 +21,7 @@
 #define BOSS_TESSERACT_fgets                        boss_fakewin_fgets
 #define BOSS_TESSERACT_ungetc                       boss_fakewin_ungetc
 #define BOSS_TESSERACT_fclose                       boss_fakewin_fclose
+#define BOSS_TESSERACT_feof                         boss_fakewin_feof
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // _BOSS_BATCH_COMMAND_ {"type" : "include-alias", "prm" : "BOSS_TESSERACT_", "restore-comment" : " //original-code:"}

@@ -340,7 +340,6 @@ namespace BOSS
         Array<ParseStack, datatype_pod_canmemcpy_zeroset, 32> CurStack;
         CurStack.AtAdding().Object = nullptr;
         CurStack.AtAdding().Object = this;
-        sint32 SFocus = 1;
 
         chars LastOffset = src;
         sint32 LastLength = 0;
@@ -351,12 +350,12 @@ namespace BOSS
         case ':':
             if(0 < LastLength)
             {
-                Context* LastObject = CurStack[SFocus].Object;
+                Context* LastObject = CurStack[-1].Object;
                 Context* NewChild = nullptr;
                 if(LastLength == 3 && LastOffset[0] == '~' && LastOffset[1] == '[' && LastOffset[2] == ']')
                     NewChild = LastObject->m_indexableChild.AtAdding().InitSource(this);
                 else NewChild = LastObject->m_namableChild(LastOffset, LastLength).InitSource(this);
-                CurStack.AtWherever(++SFocus).Object = NewChild;
+                CurStack.AtAdding().Object = NewChild;
                 LastLength = 0;
             }
             else
@@ -376,44 +375,44 @@ namespace BOSS
                     --src;
                     if(EndMark == ']')
                     {
-                        CurStack.At(SFocus).ChildIsIndexable = true;
-                        Context* LastObject = CurStack[SFocus].Object;
+                        CurStack.At(-1).ChildIsIndexable = true;
+                        Context* LastObject = CurStack[-1].Object;
                         Context* NewChild = LastObject->m_indexableChild.AtAdding().InitSource(this);
-                        CurStack.AtWherever(++SFocus).Object = NewChild;
+                        CurStack.AtAdding().Object = NewChild;
                     }
                 }
-                else if(SFocus == 1)
+                else if(CurStack.Count() == 2)
                     return true;
             }
             break;
 
         case ',': case '}': case ']':
-            if(SFocus <= 1)
+            if(CurStack.Count() <= 2)
             {
                 BOSS_ASSERT("잘못된 Json스크립트입니다", false);
                 return false;
             }
             if(0 < LastLength)
             {
-                Context* LastObject = CurStack[SFocus].Object;
+                Context* LastObject = CurStack[-1].Object;
                 LastObject->SetValue(LastOffset, LastLength);
                 LastLength = 0;
             }
             else if(String::Compare(EtcString, "null"))
             {
-                Context* LastObject = CurStack[SFocus].Object;
+                Context* LastObject = CurStack[-1].Object;
                 LastObject->Set(EtcString, EtcString.Length());
                 EtcString.Empty();
             }
 
-            SFocus--;
-            if(*src == ',' && CurStack[SFocus].ChildIsIndexable)
+            CurStack.SubtractionOne();
+            if(*src == ',' && CurStack[-1].ChildIsIndexable)
             {
-                Context* LastObject = CurStack[SFocus].Object;
+                Context* LastObject = CurStack[-1].Object;
                 Context* NewChild = LastObject->m_indexableChild.AtAdding().InitSource(this);
-                CurStack.AtWherever(++SFocus).Object = NewChild;
+                CurStack.AtAdding().Object = NewChild;
             }
-            else if((*src == '}' || *src == ']') && SFocus == 1)
+            else if((*src == '}' || *src == ']') && CurStack.Count() == 2)
                 return true;
             EtcMode = false;
             break;

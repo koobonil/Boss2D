@@ -18,7 +18,6 @@
 #define WINDLLNAME "tesseract"
 #define USE_STD_NAMESPACE
 #define cprintf cprintf_callcpp_BOSS
-#define fprintf(...) 0
 #include <addon/tesseract-3.05.02_for_boss/ccutil/hashfn.h>
 #include <addon/tesseract-3.05.02_for_boss/cube/char_samp.h>
 

@@ -38,25 +38,25 @@
 static tsize_t 
 _tiffReadProc(thandle_t fd, tdata_t buf, tsize_t size)
 {
-	return (read((int) fd, buf, size));
+    return (_read((int) fd, buf, size)); // modified by BOSS, original-code: return (read((int) fd, buf, size));
 }
 
 static tsize_t
 _tiffWriteProc(thandle_t fd, tdata_t buf, tsize_t size)
 {
-	return (write((int) fd, buf, size));
+	return (_write((int) fd, buf, size)); // modified by BOSS, original-code: return (write((int) fd, buf, size));
 }
 
 static toff_t
 _tiffSeekProc(thandle_t fd, toff_t off, int whence)
 {
-	return (lseek((int) fd, (off_t) off, whence));
+	return (_lseek((int) fd, (off_t) off, whence)); // modified by BOSS, original-code: return (lseek((int) fd, (off_t) off, whence));
 }
 
 static int
 _tiffCloseProc(thandle_t fd)
 {
-	return (close((int) fd));
+	return (_close((int) fd)); // modified by BOSS, original-code: return (close((int) fd));
 }
 
 #include <sys/stat.h>
@@ -64,8 +64,8 @@ _tiffCloseProc(thandle_t fd)
 static toff_t
 _tiffSizeProc(thandle_t fd)
 {
-	struct stat sb;
-	return (fstat((int) fd, &sb) < 0 ? 0 : sb.st_size);
+	struct boss_fakewin_struct_stat sb; // modified by BOSS, original-code: struct stat sb;
+	return (_fstat((int) fd, &sb) < 0 ? 0 : sb.st_size); // modified by BOSS, original-code: return (fstat((int) fd, &sb) < 0 ? 0 : sb.st_size);
 }
 
 static int
