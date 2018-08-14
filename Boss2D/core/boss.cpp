@@ -482,92 +482,87 @@ namespace BOSS
 
 extern "C" const char* boss_normalpath(const char* itemname, boss_drive* result)
 {
-    static boss_drive LastDrive = drive_error;
-    static String LastNormalPath;
+    boss_drive Drive = drive_error;
+    String& NormalPath = *BOSS_STORAGE_SYS(String);
 
-    // boss_normalpath()의 결과로써 다시 boss_normalpath를 호출할 경우는 무시
-    if(itemname != (chars) LastNormalPath)
+    // 리눅스계열 패스식별자 스킵
+    if(itemname[0] == '\\' && itemname[1] == '\\' && itemname[2] == '?' && itemname[3] == '\\')
+        itemname += 4;
+
+    // 드라이브식별자 판단(itemname위치도 재조정, 중간에 등장할 경우도 고려)
+    Drive = drive_relative;
+    char DriveCode;
+    chars DirFocus = itemname;
+    for(chars item = itemname; *item != '\0'; ++item)
     {
-        // 리눅스계열 패스식별자 스킵
-        if(itemname[0] == '\\' && itemname[1] == '\\' && itemname[2] == '?' && itemname[3] == '\\')
-            itemname += 4;
-
-        // 드라이브식별자 판단(itemname위치도 재조정, 중간에 등장할 경우도 고려)
-        LastDrive = drive_relative;
-        char DriveCode;
-        chars DirFocus = itemname;
-        for(chars item = itemname; *item != '\0'; ++item)
+        if(*item == '/' || *item == '\\')
+            DirFocus = item + 1;
+        else if(item[0] == ':' && (item[1] == '/' || item[1] == '\\'))
         {
-            if(*item == '/' || *item == '\\')
-                DirFocus = item + 1;
-            else if(item[0] == ':' && (item[1] == '/' || item[1] == '\\'))
+            itemname = item + 2;
+            Drive = drive_error;
+            if(item - DirFocus == 1)
             {
-                itemname = item + 2;
-                LastDrive = drive_error;
-                if(item - DirFocus == 1)
+                if('A' <= *DirFocus && *DirFocus <= 'Z')
                 {
-                    if('A' <= *DirFocus && *DirFocus <= 'Z')
-                    {
-                        LastDrive = drive_absolute;
-                        DriveCode = *DirFocus;
-                    }
-                    else if('a' <= *DirFocus && *DirFocus <= 'z')
-                    {
-                        LastDrive = drive_absolute;
-                        DriveCode = 'A' + (*DirFocus - 'a');
-                    }
+                    Drive = drive_absolute;
+                    DriveCode = *DirFocus;
                 }
-                else if(item - DirFocus == 8)
+                else if('a' <= *DirFocus && *DirFocus <= 'z')
                 {
-                    if(!boss_strnicmp(DirFocus, "relative", 8)) LastDrive = drive_relative;
-                }
-                else if(item - DirFocus == 6)
-                {
-                    if(!boss_strnicmp(DirFocus, "assets", 6)) LastDrive = drive_assets;
-                    else if(!boss_strnicmp(DirFocus, "memory", 6)) LastDrive = drive_memory;
+                    Drive = drive_absolute;
+                    DriveCode = 'A' + (*DirFocus - 'a');
                 }
             }
-        }
-
-        // 노멀패스에 드라이브식별자를 붙임
-        branch;
-        jump(LastDrive == drive_absolute)
-        {
-            LastNormalPath = DriveCode;
-            LastNormalPath += ":/";
-        }
-        jump(LastDrive == drive_assets) LastNormalPath = "assets:/";
-        jump(LastDrive == drive_memory) LastNormalPath = "memory:/";
-        else LastNormalPath.Empty();
-
-        // 노멀패스에 하위 항목을 붙임
-        DirFocus = itemname;
-        for(chars item = itemname; *item != '\0'; ++item)
-        {
-            if(*item == '/' || *item == '\\')
+            else if(item - DirFocus == 8)
             {
-                branch;
-                jump(item - DirFocus == 0) nothing;
-                jump(item - DirFocus == 1 && DirFocus[0] == '.') nothing;
-                jump(item - DirFocus == 2 && DirFocus[0] == '.' && DirFocus[1] == '.')
-                {
-                    if(0 < LastNormalPath.Length()) LastNormalPath.Sub(1); // 끝 슬래시 제거후
-                    while(0 < LastNormalPath.Length() && LastNormalPath[-2] != '/')
-                        LastNormalPath.Sub(1); // 가능한한 슬래시를 만나기 전까지 제거
-                }
-                else
-                {
-                    LastNormalPath += String(DirFocus, item - DirFocus); // 디렉터리명을 붙임
-                    LastNormalPath += '/';
-                }
-                DirFocus = item + 1;
+                if(!boss_strnicmp(DirFocus, "relative", 8)) Drive = drive_relative;
+            }
+            else if(item - DirFocus == 6)
+            {
+                if(!boss_strnicmp(DirFocus, "assets", 6)) Drive = drive_assets;
+                else if(!boss_strnicmp(DirFocus, "memory", 6)) Drive = drive_memory;
             }
         }
-        LastNormalPath += DirFocus; // 파일명을 붙임
     }
 
-    if(result) *result = LastDrive;
-    return (chars) LastNormalPath;
+    // 노멀패스에 드라이브식별자를 붙임
+    branch;
+    jump(Drive == drive_absolute)
+    {
+        NormalPath = DriveCode;
+        NormalPath += ":/";
+    }
+    jump(Drive == drive_assets) NormalPath = "assets:/";
+    jump(Drive == drive_memory) NormalPath = "memory:/";
+
+    // 노멀패스에 하위 항목을 붙임
+    DirFocus = itemname;
+    for(chars item = itemname; *item != '\0'; ++item)
+    {
+        if(*item == '/' || *item == '\\')
+        {
+            branch;
+            jump(item - DirFocus == 0) nothing;
+            jump(item - DirFocus == 1 && DirFocus[0] == '.') nothing;
+            jump(item - DirFocus == 2 && DirFocus[0] == '.' && DirFocus[1] == '.')
+            {
+                if(0 < NormalPath.Length()) NormalPath.Sub(1); // 끝 슬래시 제거후
+                while(0 < NormalPath.Length() && NormalPath[-2] != '/')
+                    NormalPath.Sub(1); // 가능한한 슬래시를 만나기 전까지 제거
+            }
+            else
+            {
+                NormalPath += String(DirFocus, item - DirFocus); // 디렉터리명을 붙임
+                NormalPath += '/';
+            }
+            DirFocus = item + 1;
+        }
+    }
+    NormalPath += DirFocus; // 파일명을 붙임
+
+    if(result) *result = Drive;
+    return NormalPath;
 }
 
 extern "C" boss_file boss_fopen(const char* filename, const char* mode)
@@ -1242,7 +1237,7 @@ extern "C" void boss_freeaddrinfo(void* res)
 extern "C" const char* boss_gai_strerror(int errcode)
 {
     #if BOSS_WINDOWS
-        static String Result;
+        String& Result = *BOSS_STORAGE_SYS(String);
         Result = String::Format("boss_gai_strerror: %d", errcode);
         return Result;
     #else

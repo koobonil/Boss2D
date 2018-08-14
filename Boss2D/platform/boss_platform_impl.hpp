@@ -11,8 +11,8 @@ namespace BOSS
             sint32 GetProcedureCount();
             ProcedureCB GetProcedureCB(sint32 i);
             payload GetProcedureData(sint32 i);
-            chars NormalPath(chars itemname, bool QCodeTest = true);
-            wchars NormalPathW(wchars itemname, bool QCodeTest = true);
+            String NormalPath(chars itemname, bool QCodeTest = true);
+            WString NormalPathW(wchars itemname, bool QCodeTest = true);
             template<typename TYPE, datatype DATATYPE>
             TYPE* GetManagerBy(sint32 id)
             {

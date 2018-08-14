@@ -59,24 +59,21 @@ namespace BOSS
                 return g_AllProcedures[i].mData;
             }
 
-            chars NormalPath(chars itemname, bool QCodeTest)
+            String NormalPath(chars itemname, bool QCodeTest)
             {
-                static String Result;
-                chars ItemName = boss_normalpath(itemname, nullptr);
-                if(QCodeTest && ItemName[0] == 'Q' && ItemName[1] == ':')
-                    ItemName += 2;
-                Result = ItemName;
-                return Result;
+                chars NormalName = boss_normalpath(itemname, nullptr);
+                if(QCodeTest && NormalName[0] == 'Q' && NormalName[1] == ':')
+                    NormalName += 2;
+                return String(NormalName);
             }
 
-            wchars NormalPathW(wchars itemname, bool QCodeTest)
+            WString NormalPathW(wchars itemname, bool QCodeTest)
             {
-                static WString Result;
-                chars ItemName = boss_normalpath(String::FromWChars(itemname), nullptr);
-                if(QCodeTest && ItemName[0] == 'Q' && ItemName[1] == ':')
-                    ItemName += 2;
-                Result = WString::FromChars(ItemName);
-                return Result;
+                String ItemName = String::FromWChars(itemname);
+                chars NormalName = boss_normalpath(ItemName, nullptr);
+                if(QCodeTest && NormalName[0] == 'Q' && NormalName[1] == ':')
+                    NormalName += 2;
+                return WString::FromChars(NormalName);
             }
 
             View::CreatorCB g_Creator = View::Creator;

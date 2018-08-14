@@ -1754,7 +1754,8 @@
 
         sint32 Platform::File::GetAttributes(wchars itemname, uint64* size, uint64* ctime, uint64* atime, uint64* mtime)
         {
-            const String ItemnameUTF8 = String::FromWChars(PlatformImpl::Core::NormalPathW(itemname));
+            const WString ItemnameUTF16 = PlatformImpl::Core::NormalPathW(itemname);
+            const String ItemnameUTF8 = String::FromWChars(ItemnameUTF16);
             const QString ItemnameQ = QString::fromUtf8(ItemnameUTF8).replace('\\', '/');
 
             QFileInfo CurInfo(ItemnameQ);
