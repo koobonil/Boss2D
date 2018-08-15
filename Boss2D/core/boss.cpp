@@ -320,6 +320,7 @@ public:
     FileClass()
     {
         mFileID = -1;
+        mFileShare = 1;
         mTypeAssets = false;
         mFilePointer = nullptr;
         mNeedSave = false;
@@ -422,6 +423,7 @@ public:
 public:
     sint32 mFileID;
     String mFileName;
+    int mFileShare;
     bool mTypeAssets;
     void* mFilePointer;
     bool mNeedSave;
@@ -434,7 +436,7 @@ static sint32 gLastFileID = -1;
 
 namespace BOSS
 {
-    chars GetFileName(boss_file file)
+    chars _private_GetFileName(boss_file file)
     {
         FileClass* CurFile = (FileClass*) file;
         if(CurFile)
@@ -442,12 +444,19 @@ namespace BOSS
         return "";
     }
 
-    sint64 GetFileOffset(boss_file file)
+    sint64 _private_GetFileOffset(boss_file file)
     {
         FileClass* CurFile = (FileClass*) file;
         if(CurFile)
             return CurFile->mFileOffset;
         return -1;
+    }
+
+    void _private_SetFileRetain(boss_file file)
+    {
+        FileClass* CurFile = (FileClass*) file;
+        if(CurFile)
+            CurFile->mFileShare++;
     }
 };
 
@@ -657,7 +666,8 @@ extern "C" int boss_fclose(boss_file file)
     FileClass* CurFile = (FileClass*) file;
     if(CurFile)
     {
-        gAllFiles.Remove(CurFile->mFileID);
+        if(0 < CurFile->mFileShare && --CurFile->mFileShare == 0)
+            gAllFiles.Remove(CurFile->mFileID);
         return 0;
     }
     return EOF;
@@ -777,21 +787,20 @@ extern "C" int boss_fprintf(boss_file file, const char* format, boss_va_list arg
     FileClass* CurFile = (FileClass*) file;
     if(CurFile)
     {
-        const sint32 BufLen = boss_vsnprintf(nullptr, 0, format, args);
-        char* Buf = new char[BufLen];
-        boss_vsnprintf(Buf, BufLen, format, args);
+        const sint32 TextLen = boss_vsnprintf(nullptr, 0, format, args);
+        char* Buf = new char[TextLen + 1];
+        boss_vsnprintf(Buf, TextLen + 1, format, args);
 
-        const sint32 CopyLen = BufLen - 1;
         if(file != stdin && file != stdout && file != stderr)
         {
             CurFile->ValidContent();
-            Memory::Copy(CurFile->mContent->AtDumping(CurFile->mFileOffset, CopyLen), Buf, CopyLen);
+            Memory::Copy(CurFile->mContent->AtDumping(CurFile->mFileOffset, TextLen), Buf, TextLen);
             CurFile->mFileSize = CurFile->mContent->Count();
-            CurFile->mFileOffset += CopyLen;
+            CurFile->mFileOffset += TextLen;
         }
 
         delete[] Buf;
-        return CopyLen;
+        return TextLen;
     }
     return EOF;
 }

@@ -1154,21 +1154,22 @@
             return -1;
         }
 
-        sint32 Platform::File::FDOpenFrom(boss_file file)
+        bool Platform::File::FDClose(sint32 fd)
+        {
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+            return false;
+        }
+
+        sint32 Platform::File::FDFromFile(boss_file file)
         {
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
             return -1;
         }
 
-        void Platform::File::FDOpenRetain(sint32 fd)
+        boss_file Platform::File::FDToFile(sint32 fd)
         {
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
-        }
-
-        bool Platform::File::FDClose(sint32 fd)
-        {
-            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
-            return false;
+            return nullptr;
         }
 
         sint64 Platform::File::FDRead(sint32 fd, void* data, sint64 size)
@@ -1195,14 +1196,16 @@
             return false;
         }
 
-        void* Platform::File::FDMap(sint32 fd, sint64 offset, sint64 size, bool readonly)
+        void* Platform::File::FDMap(boss_file file, sint64 offset, sint64 size, bool readonly)
         {
-            return PlatformImpl::Wrap::File_FDMap(fd, offset, size, readonly);
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+            return nullptr;
         }
 
         bool Platform::File::FDUnmap(const void* map)
         {
-            return PlatformImpl::Wrap::File_FDUnmap(map);
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+            return false;
         }
 
         uint32 Platform::File::FDAttributes(sint32 fd, uint64* size, uint64* ctime, uint64* atime, uint64* mtime)

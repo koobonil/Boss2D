@@ -77,7 +77,7 @@
         };
     #endif
 #else
-    #define BOSS_COMMAND_OBJECTS_IS_ENABLED
+    #define BOSS_FAKEWIN_IS_ENABLED
     #define BOSS_FAKEWIN_V_windows_h                       <addon/boss_fakewin.h>
     #define BOSS_FAKEWIN_V_io_h                            <addon/boss_fakewin.h>
     #define BOSS_FAKEWIN_V_basetsd_h                       <addon/boss_fakewin.h>

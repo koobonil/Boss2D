@@ -320,6 +320,13 @@ int Tesseract::init_tesseract(
       if (!loaded_primary) {
         if (result < 0) {
           tprintf("Failed loading language '%s'\n", lang_str);
+
+          loaded_primary = true; // added by BOSS: 초기에 tessdata/*.traineddata가 없는 상황을 고려
+          tess_to_init = new Tesseract; // added by BOSS
+          result = tess_to_init->init_tesseract_internal( // added by BOSS
+              arg0, textbase, lang_str, oem, configs, configs_size, // added by BOSS
+              vars_vec, vars_values, set_only_non_debug_params); // added by BOSS
+
         } else {
           if (tessdata_manager_debug_level)
             tprintf("Loaded language '%s' as main language\n", lang_str);

@@ -1355,22 +1355,24 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::Reset()
   }
 }
 
-#define access boss_fakewin_access // added by BOSS
-#define wfopen boss_fakewin_wfopen // added by BOSS
-#define _wfopen boss_fakewin_wfopen // added by BOSS
-#define wfopen_s boss_fakewin_wfopen_s // added by BOSS
-#define _wfopen_s boss_fakewin_wfopen_s // added by BOSS
-#define fopen boss_fakewin_fopen // added by BOSS
-#define fopen_s boss_fakewin_fopen_s // added by BOSS
-#define fseek boss_fakewin_fseek // added by BOSS
-#define ftell boss_fakewin_ftell // added by BOSS
-#define rewind boss_fakewin_rewind // added by BOSS
-#define fread boss_fakewin_fread // added by BOSS
-#define fwrite boss_fakewin_fwrite // added by BOSS
-#define fgetc boss_fakewin_fgetc // added by BOSS
-#define fgets boss_fakewin_fgets // added by BOSS
-#define ungetc boss_fakewin_ungetc // added by BOSS
-#define fclose boss_fakewin_fclose // added by BOSS
+#ifdef BOSS_FAKEWIN_IS_ENABLED // added by BOSS
+    #define access boss_fakewin_access // added by BOSS
+    #define wfopen boss_fakewin_wfopen // added by BOSS
+    #define _wfopen boss_fakewin_wfopen // added by BOSS
+    #define wfopen_s boss_fakewin_wfopen_s // added by BOSS
+    #define _wfopen_s boss_fakewin_wfopen_s // added by BOSS
+    #define fopen boss_fakewin_fopen // added by BOSS
+    #define fopen_s boss_fakewin_fopen_s // added by BOSS
+    #define fseek boss_fakewin_fseek // added by BOSS
+    #define ftell boss_fakewin_ftell // added by BOSS
+    #define rewind boss_fakewin_rewind // added by BOSS
+    #define fread boss_fakewin_fread // added by BOSS
+    #define fwrite boss_fakewin_fwrite // added by BOSS
+    #define fgetc boss_fakewin_fgetc // added by BOSS
+    #define fgets boss_fakewin_fgets // added by BOSS
+    #define ungetc boss_fakewin_ungetc // added by BOSS
+    #define fclose boss_fakewin_fclose // added by BOSS
+#endif // added by BOSS
 
 template<class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
 SI_Error

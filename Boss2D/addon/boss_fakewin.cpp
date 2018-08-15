@@ -20,7 +20,7 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     return Root.Length();
 }
 
-#ifdef BOSS_COMMAND_OBJECTS_IS_ENABLED
+#ifdef BOSS_FAKEWIN_IS_ENABLED
     #undef socket
     #undef connect
     #undef getsockopt
@@ -571,10 +571,10 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         class Element
         {
         public:
-            Element() {fd = -1; readonly = false;}
-            ~Element() {Platform::File::FDClose(fd);}
+            Element() {file = nullptr; readonly = false;}
+            ~Element() {boss_fclose(file);}
         public:
-            sint32 fd;
+            boss_file file;
             bool readonly;
         };
     public:
@@ -621,10 +621,10 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         BOSS_ASSERT("########## lpAttributes는 nullptr만 지원합니다", lpAttributes == nullptr);
 
         const sint32 CurFD = *((sint32*) &hFile);
-        Platform::File::FDOpenRetain(CurFD);
+        //Platform::File::FDOpenRetain(CurFD);
 
         auto& NewMap = MapHandleManager::ST().AddMap();
-        NewMap.fd = CurFD;
+        //NewMap.file = CurFD;
         NewMap.readonly = !!(flProtect & PAGE_READONLY);
         return FWHandle::Create(MapHandleManager::ST());
     }
@@ -650,7 +650,7 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         if(auto CurFileInfo = MapHandleManager::ST().ToMap(hFileMappingObject))
         {
             const sint64 Offset64 = (((sint64) dwFileOffsetHigh) << 32) | dwFileOffsetLow;
-            return Platform::File::FDMap(CurFileInfo->fd, Offset64, dwNumberOfBytesToMap, CurFileInfo->readonly);
+            return Platform::File::FDMap(CurFileInfo->file, Offset64, dwNumberOfBytesToMap, CurFileInfo->readonly);
         }
         return nullptr;
     }
@@ -1891,7 +1891,7 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
 
     extern "C" int boss_fakewin_fileno(FILE* _File)
     {
-        return Platform::File::FDOpenFrom((boss_file) _File);
+        return Platform::File::FDFromFile((boss_file) _File);
     }
 
     extern "C" int boss_fakewin_getch()

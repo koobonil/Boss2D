@@ -1930,6 +1930,10 @@
             return Result;
         }
 
+        extern chars _private_GetFileName(boss_file file);
+        extern sint64 _private_GetFileOffset(boss_file file);
+        extern void _private_SetFileRetain(boss_file file);
+
         class FDFile
         {
             BOSS_DECLARE_NONCOPYABLE_CLASS(FDFile)
@@ -1938,7 +1942,6 @@
             {
                 mID = -1;
                 mFile = nullptr;
-                mShare = 0;
             }
             ~FDFile()
             {
@@ -1949,33 +1952,23 @@
             {
                 mID = id;
             }
-            sint32 SetFile(boss_file file, sint32 share)
+            sint32 SetFile(boss_file file, bool retain)
             {
                 mFile = file;
-                mShare = share;
+                if(retain)
+                    _private_SetFileRetain(mFile);
                 return mID;
             }
-            void AddShare()
+            boss_file GetRetainedFile()
             {
-                if(0 < mShare)
-                    mShare++;
-            }
-            bool SubShare()
-            {
-                if(0 < mShare && 0 == --mShare)
-                {
-                    boss_fclose(mFile);
-                    mFile = nullptr;
-                    return true;
-                }
-                return false;
+                _private_SetFileRetain(mFile);
+                return mFile;
             }
         public:
             inline boss_file file() {return mFile;}
         private:
             sint32 mID;
             boss_file mFile;
-            sint32 mShare;
         };
 
         class FDFilePool
@@ -2013,9 +2006,6 @@
             Map<FDFile> mMap;
         } gFilePool;
 
-        extern chars GetFileName(boss_file file);
-        extern sint64 GetFileOffset(boss_file file);
-
         sint32 Platform::File::FDOpen(wchars filename, bool writable, bool append, bool exclusive, bool truncate)
         {
             const String FileName = String::FromWChars(filename);
@@ -2039,20 +2029,7 @@
             }
 
             FDFile& NewFile = gFilePool.New();
-            return NewFile.SetFile(boss_fopen(FileName, Mode), 1);
-        }
-
-        sint32 Platform::File::FDOpenFrom(boss_file file)
-        {
-            FDFile& NewFile = gFilePool.New();
-            return NewFile.SetFile(file, 0);
-        }
-
-        void Platform::File::FDOpenRetain(sint32 fd)
-        {
-            FDFile* CurFile = gFilePool.Get(fd);
-            if(CurFile)
-                CurFile->AddShare();
+            return NewFile.SetFile(boss_fopen(FileName, Mode), false);
         }
 
         bool Platform::File::FDClose(sint32 fd)
@@ -2060,11 +2037,24 @@
             FDFile* OldFile = gFilePool.Get(fd);
             if(OldFile)
             {
-                if(OldFile->SubShare())
-                    gFilePool.Delete(fd);
+                gFilePool.Delete(fd);
                 return true;
             }
             return false;
+        }
+
+        sint32 Platform::File::FDFromFile(boss_file file)
+        {
+            FDFile& NewFile = gFilePool.New();
+            return NewFile.SetFile(file, true);
+        }
+
+        boss_file Platform::File::FDToFile(sint32 fd)
+        {
+            FDFile* CurFile = gFilePool.Get(fd);
+            if(CurFile)
+                return CurFile->GetRetainedFile();
+            return nullptr;
         }
 
         sint64 Platform::File::FDRead(sint32 fd, void* data, sint64 size)
@@ -2090,7 +2080,7 @@
             {
                 const sint64 Result = boss_fseek(CurFile->file(), offset, origin);
                 if(Result == 0)
-                    return GetFileOffset(CurFile->file());
+                    return _private_GetFileOffset(CurFile->file());
             }
             return -1;
         }
@@ -2101,7 +2091,7 @@
             return false;
         }
 
-        void* Platform::File::FDMap(sint32 fd, sint64 offset, sint64 size, bool readonly)
+        void* Platform::File::FDMap(boss_file file, sint64 offset, sint64 size, bool readonly)
         {
             BOSS_ASSERT("Further development is needed.", false);
             return nullptr;
@@ -2118,7 +2108,7 @@
             FDFile* CurFile = gFilePool.Get(fd);
             if(CurFile)
             {
-                QFileInfo CurInfo(GetFileName(CurFile->file()));
+                QFileInfo CurInfo(_private_GetFileName(CurFile->file()));
 
                 uint32 Result = 0;
                 if(!CurInfo.isWritable()) Result |= 0x1; // FILE_ATTRIBUTE_READONLY

@@ -1162,32 +1162,33 @@ namespace BOSS
             \param exclusive : 기존 파일이 없을때만 가능
             \param truncate : 파일사이즈를 0으로 초기화
             \return 파일FD
-            \see FDOpenRetain, FDClose
+            \see FDClose
             */
             static sint32 FDOpen(wchars filename, bool writable, bool append, bool exclusive, bool truncate);
-
-            /*!
-            \brief boss_file으로 FD타입 파일열기
-            \param file : boss_file객체
-            \return 파일FD
-            \see FDOpenRetain, FDClose
-            */
-            static sint32 FDOpenFrom(boss_file file);
-
-            /*!
-            \brief FD타입 파일열기용 레퍼런스증가
-            \param fd : 파일FD
-            \see FDOpen, FDClose
-            */
-            static void FDOpenRetain(sint32 fd);
 
             /*!
             \brief FD타입 파일닫기
             \param fd : 파일FD
             \return 성공여부
-            \see FDOpen, FDOpenRetain
+            \see FDOpen
             */
             static bool FDClose(sint32 fd);
+
+            /*!
+            \brief boss_file으로 FD타입 파일열기
+            \param file : boss_file객체
+            \return 파일FD
+            \see FDClose, FDToFile
+            */
+            static sint32 FDFromFile(boss_file file);
+
+            /*!
+            \brief FD타입으로 boss_file열기
+            \param fd : 파일FD
+            \return boss_file객체
+            \see FDFromFile
+            */
+            static boss_file FDToFile(sint32 fd);
 
             /*!
             \brief FD타입 파일읽기
@@ -1226,14 +1227,14 @@ namespace BOSS
 
             /*!
             \brief FD타입 메모리매핑 설정
-            \param fd : 파일FD
+            \param file : boss_file객체
             \param offset : 매핑할 시작위치
             \param size : 매핑할 사이즈
             \param readonly : 읽기전용
             \return 매핑된 메모리주소
             \see FDUnmap
             */
-            static void* FDMap(sint32 fd, sint64 offset, sint64 size, bool readonly);
+            static void* FDMap(boss_file file, sint64 offset, sint64 size, bool readonly);
 
             /*!
             \brief FD타입 메모리매핑 해제
