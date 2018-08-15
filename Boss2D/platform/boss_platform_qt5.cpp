@@ -153,7 +153,7 @@
             }
 
             // 스토리지(TLS) 영구제거
-            Storage::ClearAll(CL_SystemAndUser);
+            Storage::ClearAll(SCL_SystemAndUser);
             return result;
         }
     #endif

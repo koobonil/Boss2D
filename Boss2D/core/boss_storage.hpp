@@ -5,7 +5,7 @@
 #define BOSS_STORAGE(CLASS, ...) \
     [&]()->CLASS* { \
     static id_storage NewStorage = \
-        Storage::Create(CT_User, \
+        Storage::Create(SCT_User, \
             []()->void* {return new CLASS(__VA_ARGS__);}, \
             [](void* ptr)->void {delete (CLASS*) ptr;}); \
     return (CLASS*) Storage::Bind(NewStorage);}()
@@ -13,7 +13,7 @@
 #define BOSS_STORAGE_SYS(CLASS, ...) \
     [&]()->CLASS* { \
     static id_storage NewStorage = \
-        Storage::Create(CT_System, \
+        Storage::Create(SCT_System, \
             []()->void* {return new CLASS(__VA_ARGS__);}, \
             [](void* ptr)->void {delete (CLASS*) ptr;}); \
     return (CLASS*) Storage::Bind(NewStorage);}()
@@ -21,8 +21,8 @@
 namespace BOSS
 {
     BOSS_DECLARE_ID(id_storage);
-    enum ClearType {CT_System, CT_User};
-    enum ClearLevel {CL_SystemAndUser, CL_UserOnly};
+    enum StorageClearType {SCT_System, SCT_User};
+    enum StorageClearLevel {SCL_SystemAndUser, SCL_UserOnly};
 
     //! \brief 스토리지(TLS)지원
     class Storage
@@ -40,7 +40,7 @@ namespace BOSS
         \return 스토리지ID
         \see Bind, Clear, ClearAll
         */
-        static id_storage Create(ClearType type, NewCB ncb, DeleteCB dcb);
+        static id_storage Create(StorageClearType type, NewCB ncb, DeleteCB dcb);
 
         /*!
         \brief 해당 스토리지에 스레드별 인스턴스를 연동(없으면 생성)
@@ -64,6 +64,6 @@ namespace BOSS
         \return 소멸시행 수량
         \see Bind, Clear
         */
-        static sint32 ClearAll(ClearLevel level = CL_UserOnly);
+        static sint32 ClearAll(StorageClearLevel level = SCL_UserOnly);
     };
 }

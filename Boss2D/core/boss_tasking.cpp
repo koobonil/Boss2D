@@ -168,7 +168,7 @@ static void _TaskCore(void* arg)
         Buffer::Free((buffer) This);
 
     // 스토리지(TLS) 영구제거
-    Storage::ClearAll(CL_SystemAndUser);
+    Storage::ClearAll(SCL_SystemAndUser);
 }
 
 namespace BOSS

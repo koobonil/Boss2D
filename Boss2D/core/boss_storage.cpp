@@ -9,16 +9,16 @@ class StorageClass
     friend class StorageUnit;
 
 public:
-    StorageClass(ClearType type, Storage::NewCB ncb, Storage::DeleteCB dcb);
+    StorageClass(StorageClearType type, Storage::NewCB ncb, Storage::DeleteCB dcb);
     ~StorageClass();
 
 public:
     StorageUnit& GetValidUnit() const;
     bool InvalidUnit() const;
-    static sint32 ClearLocalDataAll(ClearType type);
+    static sint32 ClearLocalDataAll(StorageClearType type);
 
 private:
-    const ClearType mType;
+    const StorageClearType mType;
     const Storage::NewCB mNew;
     const Storage::DeleteCB mDelete;
     const sint32 mUnitID;
@@ -45,7 +45,7 @@ public:
     }
 
 public:
-    inline ClearType type() const
+    inline StorageClearType type() const
     {return mRefClass->mType;}
 
     void* GetValidInstance()
@@ -83,7 +83,7 @@ static sint32 boss_storage_unitcount = 0;
     #error Unknown compiler
 #endif
 
-StorageClass::StorageClass(ClearType type, Storage::NewCB ncb, Storage::DeleteCB dcb)
+StorageClass::StorageClass(StorageClearType type, Storage::NewCB ncb, Storage::DeleteCB dcb)
     : mType(type), mNew(ncb), mDelete(dcb), mUnitID(boss_storage_unitcount++)
 {
 }
@@ -110,7 +110,7 @@ bool StorageClass::InvalidUnit() const
     return boss_storage_root->Remove(mUnitID);
 }
 
-sint32 StorageClass::ClearLocalDataAll(ClearType type)
+sint32 StorageClass::ClearLocalDataAll(StorageClearType type)
 {
     BOSS_ASSERT("영구제거된 스토리지에 다시 접근하려 합니다", boss_storage_root != (StorageUnitMap*) 1);
     if(boss_storage_root)
@@ -122,7 +122,7 @@ sint32 StorageClass::ClearLocalDataAll(ClearType type)
             if(CurUnit.type() == type)
                 ClearCount += CurUnit.InvalidInstance();
         }
-        if(type == ClearType::CT_System)
+        if(type == SCT_System)
         {
             delete boss_storage_root;
             boss_storage_root = (StorageUnitMap*) 1; // 영구제거 표식
@@ -134,7 +134,7 @@ sint32 StorageClass::ClearLocalDataAll(ClearType type)
 
 namespace BOSS
 {
-    id_storage Storage::Create(ClearType type, NewCB ncb, DeleteCB dcb)
+    id_storage Storage::Create(StorageClearType type, NewCB ncb, DeleteCB dcb)
     {
         BOSS_ASSERT("ncb 또는 dcb가 nullptr입니다", ncb && dcb);
         StorageClass* NewStorage = new StorageClass(type, ncb, dcb);
@@ -155,11 +155,11 @@ namespace BOSS
         return CurStorage->InvalidUnit();
     }
 
-    sint32 Storage::ClearAll(ClearLevel level)
+    sint32 Storage::ClearAll(StorageClearLevel level)
     {
-        sint32 ClearCount = StorageClass::ClearLocalDataAll(CT_User);
-        if(level == CL_SystemAndUser)
-            ClearCount += StorageClass::ClearLocalDataAll(CT_System);
+        sint32 ClearCount = StorageClass::ClearLocalDataAll(SCT_User);
+        if(level == SCL_SystemAndUser)
+            ClearCount += StorageClass::ClearLocalDataAll(SCT_System);
         return ClearCount;
     }
 }
