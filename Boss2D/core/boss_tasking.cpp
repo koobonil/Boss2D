@@ -23,10 +23,15 @@ public:
     }
 
 public:
+    void SetParent(id_tasking parent) {m_ref_parent = parent;}
+    id_tasking parent() const {return m_ref_parent;}
+
+public:
     CommonClass()
     {
         m_buffer = nullptr;
         m_mutex = Mutex::Open();
+        m_ref_parent = nullptr;
     }
 
     ~CommonClass()
@@ -38,6 +43,7 @@ public:
 private:
     buffer m_buffer;
     id_mutex m_mutex;
+    id_tasking m_ref_parent;
 };
 
 class TaskingClass
@@ -178,6 +184,7 @@ namespace BOSS
         TaskingClass* NewTasking = (TaskingClass*) Buffer::Alloc<TaskingClass>(BOSS_DBG 1);
         NewTasking->m_cb = cb;
         NewTasking->m_self = self;
+        NewTasking->m_common.SetParent((id_tasking) NewTasking);
         Platform::Utility::Threading(_TaskCore, NewTasking);
         return (id_tasking) NewTasking;
     }
@@ -194,6 +201,12 @@ namespace BOSS
                 Platform::Utility::Sleep(10, false, false);
             Buffer::Free((buffer) tasking);
         }
+    }
+
+    bool Tasking::IsReleased(id_common common)
+    {
+        if(!common) return true;
+        return (((TaskingClass*) ((CommonClass*) common)->parent())->GetState() != TaskingClass::BS_Both);
     }
 
     void Tasking::Pause(id_tasking tasking)

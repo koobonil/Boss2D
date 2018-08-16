@@ -40,6 +40,13 @@ namespace BOSS
         static void Release(id_tasking tasking, bool doWait = false);
 
         /*!
+        \brief 태스킹의 해제여부(태스크전용)
+        \param common : 커먼ID
+        \return 해제여부
+        */
+        static bool IsReleased(id_common common);
+
+        /*!
         \brief 태스킹 정지
         \param tasking : 태스킹ID
         \see Resume
