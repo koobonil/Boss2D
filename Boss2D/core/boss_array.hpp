@@ -318,7 +318,7 @@ namespace BOSS
         \return Sample버퍼
         */
         static const buffer& SampleBuffer()
-        {static const buffer _ = Buffer::Alloc<TYPE, DATATYPE>(BOSS_DBG 0); return _;}
+        {return *BOSS_STORAGE_SYS(buffer, Buffer::Alloc<TYPE, DATATYPE>(BOSS_DBG 0));}
 
     private:
         const Share* share;

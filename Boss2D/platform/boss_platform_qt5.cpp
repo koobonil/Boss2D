@@ -748,7 +748,7 @@
 
         id_image_read Platform::Utility::GetScreenshotImage(const rect128& rect)
         {
-            static QPixmap ScreenshotPixmap;
+            QPixmap& ScreenshotPixmap = *BOSS_STORAGE_SYS(QPixmap);
             ScreenshotPixmap = QGuiApplication::primaryScreen()->grabWindow(
                 0, rect.l, rect.t, rect.r - rect.l, rect.b - rect.t);
             return (id_image_read) &ScreenshotPixmap;
@@ -1235,7 +1235,7 @@
                 {
                     const uint32 level = 16; // 2의 승수
                     // 스트레칭 테이블링
-                    static sint32s sxpool;
+                    sint32s& sxpool = *BOSS_STORAGE_SYS(sint32s);
                     sint32* sxpool_ptr = sxpool.AtDumping(0, DstWidth * 4);
                     sint32* sxbegins = &sxpool_ptr[DstWidth * 0];
                     sint32* sxends = &sxpool_ptr[DstWidth * 1];
@@ -1582,7 +1582,7 @@
 
         id_image_read Platform::Graphics::GetImageFromSurface(id_surface_read surface)
         {
-            static QPixmap SurfacePixmap;
+            QPixmap& SurfacePixmap = *BOSS_STORAGE_SYS(QPixmap);
             if(!surface) return nullptr;
 
             SurfacePixmap = QPixmap::fromImage(((const SurfaceClass*) surface)->mLastImage);
@@ -1591,7 +1591,7 @@
 
         id_bitmap_read Platform::Graphics::GetBitmapFromSurface(id_surface_read surface, bool vflip)
         {
-            static Image SurfaceImage;
+            Image& SurfaceImage = *BOSS_STORAGE_SYS(Image);
             if(!surface) return nullptr;
 
             QImage CurImage = ((const SurfaceClass*) surface)->mLastImage.convertToFormat(QImage::Format::Format_ARGB32);
@@ -2199,8 +2199,10 @@
 
         const String& Platform::File::RootForData()
         {
-            static String Result = "";
-            if(0 < Result.Length()) return Result;
+            static String Result;
+            if(0 < Result.Length())
+                return Result;
+
             QString RootQ = QStandardPaths::standardLocations(QStandardPaths::DataLocation).value(0);
             #if BOSS_ANDROID
                 String Root = getenv("SECONDARY_STORAGE");
@@ -2471,7 +2473,6 @@
             SocketBox* CurSocketBox = SocketBox::Access(socket);
             if(!CurSocketBox) return false;
 
-            bool Result = false;
             if(CurSocketBox->m_udp)
             {
                 // GetHostByName를 사용하지 않고 빠르게 IP구하기
@@ -2492,7 +2493,6 @@
                     break;
                 }
 
-                Result = true;
                 if(FastIPFocus == 3)
                 {
                     quint32 ip4Address =
@@ -2509,13 +2509,13 @@
                     CurSocketBox->m_udpip.setAddress(ip4Address);
                 }
                 CurSocketBox->m_udpport = port;
+                BOSS_TRACE("Connect-UDP(%s:%d)", domain, (sint32) port);
+                return true;
             }
-            else
-            {
-                CurSocketBox->m_socket->connectToHost(QString::fromUtf8(domain), port);
-                Result = CurSocketBox->m_socket->waitForConnected(timeout);
-            }
-            BOSS_TRACE("Connect(%s:%d)%s", domain, (sint32) port, Result? "" : " - Failed");
+
+            CurSocketBox->m_socket->connectToHost(QString::fromUtf8(domain), port);
+            bool Result = CurSocketBox->m_socket->waitForConnected(timeout);
+            BOSS_TRACE("Connect-TCP(%s:%d)%s", domain, (sint32) port, Result? "" : " - Failed");
             return Result;
         }
 
@@ -2524,20 +2524,18 @@
             SocketBox* CurSocketBox = SocketBox::Access(socket);
             if(!CurSocketBox) return false;
 
-            bool Result = false;
             if(CurSocketBox->m_udp)
             {
-                Result = true;
                 CurSocketBox->m_udpip.clear();
                 CurSocketBox->m_udpport = 0;
+                BOSS_TRACE("Disconnect-UDP()");
+                return true;
             }
-            else
-            {
-                CurSocketBox->m_socket->abort();
-                Result = (CurSocketBox->m_socket->state() == QAbstractSocket::UnconnectedState ||
-                    CurSocketBox->m_socket->waitForDisconnected(timeout));
-            }
-            BOSS_TRACE("Disconnect()%s", Result? "" : " - Failed");
+
+            CurSocketBox->m_socket->abort();
+            bool Result = (CurSocketBox->m_socket->state() == QAbstractSocket::UnconnectedState ||
+                CurSocketBox->m_socket->waitForDisconnected(timeout));
+            BOSS_TRACE("Disconnect-TCP()%s", Result? "" : " - Failed");
             return Result;
         }
 
@@ -2546,13 +2544,14 @@
             SocketBox* CurSocketBox = SocketBox::Access(socket);
             if(!CurSocketBox) return false;
 
-            bool Result = false;
             if(CurSocketBox->m_udp)
             {
                 auto UdpSocket = (QUdpSocket*) CurSocketBox->m_socket;
-                Result = UdpSocket->bind(port);
+                bool Result = UdpSocket->bind(port);
+                BOSS_TRACE("BindForUdp-UDP()%s", Result? "" : " - Failed");
+                return Result;
             }
-            return Result;
+            return false;
         }
 
         sint32 Platform::Socket::RecvAvailable(id_socket socket)
@@ -2595,18 +2594,19 @@
                     if(port_udp) *port_udp = GetPort;
                 }
                 else Result = UdpSocket->readDatagram((char*) data, size);
+                BOSS_TRACE("Recv-UDP(%d)%s", Result, (0 <= Result)? "" : " - Failed");
             }
             else
             {
                 if(CurSocketBox->m_socket->bytesAvailable() == 0 &&
                     !CurSocketBox->m_socket->waitForReadyRead(timeout))
                 {
-                    BOSS_TRACE("Recv(-10035) - WSAEWOULDBLOCK");
+                    BOSS_TRACE("Recv-TCP(-10035) - WSAEWOULDBLOCK");
                     return -10035; // WSAEWOULDBLOCK
                 }
                 Result = CurSocketBox->m_socket->read((char*) data, size);
+                BOSS_TRACE("Recv-TCP(%d)%s", Result, (0 <= Result)? "" : " - Failed");
             }
-            BOSS_TRACE("Recv(%d)%s", Result, (0 <= Result)? "" : " - Failed");
             return Result;
         }
 
@@ -2621,17 +2621,21 @@
                 auto UdpSocket = (QUdpSocket*) CurSocketBox->m_socket;
                 if(UdpSocket->writeDatagram((chars) data, size, CurSocketBox->m_udpip, CurSocketBox->m_udpport) < size)
                 {
-                    BOSS_TRACE("Send(-1) - Failed");
+                    BOSS_TRACE("Send-UDP(-1) - Failed");
                     return -1;
                 }
+                BOSS_TRACE("Send-UDP(%d)", size);
             }
-            else if(CurSocketBox->m_socket->write((chars) data, size) < size ||
-                !CurSocketBox->m_socket->waitForBytesWritten(timeout))
+            else
             {
-                BOSS_TRACE("Send(-1) - Failed");
-                return -1;
+                if(CurSocketBox->m_socket->write((chars) data, size) < size ||
+                    !CurSocketBox->m_socket->waitForBytesWritten(timeout))
+                {
+                    BOSS_TRACE("Send-TCP(-1) - Failed");
+                    return -1;
+                }
+                BOSS_TRACE("Send-TCP(%d)", size);
             }
-            BOSS_TRACE("Send(%d)", size);
             return size;
         }
 
@@ -2834,7 +2838,7 @@
         {
             if(WebPrivate* CurWeb = (WebPrivate*) web.get())
             {
-                static QPixmap ScreenshotPixmap;
+                QPixmap& ScreenshotPixmap = *BOSS_STORAGE_SYS(QPixmap);
                 ScreenshotPixmap = CurWeb->GetPixmap();
                 return (id_image_read) &ScreenshotPixmap;
             }
@@ -2845,7 +2849,7 @@
         {
             if(WebPrivate* CurWeb = (WebPrivate*) web.get())
             {
-                static Image ScreenshotImage;
+                Image& ScreenshotImage = *BOSS_STORAGE_SYS(Image);
                 const QImage& CurImage = CurWeb->GetImage();
                 ScreenshotImage.LoadBitmapFromBits(CurImage.constBits(), CurImage.width(), CurImage.height(),
                     CurImage.bitPlaneCount(), vflip);

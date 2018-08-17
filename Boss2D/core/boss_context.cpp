@@ -3,19 +3,39 @@
 
 namespace BOSS
 {
+    Context& Context::At(chars key, sint32 length)
+    {
+        return m_namableChild(key, length);
+    }
+
+    Context& Context::At(sint32 index)
+    {
+        while(m_indexableChild.Count() < index)
+            m_indexableChild.AtAdding();
+		return m_indexableChild[index];
+	}
+
+    Context& Context::AtAdding()
+    {
+        return m_indexableChild.AtAdding();
+    }
+
     void Context::Set(chars value, sint32 length)
     {
         ClearCache();
-        sint32 Length = 0;
         if(value)
         {
-            Length = (length == -1)? boss_strlen(value) : length;
-            m_parsedString = Buffer::Alloc(BOSS_DBG Length + 1);
-            Memory::Copy(m_parsedString, value, Length);
-            ((char*) m_parsedString)[Length] = '\0';
+            sint32 Length = (length == -1)? boss_strlen(value) : length;
+            m_source.Clear();
+            m_source.SharedValue().InitString(SO_NeedCopy, value, Length);
+            m_valueOffset = m_source->GetString();
+            m_valueLength = Length;
         }
-        m_valueOffset = (chars) m_parsedString;
-        m_valueLength = Length;
+        else
+        {
+            m_valueOffset = nullptr;
+            m_valueLength = 0;
+        }
     }
 
     void Context::Clear()
@@ -28,18 +48,16 @@ namespace BOSS
 
     bool Context::LoadJson(buffer src)
     {
-        m_source.SharedValue().CertifyLast();
-        StringSource* LastSource = m_source.SharedValue().Last();
-        LastSource->InitString(src);
-        return LoadJsonCore(LastSource->GetString());
+        Clear();
+        m_source.SharedValue().InitString(src);
+        return LoadJsonCore(m_source->GetString());
     }
 
     bool Context::LoadJson(ScriptOption option, chars src, sint32 length)
     {
-        m_source.SharedValue().CertifyLast();
-        StringSource* LastSource = m_source.SharedValue().Last();
-        LastSource->InitString(option, src, (option == SO_NeedCopy && length == -1)? boss_strlen(src) : length);
-        return LoadJsonCore(LastSource->GetString());
+        Clear();
+        m_source.SharedValue().InitString(option, src, (option == SO_NeedCopy && length == -1)? boss_strlen(src) : length);
+        return LoadJsonCore(m_source->GetString());
     }
 
     String Context::SaveJson(String dst) const
@@ -69,18 +87,16 @@ namespace BOSS
 
     bool Context::LoadXml(buffer src)
     {
-        m_source.SharedValue().CertifyLast();
-        StringSource* LastSource = m_source.SharedValue().Last();
-        LastSource->InitString(src);
-        return LoadXmlCore(LastSource->GetString());
+        Clear();
+        m_source.SharedValue().InitString(src);
+        return LoadXmlCore(m_source->GetString());
     }
 
     bool Context::LoadXml(ScriptOption option, chars src, sint32 length)
     {
-        m_source.SharedValue().CertifyLast();
-        StringSource* LastSource = m_source.SharedValue().Last();
-        LastSource->InitString(option, src, (option == SO_NeedCopy && length == -1)? boss_strlen(src) : length);
-        return LoadXmlCore(LastSource->GetString());
+        Clear();
+        m_source.SharedValue().InitString(option, src, (option == SO_NeedCopy && length == -1)? boss_strlen(src) : length);
+        return LoadXmlCore(m_source->GetString());
     }
 
     String Context::SaveXml(String dst) const
@@ -155,6 +171,86 @@ namespace BOSS
         sint32 ValueLength = boss_strlen(value);
         CollectCore(nullptr, key, value, ValueLength, &Result, option);
         return Result;
+    }
+
+    const Context& Context::operator()(chars key) const
+    {
+        Context* CurChild = m_namableChild.Access(key);
+        return (CurChild)? *CurChild : NullChild();
+    }
+
+    const Context& Context::operator()(sint32 order, chararray* getname) const
+    {
+        Context* CurChild = m_namableChild.AccessByOrder(order, getname);
+        return (CurChild)? *CurChild : NullChild();
+    }
+
+    const Context& Context::operator[](sint32 index) const
+    {
+        if(0 <= index && index < m_indexableChild.Count())
+            return *m_indexableChild.Access(index);
+        return NullChild();
+    }
+
+    sint32 Context::LengthOfNamable() const
+    {
+        return m_namableChild.Count();
+    }
+
+    sint32 Context::LengthOfIndexable() const
+    {
+        return m_indexableChild.Count();
+    }
+
+    bool Context::IsValid() const
+    {
+        return (this != &NullChild());
+    }
+
+    chars Context::GetString() const
+    {
+        if(!m_parsedString)
+        {
+            m_parsedString = new char[m_valueLength + 1];
+            Memory::Copy(m_parsedString, m_valueOffset, m_valueLength);
+            m_parsedString[m_valueLength] = '\0';
+        }
+        return (chars) m_parsedString;
+    }
+
+    chars_endless Context::GetStringFast(sint32& length) const
+    {
+        length = m_valueLength;
+        return m_valueOffset;
+    }
+
+    const sint32 Context::GetInt() const
+    {
+        if(!m_parsedInt)
+            m_parsedInt = new sint32(Parser::GetInt(m_valueOffset, m_valueLength));
+        return *m_parsedInt;
+    }
+
+    const float Context::GetFloat() const
+    {
+        if(!m_parsedFloat)
+            m_parsedFloat = new float(Parser::GetFloat(m_valueOffset, m_valueLength));
+        return *m_parsedFloat;
+    }
+
+    chars Context::GetString(chars value) const
+    {
+        return (m_valueOffset)? GetString() : value;
+    }
+
+    const sint32 Context::GetInt(const sint32 value) const
+    {
+        return (m_valueOffset)? GetInt() : value;
+    }
+
+    const float Context::GetFloat(const float value) const
+    {
+        return (m_valueOffset)? GetFloat() : value;
     }
 
     void Context::DebugPrint() const
@@ -258,11 +354,6 @@ namespace BOSS
         m_indexableChild = rhs.m_indexableChild;
         m_valueOffset = rhs.m_valueOffset;
         m_valueLength = rhs.m_valueLength;
-        m_parsedString = (rhs.m_parsedString)? Buffer::Clone(BOSS_DBG rhs.m_parsedString) : nullptr;
-        m_parsedInt = (rhs.m_parsedInt)? new sint32(*rhs.m_parsedInt) : nullptr;
-        m_parsedFloat = (rhs.m_parsedFloat)? new float(*rhs.m_parsedFloat) : nullptr;
-        if(rhs.m_valueOffset == (chars) rhs.m_parsedString)
-            m_valueOffset = (chars) m_parsedString;
         return *this;
     }
 
@@ -274,10 +365,17 @@ namespace BOSS
         m_indexableChild = ToReference(rhs.m_indexableChild);
         m_valueOffset = rhs.m_valueOffset; rhs.m_valueOffset = nullptr;
         m_valueLength = rhs.m_valueLength; rhs.m_valueLength = 0;
-        m_parsedString = rhs.m_parsedString; rhs.m_parsedString = nullptr;
-        m_parsedInt = rhs.m_parsedInt; rhs.m_parsedInt = nullptr;
-        m_parsedFloat = rhs.m_parsedFloat; rhs.m_parsedFloat = nullptr;
         return *this;
+    }
+
+    Context::operator bool() const
+    {
+        return IsValid();
+    }
+
+    const Context& Context::NullChild() const
+    {
+        return *BOSS_STORAGE_SYS(Context);
     }
 
     void Context::SetValue(chars value, sint32 length)
@@ -290,7 +388,7 @@ namespace BOSS
 
     void Context::ClearCache()
     {
-        Buffer::Free(m_parsedString);
+        delete[] m_parsedString;
         delete m_parsedInt;
         delete m_parsedFloat;
         m_parsedString = nullptr;
@@ -577,7 +675,7 @@ namespace BOSS
                     else
                     {
                         sint32 SavedNameLength = 0;
-                        chars_endless SavedName = (*SavedContext)("@name").GetStringFast(&SavedNameLength);
+                        chars_endless SavedName = (*SavedContext)("@name").GetStringFast(SavedNameLength);
                         if(src - NameBegin != SavedNameLength || Memory::Compare(NameBegin, SavedName, SavedNameLength))
                             return AssertError("엘리먼트를 팝하는 과정에서 네임매칭에 실패하였습니다");
                     }
@@ -677,7 +775,7 @@ namespace BOSS
         if(Context* NameOption = m_namableChild.Access("@name"))
         {
             sint32 ValueLength = 0;
-            chars_endless Value = NameOption->GetStringFast(&ValueLength);
+            chars_endless Value = NameOption->GetStringFast(ValueLength);
             Name.Add(Value, ValueLength);
         }
         dst += Name;
@@ -697,7 +795,7 @@ namespace BOSS
                 dst += '>';
             }
             sint32 ValueLength = 0;
-            chars_endless Value = ValueOption->GetStringFast(&ValueLength);
+            chars_endless Value = ValueOption->GetStringFast(ValueLength);
             dst.Add(Value, ValueLength);
         }
         // 자식 엘리먼트(~tree)
@@ -740,14 +838,14 @@ namespace BOSS
             dst += Name;
             dst += "=\"";
             sint32 ValueLength = 0;
-            chars_endless Value = data->GetStringFast(&ValueLength);
+            chars_endless Value = data->GetStringFast(ValueLength);
             dst.Add(Value, ValueLength);
             dst += '\"';
         }
     }
 
     const String& Context::GetBinHeader()
-    {static const String _ = String::Format("bin{%s %s}", __TIME__, __DATE__); return _;}
+    {return *BOSS_STORAGE_SYS(String, String::Format("bin{%s %s}", __TIME__, __DATE__));}
 
     bytes Context::LoadBinCore(bytes src)
     {
@@ -849,7 +947,7 @@ namespace BOSS
         if(const Context* CurChild = m_namableChild.Access(key))
         {
             sint32 GetLength = 0;
-            chars_endless GetValue = CurChild->GetStringFast(&GetLength);
+            chars_endless GetValue = CurChild->GetStringFast(GetLength);
             if(GetLength == length && !Memory::Compare(GetValue, value, length))
             {
                 if(option == CO_GetParent)
@@ -899,4 +997,41 @@ namespace BOSS
 
     void Context::DebugPrintCoreCB(const MapPath* path, Context* data, payload param)
     {data->DebugPrintCore(*((sint32*) param) + 1, path->GetPath(), false);}
+
+    Context::StringSource::StringSource()
+    {
+        m_buffer = nullptr;
+        m_string = nullptr;
+    }
+
+    Context::StringSource::~StringSource()
+    {
+        Buffer::Free(m_buffer);
+    }
+
+    void Context::StringSource::InitString(buffer src)
+    {
+        BOSS_ASSERT("중복된 초기화입니다", !m_buffer && !m_string);
+        BOSS_ASSERT("src인수는 1바이트 단위여야 합니다", Buffer::SizeOf(src) == 1);
+        BOSS_ASSERT("src인수는 null문자로 끝나야 합니다", ((chars) src)[Buffer::CountOf(src) - 1] == '\0');
+        m_buffer = src;
+    }
+
+    void Context::StringSource::InitString(ScriptOption option, chars src, sint32 length)
+    {
+        BOSS_ASSERT("중복된 초기화입니다", !m_buffer && !m_string);
+        if(option == SO_NeedCopy)
+        {
+            BOSS_ASSERT("SO_NeedCopy모드에서 length인수는 -1값이 될 수 없습니다", length != -1);
+            m_buffer = Buffer::Alloc(BOSS_DBG length + 1);
+            Memory::Copy(m_buffer, src, length);
+            ((char*) m_buffer)[length] = '\0';
+        }
+        else m_string = src;
+    }
+
+    chars Context::StringSource::GetString() const
+    {
+        return (chars) (((ublock) m_buffer) | ((ublock) m_string));
+    }
 }

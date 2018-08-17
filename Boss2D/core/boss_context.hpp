@@ -1,8 +1,6 @@
 ﻿#pragma once
 #include <boss_map.hpp>
 #include <boss_object.hpp>
-#include <boss_parser.hpp>
-#include <boss_storage.hpp>
 #include <boss_string.hpp>
 
 namespace BOSS
@@ -23,27 +21,20 @@ namespace BOSS
         \param length : 이름의 길이(-1이면 자동설정)
         \return 해당 자식콘텍스트의 인스턴스
         */
-        inline Context& At(chars key, sint32 length = -1)
-        {return m_namableChild(key, length);}
+        Context& At(chars key, sint32 length = -1);
 
         /*!
         \brief 자식콘텍스트를 생성하며 접근(배열식)
         \param index : 자식콘텍스트의 순번
         \return 해당 자식콘텍스트의 인스턴스
         */
-        inline Context& At(sint32 index)
-        {
-            while(m_indexableChild.Count() < index)
-                m_indexableChild.AtAdding();
-			return m_indexableChild[index];
-		}
+        Context& At(sint32 index);
 
         /*!
         \brief 자식콘텍스트를 마지막에 추가후 접근(배열식)
         \return 해당 자식콘텍스트의 인스턴스
         */
-        inline Context& AtAdding()
-        {return m_indexableChild.AtAdding();}
+        Context& AtAdding();
 
         /*!
         \brief 자신의 값 설정
@@ -138,11 +129,7 @@ namespace BOSS
         \param key : 자식콘텍스트의 이름
         \return 해당 자식콘텍스트의 인스턴스
         */
-        inline const Context& operator()(chars key) const
-        {
-            Context* CurChild = m_namableChild.Access(key);
-            return (CurChild)? *CurChild : NullChild();
-        }
+        const Context& operator()(chars key) const;
 
         /*!
         \brief 자식콘텍스트로 접근(키워드식/순번방식)
@@ -150,122 +137,77 @@ namespace BOSS
         \param getname : 자식콘텍스트의 이름얻기
         \return 해당 자식콘텍스트의 인스턴스
         */
-        inline const Context& operator()(sint32 order, chararray* getname = nullptr) const
-        {
-            Context* CurChild = m_namableChild.AccessByOrder(order, getname);
-            return (CurChild)? *CurChild : NullChild();
-        }
+        const Context& operator()(sint32 order, chararray* getname = nullptr) const;
 
         /*!
         \brief 자식콘텍스트로 접근(배열식)
         \param index : 자식콘텍스트의 순번
         \return 해당 자식콘텍스트의 인스턴스
         */
-        inline const Context& operator[](sint32 index) const
-        {
-            if(0 <= index && index < m_indexableChild.Count())
-                return *m_indexableChild.Access(index);
-            return NullChild();
-        }
+        const Context& operator[](sint32 index) const;
 
         /*!
         \brief 자식콘텍스트의 수량얻기(키워드식)
         \return 수량값
         */
-        inline sint32 LengthOfNamable() const
-        {return m_namableChild.Count();}
+        sint32 LengthOfNamable() const;
 
         /*!
         \brief 자식콘텍스트의 수량얻기(배열식)
         \return 수량값
         */
-        inline sint32 LengthOfIndexable() const
-        {return m_indexableChild.Count();}
+        sint32 LengthOfIndexable() const;
 
         /*!
         \brief 자신의 유효여부
         \return 유효여부
         */
-        inline bool IsValid() const
-        {return (this != &NullChild());}
+        bool IsValid() const;
 
         /*!
         \brief 자신의 문자열값 얻기
         \return 문자열값
         */
-        inline chars GetString() const
-        {
-            if(!m_parsedString)
-            {
-                m_parsedString = Buffer::Alloc(BOSS_DBG m_valueLength + 1);
-                Memory::Copy(m_parsedString, m_valueOffset, m_valueLength);
-                ((char*) m_parsedString)[m_valueLength] = '\0';
-            }
-            return (chars) m_parsedString;
-        }
+        chars GetString() const;
 
         /*!
         \brief 빠르게 자신의 문자열값 얻기(chars_endless)
         \return 문자열값
         */
-        inline chars_endless GetStringFast(sint32* length) const
-        {
-            BOSS_ASSERT("length인수가 반드시 필요합니다", length);
-            *length = m_valueLength;
-            return m_valueOffset;
-        }
+        chars_endless GetStringFast(sint32& length) const;
 
         /*!
         \brief 자신의 정수값 얻기
         \return 정수값
         */
-        inline const sint32 GetInt() const
-        {
-            if(!m_parsedInt)
-                m_parsedInt = new sint32(Parser::GetInt(m_valueOffset, m_valueLength));
-            return *m_parsedInt;
-        }
+        const sint32 GetInt() const;
 
         /*!
         \brief 자신의 소수값 얻기
         \return 소수값
         */
-        inline const float GetFloat() const
-        {
-            if(!m_parsedFloat)
-                m_parsedFloat = new float(Parser::GetFloat(m_valueOffset, m_valueLength));
-            return *m_parsedFloat;
-        }
+        const float GetFloat() const;
 
         /*!
         \brief 자신의 문자열값 얻기(디폴트처리)
         \param value : 디폴트값
         \return 문자열값
         */
-        inline chars GetString(chars value) const
-        {
-            return (m_valueOffset)? GetString() : value;
-        }
+        chars GetString(chars value) const;
 
         /*!
         \brief 자신의 정수값 얻기(디폴트처리)
         \param value : 디폴트값
         \return 정수값
         */
-        inline const sint32 GetInt(const sint32 value) const
-        {
-            return (m_valueOffset)? GetInt() : value;
-        }
+        const sint32 GetInt(const sint32 value) const;
 
         /*!
         \brief 자신의 소수값 얻기(디폴트처리)
         \param value : 디폴트값
         \return 소수값
         */
-        inline const float GetFloat(const float value) const
-        {
-            return (m_valueOffset)? GetFloat() : value;
-        }
+        const float GetFloat(const float value) const;
 
         /*!
         \brief 자식콘텍스트 현황보고
@@ -335,13 +277,10 @@ namespace BOSS
         \brief bool형변환
         \return 자신의 유효여부
         */
-        inline operator bool() const {return IsValid();}
+        operator bool() const;
 
     private:
-        static inline const Context& NullChild()
-        {return *BOSS_STORAGE_SYS(Context);}
-
-    private:
+        const Context& NullChild() const;
         void SetValue(chars value, sint32 length);
         void ClearCache();
         static chars FindMark(chars value, const char mark);
@@ -370,72 +309,23 @@ namespace BOSS
         static void DebugPrintCoreCB(const MapPath* path, Context* data, payload param);
 
     private:
+        // 원본연결
         class StringSource
         {
+            BOSS_DECLARE_NONCOPYABLE_CLASS(StringSource)
         public:
-            void InitString(buffer src)
-            {
-                BOSS_ASSERT("중복된 초기화입니다", !m_buffer && !m_string);
-                BOSS_ASSERT("src인수는 1바이트 단위여야 합니다", Buffer::SizeOf(src) == 1);
-                BOSS_ASSERT("src인수는 null문자로 끝나야 합니다", ((chars) src)[Buffer::CountOf(src) - 1] == '\0');
-                m_buffer = src;
-                m_length = Buffer::CountOf(src) - 1;
-            }
-
-            void InitString(ScriptOption option, chars src, sint32 length)
-            {
-                BOSS_ASSERT("중복된 초기화입니다", !m_buffer && !m_string);
-                if(option == SO_NeedCopy)
-                {
-                    BOSS_ASSERT("SO_NeedCopy모드에서 length인수는 -1값이 될 수 없습니다", length != -1);
-                    m_buffer = Buffer::Alloc(BOSS_DBG length + 1);
-                    Memory::Copy(m_buffer, src, length);
-                    ((char*) m_buffer)[length] = '\0';
-                }
-                else m_string = src;
-                m_length = length; // SO_OnlyReference의 경우 -1값도 가능
-            }
-
-            inline chars GetString() const
-            {
-                return (chars) (((ublock) m_buffer) | ((ublock) m_string));
-            }
-
-            inline sint32 GetLength(bool recalc)
-            {
-                if(recalc && m_length == -1)
-                    m_length = boss_strlen(GetString());
-                return m_length;
-            }
+            StringSource();
+            ~StringSource();
 
         public:
-            inline StringSource* Last()
-            {
-                return (m_next)? m_next : this;
-            }
-
-            inline void CertifyLast()
-            {
-                if(!Last()->GetString()) return;
-                StringSource* NewSource = new StringSource();
-                NewSource->m_next = m_next;
-                m_next = NewSource;
-            }
-
-        public:
-            StringSource() {m_buffer = nullptr; m_string = nullptr; m_length = 0; m_next = nullptr;}
-            ~StringSource() {Buffer::Free(m_buffer); delete m_next;}
-            StringSource(const StringSource& rhs) {BOSS_ASSERT("사용금지", false);}
-            StringSource& operator=(const StringSource& rhs) {BOSS_ASSERT("사용금지", false); return *this;}
+            void InitString(buffer src);
+            void InitString(ScriptOption option, chars src, sint32 length);
+            chars GetString() const;
 
         private:
             buffer m_buffer;
             chars m_string;
-            sint32 m_length;
-            StringSource* m_next;
         };
-
-        // 원본연결
         Object<StringSource> m_source;
 
         // 자식연결
@@ -445,7 +335,9 @@ namespace BOSS
         // 자기데이터
         chars m_valueOffset;
         sint32 m_valueLength;
-        mutable buffer m_parsedString;
+
+        // 캐시데이터
+        mutable char* m_parsedString;
         mutable sint32* m_parsedInt;
         mutable float* m_parsedFloat;
     };
