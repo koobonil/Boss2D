@@ -166,55 +166,58 @@
 
     extern "C" int boss_platform_assert(BOSS_DBG_PRM const char* name, const char* query)
     {
-        String AssertInfo[4] = {
-            String::Format("[QUERY] %s", query),
-            String::Format("[METHOD] %s()", BOSS_DBG_FUNC),
-            String::Format("[FILE/LINE] %s(%dLn)", BOSS_DBG_FILE, BOSS_DBG_LINE),
-            String::Format("[THREAD_ID] %u", QThread::currentThreadId())};
+        char AssertInfo[4][1024];
+        boss_snprintf(AssertInfo[0], 1024, "[QUERY] %s", query);
+        boss_snprintf(AssertInfo[1], 1024, "[METHOD] %s()", BOSS_DBG_FUNC);
+        boss_snprintf(AssertInfo[2], 1024, "[FILE/LINE] %s(%dLn)", BOSS_DBG_FILE, BOSS_DBG_LINE);
+        boss_snprintf(AssertInfo[3], 1024, "[THREAD_ID] %u", QThread::currentThreadId());
         #if BOSS_ANDROID
             __android_log_print(7, "*******", "************************************************************");
             __android_log_print(7, "*******", name);
             __android_log_print(7, "*******", "------------------------------------------------------------");
-            __android_log_print(7, "*******", (chars) AssertInfo[0]);
-            __android_log_print(7, "*******", (chars) AssertInfo[1]);
-            __android_log_print(7, "*******", (chars) AssertInfo[2]);
-            __android_log_print(7, "*******", (chars) AssertInfo[3]);
+            __android_log_print(7, "*******", AssertInfo[0]);
+            __android_log_print(7, "*******", AssertInfo[1]);
+            __android_log_print(7, "*******", AssertInfo[2]);
+            __android_log_print(7, "*******", AssertInfo[3]);
             __android_log_print(7, "*******", "************************************************************");
         #else
             qDebug() << "************************************************************";
             qDebug() << name;
             qDebug() << "------------------------------------------------------------";
-            qDebug() << (chars) AssertInfo[0];
-            qDebug() << (chars) AssertInfo[1];
-            qDebug() << (chars) AssertInfo[2];
-            qDebug() << (chars) AssertInfo[3];
+            qDebug() << AssertInfo[0];
+            qDebug() << AssertInfo[1];
+            qDebug() << AssertInfo[2];
+            qDebug() << AssertInfo[3];
             qDebug() << "************************************************************";
         #endif
 
         if(Platform::Option::GetFlag("AssertPopup"))
         {
             #if BOSS_WINDOWS
-                WString AssertMessage = WString::Format(
-                    L"%s\n\n%s\t\t\n%s\t\t\n%s\t\t\n%s\t\t\n\n"
-                    L"(YES is Break, NO is Ignore)\t\t",
-                    (wchars) WString::FromChars(name),
-                    (wchars) WString::FromChars(AssertInfo[0]),
-                    (wchars) WString::FromChars(AssertInfo[1]),
-                    (wchars) WString::FromChars(AssertInfo[2]),
-                    (wchars) WString::FromChars(AssertInfo[3]));
+                QString AssertMessage;
+                AssertMessage.sprintf(
+                    "%s\n\n%s\t\t\n%s\t\t\n%s\t\t\n%s\t\t\n\n"
+                    "(YES is Break, NO is Ignore)\t\t", name,
+                    AssertInfo[0], AssertInfo[1], AssertInfo[2], AssertInfo[3]);
+                int Length = AssertMessage.length();
+                wchar_t* AssertMessageW = new wchar_t[Length * 2 + 1]; // 여유롭게 잡음
+                Length = AssertMessage.toWCharArray(AssertMessageW);
+                AssertMessageW[Length] = L'\0';
+
                 switch(MessageBoxW((g_window)? (HWND) g_window->winId() : NULL,
-                    AssertMessage, L"ASSERT BREAK", MB_ICONWARNING | MB_ABORTRETRYIGNORE))
+                    AssertMessageW, L"ASSERT BREAK", MB_ICONWARNING | MB_ABORTRETRYIGNORE))
                 {
-                case IDABORT: return 0;
-                case IDIGNORE: return 1;
+                case IDABORT: delete[] AssertMessageW; return 0;
+                case IDIGNORE: delete[] AssertMessageW; return 1;
                 }
             #else
                 QString AssertMessage;
                 AssertMessage.sprintf(
                     "%s\t\t\n%s\t\t\n%s\t\t\n%s\t\t\n\n"
                     "(YES is Break, NO is Ignore)\t\t",
-                    (chars) AssertInfo[0], (chars) AssertInfo[1],
-                    (chars) AssertInfo[2], (chars) AssertInfo[3]);
+                    AssertInfo[0], AssertInfo[1],
+                    AssertInfo[2], AssertInfo[3]);
+
                 QMessageBox AssertBox(QMessageBox::Warning, "ASSERT BREAK", QString::fromUtf8(name),
                     QMessageBox::Yes | QMessageBox::No | QMessageBox::NoToAll);
                 AssertBox.setInformativeText(AssertMessage);

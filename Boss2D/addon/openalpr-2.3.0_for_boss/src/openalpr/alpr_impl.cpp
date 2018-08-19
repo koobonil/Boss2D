@@ -611,7 +611,8 @@ namespace alpr
       cJSON_AddItemToArray(coords, coords_object);
     }
 
-	// add by BOSS, Begin
+    // add by BOSS, Begin
+    cJSON_AddStringToObject(root,"country_for_boss", result->country.c_str());
 	cJSON *char_coords;
 	cJSON_AddItemToObject(root, "char_coordinates_for_boss", char_coords=cJSON_CreateArray());
 	for(int i = 0, iend = result->bestPlate.character_details.size(); i < iend; ++i)
