@@ -719,6 +719,7 @@
         chars Platform::Utility::CheckUrlSchema(chars schema)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_window && g_argv);
+            const String SchemaToken = String::Format("{urlschema:%s}", schema);
             String ApplicationFilePath = QCoreApplication::applicationFilePath().toUtf8().constData();
             ApplicationFilePath.Replace("/", "\\");
 
@@ -732,12 +733,12 @@
                 Settings.setValue("Default", "open");
                 Settings.beginGroup("open");
                     Settings.beginGroup("command");
-                        Settings.setValue("Default", (chars) ("\"" + ApplicationFilePath + "\" {urlschema} \"%1\""));
+                        Settings.setValue("Default", (chars) ("\"" + ApplicationFilePath + "\" " + SchemaToken + " \"%1\""));
                     Settings.endGroup();
                 Settings.endGroup();
             Settings.endGroup();
 
-            if(g_argc == 3 && !String::Compare(g_argv[1], "{urlschema}"))
+            if(g_argc == 3 && !String::Compare(g_argv[1], SchemaToken))
                 return g_argv[2] + boss_strlen(schema) + 3; // "schema://"
             return nullptr;
         }
