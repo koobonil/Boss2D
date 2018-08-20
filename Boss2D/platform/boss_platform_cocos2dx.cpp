@@ -566,6 +566,12 @@
             BOSS_ASSERT("Further development is needed.", false);
         }
 
+        chars Platform::Utility::CheckUrlSchema(chars schema)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return nullptr;
+        }
+
         bool Platform::Utility::GetScreenRect(rect128& rect)
         {
             BOSS_ASSERT("Further development is needed.", false);

@@ -391,6 +391,13 @@ namespace BOSS
             static void ExitProgram();
 
             /*!
+            \brief 프로그램의 URL스키마등록
+            \param schema : URL스키마(예: http, https, mailto)
+            \return 현재 실행시의 파라미터에서 URL정보 획득(없으면 nullptr)
+            */
+            static chars CheckUrlSchema(chars schema);
+
+            /*!
             \brief 스크린영역 얻기
             \param rect : 스크린영역(px)
             \return 물리적모니터 연결여부(HDMI접속상태등으로 판단)

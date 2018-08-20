@@ -71,6 +71,8 @@
     extern QMainWindow* g_window;
     extern QWidget* g_view;
     extern QGLFunctions* g_func;
+    extern sint32 g_argc;
+    extern char** g_argv;
 
     class SizePolicy
     {

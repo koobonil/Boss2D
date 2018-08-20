@@ -9,6 +9,8 @@
     QMainWindow* g_window = nullptr;
     QWidget* g_view = nullptr;
     QGLFunctions* g_func = nullptr;
+    sint32 g_argc = 0;
+    char** g_argv = nullptr;
 
     SizePolicy::SizePolicy()
     {
@@ -137,6 +139,8 @@
                 QApplication app(argc, argv);
                 MainWindow mainWindow;
                 g_window = &mainWindow;
+                g_argc = argc;
+                g_argv = argv;
 
                 Platform::Option::SetFlag("AssertPopup", true);
                 PlatformInit();
@@ -710,6 +714,32 @@
         void Platform::Utility::ExitProgram()
         {
             QApplication::quit();
+        }
+
+        chars Platform::Utility::CheckUrlSchema(chars schema)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", g_window && g_argv);
+            String ApplicationFilePath = QCoreApplication::applicationFilePath().toUtf8().constData();
+            ApplicationFilePath.Replace("/", "\\");
+
+            QSettings Settings((chars) String::Format("HKEY_CLASSES_ROOT\\%s", schema), QSettings::NativeFormat);
+            Settings.setValue("Default", (chars) String::Format("URL:%s", schema));
+            Settings.setValue("URL Protocol", "");
+            Settings.beginGroup("DefaultIcon");
+                Settings.setValue("Default", (chars) ("\"" + ApplicationFilePath + ",1\""));
+            Settings.endGroup();
+            Settings.beginGroup("shell");
+                Settings.setValue("Default", "open");
+                Settings.beginGroup("open");
+                    Settings.beginGroup("command");
+                        Settings.setValue("Default", (chars) ("\"" + ApplicationFilePath + "\" {urlschema} \"%1\""));
+                    Settings.endGroup();
+                Settings.endGroup();
+            Settings.endGroup();
+
+            if(g_argc == 3 && !String::Compare(g_argv[1], "{urlschema}"))
+                return g_argv[2] + boss_strlen(schema) + 3; // "schema://"
+            return nullptr;
         }
 
         bool Platform::Utility::GetScreenRect(rect128& rect)
