@@ -95,6 +95,12 @@ namespace BOSS
         static void GetWindowRect(rect128& rect, bool normally = false);
 
         /*!
+        \brief 윈도우보여짐 설정
+        \param visible : 보여짐여부
+        */
+        static void SetWindowVisible(bool visible);
+
+        /*!
         \brief 윈도우프로시저 추가
         \param event : 호출시점
         \param cb : 콜백함수
@@ -210,6 +216,14 @@ namespace BOSS
         \return 윈도우핸들
         */
         static h_window OpenPopupWindow(h_view view, h_icon icon = h_icon::null());
+
+        /*!
+        \brief 트레이식 윈도우 생성 및 추가
+        \param view : 뷰핸들
+        \param icon : 지정할 아이콘핸들
+        \return 윈도우핸들
+        */
+        static h_window OpenTrayWindow(h_view view, h_icon icon);
 
         /*!
         \brief 윈도우 제거

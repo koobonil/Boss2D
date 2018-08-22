@@ -144,11 +144,15 @@
 
                 Platform::Option::SetFlag("AssertPopup", true);
                 PlatformInit();
-                #if BOSS_NEED_FULLSCREEN
-                    mainWindow.showFullScreen();
-                #else
-                    mainWindow.show();
-                #endif
+                mainWindow.SetInitedPlatform();
+                if(mainWindow.firstVisible())
+                {
+                    #if BOSS_NEED_FULLSCREEN
+                        mainWindow.showFullScreen();
+                    #else
+                        mainWindow.show();
+                    #endif
+                }
                 result = app.exec();
                 PlatformQuit();
                 Platform::Option::SetFlag("AssertPopup", false);
@@ -323,6 +327,23 @@
             }
         }
 
+        void Platform::SetWindowVisible(bool visible)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
+            if(!((MainWindow*) g_window)->initedPlatform())
+                ((MainWindow*) g_window)->SetFirstVisible(visible);
+            else if(g_window->isHidden())
+            {
+                if(visible)
+                    g_window->show();
+            }
+            else
+            {
+                if(!visible)
+                    g_window->hide();
+            }
+        }
+
         void Platform::AddWindowProcedure(WindowEvent event, ProcedureCB cb, payload data)
         {
             PlatformImpl::Wrap::AddWindowProcedure(event, cb, data);
@@ -469,7 +490,7 @@
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
             GenericView* RenewedView = new GenericView(view);
-            QWidget* NewWidget = g_data->addWidget(RenewedView);
+            QWidget* NewWidget = g_data->bindWidget(RenewedView);
             NewWidget->resize(RenewedView->getFirstSize());
             NewWidget->setWindowTitle(RenewedView->getName());
             if(icon.get()) NewWidget->setWindowIcon(*((QIcon*) icon.get()));
@@ -486,6 +507,17 @@
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
             return h_window::null();
+        }
+
+        h_window Platform::OpenTrayWindow(h_view view, h_icon icon)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
+            GenericView* RenewedView = new GenericView(view);
+            buffer NewBox = Buffer::Alloc<TrayBox>(BOSS_DBG 1);
+            ((TrayBox*) NewBox)->setWidget(RenewedView, (QIcon*) icon.get());
+            h_window NewWindowHandle = h_window::create_by_buf(BOSS_DBG NewBox);
+            RenewedView->attachWindow(NewWindowHandle);
+            return NewWindowHandle;
         }
 
         void Platform::CloseWindow(h_window window)

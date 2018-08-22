@@ -254,6 +254,13 @@
             BOSS_ASSERT("Further development is needed.", false);
         }
 
+        void Platform::SetWindowVisible(bool visible)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
+
+            BOSS_ASSERT("Further development is needed.", false);
+        }
+
         void Platform::AddWindowProcedure(WindowEvent event, ProcedureCB cb, payload data)
         {
             PlatformImpl::Wrap::AddWindowProcedure(event, cb, data);
@@ -349,6 +356,14 @@
         }
 
         h_window Platform::OpenPopupWindow(h_view view, h_icon icon)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
+
+            BOSS_ASSERT("Further development is needed.", false);
+            return h_window::null();
+        }
+
+        h_window Platform::OpenTrayWindow(h_view view, h_icon icon)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
 

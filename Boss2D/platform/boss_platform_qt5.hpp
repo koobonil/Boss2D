@@ -9,6 +9,7 @@
 
     #include <QtWidgets>
     #include <QMainWindow>
+    #include <QSystemTrayIcon>
 
     #include <QMediaPlayer>
     #include <QMediaPlaylist>
@@ -953,6 +954,91 @@
         QWidget* m_widget;
     };
 
+    class TrayIcon : public QSystemTrayIcon
+    {
+        Q_OBJECT
+
+    public:
+        TrayIcon(QWidget* menu)
+        {
+            m_ref_menu = menu;
+            m_ref_menu->setWindowFlags(Qt::SplashScreen);
+            m_ref_menu->setWindowModality(Qt::WindowModal);
+            m_ref_menu->installEventFilter(this);
+            connect(this, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
+                this, SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
+        }
+        ~TrayIcon()
+        {
+        }
+
+    private slots:
+        void iconActivated(QSystemTrayIcon::ActivationReason reason)
+        {
+            switch(reason)
+            {
+            case QSystemTrayIcon::Trigger:
+                {
+                    QRect TrayRect = geometry();
+                    m_ref_menu->move(TrayRect.x(), TrayRect.y() - m_ref_menu->size().height());
+                    m_ref_menu->setFocus();
+                    m_ref_menu->show();
+                }
+                break;
+            case QSystemTrayIcon::DoubleClick:
+                break;
+            case QSystemTrayIcon::MiddleClick:
+                break;
+            default:
+                break;
+            }
+        }
+
+    private:
+        bool eventFilter(QObject* watched, QEvent* event) Q_DECL_OVERRIDE
+        {
+            if(watched == m_ref_menu && event->type() == QEvent::FocusOut)
+            {
+                m_ref_menu->hide();
+                m_ref_menu->clearFocus();////////////////////////////////////////////////
+                return true;
+            }
+            return QObject::eventFilter(watched, event);
+        }
+
+    private:
+        QWidget* m_ref_menu;
+    };
+
+    class TrayBox
+    {
+    public:
+        TrayBox()
+        {
+            m_view = nullptr;
+            m_tray = nullptr;
+        }
+        ~TrayBox()
+        {
+            delete m_view;
+            delete m_tray;
+        }
+
+        void setWidget(GenericView* view, QIcon* icon)
+        {
+            m_view = view;
+            QWidget* OldWidget = m_view->m_api->getWidget();
+            OldWidget->resize(m_view->getFirstSize());
+            m_tray = new TrayIcon(OldWidget);
+            if(icon) m_tray->setIcon(*icon);
+            m_tray->show();
+        }
+
+    private:
+        GenericView* m_view;
+        TrayIcon* m_tray;
+    };
+
     class MainData
     {
     public:
@@ -1033,7 +1119,7 @@
             return m_viewGL;
         }
 
-        QWidget* addWidget(GenericView* view)
+        QWidget* bindWidget(GenericView* view)
         {
             BOSS_ASSERT("GL/MDI의 초기화가 되어있지 않습니다", m_viewGL || m_viewMDI);
             if(m_viewGL) return view->m_api->getWidget();
@@ -1082,6 +1168,8 @@
             g_data = new MainData(this);
             connect(&m_tick_timer, &QTimer::timeout, this, &MainWindow::tick_timeout);
             m_tick_timer.start(15);
+            m_inited_platform = false;
+            m_first_visible = true;
         }
 
         ~MainWindow()
@@ -1090,6 +1178,12 @@
             delete g_data;
             g_data = nullptr;
         }
+
+    public:
+        void SetInitedPlatform() {m_inited_platform = true;}
+        bool initedPlatform() const {return m_inited_platform;}
+        void SetFirstVisible(bool visible) {m_first_visible = visible;}
+        bool firstVisible() const {return m_first_visible;}
 
     protected:
         void closeEvent(QCloseEvent* event) Q_DECL_OVERRIDE
@@ -1111,6 +1205,8 @@
 
     private:
         QTimer m_tick_timer;
+        bool m_inited_platform;
+        bool m_first_visible;
     };
 
     class StackMessage
@@ -3976,6 +4072,7 @@
     // Qt는 moc를 다시 빌드하지 않아 링크에러를 유발.
     #include <QtWidgets>
     #include <QMainWindow>
+    #include <QSystemTrayIcon>
     #include <QHostInfo>
     #include <QTcpSocket>
     #include <QUdpSocket>
@@ -3991,6 +4088,7 @@
     class GenericView : public QFrame {Q_OBJECT};
     class MainViewGL : public QGLWidget {Q_OBJECT};
     class MainViewMDI : public QMdiArea {Q_OBJECT};
+    class TrayIcon : public QSystemTrayIcon {Q_OBJECT};
     class MainWindow : public QMainWindow {Q_OBJECT};
     class EditTracker : public QLineEdit {Q_OBJECT};
     class ListTracker : public QListWidget {Q_OBJECT};

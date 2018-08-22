@@ -7,6 +7,10 @@
     #pragma comment(lib, "comdlg32.lib")
     #pragma comment(lib, "ole32.lib")
     #pragma comment(lib, "shell32.lib")
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////#include <winsvc.h>////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////#pragma comment(lib, "advapi32.lib")///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #elif BOSS_LINUX
     #include <gtk/gtk.h>
 #elif BOSS_IPHONE
@@ -489,6 +493,83 @@ namespace BOSS
                 PlatformImpl::Core::g_AssetsRemRoot = dirname;
                 PlatformImpl::Core::g_AssetsRemRoot += '/';
             }
+
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            /*bool Service_Close();
+            DWORD WINAPI ServiceHandler(DWORD dwControl, DWORD dwEventType, LPVOID lpEventData, LPVOID lpContext)
+            {
+                //BOSS_ASSERT("ServiceHandler!!!!!!!!!!", false);
+                Service_Close();
+                return 0;
+            }
+
+            VOID WINAPI ServiceMain(DWORD dwNumServicesArgs, LPWSTR* lpServiceArgVectors)
+            {
+                RegisterServiceCtrlHandlerExW(L"geegee", ServiceHandler, NULL);
+
+                for(sint32 i = 0; i < dwNumServicesArgs; ++i)
+                {
+                    WString Message = WString::Format(L"[%s]", lpServiceArgVectors[i]);
+                    BOSS_ASSERT(String::FromWChars(Message), false);
+                }
+            }
+
+            bool Service_Open()
+            {
+                SERVICE_TABLE_ENTRYW Entries[] = {{L"geegee", (LPSERVICE_MAIN_FUNCTIONW) ServiceMain}, {NULL, NULL}};
+                if(!StartServiceCtrlDispatcherW(Entries))
+                {
+                    BOSS_TRACE("StartServiceCtrlDispatcher => %d", GetLastError());
+                }
+                else BOSS_TRACE("StartServiceCtrlDispatcher => Success");
+                return false;
+
+                if(SC_HANDLE SCManager = OpenSCManagerW(NULL, NULL, SC_MANAGER_ALL_ACCESS))
+                {
+                    SC_HANDLE GeegeeService = NULL;
+                    if(!(GeegeeService = OpenServiceW(SCManager, L"geegee", SERVICE_ALL_ACCESS)))
+                    {
+                        GeegeeService = CreateServiceW(SCManager, L"geegee", L"지지플랫폼", SERVICE_ALL_ACCESS,
+                            SERVICE_WIN32_OWN_PROCESS, SERVICE_DEMAND_START, SERVICE_ERROR_NORMAL,
+                            L"D:\\WonderProjects\\geegeelauncher\\bin_Debug64\\geegeelauncher.exe", NULL, NULL, NULL, NULL, NULL);
+                    }
+
+                    if(GeegeeService)
+                    {
+                        StartServiceW(GeegeeService, 0, NULL);
+                        CloseServiceHandle(GeegeeService);
+                    }
+                    CloseServiceHandle(SCManager);
+                }
+                return true;
+            }
+
+            bool Service_Close()
+            {
+                if(SC_HANDLE SCManager = OpenSCManagerW(NULL, NULL, SC_MANAGER_CONNECT | SC_MANAGER_CREATE_SERVICE))
+                {
+                    if(SC_HANDLE GeegeeService = OpenServiceW(SCManager, L"geegee", SC_MANAGER_ALL_ACCESS))
+                    {
+                        DeleteService(GeegeeService);
+                        CloseServiceHandle(GeegeeService);
+                    }
+                    CloseServiceHandle(SCManager);
+                }
+                return true;
+            }
+
+            bool Service_Bind()
+            {
+                SERVICE_TABLE_ENTRYW Entries[] = {{L"geegee", (LPSERVICE_MAIN_FUNCTIONW) ServiceMain}, {NULL, NULL}};
+                if(!StartServiceCtrlDispatcherW(Entries))
+                {
+                    DWORD Error = GetLastError();
+                    int a;
+                    a = 10;
+                }
+                return true;
+            }*/
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             class WebNativePrivate
             {
