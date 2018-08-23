@@ -324,7 +324,7 @@ namespace BOSS
         const Share* share;
     };
 
-    //! \brief 공유배열 기본객체
+    //! \brief 기본적인 공유배열
     typedef Array<sint08, datatype_pod_canmemcpy> sint08s;
     typedef Array<uint08, datatype_pod_canmemcpy> uint08s;
     typedef Array<sint16, datatype_pod_canmemcpy> sint16s;

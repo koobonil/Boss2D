@@ -249,7 +249,7 @@ namespace BOSS
 
         // 강제적 권리이양
         ((Solver*) &rhs)->Unlink();
-        ((Solver*) &rhs)->mOperandTop = OperandObject(true);
+        ((Solver*) &rhs)->mOperandTop = OperandObject();
         if(mLinkedChain)
         {
             (*mLinkedChain)(mLinkedVariable).ResetDest(this, false);
@@ -316,7 +316,7 @@ namespace BOSS
         };
 
         // 탑항을 초기화
-        mOperandTop = OperandObject(true);
+        mOperandTop = OperandObject();
         OperandObject* OperandFocus = nullptr;
         bool OperatorTurn = false;
         for(sint32 deep = 0; *formula; ++formula)

@@ -223,6 +223,7 @@ namespace BOSS
         ZayObject* next(chars viewclass);
         bool next(View* viewmanager);
         void exit();
+        void hide();
         bool valid(chars uiname) const;
         const rect128& rect(chars uiname) const;
         const float zoom(chars uiname) const;

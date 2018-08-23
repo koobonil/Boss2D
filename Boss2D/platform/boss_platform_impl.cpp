@@ -417,6 +417,14 @@ namespace BOSS
                 #endif
             }
 
+            void Popup_ProgramDialog(chars path, chars args)
+            {
+                #if BOSS_WINDOWS
+                    ShellExecuteW(NULL, NULL, (wchars) WString::FromChars(path),
+                        (args)? (wchars) WString::FromChars(args) : NULL, NULL, SW_SHOWNORMAL);
+                #endif
+            }
+
             WString File_GetDirName(wchars itemname, wchar_t badslash, wchar_t goodslash)
             {
                 if(itemname && itemname[0] != L'\0')

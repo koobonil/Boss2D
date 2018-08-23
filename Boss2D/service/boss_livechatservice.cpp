@@ -294,7 +294,7 @@ namespace BOSS
         bool Result = false;
         Mutex::Lock(mDATA.mMessageMutex);
         {
-            mDATA.mCollectors.AtAdding() = CollectorObject(true);
+            mDATA.mCollectors.AtAdding() = CollectorObject(ObjectAllocType::Now);
             auto& NewCollector = mDATA.mCollectors.At(-1).Value();
             Result = NewCollector.Init(service, id, LiveChatData::OnMessage, &mDATA);
             Bmp::Remove(mDATA.mPictureClipper);

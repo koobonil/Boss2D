@@ -479,6 +479,11 @@
             return PlatformImpl::Wrap::Popup_WebBrowserDialog(url);
         }
 
+        void Platform::Popup::ProgramDialog(chars path, chars args)
+        {
+            return PlatformImpl::Wrap::Popup_ProgramDialog(path, args);
+        }
+
         bool Platform::Popup::OpenEditTracker(String& text, UIEditType type, sint32 l, sint32 t, sint32 r, sint32 b)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_view);

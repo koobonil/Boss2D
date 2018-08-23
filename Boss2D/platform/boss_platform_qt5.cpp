@@ -513,6 +513,8 @@
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
             GenericView* RenewedView = new GenericView(view);
+            RenewedView->m_api->getWidget()->setParent(g_window);
+
             buffer NewBox = Buffer::Alloc<TrayBox>(BOSS_DBG 1);
             ((TrayBox*) NewBox)->setWidget(RenewedView, (QIcon*) icon.get());
             h_window NewWindowHandle = h_window::create_by_buf(BOSS_DBG NewBox);
@@ -632,6 +634,11 @@
             #else
                 QDesktopServices::openUrl(QUrl(url, QUrl::TolerantMode));
             #endif
+        }
+
+        void Platform::Popup::ProgramDialog(chars path, chars args)
+        {
+            return PlatformImpl::Wrap::Popup_ProgramDialog(path, args);
         }
 
         bool Platform::Popup::OpenEditTracker(String& text, UIEditType type, sint32 l, sint32 t, sint32 r, sint32 b)

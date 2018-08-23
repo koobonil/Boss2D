@@ -314,6 +314,12 @@ namespace BOSS
             static void WebBrowserDialog(chars url);
 
             /*!
+            \brief 응용프로그램 다이얄로그
+            \param args : 전달할 스트링
+            */
+            static void ProgramDialog(chars path, chars args = nullptr);
+
+            /*!
             \brief 텍스트편집 트래커 열기
             \param text : 입력(초기값 필요) 및 결과
             \param type : 입력조건

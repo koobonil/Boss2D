@@ -55,7 +55,7 @@ namespace BOSS
         public: SolverFloat result(SolverFloat zero) const override {return zero;}
         public: buffer clone() const override {return nullptr;}
     };
-    typedef Object<OperandBlank, datatype_class_nomemcpy, true> OperandObject;
+    typedef Object<OperandBlank, datatype_class_nomemcpy, ObjectAllocType::Now> OperandObject;
     typedef Array<OperandObject> OperandObjects;
 
     // 연립방정식

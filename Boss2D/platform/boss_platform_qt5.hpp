@@ -128,6 +128,7 @@
 
     public:
         enum ParentType {PT_Null, PT_GenericView, PT_MainViewGL, PT_MainViewMDI};
+        enum WidgetRequest {WR_Null, WR_NeedExit = -1, WR_NeedHide = -2};
 
     public:
         ViewAPI(ParentType type, buffer buf, View* manager, View::UpdaterCB cb, QWidget* data, QWidget* device)
@@ -146,7 +147,7 @@
             m_input_enabled = true;
             m_width = 0;
             m_height = 0;
-            m_exiting = false;
+            m_request = WR_Null;
             m_paintcount = 0;
             m_tooltip_x = 0;
             m_tooltip_y = 0;
@@ -393,8 +394,10 @@
 
         void update(sint32 count)
         {
-            if(count == -1)
-                m_exiting = true;
+            if(count == WR_NeedExit)
+                m_request = WR_NeedExit;
+            else if(count == WR_NeedHide)
+                m_request = WR_NeedHide;
             else if(m_paintcount < count)
             {
                 if(m_paintcount == 0)
@@ -529,9 +532,16 @@
     private:
         void tick_timeout()
         {
-            if(m_exiting)
-                getWidget()->close();
-            else sendTick();
+            if(m_request == WR_Null)
+                sendTick();
+            else
+            {
+                if(m_request == WR_NeedExit)
+                    getWidget()->close();
+                else if(m_request == WR_NeedHide)
+                    getWidget()->hide();
+                m_request = WR_Null;
+            }
         }
 
         void update_timeout()
@@ -567,7 +577,7 @@
         bool m_input_enabled;
         sint32 m_width;
         sint32 m_height;
-        sint32 m_exiting;
+        WidgetRequest m_request;
         sint32 m_paintcount;
         sint32 m_tooltip_x;
         sint32 m_tooltip_y;
@@ -783,8 +793,8 @@
     public:
         void onCloseEvent(QCloseEvent* event)
         {
-            closeEvent(event);
-            GenericView::CloseAllWindows();
+            if(m_api->closeEvent(event))
+                GenericView::CloseAllWindows();
         }
 
     protected:
@@ -890,8 +900,8 @@
     public:
         void onCloseEvent(QCloseEvent* event)
         {
-            closeEvent(event);
-            GenericView::CloseAllWindows();
+            if(m_api->closeEvent(event))
+                GenericView::CloseAllWindows();
         }
 
     protected:
@@ -981,8 +991,9 @@
                 {
                     QRect TrayRect = geometry();
                     m_ref_menu->move(TrayRect.x(), TrayRect.y() - m_ref_menu->size().height());
-                    m_ref_menu->setFocus();
                     m_ref_menu->show();
+                    m_ref_menu->activateWindow(); // setFocus()는 작동하지 않는다!
+                    m_ref_menu->raise(); // 부모기준 첫번째 자식으로 올림
                 }
                 break;
             case QSystemTrayIcon::DoubleClick:
@@ -1000,7 +1011,6 @@
             if(watched == m_ref_menu && event->type() == QEvent::FocusOut)
             {
                 m_ref_menu->hide();
-                m_ref_menu->clearFocus();////////////////////////////////////////////////
                 return true;
             }
             return QObject::eventFilter(watched, event);
@@ -1015,27 +1025,26 @@
     public:
         TrayBox()
         {
-            m_view = nullptr;
+            m_ref_view = nullptr;
             m_tray = nullptr;
         }
         ~TrayBox()
         {
-            delete m_view;
             delete m_tray;
         }
 
         void setWidget(GenericView* view, QIcon* icon)
         {
-            m_view = view;
-            QWidget* OldWidget = m_view->m_api->getWidget();
-            OldWidget->resize(m_view->getFirstSize());
+            m_ref_view = view;
+            QWidget* OldWidget = m_ref_view->m_api->getWidget();
+            OldWidget->resize(m_ref_view->getFirstSize());
             m_tray = new TrayIcon(OldWidget);
             if(icon) m_tray->setIcon(*icon);
             m_tray->show();
         }
 
     private:
-        GenericView* m_view;
+        GenericView* m_ref_view;
         TrayIcon* m_tray;
     };
 

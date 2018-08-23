@@ -3,8 +3,10 @@
 
 namespace BOSS
 {
+    enum class ObjectAllocType {Now, Later};
+
     //! \brief 공유객체지원
-    template<typename TYPE, datatype DATATYPE = datatype_class_nomemcpy, bool BASEALLOC = false>
+    template<typename TYPE, datatype DATATYPE = datatype_class_nomemcpy, ObjectAllocType BASETYPE = ObjectAllocType::Later>
     class Object
     {
     public:
@@ -221,7 +223,7 @@ namespace BOSS
         \brief 생성자
         \param doalloc : 버퍼 생성여부
         */
-        Object(bool doAlloc = BASEALLOC) : share((doAlloc)? Share::Create(Buffer::Alloc<TYPE, DATATYPE>(BOSS_DBG 1)) : nullptr) {}
+        Object(ObjectAllocType type = BASETYPE) : share((type == ObjectAllocType::Now)? Share::Create(Buffer::Alloc<TYPE, DATATYPE>(BOSS_DBG 1)) : nullptr) {}
 
         /*!
         \brief 복사생성자
@@ -267,4 +269,18 @@ namespace BOSS
     private:
         const Share* share;
     };
+
+    //! \brief 기본적인 공유객체
+    typedef Object<sint08, datatype_pod_canmemcpy, ObjectAllocType::Now> sint08o;
+    typedef Object<uint08, datatype_pod_canmemcpy, ObjectAllocType::Now> uint08o;
+    typedef Object<sint16, datatype_pod_canmemcpy, ObjectAllocType::Now> sint16o;
+    typedef Object<uint16, datatype_pod_canmemcpy, ObjectAllocType::Now> uint16o;
+    typedef Object<sint32, datatype_pod_canmemcpy, ObjectAllocType::Now> sint32o;
+    typedef Object<uint32, datatype_pod_canmemcpy, ObjectAllocType::Now> uint32o;
+    typedef Object<sint64, datatype_pod_canmemcpy, ObjectAllocType::Now> sint64o;
+    typedef Object<uint64, datatype_pod_canmemcpy, ObjectAllocType::Now> uint64o;
+    typedef Object<buffer, datatype_pod_canmemcpy, ObjectAllocType::Now> buffero;
+    typedef Object<bool, datatype_pod_canmemcpy, ObjectAllocType::Now> boolo;
+    typedef Object<float, datatype_pod_canmemcpy, ObjectAllocType::Now> floato;
+    typedef Object<double, datatype_pod_canmemcpy, ObjectAllocType::Now> doubleo;
 }
