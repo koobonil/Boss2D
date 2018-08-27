@@ -734,8 +734,12 @@ namespace BOSS
     PanelState ZayPanel::state(chars uiname) const
     {
         if(auto CurTouch = (const ZayView::Touch*) m_ref_touch)
-        if(auto CurElement = CurTouch->get(uiname, 1))
-            return CurElement->GetState(m_ref_touch);
+        {
+            if(uiname == nullptr)
+                return CurTouch->get()->GetState(m_ref_touch);
+            else if(auto CurElement = CurTouch->get(uiname, 1))
+                return CurElement->GetState(m_ref_touch);
+        }
         return PS_Null;
     }
 
@@ -1343,7 +1347,9 @@ namespace BOSS
     const void* ZayView::_finder(void* data, chars uiname)
     {
         Touch* CurTouch = (Touch*) ((ZayView*) data)->m_touch;
-        return CurTouch->get(uiname, 0);
+        if(uiname != nullptr)
+            return CurTouch->get(uiname, 0);
+        return CurTouch->get();
     }
 
     ZayView::Element::Element()

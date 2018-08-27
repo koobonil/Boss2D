@@ -678,6 +678,7 @@ extern "C" int boss_feof(boss_file file)
     FileClass* CurFile = (FileClass*) file;
     if(CurFile)
     {
+        CurFile->ValidSize();
         if(CurFile->mFileOffset < CurFile->mFileSize)
             return 0;
     }
@@ -762,6 +763,7 @@ extern "C" int boss_fgetc(boss_file file)
         CurFile->ValidContent();
         if(CurFile->mFileOffset < CurFile->mFileSize)
             return (*CurFile->mContent)[(sint32) CurFile->mFileOffset++];
+        CurFile->mFileOffset++;
     }
     return EOF;
 }
@@ -775,7 +777,8 @@ extern "C" int boss_ungetc(int character, boss_file file)
         if(0 < CurFile->mFileOffset)
         {
             CurFile->mFileOffset--;
-            CurFile->mContent->At(CurFile->mFileOffset) = (uint08) character;
+            if(CurFile->mFileOffset < CurFile->mFileSize)
+                CurFile->mContent->At(CurFile->mFileOffset) = (uint08) character;
             return character;
         }
     }

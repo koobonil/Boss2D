@@ -137,6 +137,7 @@ namespace BOSS
 
     void Bmp::ChangeColor(id_bitmap bitmap, argb32 from, argb32 to)
     {
+        BOSS_ASSERT("본 함수는 32비트 비트맵만 지원합니다", GetBitCount(bitmap) == 32);
         const sint32 CurWidth = GetWidth(bitmap);
         const sint32 CurHeight = GetHeight(bitmap);
         bitmappixel* CurBits = (bitmappixel*) GetBits(bitmap);
@@ -145,6 +146,24 @@ namespace BOSS
         {
             bitmappixel& CurBit = CurBits[x + (CurHeight - 1 - y) * CurWidth];
             if(CurBit.argb == from) CurBit.argb = to;
+        }
+    }
+
+    void Bmp::Flatten(id_bitmap bitmap, uint08 r, uint08 g, uint08 b)
+    {
+        BOSS_ASSERT("본 함수는 32비트 비트맵만 지원합니다", GetBitCount(bitmap) == 32);
+        const sint32 CurWidth = GetWidth(bitmap);
+        const sint32 CurHeight = GetHeight(bitmap);
+        bitmappixel* CurBits = (bitmappixel*) GetBits(bitmap);
+        for(sint32 y = 0; y < CurHeight; ++y)
+        for(sint32 x = 0; x < CurWidth; ++x)
+        {
+            bitmappixel& CurBit = CurBits[x + (CurHeight - 1 - y) * CurWidth];
+            const sint32 Alpha = CurBit.a;
+            CurBit.r = (CurBit.r * Alpha + r * (255 - Alpha)) / 255;
+            CurBit.g = (CurBit.g * Alpha + g * (255 - Alpha)) / 255;
+            CurBit.b = (CurBit.b * Alpha + b * (255 - Alpha)) / 255;
+            CurBit.a = 0xFF;
         }
     }
 

@@ -172,8 +172,9 @@ namespace BOSS
 
     chars Customized_AddOn_Alpr_Recognize(id_alpr alpr, id_bitmap_read bitmap)
     {
-        AlprClass* CurAlpr = (AlprClass*) alpr;
+        BOSS_ASSERT("alpr은 nullptr가 될 수 없습니다", alpr);
         BOSS_ASSERT("bitmap은 nullptr가 될 수 없습니다", bitmap);
+        AlprClass* CurAlpr = (AlprClass*) alpr;
         gCurListener = CurAlpr->GetListener();
 
         alpr::Alpr* MyAlpr = CurAlpr->GetInstance()->Get();

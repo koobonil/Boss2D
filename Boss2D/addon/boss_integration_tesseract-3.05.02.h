@@ -6,22 +6,43 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // _BOSS_BATCH_COMMAND_ {"type" : "replace", "prm" : "BOSS_TESSERACT_", "restore-comment" : " //original-code:"}
 
-#define BOSS_TESSERACT_wfopen                       boss_fakewin_wfopen
-#define BOSS_TESSERACT__wfopen                      boss_fakewin_wfopen
-#define BOSS_TESSERACT_wfopen_s                     boss_fakewin_wfopen_s
-#define BOSS_TESSERACT__wfopen_s                    boss_fakewin_wfopen_s
-#define BOSS_TESSERACT_fopen                        boss_fakewin_fopen
-#define BOSS_TESSERACT_fopen_s                      boss_fakewin_fopen_s
-#define BOSS_TESSERACT_fseek                        boss_fakewin_fseek
-#define BOSS_TESSERACT_ftell                        boss_fakewin_ftell
-#define BOSS_TESSERACT_rewind                       boss_fakewin_rewind
-#define BOSS_TESSERACT_fread                        boss_fakewin_fread
-#define BOSS_TESSERACT_fwrite                       boss_fakewin_fwrite
-#define BOSS_TESSERACT_fgetc                        boss_fakewin_fgetc
-#define BOSS_TESSERACT_fgets                        boss_fakewin_fgets
-#define BOSS_TESSERACT_ungetc                       boss_fakewin_ungetc
-#define BOSS_TESSERACT_fclose                       boss_fakewin_fclose
-#define BOSS_TESSERACT_feof                         boss_fakewin_feof
+#ifdef BOSS_FAKEWIN_IS_ENABLED
+    #define BOSS_TESSERACT_wfopen                       boss_fakewin_wfopen
+    #define BOSS_TESSERACT__wfopen                      boss_fakewin_wfopen
+    #define BOSS_TESSERACT_wfopen_s                     boss_fakewin_wfopen_s
+    #define BOSS_TESSERACT__wfopen_s                    boss_fakewin_wfopen_s
+    #define BOSS_TESSERACT_fopen                        boss_fakewin_fopen
+    #define BOSS_TESSERACT_fopen_s                      boss_fakewin_fopen_s
+    #define BOSS_TESSERACT_fseek                        boss_fakewin_fseek
+    #define BOSS_TESSERACT_ftell                        boss_fakewin_ftell
+    #define BOSS_TESSERACT_rewind                       boss_fakewin_rewind
+    #define BOSS_TESSERACT_fread                        boss_fakewin_fread
+    #define BOSS_TESSERACT_fwrite                       boss_fakewin_fwrite
+    #define BOSS_TESSERACT_fgetc                        boss_fakewin_fgetc
+    #define BOSS_TESSERACT_fgets                        boss_fakewin_fgets
+    #define BOSS_TESSERACT_ungetc                       boss_fakewin_ungetc
+    #define BOSS_TESSERACT_fclose                       boss_fakewin_fclose
+    #define BOSS_TESSERACT_feof                         boss_fakewin_feof
+    #define BOSS_TESSERACT_access                       boss_fakewin_access
+#else
+    #define BOSS_TESSERACT_wfopen                       wfopen
+    #define BOSS_TESSERACT__wfopen                      _wfopen
+    #define BOSS_TESSERACT_wfopen_s                     wfopen_s
+    #define BOSS_TESSERACT__wfopen_s                    _wfopen_s
+    #define BOSS_TESSERACT_fopen                        fopen
+    #define BOSS_TESSERACT_fopen_s                      fopen_s
+    #define BOSS_TESSERACT_fseek                        fseek
+    #define BOSS_TESSERACT_ftell                        ftell
+    #define BOSS_TESSERACT_rewind                       rewind
+    #define BOSS_TESSERACT_fread                        fread
+    #define BOSS_TESSERACT_fwrite                       fwrite
+    #define BOSS_TESSERACT_fgetc                        fgetc
+    #define BOSS_TESSERACT_fgets                        fgets
+    #define BOSS_TESSERACT_ungetc                       ungetc
+    #define BOSS_TESSERACT_fclose                       fclose
+    #define BOSS_TESSERACT_feof                         feof
+    #define BOSS_TESSERACT_access                       access
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // _BOSS_BATCH_COMMAND_ {"type" : "include-alias", "prm" : "BOSS_TESSERACT_", "restore-comment" : " //original-code:"}

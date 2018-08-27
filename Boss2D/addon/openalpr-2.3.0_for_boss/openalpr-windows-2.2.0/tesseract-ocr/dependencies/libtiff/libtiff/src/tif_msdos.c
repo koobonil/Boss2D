@@ -64,8 +64,13 @@ _tiffCloseProc(thandle_t fd)
 static toff_t
 _tiffSizeProc(thandle_t fd)
 {
-	struct boss_fakewin_struct_stat sb; // modified by BOSS, original-code: struct stat sb;
-	return (_fstat((int) fd, &sb) < 0 ? 0 : sb.st_size); // modified by BOSS, original-code: return (fstat((int) fd, &sb) < 0 ? 0 : sb.st_size);
+    #ifdef BOSS_FAKEWIN_IS_ENABLED // added by BOSS
+        struct boss_fakewin_struct_stat sb; // added by BOSS
+	    return (_fstat((int) fd, &sb) < 0 ? 0 : sb.st_size); // added by BOSS
+    #else // added by BOSS
+        struct stat sb;
+	    return (fstat((int) fd, &sb) < 0 ? 0 : sb.st_size);
+    #endif // added by BOSS
 }
 
 static int

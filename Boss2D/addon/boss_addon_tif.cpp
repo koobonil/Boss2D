@@ -79,7 +79,7 @@ namespace BOSS
             NewBits[x + y * Width] = SrcBits[x + (Height - 1 - y) * Width].r;
 
         TinyTIFFFile* tiff = TinyTIFFWriter_open(
-            Platform::File::RootForAssetsRem() + "ocr/build/test.green.exp0.tif", 8, Width, Height);
+            Platform::File::RootForAssetsRem() + "ocr/build/kor2019.basefont.exp0.tif", 8, Width, Height);
         TinyTIFFWriter_writeImage(tiff, (uint08*) NewBits);
         TinyTIFFWriter_close(tiff, "THIS IS MY OWN TIFF COMMET");
         delete[] NewBits;
@@ -165,7 +165,7 @@ struct TinyTIFFFile {
     uint32 descriptionOffset;
     uint32 descriptionSizeOffset;
     /* \brief counter for the frames, written into the file */
-    uint64_t frames;
+    uint64 frames;
     /* \brief specifies the byte order of the system (and the written file!) */
     uint08 byteorder;
 };
@@ -1023,7 +1023,7 @@ struct TinyTIFFReaderFile {
     uint32 firstrecord_offset;
     uint32 nextifd_offset;
 
-    uint64_t filesize;
+    uint64 filesize;
 	
     TinyTIFFReaderFrame currentFrame;
 };

@@ -60,6 +60,8 @@
     #undef UNICODE
     #include <winsock2.h>
     #include <windows.h>
+    #include <stdio.h>
+    #include <sys/stat.h>
     #include <malloc.h>
 
     typedef struct fd_set boss_fakewin_struct_fd_set;
