@@ -1074,7 +1074,7 @@
         }
 
     public:
-        void initForGL(bool frameless)
+        void initForGL(bool frameless, bool topmost)
         {
             m_viewGL = new MainViewGL(m_parent);
             m_viewGL->m_api->renewParent(m_viewGL);
@@ -1086,29 +1086,41 @@
             MainLayout->addWidget(m_viewGL);
             MainWidget->setLayout(MainLayout);
             m_parent->setCentralWidget(MainWidget);
+
+            Qt::WindowFlags TypeCollector = Qt::Widget;
             if(frameless)
             {
                 #if BOSS_MAC_OSX
-                    m_parent->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowMinimizeButtonHint | Qt::WindowCloseButtonHint);
+                    TypeCollector |= Qt::CustomizeWindowHint | Qt::WindowMinimizeButtonHint | Qt::WindowCloseButtonHint;
                 #elif BOSS_WINDOWS
-                    m_parent->setWindowFlags(Qt::FramelessWindowHint);
+                    TypeCollector |= Qt::FramelessWindowHint;
                 #endif
             }
+            if(topmost)
+                TypeCollector |= Qt::WindowStaysOnTopHint;
+            if(TypeCollector != Qt::Widget)
+                m_parent->setWindowFlags(TypeCollector);
         }
 
-        void initForMDI(bool frameless)
+        void initForMDI(bool frameless, bool topmost)
         {
             m_viewMDI = new MainViewMDI(m_parent);
             m_viewMDI->m_api->renewParent(m_viewMDI);
             m_parent->setCentralWidget(m_viewMDI);
+
+            Qt::WindowFlags TypeCollector = Qt::Widget;
             if(frameless)
             {
                 #if BOSS_MAC_OSX
-                    m_parent->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowMinimizeButtonHint | Qt::WindowCloseButtonHint);
+                    TypeCollector |= Qt::CustomizeWindowHint | Qt::WindowMinimizeButtonHint | Qt::WindowCloseButtonHint;
                 #elif BOSS_WINDOWS
-                    m_parent->setWindowFlags(Qt::FramelessWindowHint);
+                    TypeCollector |= Qt::FramelessWindowHint;
                 #endif
             }
+            if(topmost)
+                TypeCollector |= Qt::WindowStaysOnTopHint;
+            if(TypeCollector != Qt::Widget)
+                m_parent->setWindowFlags(TypeCollector);
         }
 
         ViewAPI* getMainAPI()

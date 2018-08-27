@@ -209,14 +209,14 @@
         ////////////////////////////////////////////////////////////////////////////////
         // PLATFORM
         ////////////////////////////////////////////////////////////////////////////////
-        void Platform::InitForGL(bool frameless)
+        void Platform::InitForGL(bool frameless, bool topmost)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data);
             g_data->initForGL();
             BOSS_ASSERT("frameless를 개발해야 합니다", false);
         }
 
-        void Platform::InitForMDI(bool frameless)
+        void Platform::InitForMDI(bool frameless, bool topmost)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data);
             g_data->initForMDI();
@@ -592,7 +592,13 @@
             return nullptr;
         }
 
-        bool Platform::Utility::GetScreenRect(rect128& rect)
+        sint32 Platform::Utility::GetScreenRect(rect128& rect, sint32 screenid, bool available_only)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return 0;
+        }
+
+		bool Platform::Utility::IsScreenConnected()
         {
             BOSS_ASSERT("Further development is needed.", false);
             return true;

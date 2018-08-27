@@ -40,23 +40,24 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C8332454-4D7E-40CB-A0A3-8FA930D8BF7F}</ProjectGuid>
     <Keyword>Qt4VSv1.0</Keyword>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -122,7 +123,7 @@
     <PostBuildEvent>
       <Command>xcopy "$(OutDir)$(ProjectName).*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
 
-xcopy "$(ProjectDir)..\..\dependency\msvc_$(PlatformToolset)\$(PlatformTarget)\*.*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
+xcopy "$(VCInstallDir)Redist\MSVC\$(VCToolsRedistVersion)\$(PlatformTarget)\Microsoft.VC$(PlatformToolsetVersion).CRT\*.*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
 
 "$(QTDIR)\bin\windeployqt.exe" "..\bin_$(Configuration)$(PlatformArchitecture)\$(TargetFileName)"</Command>
     </PostBuildEvent>
@@ -152,7 +153,7 @@ xcopy "$(ProjectDir)..\..\dependency\msvc_$(PlatformToolset)\$(PlatformTarget)\*
     <PostBuildEvent>
       <Command>xcopy "$(OutDir)$(ProjectName).*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
 
-xcopy "$(ProjectDir)..\..\dependency\msvc_$(PlatformToolset)\$(PlatformTarget)\*.*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
+xcopy "$(VCInstallDir)Redist\MSVC\$(VCToolsRedistVersion)\$(PlatformTarget)\Microsoft.VC$(PlatformToolsetVersion).CRT\*.*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
 
 "$(QTDIR)\bin\windeployqt.exe" "..\bin_$(Configuration)$(PlatformArchitecture)\$(TargetFileName)"</Command>
     </PostBuildEvent>
@@ -185,7 +186,7 @@ xcopy "$(ProjectDir)..\..\dependency\msvc_$(PlatformToolset)\$(PlatformTarget)\*
     <PostBuildEvent>
       <Command>xcopy "$(OutDir)$(ProjectName).*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
 
-xcopy "$(ProjectDir)..\..\dependency\msvc_$(PlatformToolset)\$(PlatformTarget)\*.*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
+xcopy "$(VCInstallDir)Redist\MSVC\$(VCToolsRedistVersion)\$(PlatformTarget)\Microsoft.VC$(PlatformToolsetVersion).CRT\*.*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
 
 "$(QTDIR)\bin\windeployqt.exe" "..\bin_$(Configuration)$(PlatformArchitecture)\$(TargetFileName)"</Command>
     </PostBuildEvent>
@@ -218,7 +219,7 @@ xcopy "$(ProjectDir)..\..\dependency\msvc_$(PlatformToolset)\$(PlatformTarget)\*
     <PostBuildEvent>
       <Command>xcopy "$(OutDir)$(ProjectName).*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
 
-xcopy "$(ProjectDir)..\..\dependency\msvc_$(PlatformToolset)\$(PlatformTarget)\*.*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
+xcopy "$(VCInstallDir)Redist\MSVC\$(VCToolsRedistVersion)\$(PlatformTarget)\Microsoft.VC$(PlatformToolsetVersion).CRT\*.*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
 
 "$(QTDIR)\bin\windeployqt.exe" "..\bin_$(Configuration)$(PlatformArchitecture)\$(TargetFileName)"</Command>
     </PostBuildEvent>

@@ -260,16 +260,16 @@
         ////////////////////////////////////////////////////////////////////////////////
         // PLATFORM
         ////////////////////////////////////////////////////////////////////////////////
-        void Platform::InitForGL(bool frameless)
+        void Platform::InitForGL(bool frameless, bool topmost)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data);
-            g_data->initForGL(frameless);
+            g_data->initForGL(frameless, topmost);
         }
 
-        void Platform::InitForMDI(bool frameless)
+        void Platform::InitForMDI(bool frameless, bool topmost)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data);
-            g_data->initForMDI(frameless);
+            g_data->initForMDI(frameless, topmost);
         }
 
         void Platform::SetViewCreator(View::CreatorCB creator)
@@ -299,9 +299,10 @@
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
             if(!Platform::Utility::IsFullScreen())
             {
-                auto TitleBarHeight = QApplication::style()->pixelMetric(QStyle::PM_TitleBarHeight);
-                auto WindowFrame = QApplication::style()->pixelMetric(QStyle::PM_MdiSubWindowFrameWidth);
-                g_window->move(x - WindowFrame, y - TitleBarHeight - WindowFrame / 2);
+                //auto TitleBarHeight = QApplication::style()->pixelMetric(QStyle::PM_TitleBarHeight);
+                //auto WindowFrame = QApplication::style()->pixelMetric(QStyle::PM_MdiSubWindowFrameWidth);
+                //g_window->move(x - WindowFrame, y - TitleBarHeight - WindowFrame / 2);
+				g_window->move(x, y);
             }
         }
 
@@ -782,30 +783,49 @@
             return nullptr;
         }
 
-        bool Platform::Utility::GetScreenRect(rect128& rect)
+        sint32 Platform::Utility::GetScreenRect(rect128& rect, sint32 screenid, bool available_only)
         {
             sint32 NumScreens = QApplication::desktop()->numScreens();
             if(NumScreens == 0)
                 rect.l = rect.t = rect.r = rect.b = 0;
-            else
+            else if(screenid < NumScreens)
             {
-                rect128 TotalRect = {10000, 10000, -10000, -10000};
-                for(sint32 i = 0; i < NumScreens; ++i)
+                if(screenid == -1)
                 {
-                    QRect GeometryRect = QApplication::desktop()->availableGeometry(i);
-                    TotalRect.l = Math::Min(TotalRect.l, GeometryRect.left());
-                    TotalRect.t = Math::Min(TotalRect.t, GeometryRect.top());
-                    TotalRect.r = Math::Max(TotalRect.r, GeometryRect.right());
-                    TotalRect.b = Math::Max(TotalRect.b, GeometryRect.bottom());
+                    rect128 TotalRect = {100000, 100000, -100000, -100000};
+                    for(sint32 i = 0; i < NumScreens; ++i)
+                    {
+                        QRect GeometryRect = (available_only)?
+                            QApplication::desktop()->availableGeometry(i) :
+                            QApplication::desktop()->screenGeometry(i);
+                        TotalRect.l = Math::Min(TotalRect.l, GeometryRect.left());
+                        TotalRect.t = Math::Min(TotalRect.t, GeometryRect.top());
+                        TotalRect.r = Math::Max(TotalRect.r, GeometryRect.right() + 1);
+                        TotalRect.b = Math::Max(TotalRect.b, GeometryRect.bottom() + 1);
+                    }
+                    rect.l = TotalRect.l;
+                    rect.t = TotalRect.t;
+                    rect.r = TotalRect.r;
+                    rect.b = TotalRect.b;
                 }
-                rect.l = TotalRect.l;
-                rect.t = TotalRect.t;
-                rect.r = TotalRect.r;
-                rect.b = TotalRect.b;
+                else
+                {
+                    QRect GeometryRect = (available_only)?
+                        QApplication::desktop()->availableGeometry(screenid) :
+                        QApplication::desktop()->screenGeometry(screenid);
+                    rect.l = GeometryRect.left();
+                    rect.t = GeometryRect.top();
+                    rect.r = GeometryRect.right() + 1;
+                    rect.b = GeometryRect.bottom() + 1;
+                }
             }
+            return NumScreens;
+        }
 
+		bool Platform::Utility::IsScreenConnected()
+		{
             #if BOSS_ANDROID
-                /*id_file_read Hdmi = Platform::File::OpenForRead("/sys/devices/virtual/switch/hdmi/state");
+                id_file_read Hdmi = Platform::File::OpenForRead("/sys/devices/virtual/switch/hdmi/state");
                 if(!Hdmi) Hdmi = Platform::File::OpenForRead("/sys/class/switch/hdmi/state");
                 if(Hdmi)
                 {
@@ -814,10 +834,10 @@
                     const bool HasPhygicalMonitor = ((Value & 1) == 1);
                     Platform::File::Close(Hdmi);
                     return HasPhygicalMonitor;
-                }*/
+                }
             #endif
-            return true;
-        }
+			return true;
+		}
 
         id_image_read Platform::Utility::GetScreenshotImage(const rect128& rect)
         {

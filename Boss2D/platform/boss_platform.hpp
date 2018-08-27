@@ -47,12 +47,12 @@ namespace BOSS
         /*!
         \brief 플랫폼초기화(GL뷰)
         */
-        static void InitForGL(bool frameless = false);
+        static void InitForGL(bool frameless = false, bool topmost = false);
 
         /*!
         \brief 플랫폼초기화(MDI뷰)
         */
-        static void InitForMDI(bool frameless = false);
+        static void InitForMDI(bool frameless = false, bool topmost = false);
 
         /*!
         \brief 뷰생성기 설정
@@ -420,9 +420,17 @@ namespace BOSS
             /*!
             \brief 스크린영역 얻기
             \param rect : 스크린영역(px)
-            \return 물리적모니터 연결여부(HDMI접속상태등으로 판단)
+            \param screenid : 스크린ID(-1일 경우 모든 스크린)
+            \param available_only : 시작표시줄등을 제외한 유효영역만으로 제한
+            \return 스크린수량
             */
-            static bool GetScreenRect(rect128& rect);
+            static sint32 GetScreenRect(rect128& rect, sint32 screenid = -1, bool available_only = true);
+
+            /*!
+            \brief 물리적인 모니터 연결여부
+            \return 연결여부
+            */
+            static bool IsScreenConnected();
 
             /*!
             \brief 스크린샷 이미지 얻기
