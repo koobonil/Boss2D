@@ -13,14 +13,6 @@ namespace BOSS
             payload GetProcedureData(sint32 i);
             String NormalPath(chars itemname, bool QCodeTest = true);
             WString NormalPathW(wchars itemname, bool QCodeTest = true);
-            template<typename TYPE, datatype DATATYPE>
-            TYPE* GetManagerBy(sint32 id)
-            {
-                buffer Result = GetManager(id);
-                const bool IsResultEnabled = Buffer::TypeCheck<TYPE, DATATYPE>(Result);
-                BOSS_ASSERT("Manager의 Type이 일치하지 않습니다", IsResultEnabled);
-                return (TYPE*) Result;
-            }
 
             extern View::CreatorCB g_Creator;
             extern String g_AssetsRoot;

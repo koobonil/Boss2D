@@ -209,13 +209,14 @@ namespace BOSS
         */
 		bool DeliverySection(sint32 index, Array&& src, sint32 srcindex, sint32 srclength = 1)
 		{
-			BOSS_ASSERT("length는 0보다 커야 합니다", 0 < srclength);
-            auto OldShare = share;
+            BOSS_ASSERT("length는 0보다 커야 합니다", 0 < srclength);
+            const Share* OldShare = share;
+            const Share* NewShare = src.share;
 			share = Share::Create(SampleBuffer(), OldShare->count() + srclength);
             for(sint32 i = 0; i < index; ++i)
                 AtAdding() = ToReference(OldShare->At<TYPE>(i));
             for(sint32 i = srcindex, iend = i + srclength; i < iend; ++i)
-                AtAdding() = ToReference(src.share->At<TYPE>(i));
+                AtAdding() = ToReference(NewShare->At<TYPE>(i));
             for(sint32 i = index, iend = OldShare->count(); i < iend; ++i)
                 AtAdding() = ToReference(OldShare->At<TYPE>(i));
             Share::Remove(OldShare);

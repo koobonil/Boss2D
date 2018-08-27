@@ -21,6 +21,7 @@
     #include <QTcpSocket>
     #include <QUdpSocket>
     #include <QTcpServer>
+    #include <QNetworkInterface>
 
     #include <QGLWidget>
     #include <QGLFunctions>

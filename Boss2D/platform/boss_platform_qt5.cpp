@@ -1996,7 +1996,7 @@
                 else
                 {
                     BOSS_TRACE("CreateDir(%s) - Failed", (chars) DirnameUTF8);
-                    return nullptr;
+                    return false;
                 }
             }
             BOSS_TRACE("CreateDir(%s)", (chars) DirnameUTF8);

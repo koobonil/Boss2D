@@ -22,6 +22,7 @@
 #define BOSS_NEED_ADDON_SSL        0
 #define BOSS_NEED_ADDON_TENSORFLOW 0
 #define BOSS_NEED_ADDON_TESSERACT  0
+#define BOSS_NEED_ADDON_TIF        0
 #define BOSS_NEED_ADDON_ZIP        1
 
 ////////////////////////////////////////
@@ -34,3 +35,4 @@
 #define BOSS_NEED_PLATFORM_FILE   1
 #define BOSS_NEED_PROFILE         0
 #define BOSS_NEED_RELEASE_TRACE   1
+#define BOSS_NEED_NATIVE_OPENGL   0

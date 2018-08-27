@@ -2030,70 +2030,74 @@
 
     void NativePainter::fillRect(const BOSS::Rect& rect, const BOSS::Color& color)
     {
-        glBindFramebuffer(GL_FRAMEBUFFER, 1); __testGL(BOSS_DBG 0);
-        // 편리한 좌표계를 위해 4평면만 사용
-        glViewport(-m_width, 0, m_width * 2, m_height * 2); __testGL(BOSS_DBG 0);
+        #if BOSS_NEED_NATIVE_OPENGL
+            glBindFramebuffer(GL_FRAMEBUFFER, 1); __testGL(BOSS_DBG 0);
+            // 편리한 좌표계를 위해 4평면만 사용
+            glViewport(-m_width, 0, m_width * 2, m_height * 2); __testGL(BOSS_DBG 0);
 
-        glUseProgram(m_program); __testGL(BOSS_DBG 0);
-        glBindBuffer(GL_ARRAY_BUFFER, 0); __testGL(BOSS_DBG 0);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); __testGL(BOSS_DBG 0);
-        glEnableVertexAttribArray(VerticeID); __testGL(BOSS_DBG 0);
-        glEnableVertexAttribArray(ColorID); __testGL(BOSS_DBG 0);
-        glVertexAttribPointer(VerticeID, 2, GL_FLOAT, GL_FALSE, sizeof(Attrib), &m_attrib[0].vertices[0]); __testGL(BOSS_DBG 0);
-        glVertexAttribPointer(ColorID, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Attrib), &m_attrib[0].colors[0]); __testGL(BOSS_DBG 0);
-        glUniformMatrix4fv(m_matrix, 1, GL_FALSE, (const GLfloat*) &m_m[0][0]); __testGL(BOSS_DBG 0);
+            glUseProgram(m_program); __testGL(BOSS_DBG 0);
+            glBindBuffer(GL_ARRAY_BUFFER, 0); __testGL(BOSS_DBG 0);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); __testGL(BOSS_DBG 0);
+            glEnableVertexAttribArray(VerticeID); __testGL(BOSS_DBG 0);
+            glEnableVertexAttribArray(ColorID); __testGL(BOSS_DBG 0);
+            glVertexAttribPointer(VerticeID, 2, GL_FLOAT, GL_FALSE, sizeof(Attrib), &m_attrib[0].vertices[0]); __testGL(BOSS_DBG 0);
+            glVertexAttribPointer(ColorID, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Attrib), &m_attrib[0].colors[0]); __testGL(BOSS_DBG 0);
+            glUniformMatrix4fv(m_matrix, 1, GL_FALSE, (const GLfloat*) &m_m[0][0]); __testGL(BOSS_DBG 0);
 
-        glDisable(GL_CULL_FACE); __testGL(BOSS_DBG 0);
-        glDisable(GL_DEPTH_TEST); __testGL(BOSS_DBG 0);
-        glDisable(GL_SCISSOR_TEST); __testGL(BOSS_DBG 0);
-        glEnable(GL_BLEND); __testGL(BOSS_DBG 0);
-        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA); __testGL(BOSS_DBG 0);
+            glDisable(GL_CULL_FACE); __testGL(BOSS_DBG 0);
+            glDisable(GL_DEPTH_TEST); __testGL(BOSS_DBG 0);
+            glDisable(GL_SCISSOR_TEST); __testGL(BOSS_DBG 0);
+            glEnable(GL_BLEND); __testGL(BOSS_DBG 0);
+            glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA); __testGL(BOSS_DBG 0);
 
-        m_attrib[0].vertices[0] = rect.l;
-        m_attrib[0].vertices[1] = rect.t;
-        m_attrib[0].color32 = color.rgba;
-        m_attrib[1].vertices[0] = rect.r;
-        m_attrib[1].vertices[1] = rect.t;
-        m_attrib[1].color32 = color.rgba;
-        m_attrib[2].vertices[0] = rect.l;
-        m_attrib[2].vertices[1] = rect.b;
-        m_attrib[2].color32 = color.rgba;
-        m_attrib[3].vertices[0] = rect.r;
-        m_attrib[3].vertices[1] = rect.b;
-        m_attrib[3].color32 = color.rgba;
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); __testGL(BOSS_DBG 0);
+            m_attrib[0].vertices[0] = rect.l;
+            m_attrib[0].vertices[1] = rect.t;
+            m_attrib[0].color32 = color.rgba;
+            m_attrib[1].vertices[0] = rect.r;
+            m_attrib[1].vertices[1] = rect.t;
+            m_attrib[1].color32 = color.rgba;
+            m_attrib[2].vertices[0] = rect.l;
+            m_attrib[2].vertices[1] = rect.b;
+            m_attrib[2].color32 = color.rgba;
+            m_attrib[3].vertices[0] = rect.r;
+            m_attrib[3].vertices[1] = rect.b;
+            m_attrib[3].color32 = color.rgba;
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); __testGL(BOSS_DBG 0);
+        #endif
     }
 
     void NativePainter::initShaderES(chars vsource, chars fsource)
     {
-        static chars VertexShaderSourceCodePtr = vsource;
-        m_vshader = glCreateShader(GL_VERTEX_SHADER); __testGL(BOSS_DBG 0);
-        glShaderSource(m_vshader, 1, &VertexShaderSourceCodePtr, NULL); __testGL(BOSS_DBG 0);
-        glCompileShader(m_vshader); __testShader(BOSS_DBG m_vshader);
+        #if BOSS_NEED_NATIVE_OPENGL
+            static chars VertexShaderSourceCodePtr = vsource;
+            m_vshader = glCreateShader(GL_VERTEX_SHADER); __testGL(BOSS_DBG 0);
+            glShaderSource(m_vshader, 1, &VertexShaderSourceCodePtr, NULL); __testGL(BOSS_DBG 0);
+            glCompileShader(m_vshader); __testShader(BOSS_DBG m_vshader);
 
-        static chars FragmentShaderSourceCodePtr = fsource;
-        m_fshader = glCreateShader(GL_FRAGMENT_SHADER); __testGL(BOSS_DBG 0);
-        glShaderSource(m_fshader, 1, &FragmentShaderSourceCodePtr, NULL); __testGL(BOSS_DBG 0);
-        glCompileShader(m_fshader); __testShader(BOSS_DBG m_fshader);
+            static chars FragmentShaderSourceCodePtr = fsource;
+            m_fshader = glCreateShader(GL_FRAGMENT_SHADER); __testGL(BOSS_DBG 0);
+            glShaderSource(m_fshader, 1, &FragmentShaderSourceCodePtr, NULL); __testGL(BOSS_DBG 0);
+            glCompileShader(m_fshader); __testShader(BOSS_DBG m_fshader);
 
-        m_program = glCreateProgram(); __testGL(BOSS_DBG 0);
-        glAttachShader(m_program, m_vshader); __testShader(BOSS_DBG m_vshader);
-        glAttachShader(m_program, m_fshader); __testShader(BOSS_DBG m_fshader);
+            m_program = glCreateProgram(); __testGL(BOSS_DBG 0);
+            glAttachShader(m_program, m_vshader); __testShader(BOSS_DBG m_vshader);
+            glAttachShader(m_program, m_fshader); __testShader(BOSS_DBG m_fshader);
 
-        glEnableVertexAttribArray(VerticeID); __testGL(BOSS_DBG 0);
-        glEnableVertexAttribArray(ColorID); __testGL(BOSS_DBG 0);
-        glBindAttribLocation(m_program, VerticeID, "a_position"); __testGL(BOSS_DBG 0);
-        glBindAttribLocation(m_program, ColorID, "a_color"); __testGL(BOSS_DBG 0);
-        glVertexAttribPointer(VerticeID, 2, GL_FLOAT, GL_FALSE, sizeof(Attrib), &m_attrib[0].vertices[0]); __testGL(BOSS_DBG 0);
-        glVertexAttribPointer(ColorID, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Attrib), &m_attrib[0].colors[0]); __testGL(BOSS_DBG 0);
+            glEnableVertexAttribArray(VerticeID); __testGL(BOSS_DBG 0);
+            glEnableVertexAttribArray(ColorID); __testGL(BOSS_DBG 0);
+            glBindAttribLocation(m_program, VerticeID, "a_position"); __testGL(BOSS_DBG 0);
+            glBindAttribLocation(m_program, ColorID, "a_color"); __testGL(BOSS_DBG 0);
+            glVertexAttribPointer(VerticeID, 2, GL_FLOAT, GL_FALSE, sizeof(Attrib), &m_attrib[0].vertices[0]); __testGL(BOSS_DBG 0);
+            glVertexAttribPointer(ColorID, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Attrib), &m_attrib[0].colors[0]); __testGL(BOSS_DBG 0);
 
-        glLinkProgram(m_program); __testProgram(BOSS_DBG m_program);
-        glValidateProgram(m_program); __testProgram(BOSS_DBG m_program);
+            glLinkProgram(m_program); __testProgram(BOSS_DBG m_program);
+            glValidateProgram(m_program); __testProgram(BOSS_DBG m_program);
 
-        __loadIdentity();
-        glUseProgram(m_program); __testProgram(BOSS_DBG m_program);
-        m_matrix = glGetUniformLocation(m_program, "u_matrix"); __testGL(BOSS_DBG 0);
-        glUniformMatrix4fv(m_matrix, 1, GL_FALSE, (const GLfloat*) &m_m[0][0]); __testGL(BOSS_DBG 0);
+            __loadIdentity();
+            glUseProgram(m_program); __testProgram(BOSS_DBG m_program);
+            m_matrix = glGetUniformLocation(m_program, "u_matrix"); __testGL(BOSS_DBG 0);
+            glUniformMatrix4fv(m_matrix, 1, GL_FALSE, (const GLfloat*) &m_m[0][0]); __testGL(BOSS_DBG 0);
+        #endif
     }
 
     void NativePainter::initShaderES20()
@@ -2145,67 +2149,79 @@
 
     void NativePainter::termShaderES()
     {
-        glDeleteProgram(m_program); __testGL(BOSS_DBG 0);
-        m_program = 0;
-        glDeleteShader(m_vshader); __testGL(BOSS_DBG 0);
-        m_vshader = 0;
-        glDeleteShader(m_fshader); __testGL(BOSS_DBG 0);
-        m_fshader = 0;
+        #if BOSS_NEED_NATIVE_OPENGL
+            glDeleteProgram(m_program); __testGL(BOSS_DBG 0);
+            m_program = 0;
+            glDeleteShader(m_vshader); __testGL(BOSS_DBG 0);
+            m_vshader = 0;
+            glDeleteShader(m_fshader); __testGL(BOSS_DBG 0);
+            m_fshader = 0;
+        #endif
     }
 
     void NativePainter::__testGL(BOSS_DBG_PRM sint32 nouse)
     {
-        if(auto errorCode = glGetError())
-            BOSS_ASSERT_PRM(String::Format("__testGL(error:%d) is failed", errorCode), false);
+        #if BOSS_NEED_NATIVE_OPENGL
+            if(auto errorCode = glGetError())
+                BOSS_ASSERT_PRM(String::Format("__testGL(error:%d) is failed", errorCode), false);
+        #endif
     }
 
     uint08 NativePainter::__version()
     {
-        static uint08 Version = 0x00;
-        if(Version != 0x00) return Version;
+        #if BOSS_NEED_NATIVE_OPENGL
+            static uint08 Version = 0x00;
+            if(Version != 0x00) return Version;
 
-        chars VersionString = (chars) glGetString(GL_VERSION);
-        // 예시1: OpenGL ES 2.0 IMGSGX543-124.1
-        // 예시2: OpenGL ES 3.0 APPLE-12.0.38
-        BOSS_ASSERT("이해할 수 없는 버전정보입니다",
-            VersionString[9] == ' ' && VersionString[11] == '.' && VersionString[13] == ' ');
+            chars VersionString = (chars) glGetString(GL_VERSION);
+            // 예시1: OpenGL ES 2.0 IMGSGX543-124.1
+            // 예시2: OpenGL ES 3.0 APPLE-12.0.38
+            BOSS_ASSERT("이해할 수 없는 버전정보입니다",
+                VersionString[9] == ' ' && VersionString[11] == '.' && VersionString[13] == ' ');
 
-        const uint32 VersionMajor = VersionString[10] - '0';
-        const uint32 VersionMinor = VersionString[12] - '0';
-        Version = ((VersionMajor & 0xF) << 4) | (VersionMinor & 0xF);
-        return Version;
+            const uint32 VersionMajor = VersionString[10] - '0';
+            const uint32 VersionMinor = VersionString[12] - '0';
+            Version = ((VersionMajor & 0xF) << 4) | (VersionMinor & 0xF);
+            return Version;
+        #else
+            return 0x00;
+        #endif
     }
 
     void NativePainter::__testShader(BOSS_DBG_PRM GLuint shader)
     {
-        GLint status;
-        glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
-        if(status == GL_FALSE)
-        {
-            GLchar log[4096];
-            GLsizei s;
-            glGetShaderInfoLog(shader, 4096, &s, log);
-            BOSS_ASSERT_PRM(String::Format("__testShader(%s) is failed", log), false);
-        }
-        else if(auto errorCode = glGetError())
-            BOSS_ASSERT_PRM(String::Format("__testShader(error:%d) is failed", errorCode), false);
+        #if BOSS_NEED_NATIVE_OPENGL
+            GLint status;
+            glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+            if(status == GL_FALSE)
+            {
+                GLchar log[4096];
+                GLsizei s;
+                glGetShaderInfoLog(shader, 4096, &s, log);
+                BOSS_ASSERT_PRM(String::Format("__testShader(%s) is failed", log), false);
+            }
+            else if(auto errorCode = glGetError())
+                BOSS_ASSERT_PRM(String::Format("__testShader(error:%d) is failed", errorCode), false);
+        #endif
     }
 
     void NativePainter::__testProgram(BOSS_DBG_PRM GLuint program)
     {
-        GLint linked;
-        glGetProgramiv(program, GL_LINK_STATUS, &linked);
-        if(!linked)
-        {
-            int i32InfoLogLength, i32CharsWritten;
-            glGetProgramiv(program, GL_INFO_LOG_LENGTH, &i32InfoLogLength);
-            char* pszInfoLog = new char[i32InfoLogLength];
-            glGetProgramInfoLog(program, i32InfoLogLength, &i32CharsWritten, pszInfoLog);
-            BOSS_ASSERT_PRM(String::Format("__testProgram(%s) is failed", pszInfoLog), false);
-            delete [] pszInfoLog;
-        }
-        else if(auto errorCode = glGetError())
-            BOSS_ASSERT_PRM(String::Format("__testProgram(error:%d) is failed", errorCode), false);
+        #if BOSS_NEED_NATIVE_OPENGL
+            GLint linked;
+            glGetProgramiv(program, GL_LINK_STATUS, &linked);
+            if(!linked)
+            {
+                int i32InfoLogLength, i32CharsWritten;
+                glGetProgramiv(program, GL_INFO_LOG_LENGTH, &i32InfoLogLength);
+                char* pszInfoLog = new char[i32InfoLogLength];
+                glGetProgramInfoLog(program, i32InfoLogLength, &i32CharsWritten, pszInfoLog);
+                BOSS_ASSERT_PRM(String::Format("__testProgram(%s) is failed", pszInfoLog), false);
+                delete [] pszInfoLog;
+            }
+            else if(auto errorCode = glGetError())
+                BOSS_ASSERT_PRM(String::Format("__testProgram(error:%d) is failed", errorCode), false);
+        #endif
     }
 
     void NativePainter::__loadIdentity()

@@ -121,11 +121,13 @@
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(OutDir)$(ProjectName).*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
-
-xcopy "$(VCInstallDir)Redist\MSVC\$(VCToolsRedistVersion)\$(PlatformTarget)\Microsoft.VC$(PlatformToolsetVersion).CRT\*.*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
-
-"$(QTDIR)\bin\windeployqt.exe" "..\bin_$(Configuration)$(PlatformArchitecture)\$(TargetFileName)"</Command>
+      <Command>xcopy "$(OutDir)$(ProjectName).exe" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
+xcopy "$(OutDir)$(ProjectName).pdb" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
+xcopy "$(DevEnvDir)msvcr*.dll" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
+xcopy "$(DevEnvDir)msvcp*.dll" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
+xcopy "$(DevEnvDir)vcruntime*.dll" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
+"$(QTDIR)\bin\windeployqt.exe" "..\bin_$(Configuration)$(PlatformArchitecture)\$(TargetFileName)"
+</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>if not exist "..\bin_$(Configuration)$(PlatformArchitecture)" md "..\bin_$(Configuration)$(PlatformArchitecture)"</Command>
@@ -151,11 +153,13 @@ xcopy "$(VCInstallDir)Redist\MSVC\$(VCToolsRedistVersion)\$(PlatformTarget)\Micr
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(OutDir)$(ProjectName).*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
-
-xcopy "$(VCInstallDir)Redist\MSVC\$(VCToolsRedistVersion)\$(PlatformTarget)\Microsoft.VC$(PlatformToolsetVersion).CRT\*.*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
-
-"$(QTDIR)\bin\windeployqt.exe" "..\bin_$(Configuration)$(PlatformArchitecture)\$(TargetFileName)"</Command>
+      <Command>xcopy "$(OutDir)$(ProjectName).exe" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
+xcopy "$(OutDir)$(ProjectName).pdb" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
+xcopy "$(DevEnvDir)msvcr*.dll" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
+xcopy "$(DevEnvDir)msvcp*.dll" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
+xcopy "$(DevEnvDir)vcruntime*.dll" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
+"$(QTDIR)\bin\windeployqt.exe" "..\bin_$(Configuration)$(PlatformArchitecture)\$(TargetFileName)"
+</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>if not exist "..\bin_$(Configuration)$(PlatformArchitecture)" md "..\bin_$(Configuration)$(PlatformArchitecture)"</Command>
@@ -184,11 +188,13 @@ xcopy "$(VCInstallDir)Redist\MSVC\$(VCToolsRedistVersion)\$(PlatformTarget)\Micr
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(OutDir)$(ProjectName).*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
-
-xcopy "$(VCInstallDir)Redist\MSVC\$(VCToolsRedistVersion)\$(PlatformTarget)\Microsoft.VC$(PlatformToolsetVersion).CRT\*.*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
-
-"$(QTDIR)\bin\windeployqt.exe" "..\bin_$(Configuration)$(PlatformArchitecture)\$(TargetFileName)"</Command>
+      <Command>xcopy "$(OutDir)$(ProjectName).exe" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
+xcopy "$(OutDir)$(ProjectName).pdb" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
+xcopy "$(DevEnvDir)msvcr*.dll" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
+xcopy "$(DevEnvDir)msvcp*.dll" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
+xcopy "$(DevEnvDir)vcruntime*.dll" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
+"$(QTDIR)\bin\windeployqt.exe" "..\bin_$(Configuration)$(PlatformArchitecture)\$(TargetFileName)"
+</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>if not exist "..\bin_$(Configuration)$(PlatformArchitecture)" md "..\bin_$(Configuration)$(PlatformArchitecture)"</Command>
@@ -217,11 +223,13 @@ xcopy "$(VCInstallDir)Redist\MSVC\$(VCToolsRedistVersion)\$(PlatformTarget)\Micr
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(OutDir)$(ProjectName).*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
-
-xcopy "$(VCInstallDir)Redist\MSVC\$(VCToolsRedistVersion)\$(PlatformTarget)\Microsoft.VC$(PlatformToolsetVersion).CRT\*.*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
-
-"$(QTDIR)\bin\windeployqt.exe" "..\bin_$(Configuration)$(PlatformArchitecture)\$(TargetFileName)"</Command>
+      <Command>xcopy "$(OutDir)$(ProjectName).exe" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
+xcopy "$(OutDir)$(ProjectName).pdb" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
+xcopy "$(DevEnvDir)msvcr*.dll" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
+xcopy "$(DevEnvDir)msvcp*.dll" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
+xcopy "$(DevEnvDir)vcruntime*.dll" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
+"$(QTDIR)\bin\windeployqt.exe" "..\bin_$(Configuration)$(PlatformArchitecture)\$(TargetFileName)"
+</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>if not exist "..\bin_$(Configuration)$(PlatformArchitecture)" md "..\bin_$(Configuration)$(PlatformArchitecture)"</Command>

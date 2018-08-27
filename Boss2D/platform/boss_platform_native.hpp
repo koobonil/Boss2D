@@ -6,12 +6,14 @@
 
     #include <element/boss_rect.hpp>
     #include <element/boss_color.hpp>
+
+    #if BOSS_NEED_NATIVE_OPENGL
     # if BOSS_WINDOWS
     #  include <platform/win32/glew.h>
     # if BOSS_X64
-    #    pragma comment(lib, "../../Boss2D/platform/win32/lib/Release/x64/glew32.lib")
+    #  pragma comment(lib, "../../Boss2D/platform/win32/lib/Release/x64/glew32.lib")
     # else
-    #    pragma comment(lib, "../../Boss2D/platform/win32/lib/Release/Win32/glew32.lib")
+    #  pragma comment(lib, "../../Boss2D/platform/win32/lib/Release/Win32/glew32.lib")
     # endif
     #  pragma comment(lib, "opengl32.lib")
     #  pragma comment(lib, "glu32.lib")
@@ -32,6 +34,12 @@
     #  include <android/native_window_jni.h>
     #  include <platform/android/OpenGLES_Functions.h>
     # endif
+    #else
+    # define GLint   sint32
+    # define GLuint  uint32
+    # define GLubyte uint08
+    # define GLfloat float
+    #endif
 
     class NativePainter
     {

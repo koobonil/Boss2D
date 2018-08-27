@@ -5,8 +5,12 @@
 #include <stdarg.h>
 
 #if BOSS_WINDOWS
-    #include <windows.h>
-    #pragma comment(lib, "ws2_32.lib")
+    #if BOSS_WINDOWS_MINGW
+        #include <ws2tcpip.h>
+    #else
+        #include <windows.h>
+        #pragma comment(lib, "ws2_32.lib")
+    #endif
 #elif BOSS_LINUX
     #include <sys/stat.h>
     #include <dirent.h>

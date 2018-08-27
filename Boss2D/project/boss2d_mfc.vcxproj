@@ -34,6 +34,7 @@
     <ClCompile Include="..\addon\boss_addon_opencv.cpp" />
     <ClCompile Include="..\addon\boss_addon_ssl.cpp" />
     <ClCompile Include="..\addon\boss_addon_tesseract.cpp" />
+    <ClCompile Include="..\addon\boss_addon_tif.cpp" />
     <ClCompile Include="..\addon\boss_addon_zip.cpp" />
     <ClCompile Include="..\addon\boss_fakewin.cpp" />
     <ClCompile Include="..\addon\boss_integration_curl-7.51.0.c" />
@@ -51,6 +52,7 @@
     <ClCompile Include="..\addon\boss_integration_openssl-1.1.0c.c" />
     <ClCompile Include="..\addon\boss_integration_rtmpdump-2.4.c" />
     <ClCompile Include="..\addon\boss_integration_tensorflow-1.2.1.cpp" />
+    <ClCompile Include="..\addon\boss_integration_tesseract-3.04.01.cpp" />
     <ClCompile Include="..\addon\boss_integration_tesseract-3.05.02.cpp" />
     <ClCompile Include="..\core\boss.cpp" />
     <ClCompile Include="..\core\boss_addon.cpp" />
@@ -119,6 +121,7 @@
     <ClInclude Include="..\addon\boss_addon_opencv.hpp" />
     <ClInclude Include="..\addon\boss_addon_ssl.hpp" />
     <ClInclude Include="..\addon\boss_addon_tesseract.hpp" />
+    <ClInclude Include="..\addon\boss_addon_tif.hpp" />
     <ClInclude Include="..\addon\boss_addon_zip.hpp" />
     <ClInclude Include="..\addon\boss_fakewin.h" />
     <ClInclude Include="..\addon\boss_integration_curl-7.51.0.h" />
@@ -136,6 +139,7 @@
     <ClInclude Include="..\addon\boss_integration_openssl-1.1.0c.h" />
     <ClInclude Include="..\addon\boss_integration_rtmpdump-2.4.h" />
     <ClInclude Include="..\addon\boss_integration_tensorflow-1.2.1.h" />
+    <ClInclude Include="..\addon\boss_integration_tesseract-3.04.01.h" />
     <ClInclude Include="..\addon\boss_integration_tesseract-3.05.02.h" />
     <ClInclude Include="..\core\boss.h" />
     <ClInclude Include="..\core\boss.hpp" />
@@ -203,22 +207,22 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
