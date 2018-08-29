@@ -81,7 +81,8 @@ namespace BOSS
         TinyTIFFFile* tiff = TinyTIFFWriter_open(
             Platform::File::RootForAssetsRem() + "ocr/build/kor2019.basefont.exp0.tif", 8, Width, Height);
         TinyTIFFWriter_writeImage(tiff, (uint08*) NewBits);
-        TinyTIFFWriter_close(tiff, "THIS IS MY OWN TIFF COMMET");
+        //TinyTIFFWriter_close(tiff, "THIS IS MY OWN TIFF COMMET");
+        TinyTIFFWriter_close(tiff);
         delete[] NewBits;
         return nullptr;
     }
