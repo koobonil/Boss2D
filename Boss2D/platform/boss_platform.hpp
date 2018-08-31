@@ -315,9 +315,11 @@ namespace BOSS
 
             /*!
             \brief 응용프로그램 다이얄로그
+            \param exepath : 실행파일의 경로
             \param args : 전달할 스트링
+            \param admin : 관리자권한
             */
-            static void ProgramDialog(chars path, chars args = nullptr);
+            static void ProgramDialog(chars exepath, chars args = nullptr, bool admin = false);
 
             /*!
             \brief 텍스트편집 트래커 열기
@@ -411,11 +413,42 @@ namespace BOSS
             static void ExitProgram();
 
             /*!
-            \brief 프로그램의 URL스키마등록
-            \param schema : URL스키마(예: http, https, mailto)
-            \return 현재 실행시의 파라미터에서 URL정보 획득(없으면 nullptr)
+            \brief 프로그램의 경로
             */
-            static chars CheckUrlSchema(chars schema);
+            static String GetProgramPath(bool dironly = false);
+
+            /*!
+            \brief 프로그램에 들어온 인수를 확인
+            \param i : 인수인덱스
+            \param getcount : 수량정보
+            \return i번째에 해당하는 인수스트링(없으면 nullptr)
+            */
+            static chars GetArgument(sint32 i, sint32* getcount = nullptr);
+
+            /*!
+            \brief 프로그램을 OS에 URL스키마로 등록
+            \param schema : URL스키마(예: http, https, mailto)
+            \param exepath : 레지스트리에 기록할 실행파일의 경로(생략시 레지스트리에 URL스키마의 존재유무만 확인)
+            \param forcewrite : 무조건 기록
+            \return 성공여부
+            */
+            static bool TestUrlSchema(chars schema, chars comparepath);
+
+            /*!
+            \brief 프로그램을 OS에 URL스키마로 등록
+            \param schema : URL스키마(예: http, https, mailto)
+            \param exepath : 레지스트리에 기록할 실행파일의 경로(생략시 레지스트리에 URL스키마의 존재유무만 확인)
+            \param forcewrite : 무조건 기록
+            \return 성공여부
+            */
+            static bool BindUrlSchema(chars schema, chars exepath, bool forcewrite = false);
+
+            /*!
+            \brief 프로그램에 해당 URL스키마와 함께 들어온 인수를 확인
+            \param schema : URL스키마(예: http, https, mailto)
+            \return 프로그램 URL스키마로 동작된 경우 인수반환(없으면 nullptr)
+            */
+            static chars GetArgumentForUrlSchema(chars schema);
 
             /*!
             \brief 스크린영역 얻기

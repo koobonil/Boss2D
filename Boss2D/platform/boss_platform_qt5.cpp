@@ -128,7 +128,7 @@
     #endif
 
     #if BOSS_NEED_MAIN
-        extern void PlatformInit();
+        extern bool PlatformInit();
         extern void PlatformQuit();
 
         int main(int argc, char* argv[])
@@ -143,18 +143,20 @@
                 g_argv = argv;
 
                 Platform::Option::SetFlag("AssertPopup", true);
-                PlatformInit();
-                mainWindow.SetInitedPlatform();
-                if(mainWindow.firstVisible())
+                if(PlatformInit())
                 {
-                    #if BOSS_NEED_FULLSCREEN
-                        mainWindow.showFullScreen();
-                    #else
-                        mainWindow.show();
-                    #endif
+                    mainWindow.SetInitedPlatform();
+                    if(mainWindow.firstVisible())
+                    {
+                        #if BOSS_NEED_FULLSCREEN
+                            mainWindow.showFullScreen();
+                        #else
+                            mainWindow.show();
+                        #endif
+                    }
+                    result = app.exec();
+                    PlatformQuit();
                 }
-                result = app.exec();
-                PlatformQuit();
                 Platform::Option::SetFlag("AssertPopup", false);
 
                 g_window = nullptr;
@@ -637,9 +639,9 @@
             #endif
         }
 
-        void Platform::Popup::ProgramDialog(chars path, chars args)
+        void Platform::Popup::ProgramDialog(chars exepath, chars args, bool admin)
         {
-            return PlatformImpl::Wrap::Popup_ProgramDialog(path, args);
+            return PlatformImpl::Wrap::Popup_ProgramDialog(exepath, args, admin);
         }
 
         bool Platform::Popup::OpenEditTracker(String& text, UIEditType type, sint32 l, sint32 t, sint32 r, sint32 b)
@@ -756,31 +758,99 @@
             QApplication::quit();
         }
 
-        chars Platform::Utility::CheckUrlSchema(chars schema)
+        String Platform::Utility::GetProgramPath(bool dironly)
+        {
+            String& FilePath = *BOSS_STORAGE_SYS(String);
+            String& DirPath = *BOSS_STORAGE_SYS(String);
+            if(dironly)
+            {
+                if(0 < DirPath.Length())
+                    return DirPath;
+            }
+            else if(0 < FilePath.Length())
+                return FilePath;
+
+            FilePath = QCoreApplication::applicationFilePath().toUtf8().constData();
+            FilePath = boss_normalpath(FilePath, nullptr);
+            for(sint32 i = FilePath.Length() - 1; 0 <= i; --i)
+            {
+                if(FilePath[i] == '/')
+                {
+                    DirPath = FilePath.Left(i + 1); // '/'기호 포함
+                    break;
+                }
+            }
+
+            if(dironly)
+                return DirPath;
+            return FilePath;
+        }
+
+        chars Platform::Utility::GetArgument(sint32 i, sint32* getcount)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", g_window && g_argv);
+            if(i < g_argc)
+                return g_argv[i];
+            return "";
+        }
+
+        bool Platform::Utility::TestUrlSchema(chars schema, chars comparepath)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", g_window && g_argv);
+            QSettings Settings((chars) String::Format("HKEY_CLASSES_ROOT\\%s", schema), QSettings::NativeFormat);
+            String ComparePath = comparepath;
+            ComparePath.Replace('/', '\\');
+
+            String OldValue = Settings.value("shell/open/command/Default").toString().toUtf8().constData();
+            if(!String::CompareNoCase(((chars) OldValue) + 1, ComparePath, ComparePath.Length()))
+                return true;
+            return false;
+        }
+
+        bool Platform::Utility::BindUrlSchema(chars schema, chars exepath, bool forcewrite)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", g_window && g_argv);
+            QSettings Settings((chars) String::Format("HKEY_CLASSES_ROOT\\%s", schema), QSettings::NativeFormat);
+            String ExePath = exepath;
+            ExePath.Replace('/', '\\');
+
+            if(!forcewrite)
+            {
+                String OldValue = Settings.value("shell/open/command/Default").toString().toUtf8().constData();
+                if(ExePath.Length() == 0)
+                    return (0 < OldValue.Length());
+                else if(!String::CompareNoCase(((chars) OldValue) + 1, ExePath, ExePath.Length()))
+                    return true;
+            }
+            if(!Settings.isWritable())
+                return false;
+
+            if(0 < ExePath.Length())
+            {
+                Settings.setValue("Default", (chars) String::Format("URL:%s", schema));
+                Settings.setValue("URL Protocol", "");
+                Settings.beginGroup("DefaultIcon");
+                    Settings.setValue("Default", (chars) ("\"" + ExePath + ",1\""));
+                Settings.endGroup();
+                Settings.beginGroup("shell");
+                    Settings.setValue("Default", "open");
+                    Settings.beginGroup("open");
+                        Settings.beginGroup("command");
+                            Settings.setValue("Default", (chars) ("\"" + ExePath + "\" {urlschema:" + schema + "} \"%1\""));
+                        Settings.endGroup();
+                    Settings.endGroup();
+                Settings.endGroup();
+            }
+            return true;
+        }
+
+        chars Platform::Utility::GetArgumentForUrlSchema(chars schema)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_window && g_argv);
             const String SchemaToken = String::Format("{urlschema:%s}", schema);
-            String ApplicationFilePath = QCoreApplication::applicationFilePath().toUtf8().constData();
-            ApplicationFilePath.Replace("/", "\\");
-
-            QSettings Settings((chars) String::Format("HKEY_CLASSES_ROOT\\%s", schema), QSettings::NativeFormat);
-            Settings.setValue("Default", (chars) String::Format("URL:%s", schema));
-            Settings.setValue("URL Protocol", "");
-            Settings.beginGroup("DefaultIcon");
-                Settings.setValue("Default", (chars) ("\"" + ApplicationFilePath + ",1\""));
-            Settings.endGroup();
-            Settings.beginGroup("shell");
-                Settings.setValue("Default", "open");
-                Settings.beginGroup("open");
-                    Settings.beginGroup("command");
-                        Settings.setValue("Default", (chars) ("\"" + ApplicationFilePath + "\" " + SchemaToken + " \"%1\""));
-                    Settings.endGroup();
-                Settings.endGroup();
-            Settings.endGroup();
-
             if(g_argc == 3 && !String::Compare(g_argv[1], SchemaToken))
-                return g_argv[2] + boss_strlen(schema) + 3; // "schema://"
-            return nullptr;
+                return g_argv[2] + boss_strlen(schema) + 3; // schema + "://"
+            return "";
         }
 
         sint32 Platform::Utility::GetScreenRect(rect128& rect, sint32 screenid, bool available_only)
@@ -2292,7 +2362,7 @@
 
         const String& Platform::File::RootForData()
         {
-            static String Result;
+            String& Result = *BOSS_STORAGE_SYS(String);
             if(0 < Result.Length())
                 return Result;
 

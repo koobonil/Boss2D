@@ -312,6 +312,56 @@ namespace BOSS
         return false;
     }
 
+    String String::ToUrlString(chars safeword) const
+    {
+        auto AddUrlCode = [](chararray& dst, const char word)->void
+        {
+            const sint32 HiWord = ((word >> 4) & 0xF);
+            const sint32 LoWord = (word & 0xF);
+            dst.AtAdding() = '%';
+            dst.AtAdding() = (HiWord < 10)? '0' + HiWord : 'A' + HiWord - 10;
+            dst.AtAdding() = (LoWord < 10)? '0' + LoWord : 'A' + LoWord - 10;
+        };
+
+        chararray NewWords;
+        for(sint32 i = 0, iend = m_words.Count() - 1; i < iend; ++i)
+        {
+            const char OneWord = m_words[i];
+            if(OneWord & 0x80)
+            {
+                AddUrlCode(NewWords, OneWord);
+                char TwoWord;
+                do
+                {
+                    TwoWord = m_words[++i];
+                    AddUrlCode(NewWords, TwoWord);
+                }
+                while(TwoWord & 0x80);
+            }
+            else
+            {
+                bool SafeMatched = false;
+                branch;
+                jump('A' <= OneWord && OneWord <= 'Z') SafeMatched = true;
+                jump('a' <= OneWord && OneWord <= 'z') SafeMatched = true;
+                jump('0' <= OneWord && OneWord <= '9') SafeMatched = true;
+                else while(*safeword)
+                {
+                    if(*(safeword++) == OneWord)
+                    {
+                        SafeMatched = true;
+                        break;
+                    }
+                }
+                if(SafeMatched)
+                    NewWords.AtAdding() = OneWord;
+                else AddUrlCode(NewWords, OneWord);
+            }
+        }
+        NewWords.AtAdding() = '\0';
+        return String(NewWords);
+    }
+
     String String::Format(chars text, ...)
     {
         va_list Args;

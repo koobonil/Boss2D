@@ -272,6 +272,13 @@ namespace BOSS
         */
         bool ToAsset(chars filename, bool bom = false) const;
 
+        /*!
+        \brief URL스트링으로 저장
+        \param safeword : 알파벳, 숫자와 더불어 추가로 보존할 안전한 문자코드
+        \return URL스트링
+        */
+        String ToUrlString(chars safeword = "-+_.!~*'()") const;
+
     public:
         /*!
         \brief sprintf식 객체생성

@@ -15,8 +15,8 @@ namespace BOSS
             WString NormalPathW(wchars itemname, bool QCodeTest = true);
 
             extern View::CreatorCB g_Creator;
-            extern String g_AssetsRoot;
-            extern String g_AssetsRemRoot;
+            extern String& g_AssetsRoot;
+            extern String& g_AssetsRemRoot;
         }
 
         // 래핑함수
@@ -40,7 +40,7 @@ namespace BOSS
             bool Popup_FileDialog(String& path, String* shortpath, chars title, bool isdir);
             sint32 Popup_MessageDialog(chars title, chars text, DialogButtonType type);
             void Popup_WebBrowserDialog(String url);
-            void Popup_ProgramDialog(chars path, chars args);
+            void Popup_ProgramDialog(chars exepath, chars args, bool admin);
 
             WString File_GetDirName(wchars itemname, wchar_t badslash, wchar_t goodslash);
             WString File_GetShortName(wchars itemname);

@@ -81,8 +81,8 @@ namespace BOSS
             }
 
             View::CreatorCB g_Creator = View::Creator;
-            String g_AssetsRoot;
-            String g_AssetsRemRoot;
+            String& g_AssetsRoot = *BOSS_STORAGE_SYS(String);
+            String& g_AssetsRemRoot = *BOSS_STORAGE_SYS(String);
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -417,11 +417,20 @@ namespace BOSS
                 #endif
             }
 
-            void Popup_ProgramDialog(chars path, chars args)
+            void Popup_ProgramDialog(chars exepath, chars args, bool admin)
             {
                 #if BOSS_WINDOWS
-                    ShellExecuteW(NULL, NULL, (wchars) WString::FromChars(path),
-                        (args)? (wchars) WString::FromChars(args) : NULL, NULL, SW_SHOWNORMAL);
+                    SHELLEXECUTEINFOA ExecuteInfo;
+                    Memory::Set(&ExecuteInfo, 0, sizeof(ExecuteInfo));
+                    ExecuteInfo.cbSize = sizeof(ExecuteInfo);
+                    ExecuteInfo.fMask = 0;
+                    ExecuteInfo.hwnd = NULL;
+                    ExecuteInfo.lpVerb = (!admin)? NULL : "runas";
+                    ExecuteInfo.lpFile = exepath;
+                    ExecuteInfo.lpParameters = args;
+                    ExecuteInfo.lpDirectory = NULL;
+                    ExecuteInfo.nShow = SW_SHOWNORMAL;
+                    ShellExecuteExA(&ExecuteInfo);
                 #endif
             }
 

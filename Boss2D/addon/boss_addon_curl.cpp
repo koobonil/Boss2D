@@ -215,9 +215,22 @@ namespace BOSS
         cheader = curl_slist_append(cheader, "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
         cheader = curl_slist_append(cheader, "Accept-Language: ko-kr,ko;q=0.8,en-us;q=0.5,en;q=0.3");
         cheader = curl_slist_append(cheader, "Connection: keep-alive");
-        if(!headerdata || !!boss_strncmp(headerdata, "Content-Type:", 13))
+
+        // 헤더데이터 추가분
+        String HeaderData = (headerdata)? headerdata : "";
+        if(HeaderData.Find(0, "Content-Type:") == -1)
             cheader = curl_slist_append(cheader, "Content-Type: application/x-www-form-urlencoded");
-        if(headerdata) cheader = curl_slist_append(cheader, headerdata);
+        if(0 < HeaderData.Length())
+        {
+            HeaderData.Replace("\r", "");
+            HeaderData.Replace('\n', '\0');
+            chars HeaderFocus = (chars) HeaderData;
+            for(sint32 i = 0, iend = HeaderData.Length(); i < iend; ++i)
+            {
+                cheader = curl_slist_append(cheader, &HeaderFocus[i]);
+                while(HeaderFocus[++i] != '\0');
+            }
+        }
         curl_easy_setopt(CurCurl, CURLOPT_HTTPHEADER, cheader);
 
         CURLcode res = curl_easy_perform(CurCurl);

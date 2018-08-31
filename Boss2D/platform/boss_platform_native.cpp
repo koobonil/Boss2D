@@ -80,7 +80,7 @@
     #endif
 
     #if BOSS_NEED_MAIN
-        extern void PlatformInit();
+        extern bool PlatformInit();
         extern void PlatformQuit();
 
         int main(int argc, char* argv[])
@@ -441,9 +441,9 @@
             return PlatformImpl::Wrap::Popup_WebBrowserDialog(url);
         }
 
-        void Platform::Popup::ProgramDialog(chars path, chars args)
+        void Platform::Popup::ProgramDialog(chars exepath, chars args, bool admin)
         {
-            return PlatformImpl::Wrap::Popup_ProgramDialog(path, args);
+            return PlatformImpl::Wrap::Popup_ProgramDialog(exepath, args, admin);
         }
 
         bool Platform::Popup::OpenEditTracker(String& text, UIEditType type, sint32 l, sint32 t, sint32 r, sint32 b)
@@ -557,7 +557,31 @@
             BOSS_ASSERT("Further development is needed.", false);
         }
 
-        chars Platform::Utility::CheckUrlSchema(chars schema)
+        String Platform::Utility::GetProgramPath(bool dironly)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return String();
+        }
+
+        chars Platform::Utility::GetArgument(sint32 i, sint32* getcount)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return nullptr;
+        }
+
+        bool Platform::Utility::TestUrlSchema(chars schema, chars comparepath)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return false;
+        }
+
+        bool Platform::Utility::BindUrlSchema(chars schema, chars exepath, bool forcewrite)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return false;
+        }
+
+        chars Platform::Utility::GetArgumentForUrlSchema(chars schema)
         {
             BOSS_ASSERT("Further development is needed.", false);
             return nullptr;
