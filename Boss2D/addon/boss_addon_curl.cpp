@@ -102,10 +102,26 @@ static size_t CurlWriteToUint08s(char* ptr, size_t size, size_t nitems, void* ou
 // 구현부
 namespace BOSS
 {
-    struct CurlStruct
+    class CurlStruct
     {
+    public:
+        CurlStruct()
+        {
+            mId = nullptr;
+            mRefCount = 0;
+        }
+        ~CurlStruct()
+        {
+        }
+
+    public:
         CURL* mId;
         sint32 mRefCount;
+        uint08s mCoreCacheBytes;
+        String mRequestCacheString;
+        uint08s mRequestCacheBytes;
+        uint08s mFTPCacheBytes;
+        chararray mFTPCacheSearch;
     };
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -191,9 +207,8 @@ namespace BOSS
 
     static uint08s _RequestCore(id_curl curl, chars url, chars postdata, chars headerdata, String* redirect_url, sint32 successcode)
     {
-        static uint08s Result;
-        Result.SubtractionAll();
-        if(!curl) return Result;
+        if(!curl) return uint08s();
+        ((CurlStruct*) curl)->mCoreCacheBytes.SubtractionAll();
         CURL* CurCurl = ((CurlStruct*) curl)->mId;
 
         curl_easy_setopt(CurCurl, CURLOPT_URL, url);
@@ -206,11 +221,11 @@ namespace BOSS
             curl_easy_setopt(CurCurl, CURLOPT_POSTFIELDSIZE, boss_strlen(postdata));
         }
         else curl_easy_setopt(CurCurl, CURLOPT_POST, 0);
-        curl_easy_setopt(CurCurl, CURLOPT_WRITEDATA, &Result);
+        curl_easy_setopt(CurCurl, CURLOPT_WRITEDATA, &((CurlStruct*) curl)->mCoreCacheBytes);
         curl_easy_setopt(CurCurl, CURLOPT_WRITEFUNCTION, CurlWriteToUint08s);
 
         curl_slist* cheader = nullptr;
-        cheader = _MakeCHeader(cheader, url);
+        cheader = BOSS::_MakeCHeader(cheader, url);
         cheader = curl_slist_append(cheader, "User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0");
         cheader = curl_slist_append(cheader, "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
         cheader = curl_slist_append(cheader, "Accept-Language: ko-kr,ko;q=0.8,en-us;q=0.5,en;q=0.3");
@@ -247,36 +262,36 @@ namespace BOSS
                 *redirect_url = location;
             }
         }
-        return Result;
+        return ((CurlStruct*) curl)->mCoreCacheBytes;
     }
 
     ////////////////////////////////////////////////////////////////////////////////
     chars Customized_AddOn_Curl_RequestString(id_curl curl, chars url, chars postdata, chars headerdata)
     {
-        static String Result;
-        uint08s RequestResult = _RequestCore(curl, url, postdata, headerdata, nullptr, 0);
+        if(!curl) return nullptr;
+        uint08s RequestResult = BOSS::_RequestCore(curl, url, postdata, headerdata, nullptr, 0);
         if(RequestResult.Count() == 0) return "";
 
-        Result = String((chars) RequestResult.AtDumping(0, 1), RequestResult.Count());
-        return Result;
+        ((CurlStruct*) curl)->mRequestCacheString = String((chars) RequestResult.AtDumping(0, 1), RequestResult.Count());
+        return ((CurlStruct*) curl)->mRequestCacheString;
     }
 
     ////////////////////////////////////////////////////////////////////////////////
     bytes Customized_AddOn_Curl_RequestBytes(id_curl curl, chars url, sint32* getsize, chars postdata, chars headerdata)
     {
-        static uint08s Result;
-        Result = _RequestCore(curl, url, postdata, headerdata, nullptr, 0);
-        if(getsize) *getsize = Result.Count();
-        return Result.AtDumping(0, 1);
+        if(!curl) return nullptr;
+        ((CurlStruct*) curl)->mRequestCacheBytes = BOSS::_RequestCore(curl, url, postdata, headerdata, nullptr, 0);
+        if(getsize) *getsize = ((CurlStruct*) curl)->mRequestCacheBytes.Count();
+        return ((CurlStruct*) curl)->mRequestCacheBytes.AtDumping(0, 1);
     }
 
     ////////////////////////////////////////////////////////////////////////////////
     chars Customized_AddOn_Curl_RequestRedirectUrl(id_curl curl, chars url, sint32 successcode, chars postdata, chars headerdata)
     {
-        static String Result;
-        Result = "";
-        _RequestCore(curl, url, postdata, headerdata, &Result, successcode);
-        return Result;
+        if(!curl) return nullptr;
+        ((CurlStruct*) curl)->mRequestCacheString.Empty();
+        BOSS::_RequestCore(curl, url, postdata, headerdata, &((CurlStruct*) curl)->mRequestCacheString, successcode);
+        return ((CurlStruct*) curl)->mRequestCacheString;
     }
 
     struct UploadData
@@ -288,7 +303,7 @@ namespace BOSS
 
     size_t OnUpload(void* ptr, size_t size, size_t nitems, payload data)
     {
-        auto Data = (UploadData*) data;
+        auto Data = (BOSS::UploadData*) data;
         const size_t CopyLen = Math::Min(Data->mLength - Data->mFocus, size * nitems);
         if(0 < CopyLen)
         {
@@ -304,7 +319,7 @@ namespace BOSS
         if(!curl) return false;
         CURL* CurCurl = ((CurlStruct*) curl)->mId;
 
-        UploadData NewData;
+        BOSS::UploadData NewData;
         NewData.mLength = putsize;
         NewData.mFocus = 0;
         NewData.mData = putdata;
@@ -314,13 +329,13 @@ namespace BOSS
         curl_easy_setopt(CurCurl, CURLOPT_POST, 0);
         curl_easy_setopt(CurCurl, CURLOPT_UPLOAD, 1);
         curl_easy_setopt(CurCurl, CURLOPT_READDATA, &NewData);
-        curl_easy_setopt(CurCurl, CURLOPT_READFUNCTION, OnUpload);
+        curl_easy_setopt(CurCurl, CURLOPT_READFUNCTION, BOSS::OnUpload);
         curl_easy_setopt(CurCurl, CURLOPT_WRITEDATA, nullptr);
         curl_easy_setopt(CurCurl, CURLOPT_WRITEFUNCTION, nullptr);
         curl_easy_setopt(CurCurl, CURLOPT_INFILESIZE_LARGE, (curl_off_t) NewData.mLength);
 
         curl_slist* cheader = nullptr;
-        cheader = _MakeCHeader(cheader, url);
+        cheader = BOSS::_MakeCHeader(cheader, url);
         cheader = curl_slist_append(cheader, "User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0");
         cheader = curl_slist_append(cheader, "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
         cheader = curl_slist_append(cheader, "Accept-Language: ko-kr,ko;q=0.8,en-us;q=0.5,en;q=0.3");
@@ -369,7 +384,7 @@ namespace BOSS
         }
         CURL* CurCurl = ((CurlStruct*) curl)->mId;
 
-        UploadData NewData;
+        BOSS::UploadData NewData;
         NewData.mLength = Buffer::SizeOf(data) * Buffer::CountOf(data);
         NewData.mFocus = 0;
         NewData.mData = data;
@@ -380,7 +395,7 @@ namespace BOSS
         curl_easy_setopt(CurCurl, CURLOPT_POST, 0);
         curl_easy_setopt(CurCurl, CURLOPT_UPLOAD, 1);
         curl_easy_setopt(CurCurl, CURLOPT_READDATA, &NewData);
-        curl_easy_setopt(CurCurl, CURLOPT_READFUNCTION, OnUpload);
+        curl_easy_setopt(CurCurl, CURLOPT_READFUNCTION, BOSS::OnUpload);
         curl_easy_setopt(CurCurl, CURLOPT_WRITEDATA, nullptr);
         curl_easy_setopt(CurCurl, CURLOPT_WRITEFUNCTION, nullptr);
         curl_easy_setopt(CurCurl, CURLOPT_INFILESIZE_LARGE, (curl_off_t) NewData.mLength);
@@ -412,9 +427,7 @@ namespace BOSS
         if(!curl) return nullptr;
         CURL* CurCurl = ((CurlStruct*) curl)->mId;
 
-        static uint08s DownloadData;
-        DownloadData.SubtractionAll();
-
+        ((CurlStruct*) curl)->mFTPCacheBytes.SubtractionAll();
         const String Url = String::Format("%s/%s", url, filename);
         curl_easy_setopt(CurCurl, CURLOPT_URL, (chars) Url);
         curl_easy_setopt(CurCurl, CURLOPT_SSL_VERIFYPEER, 0L);
@@ -422,12 +435,12 @@ namespace BOSS
         curl_easy_setopt(CurCurl, CURLOPT_UPLOAD, 0);
         curl_easy_setopt(CurCurl, CURLOPT_READDATA, nullptr);
         curl_easy_setopt(CurCurl, CURLOPT_READFUNCTION, nullptr);
-        curl_easy_setopt(CurCurl, CURLOPT_WRITEDATA, (void*) &DownloadData);
-        curl_easy_setopt(CurCurl, CURLOPT_WRITEFUNCTION, OnFtpDownload);
+        curl_easy_setopt(CurCurl, CURLOPT_WRITEDATA, (void*) &((CurlStruct*) curl)->mFTPCacheBytes);
+        curl_easy_setopt(CurCurl, CURLOPT_WRITEFUNCTION, BOSS::OnFtpDownload);
 
         CURLcode res = curl_easy_perform(CurCurl);
         if(res != CURLE_OK) return nullptr;
-        return ((Share*)(id_share) DownloadData)->CopiedBuffer();
+        return ((Share*)(id_share) ((CurlStruct*) curl)->mFTPCacheBytes)->CopiedBuffer();
     }
 
     size_t OnFtpResult(char* ptr, size_t size, size_t nitems, void* outstream)
@@ -448,7 +461,7 @@ namespace BOSS
         curl_easy_setopt(CurCurl, CURLOPT_READDATA, nullptr);
         curl_easy_setopt(CurCurl, CURLOPT_READFUNCTION, nullptr);
         curl_easy_setopt(CurCurl, CURLOPT_WRITEDATA, nullptr);
-        curl_easy_setopt(CurCurl, CURLOPT_WRITEFUNCTION, OnFtpResult);
+        curl_easy_setopt(CurCurl, CURLOPT_WRITEFUNCTION, BOSS::OnFtpResult);
 
         // 파일을 제거
         curl_slist* cheader = nullptr;
@@ -526,9 +539,7 @@ namespace BOSS
         if(!curl) return -1;
         CURL* CurCurl = ((CurlStruct*) curl)->mId;
 
-        static chararray ListData;
-        ListData.SubtractionAll();
-
+        ((CurlStruct*) curl)->mFTPCacheSearch.SubtractionAll();
         const String Url = String::Format("%s/%s/", url, dirname);
         curl_easy_setopt(CurCurl, CURLOPT_URL, (chars) Url);
         curl_easy_setopt(CurCurl, CURLOPT_SSL_VERIFYPEER, 0L);
@@ -536,15 +547,15 @@ namespace BOSS
         curl_easy_setopt(CurCurl, CURLOPT_UPLOAD, 0);
         curl_easy_setopt(CurCurl, CURLOPT_READDATA, nullptr);
         curl_easy_setopt(CurCurl, CURLOPT_READFUNCTION, nullptr);
-        curl_easy_setopt(CurCurl, CURLOPT_WRITEDATA, (void*) &ListData);
-        curl_easy_setopt(CurCurl, CURLOPT_WRITEFUNCTION, OnFtpList);
+        curl_easy_setopt(CurCurl, CURLOPT_WRITEDATA, (void*) &((CurlStruct*) curl)->mFTPCacheSearch);
+        curl_easy_setopt(CurCurl, CURLOPT_WRITEFUNCTION, BOSS::OnFtpList);
 
         CURLcode res = curl_easy_perform(CurCurl);
         if(res != CURLE_OK) return -1;
 
         sint32 Result = 0;
-        ListData.AtAdding() = '\0';
-        chars SearchFocus = &ListData[0];
+        ((CurlStruct*) curl)->mFTPCacheSearch.AtAdding() = '\0';
+        chars SearchFocus = &((CurlStruct*) curl)->mFTPCacheSearch[0];
         String CollectorInPart;
         sint32 StepInPart = 0;
         sint32 SavedYear = 0, SavedMonth = 0, SavedDay = 0;

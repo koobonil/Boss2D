@@ -45,19 +45,19 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v141_xp</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v141_xp</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v141_xp</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v141_xp</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -123,9 +123,7 @@
     <PostBuildEvent>
       <Command>xcopy "$(OutDir)$(ProjectName).exe" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
 xcopy "$(OutDir)$(ProjectName).pdb" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
-xcopy "$(DevEnvDir)msvcr*.dll" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
-xcopy "$(DevEnvDir)msvcp*.dll" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
-xcopy "$(DevEnvDir)vcruntime*.dll" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
+xcopy "$(VCInstallDir)Redist\MSVC\$(VCToolsRedistVersion)\$(PlatformTarget)\Microsoft.VC$(PlatformToolsetVersion).CRT\*.*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /R /Y /I
 "$(QTDIR)\bin\windeployqt.exe" "..\bin_$(Configuration)$(PlatformArchitecture)\$(TargetFileName)"
 </Command>
     </PostBuildEvent>
@@ -155,9 +153,7 @@ xcopy "$(DevEnvDir)vcruntime*.dll" "..\bin_$(Configuration)$(PlatformArchitectur
     <PostBuildEvent>
       <Command>xcopy "$(OutDir)$(ProjectName).exe" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
 xcopy "$(OutDir)$(ProjectName).pdb" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
-xcopy "$(DevEnvDir)msvcr*.dll" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
-xcopy "$(DevEnvDir)msvcp*.dll" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
-xcopy "$(DevEnvDir)vcruntime*.dll" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
+xcopy "$(VCInstallDir)Redist\MSVC\$(VCToolsRedistVersion)\$(PlatformTarget)\Microsoft.VC$(PlatformToolsetVersion).CRT\*.*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /R /Y /I
 "$(QTDIR)\bin\windeployqt.exe" "..\bin_$(Configuration)$(PlatformArchitecture)\$(TargetFileName)"
 </Command>
     </PostBuildEvent>
@@ -190,9 +186,7 @@ xcopy "$(DevEnvDir)vcruntime*.dll" "..\bin_$(Configuration)$(PlatformArchitectur
     <PostBuildEvent>
       <Command>xcopy "$(OutDir)$(ProjectName).exe" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
 xcopy "$(OutDir)$(ProjectName).pdb" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
-xcopy "$(DevEnvDir)msvcr*.dll" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
-xcopy "$(DevEnvDir)msvcp*.dll" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
-xcopy "$(DevEnvDir)vcruntime*.dll" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
+xcopy "$(VCInstallDir)Redist\MSVC\$(VCToolsRedistVersion)\$(PlatformTarget)\Microsoft.VC$(PlatformToolsetVersion).CRT\*.*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /R /Y /I
 "$(QTDIR)\bin\windeployqt.exe" "..\bin_$(Configuration)$(PlatformArchitecture)\$(TargetFileName)"
 </Command>
     </PostBuildEvent>
@@ -225,9 +219,7 @@ xcopy "$(DevEnvDir)vcruntime*.dll" "..\bin_$(Configuration)$(PlatformArchitectur
     <PostBuildEvent>
       <Command>xcopy "$(OutDir)$(ProjectName).exe" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
 xcopy "$(OutDir)$(ProjectName).pdb" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
-xcopy "$(DevEnvDir)msvcr*.dll" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
-xcopy "$(DevEnvDir)msvcp*.dll" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
-xcopy "$(DevEnvDir)vcruntime*.dll" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /S /R /Y /I
+xcopy "$(VCInstallDir)Redist\MSVC\$(VCToolsRedistVersion)\$(PlatformTarget)\Microsoft.VC$(PlatformToolsetVersion).CRT\*.*" "..\bin_$(Configuration)$(PlatformArchitecture)" /F /R /Y /I
 "$(QTDIR)\bin\windeployqt.exe" "..\bin_$(Configuration)$(PlatformArchitecture)\$(TargetFileName)"
 </Command>
     </PostBuildEvent>

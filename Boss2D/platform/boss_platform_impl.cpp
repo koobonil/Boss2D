@@ -420,17 +420,20 @@ namespace BOSS
             void Popup_ProgramDialog(chars exepath, chars args, bool admin)
             {
                 #if BOSS_WINDOWS
-                    SHELLEXECUTEINFOA ExecuteInfo;
+                    WString ExePathW = WString::FromChars(exepath);
+                    WString ArgsW = WString::FromChars(args);
+
+                    SHELLEXECUTEINFOW ExecuteInfo;
                     Memory::Set(&ExecuteInfo, 0, sizeof(ExecuteInfo));
                     ExecuteInfo.cbSize = sizeof(ExecuteInfo);
                     ExecuteInfo.fMask = 0;
                     ExecuteInfo.hwnd = NULL;
-                    ExecuteInfo.lpVerb = (!admin)? NULL : "runas";
-                    ExecuteInfo.lpFile = exepath;
-                    ExecuteInfo.lpParameters = args;
+                    ExecuteInfo.lpVerb = (!admin)? NULL : L"runas";
+                    ExecuteInfo.lpFile = ExePathW;
+                    ExecuteInfo.lpParameters = ArgsW;
                     ExecuteInfo.lpDirectory = NULL;
                     ExecuteInfo.nShow = SW_SHOWNORMAL;
-                    ShellExecuteExA(&ExecuteInfo);
+                    ShellExecuteExW(&ExecuteInfo);
                 #endif
             }
 

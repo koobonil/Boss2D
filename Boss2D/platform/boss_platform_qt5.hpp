@@ -988,7 +988,9 @@
         {
             switch(reason)
             {
-            case QSystemTrayIcon::Trigger:
+            case QSystemTrayIcon::Context: // R버튼 클릭
+            case QSystemTrayIcon::Trigger: // L버튼 클릭
+            case QSystemTrayIcon::MiddleClick: // 휠버튼 클릭
                 {
                     QRect TrayRect = geometry();
                     m_ref_menu->move(TrayRect.x(), TrayRect.y() - m_ref_menu->size().height());
@@ -997,9 +999,7 @@
                     m_ref_menu->raise(); // 부모기준 첫번째 자식으로 올림
                 }
                 break;
-            case QSystemTrayIcon::DoubleClick:
-                break;
-            case QSystemTrayIcon::MiddleClick:
+            case QSystemTrayIcon::DoubleClick: // L버튼 더블클릭된 순간
                 break;
             default:
                 break;
