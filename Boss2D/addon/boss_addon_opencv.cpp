@@ -86,6 +86,8 @@ namespace BOSS
         if(!opencv) return;
         CVObject* CurCV = (CVObject*) opencv;
         cv::Mat OneImage(Bmp::GetHeight(bmp), Bmp::GetWidth(bmp), CV_8UC4, (void*) Bmp::GetBits(bmp));
+        // 비트맵 플립
+        cv::flip(OneImage, OneImage, 0);
 
         // 블러와 흑백화
         cv::blur(OneImage, CurCV->mGrayImage, cv::Size(5, 5));
