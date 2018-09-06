@@ -145,12 +145,6 @@
 #define size_t boss_size_t
 #define ssize_t boss_ssize_t
 
-// About code styling
-#define branch       if(false)
-#define jump(QUERY)  else if(QUERY)
-#define nothing      do{} while(0)
-#define codeid(NAME) ((NAME[0] & 0xFF) | ((NAME[1] & 0xFF) << 8) | ((NAME[2] & 0xFF) << 16) | ((NAME[3] & 0xFF) << 24))
-
 // About assert
 #if !BOSS_NDEBUG
     #define BOSS_DBG __FILE__,__LINE__,__FUNCTION__,

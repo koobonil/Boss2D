@@ -973,8 +973,14 @@
         TrayIcon(QWidget* menu)
         {
             m_ref_menu = menu;
-            m_ref_menu->setWindowFlags(Qt::SplashScreen);
-            m_ref_menu->setWindowModality(Qt::WindowModal);
+            Qt::WindowFlags TypeCollector = Qt::Dialog;
+            #if BOSS_MAC_OSX
+                TypeCollector |= Qt::CustomizeWindowHint | Qt::WindowMinimizeButtonHint | Qt::WindowCloseButtonHint;
+            #elif BOSS_WINDOWS
+                TypeCollector |= Qt::FramelessWindowHint;
+            #endif
+            TypeCollector |= Qt::WindowStaysOnTopHint;
+            m_ref_menu->setWindowFlags(TypeCollector);
             m_ref_menu->installEventFilter(this);
             connect(this, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
                 this, SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
@@ -992,8 +998,14 @@
             case QSystemTrayIcon::Trigger: // L버튼 클릭
             case QSystemTrayIcon::MiddleClick: // 휠버튼 클릭
                 {
-                    QRect TrayRect = geometry();
-                    m_ref_menu->move(TrayRect.x(), TrayRect.y() - m_ref_menu->size().height());
+                    const QPoint ClickPos = QCursor::pos();
+                    const QSize MenuSize = m_ref_menu->size();
+                    const QRect GeometryRect = QApplication::desktop()->screenGeometry(ClickPos);
+                    const float PosX = (GeometryRect.right() < ClickPos.x() + MenuSize.width())?
+                        ClickPos.x() - MenuSize.width() : ClickPos.x();
+                    const float PosY = (GeometryRect.bottom() < ClickPos.y() + MenuSize.height())?
+                        ClickPos.y() - MenuSize.height() : ClickPos.y();
+                    m_ref_menu->move(PosX, PosY);
                     m_ref_menu->show();
                     m_ref_menu->activateWindow(); // setFocus()는 작동하지 않는다!
                     m_ref_menu->raise(); // 부모기준 첫번째 자식으로 올림
