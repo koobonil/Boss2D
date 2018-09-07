@@ -118,10 +118,10 @@ namespace BOSS
 // About code styling
 #define branch           if(false)
 #define jump(QUERY)      else if(QUERY)
-#define baton(INSTANCE)  for(auto _baton_ = &(INSTANCE), _palm_ = _baton_; _palm_; _palm_ = nullptr)
-#define palm             (*_palm_)
 #define nothing          do{} while(0)
-#define codeid(NAME)     ((NAME[0] & 0xFF) | ((NAME[1] & 0xFF) << 8) | ((NAME[2] & 0xFF) << 16) | ((NAME[3] & 0xFF) << 24))
+#define hook(INSTANCE)   for(auto &_hook_ = (INSTANCE), *_fish_ = &_hook_; _fish_; _fish_ = nullptr)
+#define fish             (*_fish_)
+#define codeid(NAME)     (((NAME)[0] & 0xFF) | (((NAME)[1] & 0xFF) << 8) | (((NAME)[2] & 0xFF) << 16) | (((NAME)[3] & 0xFF) << 24))
 
 // About allocator
 inline void* operator new(size_t, sblock ptr) {return (void*) ptr;}

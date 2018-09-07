@@ -184,7 +184,7 @@
     #elif BOSS_WINDOWS || BOSS_LINUX || BOSS_MAC_OSX || BOSS_IPHONE
         #define BOSS_DBG_BREAK do{__builtin_trap();} while(0)
     #else
-        #define BOSS_DBG_BREAK nothing
+        #define BOSS_DBG_BREAK do{} while(0)
     #endif
 #else
     #define BOSS_DBG
@@ -207,7 +207,7 @@
 #if !BOSS_NDEBUG | BOSS_NEED_RELEASE_TRACE
     #define BOSS_TRACE(...) boss_platform_trace(__VA_ARGS__)
 #else
-    #define BOSS_TRACE(...) nothing
+    #define BOSS_TRACE(...) do{} while(0)
 #endif
 
 // About global function
