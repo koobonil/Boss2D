@@ -275,7 +275,7 @@ namespace BOSS
                 "grant_type=authorization_code",
                 code, (chars) data_const().mClientId, (chars) data_const().mClientSecret);
             chars ResultA = AddOn::Curl::RequestString(data().mCurl,
-                "https://" "accounts.google.com/o/oauth2/token", PostData);
+                "https://" "accounts.google.com/o/oauth2/token", nullptr, PostData);
             const Context ResultAJson(ST_Json, SO_OnlyReference, ResultA);
             data().mAccessToken = ResultAJson("access_token").GetString();
             data().mRefreshToken = ResultAJson("refresh_token").GetString();
@@ -396,14 +396,14 @@ namespace BOSS
                 "code=%s",
                 (chars) data_const().mClientId, code);
             chars ResultA = AddOn::Curl::RequestString(data().mCurl,
-                "https://" "kauth.kakao.com/oauth/token", PostData);
+                "https://" "kauth.kakao.com/oauth/token", nullptr, PostData);
             const Context ResultAJson(ST_Json, SO_OnlyReference, ResultA);
             data().mAccessToken = ResultAJson("access_token").GetString();
             data().mRefreshToken = ResultAJson("refresh_token").GetString();
 
             // 회원정보 얻기
             chars ResultB = AddOn::Curl::RequestString(data().mCurl,
-                "https://" "kapi.kakao.com/v1/api/story/profile", nullptr,
+                "https://" "kapi.kakao.com/v1/api/story/profile",
                 String::Format("Authorization: Bearer %s", (chars) data().mAccessToken));
             const Context ResultBJson(ST_Json, SO_OnlyReference, ResultB);
             data().mName = ResultBJson("nickName").GetString();
@@ -421,7 +421,7 @@ namespace BOSS
 
             // ID정보 얻기
             chars ResultC = AddOn::Curl::RequestString(data().mCurl,
-                "https://" "kapi.kakao.com/v1/user/me", nullptr,
+                "https://" "kapi.kakao.com/v1/user/me",
                 String::Format("Authorization: Bearer %s", (chars) data().mAccessToken));
             const Context ResultCJson(ST_Json, SO_OnlyReference, ResultC);
             data().mServiceId = String("kakao_") + ResultCJson("id").GetString();

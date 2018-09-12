@@ -565,7 +565,9 @@ namespace BOSS
             h_web_native Web_CreateNative(chars url, bool clearcookies, Platform::Web::EventCB cb, payload data)
             {
                 sint32 ID = -1;
-                #if BOSS_IPHONE
+                #if BOSS_WINDOWS
+                    Platform::Popup::WebBrowserDialog(url);
+                #elif BOSS_IPHONE
                     ID = BossWebView::Create(GetIOSApplicationUIView(), url, clearcookies, cb, data);
                 #elif BOSS_ANDROID
                     JNIEnv* env = GetAndroidJNIEnv();
