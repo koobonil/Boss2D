@@ -85,29 +85,37 @@ namespace BOSS
     {
         if(!opencv) return;
         CVObject* CurCV = (CVObject*) opencv;
-        cv::Mat OneImage(Bmp::GetHeight(bmp), Bmp::GetWidth(bmp), CV_8UC4, (void*) Bmp::GetBits(bmp));
-        // 비트맵 플립
-        cv::flip(OneImage, OneImage, 0);
-
-        // 블러와 흑백화
-        cv::blur(OneImage, CurCV->mGrayImage, cv::Size(5, 5));
-        cv::cvtColor(CurCV->mGrayImage, CurCV->mGrayImage, cv::COLOR_BGR2GRAY);
-        CurCV->mResult = &CurCV->mGrayImage;
-
-        // 배경축출
-        if(CurCV->mEnableMOG2)
+        
+        bytes BmpBits = (bytes) Bmp::GetBits(bmp);
+        const sint32 BmpWidth = Bmp::GetWidth(bmp);
+        const sint32 BmpHeight = Bmp::GetHeight(bmp);
+        const sint32 BmpBitCount = Bmp::GetBitCount(bmp);
+        if(id_bitmap NewBitmap = Bmp::CloneFromBits(BmpBits, BmpWidth, BmpHeight, BmpBitCount, true))
         {
-            CurCV->mMOG2->apply(*CurCV->mResult, CurCV->mMOG2Mask);
-            CurCV->mMOG2Image.convertTo(CurCV->mMOG2Image, -1, 1, -100);
-            CurCV->mResult->copyTo(CurCV->mMOG2Image, CurCV->mMOG2Mask);
-            CurCV->mResult = &CurCV->mMOG2Image;
-        }
+            cv::Mat OneImage(BmpHeight, BmpWidth, CV_8UC4, (void*) Bmp::GetBits(NewBitmap));
 
-        // 캐니엣지화
-        if(CurCV->mEnableCanny)
-        {
-            cv::Canny(*CurCV->mResult, CurCV->mCannyImage, CurCV->mLow, CurCV->mHigh, CurCV->mAperture);
-            CurCV->mResult = &CurCV->mCannyImage;
+            // 블러와 흑백화
+            cv::blur(OneImage, CurCV->mGrayImage, cv::Size(5, 5));
+            cv::cvtColor(CurCV->mGrayImage, CurCV->mGrayImage, cv::COLOR_BGR2GRAY);
+            CurCV->mResult = &CurCV->mGrayImage;
+
+            // 배경축출
+            if(CurCV->mEnableMOG2)
+            {
+                CurCV->mMOG2->apply(*CurCV->mResult, CurCV->mMOG2Mask);
+                CurCV->mMOG2Image.convertTo(CurCV->mMOG2Image, -1, 1, -100);
+                CurCV->mResult->copyTo(CurCV->mMOG2Image, CurCV->mMOG2Mask);
+                CurCV->mResult = &CurCV->mMOG2Image;
+            }
+
+            // 캐니엣지화
+            if(CurCV->mEnableCanny)
+            {
+                cv::Canny(*CurCV->mResult, CurCV->mCannyImage, CurCV->mLow, CurCV->mHigh, CurCV->mAperture);
+                CurCV->mResult = &CurCV->mCannyImage;
+            }
+
+            Bmp::Remove(NewBitmap);
         }
 	}
 
