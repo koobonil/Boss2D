@@ -506,18 +506,6 @@ namespace BOSS
                 return true;
             }
 
-            void File_ResetAssetsRoot(chars dirname)
-            {
-                PlatformImpl::Core::AssetsRoot() = dirname;
-                PlatformImpl::Core::AssetsRoot() += '/';
-            }
-
-            void File_ResetAssetsRemRoot(chars dirname)
-            {
-                PlatformImpl::Core::AssetsRemRoot() = dirname;
-                PlatformImpl::Core::AssetsRemRoot() += '/';
-            }
-
             class WebNativePrivate
             {
             public:

@@ -1363,12 +1363,14 @@
 
         void Platform::File::ResetAssetsRoot(chars dirname)
         {
-            PlatformImpl::Wrap::File_ResetAssetsRoot(dirname);
+            PlatformImpl::Core::AssetsRoot() = PlatformImpl::Core::NormalPath(dirname, false) + '/';
+            BOSS_TRACE("Platform::File::ResetAssetsRoot() ==> \"%s\"", (chars) PlatformImpl::Core::AssetsRoot());
         }
 
         void Platform::File::ResetAssetsRemRoot(chars dirname)
         {
-            PlatformImpl::Wrap::File_ResetAssetsRemRoot(dirname);
+            PlatformImpl::Core::AssetsRemRoot() = PlatformImpl::Core::NormalPath(dirname, false) + '/';
+            BOSS_TRACE("Platform::File::ResetAssetsRemRoot() ==> \"%s\"", (chars) PlatformImpl::Core::AssetsRemRoot());
         }
 
         const String& Platform::File::RootForAssets()

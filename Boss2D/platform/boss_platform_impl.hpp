@@ -46,8 +46,6 @@ namespace BOSS
             WString File_GetShortName(wchars itemname);
             sint32 File_GetDriveCode();
             bool File_Tempname(char* format, sint32 length);
-            void File_ResetAssetsRoot(chars dirname);
-            void File_ResetAssetsRemRoot(chars dirname);
 
             h_web_native Web_CreateNative(chars url, bool clearcookies, Platform::Web::EventCB cb, payload data);
             void Web_ReleaseNative(h_web_native web_native);
