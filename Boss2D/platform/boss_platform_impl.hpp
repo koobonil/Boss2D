@@ -13,10 +13,10 @@ namespace BOSS
             payload GetProcedureData(sint32 i);
             String NormalPath(chars itemname, bool QCodeTest = true);
             WString NormalPathW(wchars itemname, bool QCodeTest = true);
+            String& AssetsRoot();
+            String& AssetsRemRoot();
 
             extern View::CreatorCB g_Creator;
-            extern String& g_AssetsRoot;
-            extern String& g_AssetsRemRoot;
         }
 
         // 래핑함수

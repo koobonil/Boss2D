@@ -1373,38 +1373,38 @@
 
         const String& Platform::File::RootForAssets()
         {
-            if(0 < PlatformImpl::Core::g_AssetsRoot.Length())
-                return PlatformImpl::Core::g_AssetsRoot;
+            if(0 < PlatformImpl::Core::AssetsRoot().Length())
+                return PlatformImpl::Core::AssetsRoot();
 
             #if BOSS_WINDOWS
-                PlatformImpl::Core::g_AssetsRoot = "../assets/";
+                PlatformImpl::Core::AssetsRoot() = "../assets/";
             #elif BOSS_MAC_OSX
                 BOSS_ASSERT("Further development is needed.", false);
-                PlatformImpl::Core::g_AssetsRoot = "../assets/";
+                PlatformImpl::Core::AssetsRoot() = "../assets/";
             #elif BOSS_IPHONE
-                PlatformImpl::Core::g_AssetsRoot = CFStringGetCStringPtr(CFURLGetString(
+                PlatformImpl::Core::AssetsRoot() = CFStringGetCStringPtr(CFURLGetString(
                     CFBundleCopyResourcesDirectoryURL(CFBundleGetMainBundle())), kCFStringEncodingUTF8) + 7; // 7은 file://
             #elif BOSS_ANDROID
-                PlatformImpl::Core::g_AssetsRoot = "assets:/";
+                PlatformImpl::Core::AssetsRoot() = "assets:/";
             #else
-                PlatformImpl::Core::g_AssetsRoot = "../assets/";
+                PlatformImpl::Core::AssetsRoot() = "../assets/";
             #endif
-            return PlatformImpl::Core::g_AssetsRoot;
+            return PlatformImpl::Core::AssetsRoot();
         }
 
         const String& Platform::File::RootForAssetsRem()
         {
-            if(0 < PlatformImpl::Core::g_AssetsRemRoot.Length())
-                return PlatformImpl::Core::g_AssetsRemRoot;
+            if(0 < PlatformImpl::Core::AssetsRemRoot().Length())
+                return PlatformImpl::Core::AssetsRemRoot();
 
             #if BOSS_WINDOWS
                 String NewRoot = "../assets-rem";
                 CreateDirectoryA(NewRoot, nullptr);
                 NewRoot += "/";
-                PlatformImpl::Core::g_AssetsRemRoot = NewRoot;
+                PlatformImpl::Core::AssetsRemRoot() = NewRoot;
             #elif BOSS_MAC_OSX
                 BOSS_ASSERT("Further development is needed.", false);
-                PlatformImpl::Core::g_AssetsRemRoot = "../assets-rem/";
+                PlatformImpl::Core::AssetsRemRoot() = "../assets-rem/";
             #elif BOSS_IPHONE
                 String NewRoot = CFStringGetCStringPtr(
                     CFURLGetString(CFCopyHomeDirectoryURL()), kCFStringEncodingUTF8) + 7; // 7은 file://
@@ -1415,14 +1415,14 @@
                 NewRoot += "/assets-rem";
                 if(access(NewRoot, 0777)) mkdir(NewRoot, 0777);
                 NewRoot += "/";
-                PlatformImpl::Core::g_AssetsRemRoot = NewRoot;
+                PlatformImpl::Core::AssetsRemRoot() = NewRoot;
             #elif BOSS_ANDROID
                 BOSS_ASSERT("Further development is needed.", false);
-                PlatformImpl::Core::g_AssetsRemRoot = "../assets-rem/";
+                PlatformImpl::Core::AssetsRemRoot() = "../assets-rem/";
             #else
-                PlatformImpl::Core::g_AssetsRemRoot = "../assets-rem/";
+                PlatformImpl::Core::AssetsRemRoot() = "../assets-rem/";
             #endif
-            return PlatformImpl::Core::g_AssetsRemRoot;
+            return PlatformImpl::Core::AssetsRemRoot();
         }
 
         const String& Platform::File::RootForData()

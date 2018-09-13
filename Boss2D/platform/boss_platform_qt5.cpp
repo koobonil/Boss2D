@@ -1768,19 +1768,22 @@
         ////////////////////////////////////////////////////////////////////////////////
         bool Platform::File::Exist(chars filename)
         {
-            QFileInfo CurInfo(QString::fromUtf8(filename).replace('\\', '/'));
+            const String FilenameUTF8 = PlatformImpl::Core::NormalPath(filename);
+            QFileInfo CurInfo(QString::fromUtf8(FilenameUTF8));
             return CurInfo.exists() && CurInfo.isFile();
         }
 
         bool Platform::File::ExistForDir(chars dirname)
         {
-            QFileInfo CurInfo(QString::fromUtf8(dirname).replace('\\', '/'));
+            const String DirnameUTF8 = PlatformImpl::Core::NormalPath(dirname);
+            QFileInfo CurInfo(QString::fromUtf8(DirnameUTF8));
             return CurInfo.exists() && CurInfo.isDir();
         }
 
         id_file_read Platform::File::OpenForRead(chars filename)
         {
-            QFile* NewFile = new QFile(QString::fromUtf8(filename).replace('\\', '/'));
+            const String FilenameUTF8 = PlatformImpl::Core::NormalPath(filename);
+            QFile* NewFile = new QFile(QString::fromUtf8(FilenameUTF8));
             if(!NewFile->open(QFileDevice::ReadOnly))
             {
                 BOSS_TRACE("OpenForRead(%s) - The file is nonexistent", filename);
@@ -1809,13 +1812,14 @@
 
         id_file Platform::File::OpenForWrite(chars filename, bool autocreatedir)
         {
-            QFile* NewFile = new QFile(QString::fromUtf8(filename).replace('\\', '/'));
+            const String FilenameUTF8 = PlatformImpl::Core::NormalPath(filename);
+            QFile* NewFile = new QFile(QString::fromUtf8(FilenameUTF8));
             if(!NewFile->open(QFileDevice::WriteOnly))
             {
                 delete NewFile;
                 if(autocreatedir)
                 {
-                    _CreateMiddleDir(filename);
+                    _CreateMiddleDir(FilenameUTF8);
                     return OpenForWrite(filename, false);
                 }
                 else
@@ -1872,7 +1876,7 @@
         sint32 Platform::File::Search(chars dirname, SearchCB cb, payload data, bool needfullpath)
         {
             const String PathUTF8 = PlatformImpl::Core::NormalPath(dirname);
-            QString PathQ = QString::fromUtf8(PathUTF8).replace('\\', '/');
+            QString PathQ = QString::fromUtf8(PathUTF8);
             const QString& Tail = PathQ.right(2);
             if(!Tail.compare("/*")) PathQ = PathQ.left(PathQ.length() - 2);
             sint32 FindPos = PathQ.lastIndexOf("assets:");
@@ -1917,11 +1921,9 @@
 
         sint32 Platform::File::GetAttributes(wchars itemname, uint64* size, uint64* ctime, uint64* atime, uint64* mtime)
         {
-            const WString ItemnameUTF16 = PlatformImpl::Core::NormalPathW(itemname);
-            const String ItemnameUTF8 = String::FromWChars(ItemnameUTF16);
-            const QString ItemnameQ = QString::fromUtf8(ItemnameUTF8).replace('\\', '/');
+            const String ItemnameUTF8 = String::FromWChars(PlatformImpl::Core::NormalPathW(itemname));
 
-            QFileInfo CurInfo(ItemnameQ);
+            QFileInfo CurInfo(QString::fromUtf8(ItemnameUTF8));
             if(!CurInfo.exists()) return -1; // INVALID_FILE_ATTRIBUTES
 
             sint32 Result = 0;
@@ -1940,13 +1942,12 @@
         WString Platform::File::GetFullPath(wchars itemname)
         {
             const String ItemnameUTF8 = String::FromWChars(PlatformImpl::Core::NormalPathW(itemname, false));
-            const QString ItemnameQ = QString::fromUtf8(ItemnameUTF8).replace('\\', '/');
 
             if((('A' <= ItemnameUTF8[0] && ItemnameUTF8[0] <= 'Z') ||
                 ('a' <= ItemnameUTF8[0] && ItemnameUTF8[0] <= 'z')) && ItemnameUTF8[1] == ':')
-                return WString::FromChars(ItemnameQ.toUtf8().constData());
+                return WString::FromChars(ItemnameUTF8);
 
-            QFileInfo CurInfo(QString::fromUtf8(BOSS::Platform::File::RootForAssetsRem()) + ItemnameQ);
+            QFileInfo CurInfo(QString::fromUtf8(BOSS::Platform::File::RootForAssetsRem() + ItemnameUTF8));
             String AbsoluteName = CurInfo.absoluteFilePath().toUtf8().constData();
             if(AbsoluteName[-2] == '/' || AbsoluteName[-2] == '\\')
                 AbsoluteName.Sub(1);
@@ -1978,7 +1979,7 @@
         bool Platform::File::CanAccess(wchars itemname)
         {
             const String ItemnameUTF8 = String::FromWChars(PlatformImpl::Core::NormalPathW(itemname));
-            QFileInfo CurInfo(QString::fromUtf8(ItemnameUTF8).replace('\\', '/'));
+            QFileInfo CurInfo(QString::fromUtf8(ItemnameUTF8));
 
             const bool Result = CurInfo.exists();
             BOSS_TRACE("CanAccess(%s)%s", (chars) ItemnameUTF8, Result? "" : " - Failed");
@@ -1988,7 +1989,7 @@
         bool Platform::File::CanWritable(wchars itemname)
         {
             const String ItemnameUTF8 = String::FromWChars(PlatformImpl::Core::NormalPathW(itemname));
-            QFileInfo CurInfo(QString::fromUtf8(ItemnameUTF8).replace('\\', '/'));
+            QFileInfo CurInfo(QString::fromUtf8(ItemnameUTF8));
 
             const bool Result = (CurInfo.exists() && CurInfo.isWritable());
             BOSS_TRACE("CanWritable(%s)%s", (chars) ItemnameUTF8, Result? "" : " - Failed");
@@ -2019,11 +2020,10 @@
         bool Platform::File::Remove(wchars itemname, bool autoremovedir)
         {
             const String ItemnameUTF8 = String::FromWChars(PlatformImpl::Core::NormalPathW(itemname));
-            const QString ItemnameQ = QString::fromUtf8(ItemnameUTF8).replace('\\', '/');
 
-            const bool Result = QFile::remove(ItemnameQ);
+            const bool Result = QFile::remove(QString::fromUtf8(ItemnameUTF8));
             if(Result && autoremovedir)
-                _RemoveMiddleDir(ItemnameQ.toUtf8().constData());
+                _RemoveMiddleDir(ItemnameUTF8);
             BOSS_TRACE("Remove(%s)%s", (chars) ItemnameUTF8, Result? "" : " - Failed");
             return Result;
         }
@@ -2033,9 +2033,7 @@
             const String ExistingItemnameUTF8 = String::FromWChars(PlatformImpl::Core::NormalPathW(existing_itemname));
             const String NewItemnameUTF8 = String::FromWChars(PlatformImpl::Core::NormalPathW(new_itemname));
 
-            const bool Result = QFile::rename(
-                QString::fromUtf8(ExistingItemnameUTF8).replace('\\', '/'),
-                QString::fromUtf8(NewItemnameUTF8).replace('\\', '/'));
+            const bool Result = QFile::rename(QString::fromUtf8(ExistingItemnameUTF8), QString::fromUtf8(NewItemnameUTF8));
             BOSS_TRACE("Rename(%s -> %s)%s", (chars) ExistingItemnameUTF8, (chars) NewItemnameUTF8, Result? "" : " - Failed");
             return Result;
         }
@@ -2048,19 +2046,18 @@
         bool Platform::File::CreateDir(wchars dirname, bool autocreatedir)
         {
             const String DirnameUTF8 = String::FromWChars(PlatformImpl::Core::NormalPathW(dirname));
-            const QString DirnameQ = QString::fromUtf8(DirnameUTF8).replace('\\', '/');
 
-            if(QDir(DirnameQ).exists())
+            if(QDir(QString::fromUtf8(DirnameUTF8)).exists())
             {
                 BOSS_TRACE("CreateDir(%s) - Skipped", (chars) DirnameUTF8);
                 return true;
             }
 
-            if(!QDir().mkdir(DirnameQ))
+            if(!QDir().mkdir(QString::fromUtf8(DirnameUTF8)))
             {
                 if(autocreatedir)
                 {
-                    _CreateMiddleDir(DirnameQ.toUtf8().constData());
+                    _CreateMiddleDir(DirnameUTF8);
                     return CreateDir(dirname, false);
                 }
                 else
@@ -2076,19 +2073,18 @@
         bool Platform::File::RemoveDir(wchars dirname, bool autoremovedir)
         {
             const String DirnameUTF8 = String::FromWChars(PlatformImpl::Core::NormalPathW(dirname));
-            const QString DirnameQ = QString::fromUtf8(DirnameUTF8).replace('\\', '/');
 
-            if(!QDir(DirnameQ).exists())
+            if(!QDir(QString::fromUtf8(DirnameUTF8)).exists())
             {
                 if(autoremovedir)
-                    _RemoveMiddleDir(DirnameQ.toUtf8().constData());
+                    _RemoveMiddleDir(DirnameUTF8);
                 BOSS_TRACE("RemoveDir(%s) - Skipped", (chars) DirnameUTF8);
                 return true;
             }
 
-            const bool Result = QDir().rmdir(DirnameQ);
+            const bool Result = QDir().rmdir(QString::fromUtf8(DirnameUTF8));
             if(Result && autoremovedir)
-                _RemoveMiddleDir(DirnameQ.toUtf8().constData());
+                _RemoveMiddleDir(DirnameUTF8);
             BOSS_TRACE("RemoveDir(%s)%s", (chars) DirnameUTF8, Result? "" : " - Failed");
             return Result;
         }
@@ -2291,73 +2287,77 @@
         void Platform::File::ResetAssetsRoot(chars dirname)
         {
             PlatformImpl::Wrap::File_ResetAssetsRoot(dirname);
-            BOSS_TRACE("Platform::File::ResetAssetsRoot() ==> \"%s\"", (chars) PlatformImpl::Core::g_AssetsRoot);
+            BOSS_TRACE("Platform::File::ResetAssetsRoot() ==> \"%s\"", (chars) PlatformImpl::Core::AssetsRoot());
         }
 
         void Platform::File::ResetAssetsRemRoot(chars dirname)
         {
             PlatformImpl::Wrap::File_ResetAssetsRemRoot(dirname);
-            BOSS_TRACE("Platform::File::ResetAssetsRemRoot() ==> \"%s\"", (chars) PlatformImpl::Core::g_AssetsRemRoot);
+            BOSS_TRACE("Platform::File::ResetAssetsRemRoot() ==> \"%s\"", (chars) PlatformImpl::Core::AssetsRemRoot());
         }
 
         const String& Platform::File::RootForAssets()
         {
-            if(0 < PlatformImpl::Core::g_AssetsRoot.Length())
-                return PlatformImpl::Core::g_AssetsRoot;
+            if(0 < PlatformImpl::Core::AssetsRoot().Length())
+                return PlatformImpl::Core::AssetsRoot();
 
+            String NewPath;
             #if BOSS_WINDOWS || BOSS_LINUX
-                PlatformImpl::Core::g_AssetsRoot = "../assets/";
-                const String AssetsPathA = String::Format("%s/..", QCoreApplication::applicationDirPath().replace('\\', '/').toUtf8().constData());
+                NewPath = "../assets/";
+                const String AssetsPathA = String::Format("%s/..", QCoreApplication::applicationDirPath().toUtf8().constData());
                 if(Platform::File::ExistForDir(AssetsPathA + "/assets"))
-                    PlatformImpl::Core::g_AssetsRoot = AssetsPathA + "/assets/";
+                    NewPath = AssetsPathA + "/assets/";
                 else
                 {
-                    const String AssetsPathB = String::Format("%s/../../..", QCoreApplication::applicationDirPath().replace('\\', '/').toUtf8().constData());
+                    const String AssetsPathB = String::Format("%s/../../..", QCoreApplication::applicationDirPath().toUtf8().constData());
                     if(Platform::File::ExistForDir(AssetsPathB + "/assets"))
-                        PlatformImpl::Core::g_AssetsRoot = AssetsPathB + "/assets/";
+                        NewPath = AssetsPathB + "/assets/";
                 }
             #elif BOSS_MAC_OSX
-                PlatformImpl::Core::g_AssetsRoot = String::Format("%s/../../assets/", QCoreApplication::applicationDirPath().replace('\\', '/').toUtf8().constData());
+                NewPath = String::Format("Q:%s/../../assets/", QCoreApplication::applicationDirPath().toUtf8().constData());
             #elif BOSS_IPHONE
-                PlatformImpl::Core::g_AssetsRoot = String::Format("%s/assets/", QCoreApplication::applicationDirPath().replace('\\', '/').toUtf8().constData());
+                NewPath = String::Format("Q:%s/assets/", QCoreApplication::applicationDirPath().toUtf8().constData());
             #elif BOSS_ANDROID
-                PlatformImpl::Core::g_AssetsRoot = "assets:/";
+                NewPath = "assets:/";
             #else
-                PlatformImpl::Core::g_AssetsRoot = "../assets/";
+                NewPath = "../assets/";
             #endif
-            BOSS_TRACE("Platform::File::RootForAssets() ==> \"%s\"", (chars) PlatformImpl::Core::g_AssetsRoot);
-            return PlatformImpl::Core::g_AssetsRoot;
+			
+			PlatformImpl::Core::AssetsRoot() = PlatformImpl::Core::NormalPath(NewPath, false);
+            BOSS_TRACE("Platform::File::RootForAssets() ==> \"%s\"", (chars) PlatformImpl::Core::AssetsRoot());
+            return PlatformImpl::Core::AssetsRoot();
         }
 
         const String& Platform::File::RootForAssetsRem()
         {
-            if(0 < PlatformImpl::Core::g_AssetsRemRoot.Length())
-                return PlatformImpl::Core::g_AssetsRemRoot;
+            if(0 < PlatformImpl::Core::AssetsRemRoot().Length())
+                return PlatformImpl::Core::AssetsRemRoot();
 
+            String NewPath;
             #if BOSS_WINDOWS || BOSS_LINUX
-                QString RootQ = "..";
-                const String AssetsPathA = String::Format("%s/..", QCoreApplication::applicationDirPath().replace('\\', '/').toUtf8().constData());
+                NewPath = "..";
+                const String AssetsPathA = String::Format("%s/..", QCoreApplication::applicationDirPath().toUtf8().constData());
                 if(Platform::File::ExistForDir(AssetsPathA + "/assets"))
-                    RootQ = AssetsPathA;
+                    NewPath = AssetsPathA;
                 else
                 {
-                    const String AssetsPathB = String::Format("%s/../../..", QCoreApplication::applicationDirPath().replace('\\', '/').toUtf8().constData());
+                    const String AssetsPathB = String::Format("%s/../../..", QCoreApplication::applicationDirPath().toUtf8().constData());
                     if(Platform::File::ExistForDir(AssetsPathB + "/assets"))
-                        RootQ = AssetsPathB;
+                        NewPath = AssetsPathB;
                 }
             #elif BOSS_MAC_OSX
-                QString RootQ = QCoreApplication::applicationDirPath().replace('\\', '/');
-                RootQ += "/../../../..";
+                NewPath = String::Format("Q:%s/../../../..", QCoreApplication::applicationDirPath().toUtf8().constData());
+            #elif BOSS_IPHONE
+                NewPath = String::Format("Q:%s", QStandardPaths::standardLocations(QStandardPaths::DataLocation).value(0).toUtf8().constData());
             #else
-                QString RootQ = QStandardPaths::standardLocations(QStandardPaths::DataLocation).value(0).replace('\\', '/');
-                if(!QFileInfo(RootQ).exists()) QDir().mkdir(RootQ);
+                NewPath = QStandardPaths::standardLocations(QStandardPaths::DataLocation).value(0).toUtf8().constData();
             #endif
+            NewPath += "/assets-rem/";
 
-            RootQ += "/assets-rem";
-            if(!QFileInfo(RootQ).exists()) QDir().mkdir(RootQ);
-            PlatformImpl::Core::g_AssetsRemRoot = (RootQ + "/").toUtf8().constData();
-            BOSS_TRACE("Platform::File::RootForAssetsRem() ==> \"%s\"", (chars) PlatformImpl::Core::g_AssetsRemRoot);
-            return PlatformImpl::Core::g_AssetsRemRoot;
+            PlatformImpl::Core::AssetsRemRoot() = PlatformImpl::Core::NormalPath(NewPath, false);
+			_CreateMiddleDir(PlatformImpl::Core::AssetsRemRoot());
+            BOSS_TRACE("Platform::File::RootForAssetsRem() ==> \"%s\"", (chars) PlatformImpl::Core::AssetsRemRoot());
+            return PlatformImpl::Core::AssetsRemRoot();
         }
 
         const String& Platform::File::RootForData()

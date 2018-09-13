@@ -76,9 +76,17 @@ namespace BOSS
                 return WString::FromChars(NormalName);
             }
 
+            String& AssetsRoot()
+            {
+                return *BOSS_STORAGE_SYS(String);
+            }
+
+            String& AssetsRemRoot()
+            {
+                return *BOSS_STORAGE_SYS(String);
+            }
+
             View::CreatorCB g_Creator = View::Creator;
-            String& g_AssetsRoot = *BOSS_STORAGE_SYS(String);
-            String& g_AssetsRemRoot = *BOSS_STORAGE_SYS(String);
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -500,14 +508,14 @@ namespace BOSS
 
             void File_ResetAssetsRoot(chars dirname)
             {
-                PlatformImpl::Core::g_AssetsRoot = dirname;
-                PlatformImpl::Core::g_AssetsRoot += '/';
+                PlatformImpl::Core::AssetsRoot() = dirname;
+                PlatformImpl::Core::AssetsRoot() += '/';
             }
 
             void File_ResetAssetsRemRoot(chars dirname)
             {
-                PlatformImpl::Core::g_AssetsRemRoot = dirname;
-                PlatformImpl::Core::g_AssetsRemRoot += '/';
+                PlatformImpl::Core::AssetsRemRoot() = dirname;
+                PlatformImpl::Core::AssetsRemRoot() += '/';
             }
 
             class WebNativePrivate

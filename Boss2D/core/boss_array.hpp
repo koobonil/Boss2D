@@ -189,7 +189,7 @@ namespace BOSS
         */
 		void DeliveryOne(sint32 index, TYPE&& src)
 		{
-			auto OldShare = share;
+            const Share* OldShare = share;
 			share = Share::Create(SampleBuffer(), OldShare->count() + 1);
             for(sint32 i = 0; i < index; ++i)
                 AtAdding() = ToReference(OldShare->At<TYPE>(i));

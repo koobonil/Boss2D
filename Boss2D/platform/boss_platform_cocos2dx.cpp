@@ -1536,29 +1536,29 @@
 
         const String& Platform::File::RootForAssets()
         {
-            if(0 < PlatformImpl::Core::g_AssetsRoot.Length())
-                return PlatformImpl::Core::g_AssetsRoot;
+            if(0 < PlatformImpl::Core::AssetsRoot().Length())
+                return PlatformImpl::Core::AssetsRoot();
 
             #if BOSS_WINDOWS
-                PlatformImpl::Core::g_AssetsRoot = "../assets/";
+                PlatformImpl::Core::AssetsRoot() = "../assets/";
             #elif BOSS_MAC_OSX
                 BOSS_ASSERT("Further development is needed.", false);
-                PlatformImpl::Core::g_AssetsRoot = "../assets/";
+                PlatformImpl::Core::AssetsRoot() = "../assets/";
             #elif BOSS_IPHONE
                 BOSS_ASSERT("Further development is needed.", false);
-                PlatformImpl::Core::g_AssetsRoot = "../assets/";
+                PlatformImpl::Core::AssetsRoot() = "../assets/";
             #elif BOSS_ANDROID
-                PlatformImpl::Core::g_AssetsRoot = "assets:/";
+                PlatformImpl::Core::AssetsRoot() = "assets:/";
             #else
-                PlatformImpl::Core::g_AssetsRoot = "../assets/";
+                PlatformImpl::Core::AssetsRoot() = "../assets/";
             #endif
-            return PlatformImpl::Core::g_AssetsRoot;
+            return PlatformImpl::Core::AssetsRoot();
         }
 
         const String& Platform::File::RootForAssetsRem()
         {
-            if(0 < PlatformImpl::Core::g_AssetsRemRoot.Length())
-                return PlatformImpl::Core::g_AssetsRemRoot;
+            if(0 < PlatformImpl::Core::AssetsRemRoot().Length())
+                return PlatformImpl::Core::AssetsRemRoot();
 
             #if BOSS_WINDOWS
                 String AssetsRemRoot = "../assets-rem";
@@ -1576,8 +1576,8 @@
                 #endif
             }
 
-            PlatformImpl::Core::g_AssetsRemRoot = AssetsRemRoot + '/';
-            return PlatformImpl::Core::g_AssetsRemRoot;
+            PlatformImpl::Core::AssetsRemRoot() = AssetsRemRoot + '/';
+            return PlatformImpl::Core::AssetsRemRoot();
         }
 
         const String& Platform::File::RootForData()
