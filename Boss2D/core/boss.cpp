@@ -16,6 +16,7 @@
     #include <dirent.h>
     #include <unistd.h>
     #include <strings.h>
+    #include <errno.h>
 #elif BOSS_MAC_OSX || BOSS_IPHONE
     #include <sys/stat.h>
     #include <dirent.h>
@@ -37,6 +38,12 @@
 
 extern "C"
 {
+    #if BOSS_LINUX
+        #define THROW __THROW
+    #else
+        #define THROW
+    #endif
+
     #if BOSS_WINDOWS || BOSS_LINUX || BOSS_ANDROID
         extern int isalpha(int);
         extern int isdigit(int);
@@ -90,6 +97,8 @@ extern "C"
     #endif
     #if BOSS_WINDOWS & !BOSS_WINDOWS_MINGW
         extern const wchar_t* wcspbrk(const wchar_t*, const wchar_t*);
+    #elif BOSS_LINUX
+        extern "C++" const wchar_t* wcspbrk(const wchar_t*, const wchar_t*) THROW;
     #else
         extern wchar_t* wcspbrk(const wchar_t*, const wchar_t*);
     #endif
@@ -129,16 +138,16 @@ extern "C"
         extern char* inet_ntoa(struct in_addr in);
         extern unsigned long inet_addr(const char* cp);
     #else
-        extern int socket(int domain, int type, int protocol);
+        extern int socket(int domain, int type, int protocol) THROW;
         extern int connect(int sockfd, const struct sockaddr* addr, socklen_t addrlen);
-        extern int bind(int sockfd, const struct sockaddr* addr, socklen_t addrlen);
+        extern int bind(int sockfd, const struct sockaddr* addr, socklen_t addrlen) THROW;
         extern int accept(int sockfd, struct sockaddr* addr, socklen_t* addrlen);
-        extern int listen(int sockfd, int backlog);
-        extern int shutdown(int sockfd, int how);
-        extern int getsockopt(int sockfd, int level, int optname, void* optval, socklen_t* optlen);
-        extern int setsockopt(int sockfd, int level, int optname, const void* optval, socklen_t optlen);
-        extern int getsockname(int sockfd, struct sockaddr* addr, socklen_t* addrlen);
-        extern int getpeername(int sockfd, struct sockaddr* addr, socklen_t* addrlen);
+        extern int listen(int sockfd, int backlog) THROW;
+        extern int shutdown(int sockfd, int how) THROW;
+        extern int getsockopt(int sockfd, int level, int optname, void* optval, socklen_t* optlen) THROW;
+        extern int setsockopt(int sockfd, int level, int optname, const void* optval, socklen_t optlen) THROW;
+        extern int getsockname(int sockfd, struct sockaddr* addr, socklen_t* addrlen) THROW;
+        extern int getpeername(int sockfd, struct sockaddr* addr, socklen_t* addrlen) THROW;
         extern ssize_t recv(int sockfd, void* buf, size_t len, int flags);
         extern ssize_t recvfrom(int sockfd, void* buf, size_t len, int flags, struct sockaddr* src_addr, socklen_t* addrlen);
         extern ssize_t send(int sockfd, const void* buf, size_t len, int flags);
@@ -153,12 +162,12 @@ extern "C"
         extern struct hostent* gethostbyaddr(const void* addr, socklen_t len, int type);
         extern struct hostent* gethostbyname(const char* name);
         extern int getaddrinfo(const char* node, const char* service, const struct addrinfo* hints, struct addrinfo** res);
-        extern void freeaddrinfo(struct addrinfo* res);
-        extern const char* gai_strerror(int errcode);
+        extern void freeaddrinfo(struct addrinfo* res) THROW;
+        extern const char* gai_strerror(int errcode) THROW;
         extern struct servent* getservbyname(const char* name, const char* proto);
         extern struct servent* getservbyport(int port, const char* proto);
-        extern char* inet_ntoa(struct in_addr in);
-        extern in_addr_t inet_addr(const char* cp);
+        extern char* inet_ntoa(struct in_addr in) THROW;
+        extern in_addr_t inet_addr(const char* cp) THROW;
     #endif
 }
 
@@ -1066,7 +1075,7 @@ extern "C" int boss_socket(int domain, int type, int protocol)
 
 extern "C" int boss_connect(int sockfd, const void* addr, int addrlen)
 {
-    #if BOSS_WINDOWS | BOSS_ANDROID
+    #if BOSS_WINDOWS | BOSS_LINUX | BOSS_ANDROID
         return connect(sockfd, (const struct sockaddr*) addr, addrlen);
     #else
         struct sockaddr_in AddrIn;
@@ -1078,7 +1087,7 @@ extern "C" int boss_connect(int sockfd, const void* addr, int addrlen)
 
 extern "C" int boss_bind(int sockfd, const void* addr, int addrlen)
 {
-    #if BOSS_WINDOWS | BOSS_ANDROID
+    #if BOSS_WINDOWS | BOSS_LINUX | BOSS_ANDROID
         return bind(sockfd, (const struct sockaddr*) addr, addrlen);
     #else
         struct sockaddr_in AddrIn;
@@ -1172,7 +1181,7 @@ extern "C" ssize_t boss_send(int sockfd, const void* buf, size_t len, int flags)
 
 extern "C" ssize_t boss_sendto(int sockfd, const void* buf, size_t len, int flags, const void* dest_addr, int addrlen)
 {
-    #if BOSS_WINDOWS | BOSS_ANDROID
+    #if BOSS_WINDOWS | BOSS_LINUX | BOSS_ANDROID
         return sendto(sockfd, (const char*) buf, len, flags, (const struct sockaddr*) dest_addr, addrlen);
     #else
         struct sockaddr_in DestAddrIn;

@@ -1475,7 +1475,8 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     extern "C" int boss_fakewin_WSAGetLastError()
     {
         sint32 ErrorCode = boss_geterrno();
-        if(EINTR <= ErrorCode && ErrorCode <= EREMOTE) ErrorCode += 10000;
+        if(EINTR <= ErrorCode && ErrorCode <= EREMOTE)
+            ErrorCode += 10000;
         else ErrorCode = 0;
         BOSS_SOCKET_TRACE("########## WSAGetLastError(%d)", ErrorCode);
         return ErrorCode;

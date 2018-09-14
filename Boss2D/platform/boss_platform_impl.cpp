@@ -91,7 +91,6 @@ namespace BOSS
             {
                 Mutex::Lock(g_root.mMutex);
                 g_root.mPath[i] = dirname;
-                g_root.mPath[i] += '/';
                 Mutex::Unlock(g_root.mMutex);
             }
 
@@ -354,7 +353,8 @@ namespace BOSS
                     {
                         auto CurChooser = GTK_FILE_CHOOSER(NewDialog);
                         auto NewFilename = gtk_file_chooser_get_filename(CurChooser);
-                        path = NewFilename;
+                        if(NewFilename[0] == '/') path = String("Q:") + NewFilename;
+                        else path = NewFilename;
                         if(shortpath) *shortpath = String::FromWChars(
                             Platform::File::GetShortName(WString::FromChars(NewFilename)));
                         g_free(NewFilename);
@@ -392,7 +392,7 @@ namespace BOSS
                     gtk_widget_destroy(GTK_WIDGET(NewDialog));
                     switch(type)
                     {
-                    case DBT_YES_NO:
+                    case DBT_YesNo:
                         switch(Result)
                         {
                         case GTK_RESPONSE_YES:
@@ -401,8 +401,8 @@ namespace BOSS
                             return 1;
                         }
                         break;
-                    case DBT_OK:
-                    case DBT_OK_CANCEL:
+                    case DBT_Ok:
+                    case DBT_OKCancel:
                         switch(Result)
                         {
                         case GTK_RESPONSE_OK:
@@ -411,7 +411,7 @@ namespace BOSS
                             return 1;
                         }
                         break;
-                    case DBT_OK_CANCEL_IGNORE:
+                    case DBT_OkCancelIgnore:
                         switch(Result)
                         {
                         case GTK_RESPONSE_OK:

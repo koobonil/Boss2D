@@ -427,20 +427,20 @@
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
             UIAllow allows[2] = {allow, allowbase};
-            Qt::DockWidgetArea Areas[2] = {Qt::NoDockWidgetArea, Qt::NoDockWidgetArea};
+            Qt::DockWidgetAreas Areas[2] = {Qt::NoDockWidgetArea, Qt::NoDockWidgetArea};
             for(sint32 i = 0; i < 2; ++i)
             {
-                if(allows[i] & UIA_Left) Areas[i] = (Qt::DockWidgetArea) (Areas[i] | Qt::LeftDockWidgetArea);
-                if(allows[i] & UIA_Top) Areas[i] = (Qt::DockWidgetArea) (Areas[i] | Qt::TopDockWidgetArea);
-                if(allows[i] & UIA_Right) Areas[i] = (Qt::DockWidgetArea) (Areas[i] | Qt::RightDockWidgetArea);
-                if(allows[i] & UIA_Bottom) Areas[i] = (Qt::DockWidgetArea) (Areas[i] | Qt::BottomDockWidgetArea);
+                if(allows[i] & UIA_Left) Areas[i] = Areas[i] | Qt::LeftDockWidgetArea;
+                if(allows[i] & UIA_Top) Areas[i] = Areas[i] | Qt::TopDockWidgetArea;
+                if(allows[i] & UIA_Right) Areas[i] = Areas[i] | Qt::RightDockWidgetArea;
+                if(allows[i] & UIA_Bottom) Areas[i] = Areas[i] | Qt::BottomDockWidgetArea;
             }
 
             QDockWidget* NewDock = new QDockWidget(GenericView::cast(view)->getName(), g_window);
             GenericView* RenewedView = new GenericView(view);
             ((QDockWidget*) NewDock)->setAllowedAreas(Areas[1]);
             ((QDockWidget*) NewDock)->setWidget(RenewedView->m_api->getWidget());
-            g_window->addDockWidget(Areas[0], (QDockWidget*) NewDock);
+            g_window->addDockWidget((Qt::DockWidgetArea) (unsigned int) Areas[0], (QDockWidget*) NewDock);
             return h_dock::create_by_ptr(BOSS_DBG NewDock);
         }
 
@@ -1875,10 +1875,12 @@
 
         sint32 Platform::File::Search(chars dirname, SearchCB cb, payload data, bool needfullpath)
         {
-            const String PathUTF8 = PlatformImpl::Core::NormalPath(dirname);
+            String ParsedDirname = dirname;
+            if(!ParsedDirname.Right(2).Compare("/*") || !ParsedDirname.Right(2).Compare("\\*"))
+                ParsedDirname.Sub(2);
+
+            const String PathUTF8 = PlatformImpl::Core::NormalPath(ParsedDirname);
             QString PathQ = QString::fromUtf8(PathUTF8);
-            const QString& Tail = PathQ.right(2);
-            if(!Tail.compare("/*")) PathQ = PathQ.left(PathQ.length() - 2);
             sint32 FindPos = PathQ.lastIndexOf("assets:");
             if(0 <= FindPos) PathQ = PathQ.mid(FindPos);
 
@@ -1911,8 +1913,8 @@
             if(cb) for(sint32 i = 0, iend = List.size(); i < iend; ++i)
             {
                 if(needfullpath)
-                    cb(String::Format("%s/%s", PathQ.toUtf8().constData(),
-                        List.at(i).toUtf8().constData()), data);
+                    cb(PlatformImpl::Core::NormalPath(
+                        String::Format("%s/%s", (chars) ParsedDirname, List.at(i).toUtf8().constData()), false), data);
                 else cb(List.at(i).toUtf8().constData(), data);
                 BOSS_TRACE("Search() - Result: %s", List.at(i).toUtf8().constData());
             }
@@ -2303,7 +2305,7 @@
                 return Result;
 
             String NewPath;
-            #if BOSS_WINDOWS || BOSS_LINUX
+            #if BOSS_WINDOWS
                 NewPath = "../assets/";
                 const String AssetsPathA = String::Format("%s/..", QCoreApplication::applicationDirPath().toUtf8().constData());
                 if(Platform::File::ExistForDir(AssetsPathA + "/assets"))
@@ -2311,6 +2313,17 @@
                 else
                 {
                     const String AssetsPathB = String::Format("%s/../../..", QCoreApplication::applicationDirPath().toUtf8().constData());
+                    if(Platform::File::ExistForDir(AssetsPathB + "/assets"))
+                        NewPath = AssetsPathB + "/assets/";
+                }
+            #elif BOSS_LINUX
+                NewPath = "../assets/";
+                const String AssetsPathA = String::Format("Q:%s/..", QCoreApplication::applicationDirPath().toUtf8().constData());
+                if(Platform::File::ExistForDir(AssetsPathA + "/assets"))
+                    NewPath = AssetsPathA + "/assets/";
+                else
+                {
+                    const String AssetsPathB = String::Format("Q:%s/../../..", QCoreApplication::applicationDirPath().toUtf8().constData());
                     if(Platform::File::ExistForDir(AssetsPathB + "/assets"))
                         NewPath = AssetsPathB + "/assets/";
                 }
@@ -2325,7 +2338,7 @@
             #endif
 			
             PlatformImpl::Core::SetRoot(0, PlatformImpl::Core::NormalPath(NewPath, false));
-            _CreateMiddleDir(PlatformImpl::Core::GetCopiedRoot(0));
+            _CreateMiddleDir(PlatformImpl::Core::NormalPath(PlatformImpl::Core::GetCopiedRoot(0)));
             BOSS_TRACE("Platform::File::RootForAssets() ==> \"%s\"", (chars) PlatformImpl::Core::GetCopiedRoot(0));
             return PlatformImpl::Core::GetCopiedRoot(0);
         }
@@ -2337,7 +2350,7 @@
                 return Result;
 
             String NewPath;
-            #if BOSS_WINDOWS || BOSS_LINUX
+            #if BOSS_WINDOWS
                 NewPath = "..";
                 const String AssetsPathA = String::Format("%s/..", QCoreApplication::applicationDirPath().toUtf8().constData());
                 if(Platform::File::ExistForDir(AssetsPathA + "/assets"))
@@ -2345,6 +2358,17 @@
                 else
                 {
                     const String AssetsPathB = String::Format("%s/../../..", QCoreApplication::applicationDirPath().toUtf8().constData());
+                    if(Platform::File::ExistForDir(AssetsPathB + "/assets"))
+                        NewPath = AssetsPathB;
+                }
+            #elif BOSS_LINUX
+                NewPath = "..";
+                const String AssetsPathA = String::Format("Q:%s/..", QCoreApplication::applicationDirPath().toUtf8().constData());
+                if(Platform::File::ExistForDir(AssetsPathA + "/assets"))
+                    NewPath = AssetsPathA;
+                else
+                {
+                    const String AssetsPathB = String::Format("Q:%s/../../..", QCoreApplication::applicationDirPath().toUtf8().constData());
                     if(Platform::File::ExistForDir(AssetsPathB + "/assets"))
                         NewPath = AssetsPathB;
                 }
@@ -2358,7 +2382,7 @@
             NewPath += "/assets-rem/";
 
             PlatformImpl::Core::SetRoot(1, PlatformImpl::Core::NormalPath(NewPath, false));
-            _CreateMiddleDir(PlatformImpl::Core::GetCopiedRoot(1));
+            _CreateMiddleDir(PlatformImpl::Core::NormalPath(PlatformImpl::Core::GetCopiedRoot(1)));
             BOSS_TRACE("Platform::File::RootForAssetsRem() ==> \"%s\"", (chars) PlatformImpl::Core::GetCopiedRoot(1));
             return PlatformImpl::Core::GetCopiedRoot(1);
         }
@@ -2369,17 +2393,21 @@
             if(0 < Result.Length())
                 return Result;
 
-            String NewPath = QStandardPaths::standardLocations(QStandardPaths::DataLocation).value(0).toUtf8().constData();
-            #if BOSS_ANDROID
+            String NewPath;
+            #if BOSS_LINUX
+                NewPath = String::Format("Q:%s", QStandardPaths::standardLocations(QStandardPaths::DataLocation).value(0).toUtf8().constData());
+            #elif BOSS_ANDROID
                 String StoragePathes = getenv("SECONDARY_STORAGE");
                 StoragePathes.Replace(':', '\0');
                 if(File::ExistForDir((chars) StoragePathes))
                     NewPath = (chars) StoragePathes;
+            #else
+                NewPath = QStandardPaths::standardLocations(QStandardPaths::DataLocation).value(0).toUtf8().constData();
             #endif
             NewPath += '/';
 
             PlatformImpl::Core::SetRoot(2, PlatformImpl::Core::NormalPath(NewPath, false));
-            _CreateMiddleDir(PlatformImpl::Core::GetCopiedRoot(2));
+            _CreateMiddleDir(PlatformImpl::Core::NormalPath(PlatformImpl::Core::GetCopiedRoot(2)));
             BOSS_TRACE("Platform::File::RootForData() ==> \"%s\"", (chars) PlatformImpl::Core::GetCopiedRoot(2));
             return PlatformImpl::Core::GetCopiedRoot(2);
         }

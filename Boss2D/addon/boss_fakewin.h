@@ -201,7 +201,7 @@
     typedef __int64 __time64_t;
     typedef unsigned __int32 uid_t;
     typedef unsigned __int32 gid_t;
-    #if !BOSS_ANDROID
+    #if !BOSS_ANDROID & !BOSS_LINUX
         typedef unsigned __int16 nlink_t;
         typedef __int32 blksize_t;
         typedef __int64 blkcnt_t;
@@ -1476,7 +1476,7 @@
             #else
                 ADDRESS_FAMILY sa_family;           // Address family.
             #endif
-        #elif BOSS_ANDROID
+        #elif BOSS_LINUX | BOSS_ANDROID
             u_short sa_family;
         #else
             __uint8_t sa_len;
@@ -1489,7 +1489,7 @@
     struct boss_fakewin_struct_sockaddr_in {
         #if BOSS_WINDOWS
             short sin_family;
-        #elif BOSS_ANDROID
+        #elif BOSS_LINUX | BOSS_ANDROID
             u_short sin_family;
         #else
             __uint8_t sin_len;

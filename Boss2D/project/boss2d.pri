@@ -26,6 +26,8 @@ android: LIBS += -landroid
 macx|ios: LIBS += -framework CoreFoundation
 linux-g++: CONFIG += link_pkgconfig
 linux-g++: PKGCONFIG += gtk+-3.0
+# sudo apt-get install build-essential libgtk-3-dev
+# sudo apt-get install build-essential libgl1-mesa-dev
 
 INCLUDEPATH += ../../Boss2D/core
 !android: INCLUDEPATH += ../../Boss2D/addon/trick_for_fakewin
