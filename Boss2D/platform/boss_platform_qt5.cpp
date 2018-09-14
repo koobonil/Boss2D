@@ -2286,20 +2286,21 @@
 
         void Platform::File::ResetAssetsRoot(chars dirname)
         {
-            PlatformImpl::Core::AssetsRoot() = PlatformImpl::Core::NormalPath(dirname, false) + '/';
-            BOSS_TRACE("Platform::File::ResetAssetsRoot() ==> \"%s\"", (chars) PlatformImpl::Core::AssetsRoot());
+            PlatformImpl::Core::SetRoot(0, PlatformImpl::Core::NormalPath(dirname, false));
+            BOSS_TRACE("Platform::File::ResetAssetsRoot() ==> \"%s\"", (chars) PlatformImpl::Core::GetCopiedRoot(0));
         }
 
         void Platform::File::ResetAssetsRemRoot(chars dirname)
         {
-            PlatformImpl::Core::AssetsRemRoot() = PlatformImpl::Core::NormalPath(dirname, false) + '/';
-            BOSS_TRACE("Platform::File::ResetAssetsRemRoot() ==> \"%s\"", (chars) PlatformImpl::Core::AssetsRemRoot());
+            PlatformImpl::Core::SetRoot(1, PlatformImpl::Core::NormalPath(dirname, false));
+            BOSS_TRACE("Platform::File::ResetAssetsRemRoot() ==> \"%s\"", (chars) PlatformImpl::Core::GetCopiedRoot(1));
         }
 
-        const String& Platform::File::RootForAssets()
+        const String Platform::File::RootForAssets()
         {
-            if(0 < PlatformImpl::Core::AssetsRoot().Length())
-                return PlatformImpl::Core::AssetsRoot();
+            const String Result = PlatformImpl::Core::GetCopiedRoot(0);
+            if(0 < Result.Length())
+                return Result;
 
             String NewPath;
             #if BOSS_WINDOWS || BOSS_LINUX
@@ -2323,15 +2324,17 @@
                 NewPath = "../assets/";
             #endif
 			
-			PlatformImpl::Core::AssetsRoot() = PlatformImpl::Core::NormalPath(NewPath, false);
-            BOSS_TRACE("Platform::File::RootForAssets() ==> \"%s\"", (chars) PlatformImpl::Core::AssetsRoot());
-            return PlatformImpl::Core::AssetsRoot();
+            PlatformImpl::Core::SetRoot(0, PlatformImpl::Core::NormalPath(NewPath, false));
+            _CreateMiddleDir(PlatformImpl::Core::GetCopiedRoot(0));
+            BOSS_TRACE("Platform::File::RootForAssets() ==> \"%s\"", (chars) PlatformImpl::Core::GetCopiedRoot(0));
+            return PlatformImpl::Core::GetCopiedRoot(0);
         }
 
-        const String& Platform::File::RootForAssetsRem()
+        const String Platform::File::RootForAssetsRem()
         {
-            if(0 < PlatformImpl::Core::AssetsRemRoot().Length())
-                return PlatformImpl::Core::AssetsRemRoot();
+            const String Result = PlatformImpl::Core::GetCopiedRoot(1);
+            if(0 < Result.Length())
+                return Result;
 
             String NewPath;
             #if BOSS_WINDOWS || BOSS_LINUX
@@ -2354,29 +2357,31 @@
             #endif
             NewPath += "/assets-rem/";
 
-            PlatformImpl::Core::AssetsRemRoot() = PlatformImpl::Core::NormalPath(NewPath, false);
-			_CreateMiddleDir(PlatformImpl::Core::AssetsRemRoot());
-            BOSS_TRACE("Platform::File::RootForAssetsRem() ==> \"%s\"", (chars) PlatformImpl::Core::AssetsRemRoot());
-            return PlatformImpl::Core::AssetsRemRoot();
+            PlatformImpl::Core::SetRoot(1, PlatformImpl::Core::NormalPath(NewPath, false));
+            _CreateMiddleDir(PlatformImpl::Core::GetCopiedRoot(1));
+            BOSS_TRACE("Platform::File::RootForAssetsRem() ==> \"%s\"", (chars) PlatformImpl::Core::GetCopiedRoot(1));
+            return PlatformImpl::Core::GetCopiedRoot(1);
         }
 
-        const String& Platform::File::RootForData()
+        const String Platform::File::RootForData()
         {
-            String& Result = *BOSS_STORAGE_SYS(String);
+            const String Result = PlatformImpl::Core::GetCopiedRoot(2);
             if(0 < Result.Length())
                 return Result;
 
-            QString RootQ = QStandardPaths::standardLocations(QStandardPaths::DataLocation).value(0);
+            String NewPath = QStandardPaths::standardLocations(QStandardPaths::DataLocation).value(0).toUtf8().constData();
             #if BOSS_ANDROID
-                String Root = getenv("SECONDARY_STORAGE");
-                Root.Replace(':', '\0');
-                if(File::ExistForDir(Root))
-                    RootQ = (chars) Root;
+                String StoragePathes = getenv("SECONDARY_STORAGE");
+                StoragePathes.Replace(':', '\0');
+                if(File::ExistForDir((chars) StoragePathes))
+                    NewPath = (chars) StoragePathes;
             #endif
-            if(!QFileInfo(RootQ).exists()) QDir().mkdir(RootQ);
-            Result = (RootQ + "/").toUtf8().constData();
-            BOSS_TRACE("Platform::File::RootForData() ==> \"%s\"", (chars) Result);
-            return Result;
+            NewPath += '/';
+
+            PlatformImpl::Core::SetRoot(2, PlatformImpl::Core::NormalPath(NewPath, false));
+            _CreateMiddleDir(PlatformImpl::Core::GetCopiedRoot(2));
+            BOSS_TRACE("Platform::File::RootForData() ==> \"%s\"", (chars) PlatformImpl::Core::GetCopiedRoot(2));
+            return PlatformImpl::Core::GetCopiedRoot(2);
         }
 
         ////////////////////////////////////////////////////////////////////////////////

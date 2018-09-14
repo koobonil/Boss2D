@@ -13,8 +13,8 @@ namespace BOSS
             payload GetProcedureData(sint32 i);
             String NormalPath(chars itemname, bool QCodeTest = true);
             WString NormalPathW(wchars itemname, bool QCodeTest = true);
-            String& AssetsRoot();
-            String& AssetsRemRoot();
+            void SetRoot(sint32 i, chars dirname);
+            String GetCopiedRoot(sint32 i);
 
             extern View::CreatorCB g_Creator;
         }

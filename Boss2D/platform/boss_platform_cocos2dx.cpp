@@ -1526,65 +1526,81 @@
 
         void Platform::File::ResetAssetsRoot(chars dirname)
         {
-            PlatformImpl::Core::AssetsRoot() = PlatformImpl::Core::NormalPath(dirname, false) + '/';
-            BOSS_TRACE("Platform::File::ResetAssetsRoot() ==> \"%s\"", (chars) PlatformImpl::Core::AssetsRoot());
+            PlatformImpl::Core::SetRoot(0, PlatformImpl::Core::NormalPath(dirname, false));
+            BOSS_TRACE("Platform::File::ResetAssetsRoot() ==> \"%s\"", (chars) PlatformImpl::Core::GetCopiedRoot(0));
         }
 
         void Platform::File::ResetAssetsRemRoot(chars dirname)
         {
-            PlatformImpl::Core::AssetsRemRoot() = PlatformImpl::Core::NormalPath(dirname, false) + '/';
-            BOSS_TRACE("Platform::File::ResetAssetsRemRoot() ==> \"%s\"", (chars) PlatformImpl::Core::AssetsRemRoot());
+            PlatformImpl::Core::SetRoot(1, PlatformImpl::Core::NormalPath(dirname, false));
+            BOSS_TRACE("Platform::File::ResetAssetsRemRoot() ==> \"%s\"", (chars) PlatformImpl::Core::GetCopiedRoot(1));
         }
 
-        const String& Platform::File::RootForAssets()
+        const String Platform::File::RootForAssets()
         {
-            if(0 < PlatformImpl::Core::AssetsRoot().Length())
-                return PlatformImpl::Core::AssetsRoot();
+            const String Result = PlatformImpl::Core::GetCopiedRoot(0);
+            if(0 < Result.Length())
+                return Result;
 
+            String NewPath;
             #if BOSS_WINDOWS
-                PlatformImpl::Core::AssetsRoot() = "../assets/";
+                NewPath = "../assets/";
             #elif BOSS_MAC_OSX
                 BOSS_ASSERT("Further development is needed.", false);
-                PlatformImpl::Core::AssetsRoot() = "../assets/";
+                NewPath = "../assets/";
             #elif BOSS_IPHONE
-                BOSS_ASSERT("Further development is needed.", false);
-                PlatformImpl::Core::AssetsRoot() = "../assets/";
+                NewPath = CFStringGetCStringPtr(CFURLGetString(
+                    CFBundleCopyResourcesDirectoryURL(CFBundleGetMainBundle())), kCFStringEncodingUTF8) + 7; // 7은 file://
             #elif BOSS_ANDROID
-                PlatformImpl::Core::AssetsRoot() = "assets:/";
+                NewPath = "assets:/";
             #else
-                PlatformImpl::Core::AssetsRoot() = "../assets/";
+                NewPath = "../assets/";
             #endif
-            return PlatformImpl::Core::AssetsRoot();
+
+            PlatformImpl::Core::SetRoot(0, PlatformImpl::Core::NormalPath(NewPath, false));
+            BOSS_TRACE("Platform::File::RootForAssets() ==> \"%s\"", (chars) PlatformImpl::Core::GetCopiedRoot(0));
+            return PlatformImpl::Core::GetCopiedRoot(0);
         }
 
-        const String& Platform::File::RootForAssetsRem()
+        const String Platform::File::RootForAssetsRem()
         {
-            if(0 < PlatformImpl::Core::AssetsRemRoot().Length())
-                return PlatformImpl::Core::AssetsRemRoot();
+            const String Result = PlatformImpl::Core::GetCopiedRoot(1);
+            if(0 < Result.Length())
+                return Result;
 
+            String NewPath;
             #if BOSS_WINDOWS
-                String AssetsRemRoot = "../assets-rem";
-            #else
+                NewPath = "../assets-rem";
+                CreateDirectoryA(NewPath, nullptr);
+                NewPath += "/";
+            #elif BOSS_MAC_OSX
                 BOSS_ASSERT("Further development is needed.", false);
-                String AssetsRemRoot = "../assets-rem";
+                NewPath = "../assets-rem/";
+            #elif BOSS_IPHONE
+                NewPath = CFStringGetCStringPtr(
+                    CFURLGetString(CFCopyHomeDirectoryURL()), kCFStringEncodingUTF8) + 7; // 7은 file://
+                NewPath += "Library";
+                if(access(NewPath, 0777)) mkdir(NewPath, 0777);
+                NewPath += "/Caches";
+                if(access(NewPath, 0777)) mkdir(NewPath, 0777);
+                NewPath += "/assets-rem";
+                if(access(NewPath, 0777)) mkdir(NewPath, 0777);
+                NewPath += "/";
+            #elif BOSS_ANDROID
+                BOSS_ASSERT("Further development is needed.", false);
+                NewPath = "../assets-rem/";
+            #else
+                NewPath = "../assets-rem/";
             #endif
 
-            if(!ExistForDir(AssetsRemRoot))
-            {
-                #if BOSS_WINDOWS
-                    CreateDirectoryA(AssetsRemRoot, nullptr);
-                #else
-                    mkdir(AssetsRemRoot, 0777);
-                #endif
-            }
-
-            PlatformImpl::Core::AssetsRemRoot() = AssetsRemRoot + '/';
-            return PlatformImpl::Core::AssetsRemRoot();
+            PlatformImpl::Core::SetRoot(1, PlatformImpl::Core::NormalPath(NewPath, false));
+            BOSS_TRACE("Platform::File::RootForAssetsRem() ==> \"%s\"", (chars) PlatformImpl::Core::GetCopiedRoot(1));
+            return PlatformImpl::Core::GetCopiedRoot(1);
         }
 
-        const String& Platform::File::RootForData()
+        const String Platform::File::RootForData()
         {
-            static String Result = "";
+            String Result = "";
             BOSS_ASSERT("Further development is needed.", false);
             return Result;
         }

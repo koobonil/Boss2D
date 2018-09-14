@@ -76,14 +76,32 @@ namespace BOSS
                 return WString::FromChars(NormalName);
             }
 
-            String& AssetsRoot()
+            class RootClass
             {
-                return *BOSS_STORAGE_SYS(String);
+            public:
+                RootClass() {mMutex = Mutex::Open();}
+                ~RootClass() {Mutex::Close(mMutex);}
+            public:
+                id_mutex mMutex;
+                String mPath[3];
+            };
+            RootClass g_root;
+
+            void SetRoot(sint32 i, chars dirname)
+            {
+                Mutex::Lock(g_root.mMutex);
+                g_root.mPath[i] = dirname;
+                g_root.mPath[i] += '/';
+                Mutex::Unlock(g_root.mMutex);
             }
 
-            String& AssetsRemRoot()
+            String GetCopiedRoot(sint32 i)
             {
-                return *BOSS_STORAGE_SYS(String);
+                Mutex::Lock(g_root.mMutex);
+                String Result;
+                Result = (chars) g_root.mPath[i];
+                Mutex::Unlock(g_root.mMutex);
+                return Result;
             }
 
             View::CreatorCB g_Creator = View::Creator;

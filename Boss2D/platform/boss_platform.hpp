@@ -1339,19 +1339,19 @@ namespace BOSS
             \brief 원본(읽기전용) 어셋폴더 경로얻기
             \return 경로
             */
-            static const String& RootForAssets();
+            static const String RootForAssets();
 
             /*!
             \brief 사본(읽기/쓰기) 어셋폴더 경로얻기
             \return 경로
             */
-            static const String& RootForAssetsRem();
+            static const String RootForAssetsRem();
 
             /*!
             \brief 데이터전용(읽기/쓰기) 어셋폴더 경로얻기
             \return 경로
             */
-            static const String& RootForData();
+            static const String RootForData();
         };
 
         ////////////////////////////////////////////////////////////////////////////////
