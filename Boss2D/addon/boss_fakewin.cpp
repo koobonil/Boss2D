@@ -1504,8 +1504,16 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
 
     extern "C" INT boss_fakewin_WSAStringToAddressA(LPSTR,INT,LPWSAPROTOCOL_INFO,LPSOCKADDR,LPINT) {BOSS_ASSERT("########## WSAStringToAddressA준비중", false); return 0;}
 
-    extern "C" BOOL boss_fakewin_QueryPerformanceFrequency(LARGE_INTEGER* lpFrequency) {BOSS_ASSERT("########## QueryPerformanceFrequency준비중", false); return 0;}
-    extern "C" BOOL boss_fakewin_QueryPerformanceCounter(LARGE_INTEGER* lpPerformanceCount) {BOSS_ASSERT("########## QueryPerformanceCounter준비중", false); return 0;}
+    extern "C" BOOL boss_fakewin_QueryPerformanceFrequency(LARGE_INTEGER* lpFrequency)
+    {
+        //BOSS_ASSERT("########## QueryPerformanceFrequency준비중", false);
+        return 0;
+    }
+    extern "C" BOOL boss_fakewin_QueryPerformanceCounter(LARGE_INTEGER* lpPerformanceCount)
+    {
+        BOSS_ASSERT("########## QueryPerformanceCounter준비중", false);
+        return 0;
+    }
 
     extern "C" void boss_fakewin_ZeroMemory(PVOID Destination, ULONG_PTR Length) {BOSS_ASSERT("########## ZeroMemory준비중", false);}
     extern "C" int boss_fakewin_GetObject(HGDIOBJ hgdiobj, int cbBuffer, LPVOID lpvObject) {BOSS_ASSERT("########## GetObject준비중", false); return 0;}

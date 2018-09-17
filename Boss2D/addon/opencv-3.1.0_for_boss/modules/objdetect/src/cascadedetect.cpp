@@ -1320,13 +1320,17 @@ void CascadeClassifierImpl::detectMultiScale( InputArray _image, std::vector<Rec
                                           int flags, Size minObjectSize, Size maxObjectSize,
                                           bool outputRejectLevels )
 {
+    BOSS_TRACE("@@@@@ cascade - aaaaa", false);
     CV_Assert( scaleFactor > 1 && _image.depth() == CV_8U );
 
+    BOSS_TRACE("@@@@@ cascade - bbbbb", false);
     if( empty() )
         return;
 
+    BOSS_TRACE("@@@@@ cascade - ccccc", false);
     if( isOldFormatCascade() )
     {
+        BOSS_TRACE("@@@@@ cascade - ddddd", false);
         Mat image = _image.getMat();
         std::vector<CvAvgComp> fakeVecAvgComp;
         detectMultiScaleOldFormat( image, oldCascade, objects, rejectLevels, levelWeights, fakeVecAvgComp, scaleFactor,
@@ -1334,18 +1338,23 @@ void CascadeClassifierImpl::detectMultiScale( InputArray _image, std::vector<Rec
     }
     else
     {
+        BOSS_TRACE("@@@@@ cascade - eeeee", false);
         detectMultiScaleNoGrouping( _image, objects, rejectLevels, levelWeights, scaleFactor, minObjectSize, maxObjectSize,
                                     outputRejectLevels );
+        BOSS_TRACE("@@@@@ cascade - fffff", false);
         const double GROUP_EPS = 0.2;
         if( outputRejectLevels )
         {
+            BOSS_TRACE("@@@@@ cascade - ggggg", false);
             groupRectangles( objects, rejectLevels, levelWeights, minNeighbors, GROUP_EPS );
         }
         else
         {
+            BOSS_TRACE("@@@@@ cascade - hhhhh", false);
             groupRectangles( objects, minNeighbors, GROUP_EPS );
         }
     }
+    BOSS_TRACE("@@@@@ cascade - iiiii", false);
 }
 
 void CascadeClassifierImpl::detectMultiScale( InputArray _image, std::vector<Rect>& objects,

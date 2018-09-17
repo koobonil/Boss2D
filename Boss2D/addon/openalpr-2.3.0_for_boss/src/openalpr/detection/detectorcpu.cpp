@@ -50,30 +50,34 @@ namespace alpr
   
   vector<Rect> DetectorCPU::find_plates(Mat frame, cv::Size min_plate_size, cv::Size max_plate_size)
   {
-
+    BOSS_TRACE("@@@@@ find_plates - aaaaa", false);
     vector<Rect> plates;
    
+    BOSS_TRACE("@@@@@ find_plates - bbbbb", false);
     //-- Detect plates
     timespec startTime;
     getTimeMonotonic(&startTime);
 
+    BOSS_TRACE("@@@@@ find_plates - ccccc", false);
     equalizeHist( frame, frame );
     
+    BOSS_TRACE("@@@@@ find_plates - ddddd", false);
     plate_cascade.detectMultiScale( frame, plates, config->detection_iteration_increase, config->detectionStrictness,
                                       CV_HAAR_DO_CANNY_PRUNING,
                                       //0|CV_HAAR_SCALE_IMAGE,
                                       min_plate_size, max_plate_size );
 
-
+    BOSS_TRACE("@@@@@ find_plates - eeeee", false);
     if (config->debugTiming)
     {
+      BOSS_TRACE("@@@@@ find_plates - fffff", false);
       timespec endTime;
       getTimeMonotonic(&endTime);
       cout << "LBP Time: " << diffclock(startTime, endTime) << "ms." << endl;
     }
 
+    BOSS_TRACE("@@@@@ find_plates - ggggg", false);
     return plates;
-
   }
 
 }

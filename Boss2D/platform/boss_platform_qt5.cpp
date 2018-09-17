@@ -26,7 +26,6 @@
         mIsSurfaceBinded = false;
         mSavedCanvas = nullptr;
         mSavedZoom = 1.0f;
-        mPainter.setRenderHints(QPainter::Antialiasing | QPainter::HighQualityAntialiasing);
         mMask = QPainter::CompositionMode_SourceOver;
     }
     CanvasClass::CanvasClass(QPaintDevice* device) : mIsTypeSurface(false)
@@ -34,7 +33,6 @@
         mIsSurfaceBinded = false;
         mSavedCanvas = nullptr;
         mSavedZoom = 1.0f;
-        mPainter.setRenderHints(QPainter::Antialiasing | QPainter::HighQualityAntialiasing);
         mMask = QPainter::CompositionMode_SourceOver;
         BindCore(device);
     }
@@ -72,6 +70,7 @@
             mSavedCanvas->mPainter.end();
         }
         mPainter.begin(device);
+        mPainter.setRenderHints(QPainter::Antialiasing | QPainter::HighQualityAntialiasing);
         ST() = this;
     }
     void CanvasClass::UnbindCore()
@@ -83,6 +82,7 @@
         if(ST() = mSavedCanvas)
         {
             mSavedCanvas->mPainter.begin(mSavedCanvas->mPainter.device());
+            mSavedCanvas->mPainter.setRenderHints(QPainter::Antialiasing | QPainter::HighQualityAntialiasing);
             Platform::Graphics::SetZoom(mSavedCanvas->mSavedZoom);
             mSavedCanvas->mPainter.setFont(mSavedCanvas->mSavedFont);
             mSavedCanvas->mPainter.setClipRect(mSavedCanvas->mSavedClipRect);
