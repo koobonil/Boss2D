@@ -216,6 +216,7 @@
     #include <errno.h>
     #include <sys/stat.h>
     #include <wchar.h>
+    #include <unistd.h>
     #if !BOSS_MAC_OSX & !BOSS_IPHONE & !BOSS_ANDROID
         #include <malloc.h>
     #endif
