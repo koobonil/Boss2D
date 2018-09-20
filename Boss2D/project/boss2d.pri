@@ -5,7 +5,10 @@ QT += opengl
 QT += widgets
 QT += multimedia
 QT += purchasing
-!ios: QT += serialport
+qtHaveModule(serialport){
+    QT += serialport
+    DEFINES += QT_HAVE_SERIALPORT
+}
 ios: QT += gui-private
 android: QT += androidextras
 qtHaveModule(webenginewidgets){

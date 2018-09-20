@@ -69,7 +69,7 @@ namespace BOSS
 
             data().mSigned = false;
             data().mNeedDestroyWeb = false;
-            String ResultUrl = AddOn::Curl::RequestRedirectUrl(data().mCurl, SigninCore(data_const().mClientId), 302);
+            String ResultUrl = AddOn::Curl::GetRedirectUrl(data().mCurl, SigninCore(data_const().mClientId), 302);
             if(dialog) data().mWebNative = Platform::Web::CreateNative(ResultUrl, clearcookies, OnEvent, (payload) this);
             else data().mWeb = Platform::Web::Create(ResultUrl, 0, 0, clearcookies, OnEvent, (payload) this);
         }
@@ -201,7 +201,7 @@ namespace BOSS
             if(url)
             {
                 sint32 GetSize = 0;
-                bytes Result = AddOn::Curl::RequestBytes(data().mCurl, url, &GetSize);
+                bytes Result = AddOn::Curl::GetBytes(data().mCurl, url, &GetSize);
                 if(id_bitmap NewBitmap = AddOn::Jpg::ToBmp(Result, GetSize))
                 {
                     data().mPicture.LoadBitmap(NewBitmap);
@@ -217,7 +217,7 @@ namespace BOSS
             if(url)
             {
                 sint32 GetSize = 0;
-                bytes Result = AddOn::Curl::RequestBytes(data().mCurl, url, &GetSize);
+                bytes Result = AddOn::Curl::GetBytes(data().mCurl, url, &GetSize);
                 if(id_bitmap NewBitmap = AddOn::Jpg::ToBmp(Result, GetSize))
                 {
                     data().mBackground.LoadBitmap(NewBitmap);
@@ -274,16 +274,15 @@ namespace BOSS
                 "redirect_uri=http://" "localhost/oauth2callback&"
                 "grant_type=authorization_code",
                 code, (chars) data_const().mClientId, (chars) data_const().mClientSecret);
-            chars ResultA = AddOn::Curl::RequestString(data().mCurl,
+            chars ResultA = AddOn::Curl::GetString(data().mCurl,
                 "https://" "accounts.google.com/o/oauth2/token", nullptr, PostData);
             const Context ResultAJson(ST_Json, SO_OnlyReference, ResultA);
             data().mAccessToken = ResultAJson("access_token").GetString();
             data().mRefreshToken = ResultAJson("refresh_token").GetString();
 
             // 회원정보 얻기(https://developers.google.com/apis-explorer/?hl=ko#p/plus/v1/ 에 방문하여 슬라이드를 ON으로 변경)
-            chars ResultB = AddOn::Curl::RequestString(data().mCurl, String::Format(
-                "https://" "www.googleapis.com/plus/v1/people/me?access_token=%s",
-                (chars) data_const().mAccessToken));
+            chars ResultB = AddOn::Curl::GetString(data().mCurl,
+                String::Format("https://" "www.googleapis.com/plus/v1/people/me?access_token=%s", (chars) data_const().mAccessToken));
             const Context ResultBJson(ST_Json, SO_OnlyReference, ResultB);
             data().mName = ResultBJson("displayName").GetString();
             data().mServiceId = String("google_") + ResultBJson("id").GetString();
@@ -335,15 +334,14 @@ namespace BOSS
                 "client_secret=%s&"
                 "code=%s",
                 (chars) data_const().mClientId, (chars) data_const().mClientSecret, code);
-            chars ResultA = AddOn::Curl::RequestString(data().mCurl, Url);
+            chars ResultA = AddOn::Curl::GetString(data().mCurl, Url);
             const Context ResultAJson(ST_Json, SO_OnlyReference, ResultA);
             data().mAccessToken = ResultAJson("access_token").GetString();
 
             // 회원정보 얻기
-            chars ResultB = AddOn::Curl::RequestString(data().mCurl, String::Format(
+            chars ResultB = AddOn::Curl::GetString(data().mCurl, String::Format(
                 "https://" "graph.facebook.com/me?access_token=%s&"
-                "fields=id,name,picture,cover,context",
-                (chars) data().mAccessToken));
+                "fields=id,name,picture,cover,context", (chars) data().mAccessToken));
             const Context ResultBJson(ST_Json, SO_OnlyReference, ResultB);
             data().mName = ResultBJson("name").GetString();
             data().mServiceId = String("facebook_") + ResultBJson("id").GetString();
@@ -395,14 +393,14 @@ namespace BOSS
                 "redirect_uri=http://" "localhost/oauth2callback&"
                 "code=%s",
                 (chars) data_const().mClientId, code);
-            chars ResultA = AddOn::Curl::RequestString(data().mCurl,
+            chars ResultA = AddOn::Curl::GetString(data().mCurl,
                 "https://" "kauth.kakao.com/oauth/token", nullptr, PostData);
             const Context ResultAJson(ST_Json, SO_OnlyReference, ResultA);
             data().mAccessToken = ResultAJson("access_token").GetString();
             data().mRefreshToken = ResultAJson("refresh_token").GetString();
 
             // 회원정보 얻기
-            chars ResultB = AddOn::Curl::RequestString(data().mCurl,
+            chars ResultB = AddOn::Curl::GetString(data().mCurl,
                 "https://" "kapi.kakao.com/v1/api/story/profile",
                 String::Format("Authorization: Bearer %s", (chars) data().mAccessToken));
             const Context ResultBJson(ST_Json, SO_OnlyReference, ResultB);
@@ -420,7 +418,7 @@ namespace BOSS
 			ReloadBackground(data().mBackgroundUrl);
 
             // ID정보 얻기
-            chars ResultC = AddOn::Curl::RequestString(data().mCurl,
+            chars ResultC = AddOn::Curl::GetString(data().mCurl,
                 "https://" "kapi.kakao.com/v1/user/me",
                 String::Format("Authorization: Bearer %s", (chars) data().mAccessToken));
             const Context ResultCJson(ST_Json, SO_OnlyReference, ResultC);

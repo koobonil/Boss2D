@@ -31,7 +31,7 @@
 #endif
 
 #ifdef USE_WINSOCK
-#  define FUNCALLCONV __stdcall
+#  define FUNCALLCONV BOSS_FAKEWIN_STDCALL
 #else
 #  define FUNCALLCONV
 #endif

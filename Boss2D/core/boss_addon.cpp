@@ -79,9 +79,9 @@ namespace BOSS
     BOSS_DEFINE_ADDON_FUNCTION(Curl, CreateForUser, id_curl, return nullptr, chars, chars)
     BOSS_DEFINE_ADDON_FUNCTION(Curl, Clone, id_curl, return nullptr, id_curl)
     BOSS_DEFINE_ADDON_FUNCTION(Curl, Release, void, return, id_curl)
-    BOSS_DEFINE_ADDON_FUNCTION(Curl, RequestString, chars, return "", id_curl, chars, chars, chars, sint32)
-    BOSS_DEFINE_ADDON_FUNCTION(Curl, RequestBytes, bytes, return nullptr, id_curl, chars, sint32*, chars, chars, sint32)
-    BOSS_DEFINE_ADDON_FUNCTION(Curl, RequestRedirectUrl, chars, return "", id_curl, chars, sint32, chars, chars, sint32)
+    BOSS_DEFINE_ADDON_FUNCTION(Curl, GetString, chars, return "", id_curl, chars, chars, chars, sint32)
+    BOSS_DEFINE_ADDON_FUNCTION(Curl, GetBytes, bytes, return nullptr, id_curl, chars, sint32*, chars, chars, sint32)
+    BOSS_DEFINE_ADDON_FUNCTION(Curl, GetRedirectUrl, chars, return "", id_curl, chars, sint32, chars, chars, sint32)
     BOSS_DEFINE_ADDON_FUNCTION(Curl, PutData, bool, return false, id_curl, chars, bytes, sint32, sint32, chars)
     BOSS_DEFINE_ADDON_FUNCTION(Curl, SendStream, void, return, id_curl, chars, AddOn::Curl::CurlReadCB, payload)
     BOSS_DEFINE_ADDON_FUNCTION(Curl, FtpUpload, bool, return false, id_curl, chars, chars, buffer)
@@ -103,14 +103,14 @@ namespace BOSS
     void AddOn::Curl::Release(id_curl curl)
     {Core_AddOn_Curl_Release()(curl);}
 
-    chars AddOn::Curl::RequestString(id_curl curl, chars url, chars headerdata, chars postdata, sint32 postlen)
-    {return Core_AddOn_Curl_RequestString()(curl, url, headerdata, postdata, postlen);}
+    chars AddOn::Curl::GetString(id_curl curl, chars url, chars headerdata, chars postdata, sint32 postlen)
+    {return Core_AddOn_Curl_GetString()(curl, url, headerdata, postdata, postlen);}
 
-    bytes AddOn::Curl::RequestBytes(id_curl curl, chars url, sint32* getsize, chars headerdata, chars postdata, sint32 postlen)
-    {return Core_AddOn_Curl_RequestBytes()(curl, url, getsize, headerdata, postdata, postlen);}
+    bytes AddOn::Curl::GetBytes(id_curl curl, chars url, sint32* getsize, chars headerdata, chars postdata, sint32 postlen)
+    {return Core_AddOn_Curl_GetBytes()(curl, url, getsize, headerdata, postdata, postlen);}
 
-    chars AddOn::Curl::RequestRedirectUrl(id_curl curl, chars url, sint32 successcode, chars headerdata, chars postdata, sint32 postlen)
-    {return Core_AddOn_Curl_RequestRedirectUrl()(curl, url, successcode, headerdata, postdata, postlen);}
+    chars AddOn::Curl::GetRedirectUrl(id_curl curl, chars url, sint32 successcode, chars headerdata, chars postdata, sint32 postlen)
+    {return Core_AddOn_Curl_GetRedirectUrl()(curl, url, successcode, headerdata, postdata, postlen);}
 
     bool AddOn::Curl::PutData(id_curl curl, chars url, bytes putdata, sint32 putsize, sint32 successcode, chars headerdata)
     {return Core_AddOn_Curl_PutData()(curl, url, putdata, putsize, successcode, headerdata);}

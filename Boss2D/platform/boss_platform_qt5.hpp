@@ -28,7 +28,7 @@
     #include <QGLShaderProgram>
     #include <QtPurchasing>
 
-    #if !BOSS_IPHONE
+    #if QT_HAVE_SERIALPORT
         #include <QtSerialPort>
         #include <QSerialPortInfo>
     #endif
@@ -974,11 +974,7 @@
         {
             m_ref_menu = menu;
             Qt::WindowFlags TypeCollector = Qt::Dialog;
-            #if BOSS_MAC_OSX
-                TypeCollector |= Qt::CustomizeWindowHint | Qt::WindowMinimizeButtonHint | Qt::WindowCloseButtonHint;
-            #elif BOSS_WINDOWS
-                TypeCollector |= Qt::FramelessWindowHint;
-            #endif
+            TypeCollector |= Qt::FramelessWindowHint;
             TypeCollector |= Qt::WindowStaysOnTopHint;
             m_ref_menu->setWindowFlags(TypeCollector);
             m_ref_menu->installEventFilter(this);
@@ -2374,7 +2370,7 @@
         QInAppProduct* mProduct;
     };
 
-    #if BOSS_ANDROID
+    #if BOSS_ANDROID & QT_HAVE_SERIALPORT
         typedef QSerialPortInfo SerialPortInfoClass;
         class SerialPortForAndroid
         {
@@ -2680,20 +2676,23 @@
             }
         };
         typedef SerialPortForAndroid SerialPortClass;
-    #elif BOSS_IPHONE
-        class SerialPortInfoForIPhone
+    #elif QT_HAVE_SERIALPORT
+        typedef QSerialPortInfo SerialPortInfoClass;
+        typedef QSerialPort SerialPortClass;
+    #else
+        class SerialPortInfoForBlank
         {
         public:
-            SerialPortInfoForIPhone()
+            SerialPortInfoForBlank()
             {
             }
-            ~SerialPortInfoForIPhone()
+            ~SerialPortInfoForBlank()
             {
             }
         public:
-            static const QList<SerialPortInfoForIPhone>& availablePorts()
+            static const QList<SerialPortInfoForBlank>& availablePorts()
             {
-                static QList<SerialPortInfoForIPhone> Result;
+                static QList<SerialPortInfoForBlank> Result;
                 return Result;
             }
         public:
@@ -2703,8 +2702,8 @@
             QString manufacturer() const {return QString();}
             QString serialNumber() const {return QString();}
         };
-        typedef SerialPortInfoForIPhone SerialPortInfoClass;
-        class SerialPortForIPhone
+        typedef SerialPortInfoForBlank SerialPortInfoClass;
+        class SerialPortForBlank
         {
         public:
             enum BaudRate {Baud115200};
@@ -2714,10 +2713,10 @@
             enum FlowControl {NoFlowControl};
             enum SerialPortError {NoError};
         public:
-            SerialPortForIPhone(const SerialPortInfoClass& info)
+            SerialPortForBlank(const SerialPortInfoClass& info)
             {
             }
-            ~SerialPortForIPhone()
+            ~SerialPortForBlank()
             {
             }
         public:
@@ -2738,10 +2737,7 @@
             QString errorString() {return "NoError";}
             SerialPortError error() {return NoError;}
         };
-        typedef SerialPortForIPhone SerialPortClass;
-    #else
-        typedef QSerialPortInfo SerialPortInfoClass;
-        typedef QSerialPort SerialPortClass;
+        typedef SerialPortForBlank SerialPortClass;
     #endif
 
     class SerialClass

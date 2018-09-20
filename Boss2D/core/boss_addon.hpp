@@ -52,9 +52,9 @@ namespace BOSS
             static id_curl CreateForUser(chars username, chars password);
             static id_curl Clone(id_curl curl);
             static void Release(id_curl curl);
-            static chars RequestString(id_curl curl, chars url, chars headerdata = nullptr, chars postdata = nullptr, sint32 postlen = -1);
-            static bytes RequestBytes(id_curl curl, chars url, sint32* getsize, chars headerdata = nullptr, chars postdata = nullptr, sint32 postlen = -1);
-            static chars RequestRedirectUrl(id_curl curl, chars url, sint32 successcode, chars headerdata = nullptr, chars postdata = nullptr, sint32 postlen = -1);
+            static chars GetString(id_curl curl, chars url, chars headerdata = nullptr, chars postdata = nullptr, sint32 postlen = -1);
+            static bytes GetBytes(id_curl curl, chars url, sint32* getsize, chars headerdata = nullptr, chars postdata = nullptr, sint32 postlen = -1);
+            static chars GetRedirectUrl(id_curl curl, chars url, sint32 successcode, chars headerdata = nullptr, chars postdata = nullptr, sint32 postlen = -1);
             static bool PutData(id_curl curl, chars url, bytes putdata, sint32 putsize, sint32 successcode, chars headerdata = nullptr);
             static void SendStream(id_curl curl, chars url, CurlReadCB cb, payload data);
             static bool FtpUpload(id_curl curl, chars url, chars filename, buffer data);

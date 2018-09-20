@@ -25,9 +25,9 @@ namespace BOSS
     BOSS_DECLARE_ADDON_FUNCTION(Curl, CreateForUser, id_curl, chars, chars)
     BOSS_DECLARE_ADDON_FUNCTION(Curl, Clone, id_curl, id_curl)
     BOSS_DECLARE_ADDON_FUNCTION(Curl, Release, void, id_curl)
-    BOSS_DECLARE_ADDON_FUNCTION(Curl, RequestString, chars, id_curl, chars, chars, chars, sint32)
-    BOSS_DECLARE_ADDON_FUNCTION(Curl, RequestBytes, bytes, id_curl, chars, sint32*, chars, chars, sint32)
-    BOSS_DECLARE_ADDON_FUNCTION(Curl, RequestRedirectUrl, chars, id_curl, chars, sint32, chars, chars, sint32)
+    BOSS_DECLARE_ADDON_FUNCTION(Curl, GetString, chars, id_curl, chars, chars, chars, sint32)
+    BOSS_DECLARE_ADDON_FUNCTION(Curl, GetBytes, bytes, id_curl, chars, sint32*, chars, chars, sint32)
+    BOSS_DECLARE_ADDON_FUNCTION(Curl, GetRedirectUrl, chars, id_curl, chars, sint32, chars, chars, sint32)
     BOSS_DECLARE_ADDON_FUNCTION(Curl, PutData, bool, id_curl, chars, bytes, sint32, sint32, chars)
     BOSS_DECLARE_ADDON_FUNCTION(Curl, SendStream, void, id_curl, chars, AddOn::Curl::CurlReadCB, payload)
     BOSS_DECLARE_ADDON_FUNCTION(Curl, FtpUpload, bool, id_curl, chars, chars, buffer)
@@ -43,9 +43,9 @@ namespace BOSS
         Core_AddOn_Curl_CreateForUser() = Customized_AddOn_Curl_CreateForUser;
         Core_AddOn_Curl_Clone() = Customized_AddOn_Curl_Clone;
         Core_AddOn_Curl_Release() = Customized_AddOn_Curl_Release;
-        Core_AddOn_Curl_RequestString() = Customized_AddOn_Curl_RequestString;
-        Core_AddOn_Curl_RequestBytes() = Customized_AddOn_Curl_RequestBytes;
-        Core_AddOn_Curl_RequestRedirectUrl() = Customized_AddOn_Curl_RequestRedirectUrl;
+        Core_AddOn_Curl_GetString() = Customized_AddOn_Curl_GetString;
+        Core_AddOn_Curl_GetBytes() = Customized_AddOn_Curl_GetBytes;
+        Core_AddOn_Curl_GetRedirectUrl() = Customized_AddOn_Curl_GetRedirectUrl;
         Core_AddOn_Curl_PutData() = Customized_AddOn_Curl_PutData;
         Core_AddOn_Curl_SendStream() = Customized_AddOn_Curl_SendStream;
         Core_AddOn_Curl_FtpUpload() = Customized_AddOn_Curl_FtpUpload;
@@ -205,7 +205,7 @@ namespace BOSS
         return cheader;
     }
 
-    static uint08s _RequestCore(id_curl curl, chars url, chars headerdata, chars postdata, sint32 postlen, String* redirect_url, sint32 successcode)
+    static uint08s _Request(id_curl curl, chars url, chars headerdata, chars postdata, sint32 postlen, String* redirect_url, sint32 successcode)
     {
         if(!curl) return uint08s();
         ((CurlStruct*) curl)->mCoreCacheBytes.SubtractionAll();
@@ -266,10 +266,10 @@ namespace BOSS
     }
 
     ////////////////////////////////////////////////////////////////////////////////
-    chars Customized_AddOn_Curl_RequestString(id_curl curl, chars url, chars headerdata, chars postdata, sint32 postlen)
+    chars Customized_AddOn_Curl_GetString(id_curl curl, chars url, chars headerdata, chars postdata, sint32 postlen)
     {
         if(!curl) return nullptr;
-        uint08s RequestResult = BOSS::_RequestCore(curl, url, headerdata, postdata, postlen, nullptr, 0);
+        uint08s RequestResult = BOSS::_Request(curl, url, headerdata, postdata, postlen, nullptr, 0);
         if(RequestResult.Count() == 0) return "";
 
         ((CurlStruct*) curl)->mRequestCacheString = String((chars) RequestResult.AtDumping(0, 1), RequestResult.Count());
@@ -277,20 +277,20 @@ namespace BOSS
     }
 
     ////////////////////////////////////////////////////////////////////////////////
-    bytes Customized_AddOn_Curl_RequestBytes(id_curl curl, chars url, sint32* getsize, chars headerdata, chars postdata, sint32 postlen)
+    bytes Customized_AddOn_Curl_GetBytes(id_curl curl, chars url, sint32* getsize, chars headerdata, chars postdata, sint32 postlen)
     {
         if(!curl) return nullptr;
-        ((CurlStruct*) curl)->mRequestCacheBytes = BOSS::_RequestCore(curl, url, headerdata, postdata, postlen, nullptr, 0);
+        ((CurlStruct*) curl)->mRequestCacheBytes = BOSS::_Request(curl, url, headerdata, postdata, postlen, nullptr, 0);
         if(getsize) *getsize = ((CurlStruct*) curl)->mRequestCacheBytes.Count();
         return ((CurlStruct*) curl)->mRequestCacheBytes.AtDumping(0, 1);
     }
 
     ////////////////////////////////////////////////////////////////////////////////
-    chars Customized_AddOn_Curl_RequestRedirectUrl(id_curl curl, chars url, sint32 successcode, chars headerdata, chars postdata, sint32 postlen)
+    chars Customized_AddOn_Curl_GetRedirectUrl(id_curl curl, chars url, sint32 successcode, chars headerdata, chars postdata, sint32 postlen)
     {
         if(!curl) return nullptr;
         ((CurlStruct*) curl)->mRequestCacheString.Empty();
-        BOSS::_RequestCore(curl, url, headerdata, postdata, postlen, &((CurlStruct*) curl)->mRequestCacheString, successcode);
+        BOSS::_Request(curl, url, headerdata, postdata, postlen, &((CurlStruct*) curl)->mRequestCacheString, successcode);
         return ((CurlStruct*) curl)->mRequestCacheString;
     }
 

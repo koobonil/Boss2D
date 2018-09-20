@@ -367,7 +367,8 @@
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
             buffer NewIcon = Buffer::AllocNoConstructorOnce<QIcon>(BOSS_DBG 1);
-            BOSS_CONSTRUCTOR(NewIcon, 0, QIcon, QString(Platform::File::RootForAssets()) + QString::fromUtf8(filepath));
+            const String FilepathUTF8 = PlatformImpl::Core::NormalPath(Platform::File::RootForAssets() + filepath);
+            BOSS_CONSTRUCTOR(NewIcon, 0, QIcon, QString::fromUtf8(FilepathUTF8));
             return h_icon::create_by_buf(BOSS_DBG NewIcon);
         }
 
@@ -2304,37 +2305,32 @@
             if(0 < Result.Length())
                 return Result;
 
-            String NewPath;
             #if BOSS_WINDOWS
-                NewPath = "../assets/";
-                const String AssetsPathA = String::Format("%s/..", QCoreApplication::applicationDirPath().toUtf8().constData());
-                if(Platform::File::ExistForDir(AssetsPathA + "/assets"))
-                    NewPath = AssetsPathA + "/assets/";
+                String NewPath = String::Format("%s/../assets/", QCoreApplication::applicationDirPath().toUtf8().constData());
+                // Qt크레이터에서 바로 실행
+                const String AssetsPath1 = String::Format("%s/../..", QCoreApplication::applicationDirPath().toUtf8().constData());
+                if(Platform::File::ExistForDir(AssetsPath1 + "/assets"))
+                    NewPath = AssetsPath1 + "/assets/";
                 else
                 {
-                    const String AssetsPathB = String::Format("%s/../../..", QCoreApplication::applicationDirPath().toUtf8().constData());
-                    if(Platform::File::ExistForDir(AssetsPathB + "/assets"))
-                        NewPath = AssetsPathB + "/assets/";
+                    // 비주얼스튜디오에서 바로 실행
+                    const String AssetsPath2 = String::Format("%s/../../..", QCoreApplication::applicationDirPath().toUtf8().constData());
+                    if(Platform::File::ExistForDir(AssetsPath2 + "/assets"))
+                        NewPath = AssetsPath2 + "/assets/";
                 }
             #elif BOSS_LINUX
-                NewPath = "../assets/";
-                const String AssetsPathA = String::Format("Q:%s/..", QCoreApplication::applicationDirPath().toUtf8().constData());
-                if(Platform::File::ExistForDir(AssetsPathA + "/assets"))
-                    NewPath = AssetsPathA + "/assets/";
-                else
-                {
-                    const String AssetsPathB = String::Format("Q:%s/../../..", QCoreApplication::applicationDirPath().toUtf8().constData());
-                    if(Platform::File::ExistForDir(AssetsPathB + "/assets"))
-                        NewPath = AssetsPathB + "/assets/";
-                }
+                String NewPath = String::Format("Q:%s/../assets/", QCoreApplication::applicationDirPath().toUtf8().constData());
+                const String AssetsPath = String::Format("Q:%s/../..", QCoreApplication::applicationDirPath().toUtf8().constData());
+                if(Platform::File::ExistForDir(AssetsPath + "/assets"))
+                    NewPath = AssetsPath + "/assets/";
             #elif BOSS_MAC_OSX
-                NewPath = String::Format("Q:%s/../../assets/", QCoreApplication::applicationDirPath().toUtf8().constData());
+                String NewPath = String::Format("Q:%s/../../assets/", QCoreApplication::applicationDirPath().toUtf8().constData());
             #elif BOSS_IPHONE
-                NewPath = String::Format("Q:%s/assets/", QCoreApplication::applicationDirPath().toUtf8().constData());
+                String NewPath = String::Format("Q:%s/assets/", QCoreApplication::applicationDirPath().toUtf8().constData());
             #elif BOSS_ANDROID
-                NewPath = "assets:/";
+                String NewPath = "assets:/";
             #else
-                NewPath = "../assets/";
+                String NewPath = "../assets/";
             #endif
 			
             PlatformImpl::Core::SetRoot(0, PlatformImpl::Core::NormalPath(NewPath, false));
@@ -2349,35 +2345,28 @@
             if(0 < Result.Length())
                 return Result;
 
-            String NewPath;
             #if BOSS_WINDOWS
-                NewPath = "..";
-                const String AssetsPathA = String::Format("%s/..", QCoreApplication::applicationDirPath().toUtf8().constData());
-                if(Platform::File::ExistForDir(AssetsPathA + "/assets"))
-                    NewPath = AssetsPathA;
+                String NewPath = String::Format("%s/..", QCoreApplication::applicationDirPath().toUtf8().constData());
+                // Qt크레이터에서 바로 실행
+                const String AssetsPath1 = String::Format("%s/../..", QCoreApplication::applicationDirPath().toUtf8().constData());
+                if(Platform::File::ExistForDir(AssetsPath1 + "/assets"))
+                    NewPath = AssetsPath1;
                 else
                 {
-                    const String AssetsPathB = String::Format("%s/../../..", QCoreApplication::applicationDirPath().toUtf8().constData());
-                    if(Platform::File::ExistForDir(AssetsPathB + "/assets"))
-                        NewPath = AssetsPathB;
+                    // 비주얼스튜디오에서 바로 실행
+                    const String AssetsPath2 = String::Format("%s/../../..", QCoreApplication::applicationDirPath().toUtf8().constData());
+                    if(Platform::File::ExistForDir(AssetsPath2 + "/assets"))
+                        NewPath = AssetsPath2;
                 }
             #elif BOSS_LINUX
-                NewPath = "..";
-                const String AssetsPathA = String::Format("Q:%s/..", QCoreApplication::applicationDirPath().toUtf8().constData());
-                if(Platform::File::ExistForDir(AssetsPathA + "/assets"))
-                    NewPath = AssetsPathA;
-                else
-                {
-                    const String AssetsPathB = String::Format("Q:%s/../../..", QCoreApplication::applicationDirPath().toUtf8().constData());
-                    if(Platform::File::ExistForDir(AssetsPathB + "/assets"))
-                        NewPath = AssetsPathB;
-                }
+                String NewPath = String::Format("Q:%s/..", QCoreApplication::applicationDirPath().toUtf8().constData());
+                const String AssetsPath = String::Format("Q:%s/../..", QCoreApplication::applicationDirPath().toUtf8().constData());
+                if(Platform::File::ExistForDir(AssetsPath + "/assets"))
+                    NewPath = AssetsPath;
             #elif BOSS_MAC_OSX
-                NewPath = String::Format("Q:%s/../../../..", QCoreApplication::applicationDirPath().toUtf8().constData());
-            #elif BOSS_IPHONE
-                NewPath = String::Format("Q:%s", QStandardPaths::standardLocations(QStandardPaths::DataLocation).value(0).toUtf8().constData());
+                String NewPath = String::Format("Q:%s/../../../..", QCoreApplication::applicationDirPath().toUtf8().constData());
             #else
-                NewPath = QStandardPaths::standardLocations(QStandardPaths::DataLocation).value(0).toUtf8().constData();
+                String NewPath = String::Format("Q:%s", QStandardPaths::standardLocations(QStandardPaths::DataLocation).value(0).toUtf8().constData());
             #endif
             NewPath += "/assets-rem/";
 
@@ -2394,13 +2383,14 @@
                 return Result;
 
             String NewPath;
-            #if BOSS_LINUX
+            #if BOSS_LINUX | BOSS_MAC_OSX | BOSS_IPHONE
                 NewPath = String::Format("Q:%s", QStandardPaths::standardLocations(QStandardPaths::DataLocation).value(0).toUtf8().constData());
             #elif BOSS_ANDROID
                 String StoragePathes = getenv("SECONDARY_STORAGE");
                 StoragePathes.Replace(':', '\0');
                 if(File::ExistForDir((chars) StoragePathes))
-                    NewPath = (chars) StoragePathes;
+                    NewPath = "Q:" + StoragePathes;
+                else NewPath = String::Format("Q:%s", QStandardPaths::standardLocations(QStandardPaths::DataLocation).value(0).toUtf8().constData());
             #else
                 NewPath = QStandardPaths::standardLocations(QStandardPaths::DataLocation).value(0).toUtf8().constData();
             #endif

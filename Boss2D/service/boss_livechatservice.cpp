@@ -95,8 +95,8 @@ namespace BOSS
             public:
                 void ParseVideoId(chars channelid)
                 {
-                    chars Result = AddOn::Curl::RequestString(mCurl,
-                        String::Format("https://www.youtube.com/embed/live_stream?channel=%s", channelid));
+                    chars Result = AddOn::Curl::GetString(mCurl,
+                        String::Format("https://" "www.youtube.com/embed/live_stream?channel=%s", channelid));
                     // 파싱과정
                     static const String FindKey = "\'VIDEO_ID\':";
                     sint32 FindIndex = String(Result).Find(0, FindKey);
@@ -113,8 +113,8 @@ namespace BOSS
                 }
                 void ParseContent(OnMessage cb, payload data)
                 {
-                    chars Result = AddOn::Curl::RequestString(mCurl,
-                        String::Format("https://www.youtube.com/live_chat?v=%s", (chars) mVideoId));
+                    chars Result = AddOn::Curl::GetString(mCurl,
+                        String::Format("https://" "www.youtube.com/live_chat?v=%s", (chars) mVideoId));
                     // 파싱과정
                     static const String FindKey = "\"actions\":";
                     sint32 FindIndex = String(Result).Find(0, FindKey);
@@ -222,7 +222,7 @@ namespace BOSS
                     NewUserInfo.mName = author;
 
                     sint32 JpgDataSize = 0;
-                    bytes JpgDataPtr = AddOn::Curl::RequestBytes(NewCurl, photourl, &JpgDataSize);
+                    bytes JpgDataPtr = AddOn::Curl::GetBytes(NewCurl, photourl, &JpgDataSize);
                     if(id_bitmap NewBitmap = AddOn::Jpg::ToBmp(JpgDataPtr, JpgDataSize))
                     {
                         NewUserInfo.mPicture.LoadBitmap(NewBitmap);
