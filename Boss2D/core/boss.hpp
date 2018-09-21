@@ -296,6 +296,7 @@ namespace BOSS
     BOSS_DECLARE_ID(id_sound);
     BOSS_DECLARE_ID(id_socket);
     BOSS_DECLARE_ID(id_server);
+    BOSS_DECLARE_ID(id_pipe);
     BOSS_DECLARE_ID(id_purchase);
     BOSS_DECLARE_ID(id_bluetooth);
     BOSS_DECLARE_ID(id_serial);
@@ -330,6 +331,7 @@ namespace BOSS
     #include <boss_storage.hpp>
     #include <boss_string.hpp>
     #include <boss_tasking.hpp>
+    #include <boss_tree.hpp>
     #include <boss_updater.hpp>
     #include <boss_view.hpp>
     #include <boss_wstring.hpp>

@@ -139,6 +139,7 @@ HEADERS += ../../Boss2D/core/boss_share.hpp
 HEADERS += ../../Boss2D/core/boss_storage.hpp
 HEADERS += ../../Boss2D/core/boss_string.hpp
 HEADERS += ../../Boss2D/core/boss_tasking.hpp
+HEADERS += ../../Boss2D/core/boss_tree.hpp
 HEADERS += ../../Boss2D/core/boss_updater.hpp
 HEADERS += ../../Boss2D/core/boss_view.hpp
 HEADERS += ../../Boss2D/core/boss_wstring.hpp

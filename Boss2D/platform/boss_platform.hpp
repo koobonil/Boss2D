@@ -1647,6 +1647,64 @@ namespace BOSS
         };
 
         ////////////////////////////////////////////////////////////////////////////////
+        //! \brief 프로세스간 1:1통신지원
+        ////////////////////////////////////////////////////////////////////////////////
+        class Pipe
+        {
+        public:
+            /*!
+            \brief 파이프 열기
+            \param name : 파이프명칭
+            \return 파이프ID(nullptr은 실패)
+            \see Close
+            */
+            static id_pipe Open(chars name);
+
+            /*!
+            \brief 파이프 닫기
+            \param pipe : 파이프ID
+            \see Open
+            */
+            static void Close(id_pipe pipe);
+
+            /*!
+            \brief 연결되었는지의 여부
+            \param pipe : 파이프ID
+            \return 연결여부
+            \see Open, Close
+            */
+            static bool Connected(id_pipe pipe);
+
+            /*!
+            \brief 수신가능성 조사
+            \param pipe : 파이프ID
+            \return 수신가능한 사이즈(0~N)
+            \see Recv
+            */
+            static sint32 RecvAvailable(id_pipe pipe);
+
+            /*!
+            \brief 데이터수신
+            \param pipe : 파이프ID
+            \param data : 수신할 데이터버퍼
+            \param size : 데이터버퍼의 사이즈
+            \return 수신한 데이터의 사이즈(0~N)
+            \see RecvAvailable
+            */
+            static sint32 Recv(id_pipe pipe, uint08* data, sint32 size);
+
+            /*!
+            \brief 데이터송신
+            \param pipe : 파이프ID
+            \param data : 송신할 데이터
+            \param size : 데이터의 사이즈
+            \return 송신성공여부
+            \see Recv
+            */
+            static bool Send(id_pipe pipe, bytes data, sint32 size);
+        };
+
+        ////////////////////////////////////////////////////////////////////////////////
         //! \brief 웹지원
         ////////////////////////////////////////////////////////////////////////////////
         class Web

@@ -422,6 +422,9 @@
     <ClInclude Include="..\core\boss_tasking.hpp">
       <Filter>Boss2D\core</Filter>
     </ClInclude>
+    <ClInclude Include="..\core\boss_tree.hpp">
+      <Filter>Boss2D\core</Filter>
+    </ClInclude>
     <ClInclude Include="..\core\boss_updater.hpp">
       <Filter>Boss2D\core</Filter>
     </ClInclude>

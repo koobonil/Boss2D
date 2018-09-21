@@ -2975,6 +2975,44 @@
         }
 
         ////////////////////////////////////////////////////////////////////////////////
+        // PIPE
+        ////////////////////////////////////////////////////////////////////////////////
+        id_pipe Platform::Pipe::Open(chars name)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return nullptr;
+        }
+
+        void Platform::Pipe::Close(id_pipe pipe)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+        }
+
+        bool Platform::Pipe::Connected(id_pipe pipe)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return false;
+        }
+
+        sint32 Platform::Pipe::RecvAvailable(id_pipe pipe)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return 0;
+        }
+
+        sint32 Platform::Pipe::Recv(id_pipe pipe, uint08* data, sint32 size)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return 0;
+        }
+
+        bool Platform::Pipe::Send(id_pipe pipe, bytes data, sint32 size)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return false;
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////
         // WEB
         ////////////////////////////////////////////////////////////////////////////////
         h_web Platform::Web::Create(chars url, sint32 width, sint32 height, bool clearcookies, EventCB cb, payload data)

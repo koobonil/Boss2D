@@ -1620,6 +1620,44 @@
         }
 
         ////////////////////////////////////////////////////////////////////////////////
+        // PIPE
+        ////////////////////////////////////////////////////////////////////////////////
+        id_pipe Platform::Pipe::Open(chars name)
+        {
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+            return nullptr;
+        }
+
+        void Platform::Pipe::Close(id_pipe pipe)
+        {
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+        }
+
+        bool Platform::Pipe::Connected(id_pipe pipe)
+        {
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+            return false;
+        }
+
+        sint32 Platform::Pipe::RecvAvailable(id_pipe pipe)
+        {
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+            return 0;
+        }
+
+        sint32 Platform::Pipe::Recv(id_pipe pipe, uint08* data, sint32 size)
+        {
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+            return 0;
+        }
+
+        bool Platform::Pipe::Send(id_pipe pipe, bytes data, sint32 size)
+        {
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+            return false;
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////
         // WEB
         ////////////////////////////////////////////////////////////////////////////////
         h_web Platform::Web::Create(chars url, sint32 width, sint32 height, bool clearcookies, EventCB cb, payload data)
