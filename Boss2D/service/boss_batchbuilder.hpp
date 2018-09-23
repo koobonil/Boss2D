@@ -17,12 +17,12 @@ namespace BOSS
 
     public:
         void Processing(chars filename);
-		static void Process_SearchCB(chars itemname, payload data);
+        static void Process_SearchCB(chars itemname, payload data);
 
     protected:
-		void Process_Replace(const String& command, sint32 pos, sint32 posend, chars prm);
+        void Process_Replace(const String& command, sint32 pos, sint32 posend, chars prm);
         void Process_IncludeAlias(const String& command, sint32 pos, sint32 posend, chars prm);
-		String Build_Replace(String source, const Strings& dsts, const Strings& srcs, chars comment);
+        String Build_Replace(String source, const Strings& dsts, const Strings& srcs, chars comment);
         String Build_IncludeAlias(String source, const Strings& dsts, const Strings& srcs, chars comment);
 
     private:
@@ -30,11 +30,11 @@ namespace BOSS
 
     private:
         const String mDirName;
-		Strings ReplaceDsts;
+        Strings ReplaceDsts;
         Strings ReplaceSrcs;
-		Strings AliasDsts;
+        Strings AliasDsts;
         Strings AliasSrcs;
-		String ReplaceComment;
-		String AliasComment;
+        String ReplaceComment;
+        String AliasComment;
     };
 }

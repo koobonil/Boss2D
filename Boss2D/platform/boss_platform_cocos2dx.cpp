@@ -622,7 +622,7 @@
             return 0;
         }
 
-		bool Platform::Utility::IsScreenConnected()
+        bool Platform::Utility::IsScreenConnected()
         {
             BOSS_ASSERT("Further development is needed.", false);
             return true;
@@ -1933,7 +1933,7 @@
         bool Platform::Web::Resize(h_web web, sint32 width, sint32 height)
         {
             BOSS_ASSERT("Further development is needed.", false);
-			return false;
+            return false;
         }
 
         void Platform::Web::SendTouchEvent(h_web web, TouchType type, sint32 x, sint32 y)

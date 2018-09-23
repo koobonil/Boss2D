@@ -477,26 +477,26 @@ namespace BOSS
         if(!image.HasBitmap())
             return haschild_null;
 
-		Clip LastClip = m_stack_clip[-1];
-		const sint32 ImageWidth = image.GetWidth();
+        Clip LastClip = m_stack_clip[-1];
+        const sint32 ImageWidth = image.GetWidth();
         const sint32 ImageHeight = image.GetHeight();
-		if(form != UISF_Strong)
-		{
-			float Rate = 0;
-			switch(form)
-			{
-			case UISF_Inner: Rate = Math::MinF(LastClip.Width() / ImageWidth, LastClip.Height() / ImageHeight); break;
-			case UISF_Outer: Rate = Math::MaxF(LastClip.Width() / ImageWidth, LastClip.Height() / ImageHeight); break;
-			case UISF_Width: Rate = LastClip.Width() / ImageWidth; break;
-			case UISF_Height: Rate = LastClip.Height() / ImageHeight; break;
-			}
-			const float InnerX = (LastClip.Width() - ImageWidth * Rate) * 0.5;
-			const float InnerY = (LastClip.Height() - ImageHeight * Rate) * 0.5;
-			LastClip.l += InnerX;
-			LastClip.t += InnerY;
-			LastClip.r -= InnerX;
-			LastClip.b -= InnerY;
-		}
+        if(form != UISF_Strong)
+        {
+            float Rate = 0;
+            switch(form)
+            {
+            case UISF_Inner: Rate = Math::MinF(LastClip.Width() / ImageWidth, LastClip.Height() / ImageHeight); break;
+            case UISF_Outer: Rate = Math::MaxF(LastClip.Width() / ImageWidth, LastClip.Height() / ImageHeight); break;
+            case UISF_Width: Rate = LastClip.Width() / ImageWidth; break;
+            case UISF_Height: Rate = LastClip.Height() / ImageHeight; break;
+            }
+            const float InnerX = (LastClip.Width() - ImageWidth * Rate) * 0.5;
+            const float InnerY = (LastClip.Height() - ImageHeight * Rate) * 0.5;
+            LastClip.l += InnerX;
+            LastClip.t += InnerY;
+            LastClip.r -= InnerX;
+            LastClip.b -= InnerY;
+        }
 
         if(visible)
         {
@@ -529,23 +529,23 @@ namespace BOSS
         Clip LastClip = m_stack_clip[-1];
         const sint32 ImageWidth = Platform::Graphics::GetImageWidth(image);
         const sint32 ImageHeight = Platform::Graphics::GetImageHeight(image);
-		if(form != UISF_Strong)
-		{
-			float Rate = 0;
-			switch(form)
-			{
-			case UISF_Inner: Rate = Math::MinF(LastClip.Width() / ImageWidth, LastClip.Height() / ImageHeight); break;
-			case UISF_Outer: Rate = Math::MaxF(LastClip.Width() / ImageWidth, LastClip.Height() / ImageHeight); break;
-			case UISF_Width: Rate = LastClip.Width() / ImageWidth; break;
-			case UISF_Height: Rate = LastClip.Height() / ImageHeight; break;
-			}
-			const float InnerX = (LastClip.Width() - ImageWidth * Rate) * 0.5;
-			const float InnerY = (LastClip.Height() - ImageHeight * Rate) * 0.5;
-			LastClip.l += InnerX;
-			LastClip.t += InnerY;
-			LastClip.r -= InnerX;
-			LastClip.b -= InnerY;
-		}
+        if(form != UISF_Strong)
+        {
+            float Rate = 0;
+            switch(form)
+            {
+            case UISF_Inner: Rate = Math::MinF(LastClip.Width() / ImageWidth, LastClip.Height() / ImageHeight); break;
+            case UISF_Outer: Rate = Math::MaxF(LastClip.Width() / ImageWidth, LastClip.Height() / ImageHeight); break;
+            case UISF_Width: Rate = LastClip.Width() / ImageWidth; break;
+            case UISF_Height: Rate = LastClip.Height() / ImageHeight; break;
+            }
+            const float InnerX = (LastClip.Width() - ImageWidth * Rate) * 0.5;
+            const float InnerY = (LastClip.Height() - ImageHeight * Rate) * 0.5;
+            LastClip.l += InnerX;
+            LastClip.t += InnerY;
+            LastClip.r -= InnerX;
+            LastClip.b -= InnerY;
+        }
 
         const float XRate = LastClip.Width() / ImageWidth;
         const float YRate = LastClip.Height() / ImageHeight;

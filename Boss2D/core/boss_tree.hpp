@@ -35,10 +35,10 @@ namespace BOSS
         \param length : 이름의 길이(-1이면 자동설정)
         \return 해당 자식트리
         */
-	    Tree& operator()(chars key, sint32 length = -1)
-	    {
+        Tree& operator()(chars key, sint32 length = -1)
+        {
             return mChild(key, length);
-	    }
+        }
 
         /*!
         \brief 키워드식 읽기접근(없으면 NullChild를 리턴)
@@ -46,32 +46,32 @@ namespace BOSS
         \param length : 이름의 길이(-1이면 자동설정)
         \return 해당 자식트리
         */
-	    const Tree& operator()(chars key, sint32 length = -1) const
-	    {
+        const Tree& operator()(chars key, sint32 length = -1) const
+        {
             const Tree* Result = mChild.Access(key, length);
             return (Result)? *Result : NullChild();
-	    }
+        }
 
-		/*!
+        /*!
         \brief 인덱스식 쓰기접근(없으면 생성)
         \param index : 자식트리의 순번
         \return 해당 자식트리
         */
-	    Tree& operator[](sint64 index)
-	    {
+        Tree& operator[](sint64 index)
+        {
             return mChild[index];
-	    }
+        }
 
         /*!
         \brief 인덱스식 읽기접근(없으면 NullChild를 리턴)
         \param index : 자식트리의 순번
         \return 해당 자식트리
         */
-	    const Tree& operator[](sint64 index) const
-	    {
+        const Tree& operator[](sint64 index) const
+        {
             const Tree* Result = mChild.Access(index);
             return (Result)? *Result : NullChild();
-	    }
+        }
 
         /*!
         \brief 키워드식 자식제거
@@ -103,10 +103,10 @@ namespace BOSS
         \brief 배열수량 구하기
         \return 배열수량
         */
-	    sint32 Count() const
-	    {
+        sint32 Count() const
+        {
             return mChild.Count();
-	    }
+        }
 
         /*!
         \brief Value생성
@@ -155,21 +155,21 @@ namespace BOSS
         \brief Value를 즉시 접근
         \return Value의 인스턴스
         */
-	    TYPE* operator->()
-	    {
+        TYPE* operator->()
+        {
             BOSS_ASSERT("mValue가 nullptr입니다", mValue);
             return mValue;
-	    }
+        }
 
         /*!
         \brief Value를 즉시 접근(읽기전용)
         \return Value의 인스턴스
         */
-	    TYPE const* operator->() const
-	    {
+        TYPE const* operator->() const
+        {
             BOSS_ASSERT("mValue가 nullptr입니다", mValue);
             return mValue;
-	    }
+        }
 
     private:
         const Tree& NullChild() const

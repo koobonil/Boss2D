@@ -739,9 +739,9 @@ void TinyTIFFWriter_close(TinyTIFFFile* tiff, char* /*imageDescription*/) {
           if (imageDescription) {
               strcpy(description, imageDescription);
           } else {
-		      for (int i=0; i<TINYTIFFWRITER_DESCRIPTION_SIZE+1; i++) description[i]='\0';
+              for (int i=0; i<TINYTIFFWRITER_DESCRIPTION_SIZE+1; i++) description[i]='\0';
               sprintf(description, "TinyTIFFWriter_version=1.1\nimages=%ld", tiff->frames);
-		  }
+          }
           description[TINYTIFFWRITER_DESCRIPTION_SIZE-1]='\0';
           dlen=strlen(description);
           printf("WRITING COMMENT\n***");
@@ -762,7 +762,7 @@ void TinyTIFFWriter_close(TinyTIFFFile* tiff, char* /*imageDescription*/) {
 void TinyTIFFWriter_close(TinyTIFFFile* tiff, double pixel_width, double pixel_height, double frametime, double deltaz) {
     if (tiff) {
       char description[TINYTIFFWRITER_DESCRIPTION_SIZE+1];
-	  for (int i=0; i<TINYTIFFWRITER_DESCRIPTION_SIZE+1; i++) description[i]='\0';
+      for (int i=0; i<TINYTIFFWRITER_DESCRIPTION_SIZE+1; i++) description[i]='\0';
       char spw[256];
       sprintf(description, "TinyTIFFWriter_version=1.1\nimages=%lu", (unsigned long int)tiff->frames);
       if (fabs(pixel_width)>10.0*DBL_MIN) {
@@ -974,8 +974,8 @@ struct TinyTIFFReaderFrame {
     uint16 planarconfiguration;
     uint16 sampleformat;
     uint32 imagelength;
-	
-	char* description;
+    
+    char* description;
 };
 
 inline TinyTIFFReaderFrame TinyTIFFReader_getEmptyFrame() {
@@ -992,7 +992,7 @@ inline TinyTIFFReaderFrame TinyTIFFReader_getEmptyFrame() {
     d.planarconfiguration=TIFF_PLANARCONFIG_PLANAR;
     d.sampleformat=TINYTIFFREADER_SAMPLEFORMAT_UINT;
     d.imagelength=0;
-	d.description=0;
+    d.description=0;
     return d;
 }
 
@@ -1003,8 +1003,8 @@ inline void TinyTIFFReader_freeEmptyFrame(TinyTIFFReaderFrame f) {
     f.stripbytecounts=NULL;
     if (f.bitspersample) free(f.bitspersample);
     f.bitspersample=NULL;
-	if (f.description) free(f.description);
-	f.description=NULL;
+    if (f.description) free(f.description);
+    f.description=NULL;
 }
 
 
@@ -1025,7 +1025,7 @@ struct TinyTIFFReaderFile {
     uint32 nextifd_offset;
 
     uint64 filesize;
-	
+    
     TinyTIFFReaderFrame currentFrame;
 };
 
@@ -1242,28 +1242,28 @@ inline TinyTIFFReader_IFD TinyTIFFReader_readIFD(TinyTIFFReaderFile* tiff) {
     switch(d.type) {
         case TIFF_TYPE_BYTE:
         case TIFF_TYPE_ASCII:
-	    if (d.count>0) {
-	      d.pvalue=(uint32*)calloc(d.count, sizeof(uint32));
-	        if (d.count<=4) {
+        if (d.count>0) {
+          d.pvalue=(uint32*)calloc(d.count, sizeof(uint32));
+            if (d.count<=4) {
             unsigned int i;
-		    for (i=0; i<4; i++) {
-		      uint32 v=TinyTIFFReader_readuint8(tiff);
-		      if (i<d.count) d.pvalue[i]=v;
-		    }
-	      } else {
-		    changedpos=TRUE;
-		    uint32 offset=TinyTIFFReader_readuint32(tiff);
-			
-		    if (offset+d.count*1<=tiff->filesize) {
-		      //fseek(tiff->file, offset, SEEK_SET);
-		      TinyTIFFReader_fseek_set(tiff, offset);
+            for (i=0; i<4; i++) {
+              uint32 v=TinyTIFFReader_readuint8(tiff);
+              if (i<d.count) d.pvalue[i]=v;
+            }
+          } else {
+            changedpos=TRUE;
+            uint32 offset=TinyTIFFReader_readuint32(tiff);
+            
+            if (offset+d.count*1<=tiff->filesize) {
+              //fseek(tiff->file, offset, SEEK_SET);
+              TinyTIFFReader_fseek_set(tiff, offset);
               unsigned int i;
-		      for (i=0; i<d.count; i++) {
-			    d.pvalue[i]=TinyTIFFReader_readuint8(tiff);
-		      }
-		    }
-	      }
-	    }
+              for (i=0; i<d.count; i++) {
+                d.pvalue[i]=TinyTIFFReader_readuint8(tiff);
+              }
+            }
+          }
+        }
             d.pvalue2=NULL;
             //printf("    - BYTE/CHAR: tag=%d count=%u   val[0]=%u\n",d.tag,d.count, d.pvalue[0]);
             break;
@@ -1367,7 +1367,7 @@ inline void TinyTIFFReader_readNextFrame(TinyTIFFReaderFile* tiff) {
     #ifdef DEBUG_IFDTIMING
             //printf("    - readIFD %d (tag: %u, type: %u, count: %u): %lf us\n", i, ifd.tag, ifd.type, ifd.count, timer.get_time());
     #endif
-	        //printf("    - readIFD %d (tag: %u, type: %u, count: %u)\n", i, ifd.tag, ifd.type, ifd.count);
+            //printf("    - readIFD %d (tag: %u, type: %u, count: %u)\n", i, ifd.tag, ifd.type, ifd.count);
             switch(ifd.tag) {
                 case TIFF_FIELD_IMAGEWIDTH: tiff->currentFrame.width=ifd.value;  break;
                 case TIFF_FIELD_IMAGELENGTH: tiff->currentFrame.imagelength=ifd.value;  break;
@@ -1385,19 +1385,19 @@ inline void TinyTIFFReader_readNextFrame(TinyTIFFReaderFile* tiff) {
                 case TIFF_FIELD_ROWSPERSTRIP: tiff->currentFrame.rowsperstrip=ifd.value; break;
                 case TIFF_FIELD_SAMPLEFORMAT: tiff->currentFrame.sampleformat=ifd.value; break;
                 case TIFF_FIELD_IMAGEDESCRIPTION: {
-						//printf("TIFF_FIELD_IMAGEDESCRIPTION: (tag: %u, type: %u, count: %u)\n", ifd.tag, ifd.type, ifd.count);
-				        if (ifd.count>0) {
-				            if (tiff->currentFrame.description) free(tiff->currentFrame.description);
-							tiff->currentFrame.description=(char*)calloc(ifd.count+1, sizeof(char));
+                        //printf("TIFF_FIELD_IMAGEDESCRIPTION: (tag: %u, type: %u, count: %u)\n", ifd.tag, ifd.type, ifd.count);
+                        if (ifd.count>0) {
+                            if (tiff->currentFrame.description) free(tiff->currentFrame.description);
+                            tiff->currentFrame.description=(char*)calloc(ifd.count+1, sizeof(char));
                             for (uint32 ji=0; ji<ifd.count+1; ji++) {
                                 tiff->currentFrame.description[ji]='\0';
                             }
-							for (uint32 ji=0; ji<ifd.count; ji++) {
-							    tiff->currentFrame.description[ji]=(char)ifd.pvalue[ji];
-								//printf(" %d[%d]", int(tiff->currentFrame.description[ji]), int(ifd.pvalue[ji]));
-							}
-							//printf("\n  %s\n", tiff->currentFrame.description);
-					    }
+                            for (uint32 ji=0; ji<ifd.count; ji++) {
+                                tiff->currentFrame.description[ji]=(char)ifd.pvalue[ji];
+                                //printf(" %d[%d]", int(tiff->currentFrame.description[ji]), int(ifd.pvalue[ji]));
+                            }
+                            //printf("\n  %s\n", tiff->currentFrame.description);
+                        }
                     } break;
                 case TIFF_FIELD_STRIPBYTECOUNTS: {
                         tiff->currentFrame.stripcount=ifd.count;

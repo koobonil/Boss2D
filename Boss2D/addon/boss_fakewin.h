@@ -117,7 +117,7 @@
 
     typedef char CHAR;
     typedef CHAR *PCHAR, *LPCH, *PCH, *PSTR;
-	typedef PSTR *PZPSTR;
+    typedef PSTR *PZPSTR;
     typedef char TCHAR, *PTCHAR;
     typedef char* LPSTR;
     typedef const char *LPCSTR, *PCSTR;
@@ -128,7 +128,7 @@
     typedef unsigned char BYTE, *LPBYTE;
     typedef wchar_t WCHAR;
     typedef WCHAR *PWCHAR, *LPWCH, *PWCH, *PWSTR;
-	typedef PWSTR *PZPWSTR;
+    typedef PWSTR *PZPWSTR;
     typedef LPCSTR LPCTSTR;
     typedef LPSTR LPTSTR;
     typedef unsigned short WORD;
@@ -157,7 +157,7 @@
     typedef unsigned long long DWORDLONG;
     typedef ULONG_PTR SIZE_T, *PSIZE_T;
     typedef LONG_PTR SSIZE_T, *PSSIZE_T;
-	typedef size_t rsize_t;
+    typedef size_t rsize_t;
     typedef void VOID;
     typedef void* PVOID;
     typedef void* LPVOID;
@@ -248,7 +248,7 @@
     #define socket boss_fakewin_socket
     #define connect boss_fakewin_connect
     #define getsockopt boss_fakewin_getsockopt
-	#define setsockopt boss_fakewin_setsockopt
+    #define setsockopt boss_fakewin_setsockopt
     #define select boss_fakewin_select
     #define recv boss_fakewin_recv
     #define send boss_fakewin_send
@@ -259,18 +259,18 @@
     #define getaddrinfo boss_fakewin_getaddrinfo
     #define freeaddrinfo boss_fakewin_freeaddrinfo
     #define gai_strerror boss_fakewin_gai_strerror
-	#define inet_addr boss_fakewin_inet_addr
-	#define bind boss_fakewin_bind
-	#define getsockname boss_fakewin_getsockname
-	#define getpeername boss_fakewin_getpeername
+    #define inet_addr boss_fakewin_inet_addr
+    #define bind boss_fakewin_bind
+    #define getsockname boss_fakewin_getsockname
+    #define getpeername boss_fakewin_getpeername
     #define sendto boss_fakewin_sendto
     #define recvfrom boss_fakewin_recvfrom
-	#define accept boss_fakewin_accept
-	#define listen boss_fakewin_listen
-	#define getservbyname boss_fakewin_getservbyname
-	#define inet_ntoa boss_fakewin_inet_ntoa
+    #define accept boss_fakewin_accept
+    #define listen boss_fakewin_listen
+    #define getservbyname boss_fakewin_getservbyname
+    #define inet_ntoa boss_fakewin_inet_ntoa
     #define shutdown boss_fakewin_shutdown
-	#define _exit boss_fakewin_exit
+    #define _exit boss_fakewin_exit
     #define getpid boss_fakewin_getpid
     #define _getpid boss_fakewin_getpid
     #define mbstowcs_s boss_fakewin_mbstowcs_s
@@ -390,61 +390,61 @@
     #define GetEnvironmentStringsW boss_fakewin_GetEnvironmentStringsW
     #define GetSystemDirectoryA boss_fakewin_GetSystemDirectoryA
     #define GetSystemDirectoryW boss_fakewin_GetSystemDirectoryW
-	#define ReadConsoleA boss_fakewin_ReadConsoleA
-	#define ReadConsoleW boss_fakewin_ReadConsoleW
-	#define GetSystemTime boss_fakewin_GetSystemTime
-	#define SwitchToFiber boss_fakewin_SwitchToFiber
-	#define DeleteFiber boss_fakewin_DeleteFiber
-	#define ConvertFiberToThread boss_fakewin_ConvertFiberToThread
-	#define ConvertThreadToFiber boss_fakewin_ConvertThreadToFiber
-	#define CreateFiberEx boss_fakewin_CreateFiberEx
-	#define ConvertThreadToFiberEx boss_fakewin_ConvertThreadToFiberEx
-	#define CreateFiber boss_fakewin_CreateFiber
-	#define ConvertThreadToFiber boss_fakewin_ConvertThreadToFiber
-	#define GetConsoleMode boss_fakewin_GetConsoleMode
-	#define SetConsoleMode boss_fakewin_SetConsoleMode
-	#define ReadFile boss_fakewin_ReadFile
-	#define ReadFileEx boss_fakewin_ReadFileEx
-	#define GetFileType boss_fakewin_GetFileType
-	#define PeekNamedPipe boss_fakewin_PeekNamedPipe
-	#define timeGetTime boss_fakewin_timeGetTime
-	#define GetFiberData boss_fakewin_GetFiberData
-	#define GetCurrentFiber boss_fakewin_GetCurrentFiber
-	#define GetVersionExA boss_fakewin_GetVersionExA
-	#define GetVersionExW boss_fakewin_GetVersionExW
-	#define WSAIoctl boss_fakewin_WSAIoctl
-	#define ldap_err2stringW boss_fakewin_ldap_err2stringW
-	#define ldap_err2stringA boss_fakewin_ldap_err2stringA
-	#define ldap_get_option boss_fakewin_ldap_get_option
-	#define ldap_get_optionW boss_fakewin_ldap_get_optionW
-	#define ldap_set_option boss_fakewin_ldap_set_option
-	#define ldap_set_optionW boss_fakewin_ldap_set_optionW
-	#define ldap_initW boss_fakewin_ldap_initW
-	#define ldap_init boss_fakewin_ldap_init
-	#define ldap_simple_bindW boss_fakewin_ldap_simple_bindW
-	#define ldap_simple_bindA boss_fakewin_ldap_simple_bindA
-	#define ldap_simple_bind_sW boss_fakewin_ldap_simple_bind_sW
-	#define ldap_simple_bind_sA boss_fakewin_ldap_simple_bind_sA
-	#define ldap_searchW boss_fakewin_ldap_searchW
-	#define ldap_searchA boss_fakewin_ldap_searchA
-	#define ldap_search_sW boss_fakewin_ldap_search_sW
-	#define ldap_search_sA boss_fakewin_ldap_search_sA
-	#define ldap_first_entry boss_fakewin_ldap_first_entry
-	#define ldap_get_dnW boss_fakewin_ldap_get_dnW
-	#define ldap_get_dn boss_fakewin_ldap_get_dn
-	#define ldap_memfreeW boss_fakewin_ldap_memfreeW
-	#define ldap_memfree boss_fakewin_ldap_memfree
-	#define ldap_first_attributeW boss_fakewin_ldap_first_attributeW
-	#define ldap_first_attribute boss_fakewin_ldap_first_attribute
-	#define ldap_next_attributeW boss_fakewin_ldap_next_attributeW
-	#define ldap_next_attribute boss_fakewin_ldap_next_attribute
-	#define ldap_get_values_lenW boss_fakewin_ldap_get_values_lenW
-	#define ldap_get_values_len boss_fakewin_ldap_get_values_len
-	#define ldap_value_free_len boss_fakewin_ldap_value_free_len
-	#define ldap_next_entry boss_fakewin_ldap_next_entry
-	#define ldap_msgfree boss_fakewin_ldap_msgfree
-	#define ldap_unbind boss_fakewin_ldap_unbind
-	#define ldap_unbind_s boss_fakewin_ldap_unbind_s
+    #define ReadConsoleA boss_fakewin_ReadConsoleA
+    #define ReadConsoleW boss_fakewin_ReadConsoleW
+    #define GetSystemTime boss_fakewin_GetSystemTime
+    #define SwitchToFiber boss_fakewin_SwitchToFiber
+    #define DeleteFiber boss_fakewin_DeleteFiber
+    #define ConvertFiberToThread boss_fakewin_ConvertFiberToThread
+    #define ConvertThreadToFiber boss_fakewin_ConvertThreadToFiber
+    #define CreateFiberEx boss_fakewin_CreateFiberEx
+    #define ConvertThreadToFiberEx boss_fakewin_ConvertThreadToFiberEx
+    #define CreateFiber boss_fakewin_CreateFiber
+    #define ConvertThreadToFiber boss_fakewin_ConvertThreadToFiber
+    #define GetConsoleMode boss_fakewin_GetConsoleMode
+    #define SetConsoleMode boss_fakewin_SetConsoleMode
+    #define ReadFile boss_fakewin_ReadFile
+    #define ReadFileEx boss_fakewin_ReadFileEx
+    #define GetFileType boss_fakewin_GetFileType
+    #define PeekNamedPipe boss_fakewin_PeekNamedPipe
+    #define timeGetTime boss_fakewin_timeGetTime
+    #define GetFiberData boss_fakewin_GetFiberData
+    #define GetCurrentFiber boss_fakewin_GetCurrentFiber
+    #define GetVersionExA boss_fakewin_GetVersionExA
+    #define GetVersionExW boss_fakewin_GetVersionExW
+    #define WSAIoctl boss_fakewin_WSAIoctl
+    #define ldap_err2stringW boss_fakewin_ldap_err2stringW
+    #define ldap_err2stringA boss_fakewin_ldap_err2stringA
+    #define ldap_get_option boss_fakewin_ldap_get_option
+    #define ldap_get_optionW boss_fakewin_ldap_get_optionW
+    #define ldap_set_option boss_fakewin_ldap_set_option
+    #define ldap_set_optionW boss_fakewin_ldap_set_optionW
+    #define ldap_initW boss_fakewin_ldap_initW
+    #define ldap_init boss_fakewin_ldap_init
+    #define ldap_simple_bindW boss_fakewin_ldap_simple_bindW
+    #define ldap_simple_bindA boss_fakewin_ldap_simple_bindA
+    #define ldap_simple_bind_sW boss_fakewin_ldap_simple_bind_sW
+    #define ldap_simple_bind_sA boss_fakewin_ldap_simple_bind_sA
+    #define ldap_searchW boss_fakewin_ldap_searchW
+    #define ldap_searchA boss_fakewin_ldap_searchA
+    #define ldap_search_sW boss_fakewin_ldap_search_sW
+    #define ldap_search_sA boss_fakewin_ldap_search_sA
+    #define ldap_first_entry boss_fakewin_ldap_first_entry
+    #define ldap_get_dnW boss_fakewin_ldap_get_dnW
+    #define ldap_get_dn boss_fakewin_ldap_get_dn
+    #define ldap_memfreeW boss_fakewin_ldap_memfreeW
+    #define ldap_memfree boss_fakewin_ldap_memfree
+    #define ldap_first_attributeW boss_fakewin_ldap_first_attributeW
+    #define ldap_first_attribute boss_fakewin_ldap_first_attribute
+    #define ldap_next_attributeW boss_fakewin_ldap_next_attributeW
+    #define ldap_next_attribute boss_fakewin_ldap_next_attribute
+    #define ldap_get_values_lenW boss_fakewin_ldap_get_values_lenW
+    #define ldap_get_values_len boss_fakewin_ldap_get_values_len
+    #define ldap_value_free_len boss_fakewin_ldap_value_free_len
+    #define ldap_next_entry boss_fakewin_ldap_next_entry
+    #define ldap_msgfree boss_fakewin_ldap_msgfree
+    #define ldap_unbind boss_fakewin_ldap_unbind
+    #define ldap_unbind_s boss_fakewin_ldap_unbind_s
 
     // 유니코드여부관련
     #define DeleteFile DeleteFileA
@@ -458,7 +458,7 @@
 
     #define _access boss_fakewin_access
     #define _waccess boss_fakewin_waccess
-	#define _chmod boss_fakewin_chmod
+    #define _chmod boss_fakewin_chmod
     #define _wchmod boss_fakewin_wchmod
     #define _wfopen boss_fakewin_wfopen
     #define _wfopen_s boss_fakewin_wfopen_s
@@ -485,7 +485,7 @@
     #define _lfind boss_fakewin_lfind
     #define _chsize_s boss_fakewin_chsize_s
     #define _stat boss_fakewin_stat
-	#define _stat64 boss_fakewin_stat64
+    #define _stat64 boss_fakewin_stat64
     #define _fstat boss_fakewin_fstat
     #define _fstat64 boss_fakewin_fstat64
     #define _wchdir boss_fakewin_wchdir
@@ -504,12 +504,12 @@
     #define _getch boss_fakewin_getch
     #define _getdrive boss_fakewin_getdrive
     #define _lrotl boss_fakewin_lrotl
-	#define _lrotr boss_fakewin_lrotr
+    #define _lrotr boss_fakewin_lrotr
     #define _rotl boss_fakewin_rotl
     #define _setmode boss_fakewin_setmode
-	#define stricmp boss_fakewin_stricmp
+    #define stricmp boss_fakewin_stricmp
     #define _stricmp boss_fakewin_stricmp
-	#define strnicmp boss_fakewin_strnicmp
+    #define strnicmp boss_fakewin_strnicmp
     #define _strnicmp boss_fakewin_strnicmp
     #define _mbsicmp boss_fakewin_mbsicmp
     #define _wcsicmp boss_fakewin_wcsicmp
@@ -528,22 +528,22 @@
     #define _strtoi64 boss_fakewin_strtoi64
     #define _strtoui64 boss_fakewin_strtoui64
     #define _set_errno boss_fakewin_set_errno
-	#define _byteswap_ushort boss_fakewin_byteswap_ushort
-	#define _byteswap_ulong boss_fakewin_byteswap_ulong
-	#define _byteswap_uint64 boss_fakewin_byteswap_uint64
-	#define strlen boss_fakewin_strlen
-	#define wcslen boss_fakewin_wcslen
-	#define strerror boss_fakewin_strerror
-	#define strerror_s boss_fakewin_strerror_s
-	#define strcpy_s boss_fakewin_strcpy_s
-	#define wcscpy_s boss_fakewin_wcscpy_s
-	#define strcpy boss_fakewin_strcpy
-	#define wcscpy boss_fakewin_wcscpy
-	#define _strdup boss_fakewin_strdup
+    #define _byteswap_ushort boss_fakewin_byteswap_ushort
+    #define _byteswap_ulong boss_fakewin_byteswap_ulong
+    #define _byteswap_uint64 boss_fakewin_byteswap_uint64
+    #define strlen boss_fakewin_strlen
+    #define wcslen boss_fakewin_wcslen
+    #define strerror boss_fakewin_strerror
+    #define strerror_s boss_fakewin_strerror_s
+    #define strcpy_s boss_fakewin_strcpy_s
+    #define wcscpy_s boss_fakewin_wcscpy_s
+    #define strcpy boss_fakewin_strcpy
+    #define wcscpy boss_fakewin_wcscpy
+    #define _strdup boss_fakewin_strdup
     #define _wcsdup boss_fakewin_wcsdup
     #define strpbrk boss_fakewin_strpbrk
     #define wcspbrk boss_fakewin_wcspbrk
-	#define ber_free boss_fakewin_ber_free
+    #define ber_free boss_fakewin_ber_free
 
     // 명칭재정의관련
     #define access _access
@@ -609,12 +609,12 @@
         __time64_t      st_ctime;
     };
 
-	#ifdef __cplusplus
-		extern "C" {
-	#endif
+    #ifdef __cplusplus
+        extern "C" {
+    #endif
     int boss_fakewin_access(const char*,int);
     int boss_fakewin_waccess(const wchar_t*,int);
-	int boss_fakewin_chmod(const char*,int);
+    int boss_fakewin_chmod(const char*,int);
     int boss_fakewin_wchmod(const wchar_t*,int);
     FILE* boss_fakewin_wfopen(const wchar_t*,const wchar_t*);
     errno_t boss_fakewin_wfopen_s(FILE**, const wchar_t*, const wchar_t*);
@@ -641,7 +641,7 @@
     void* boss_fakewin_lfind(const void*,const void*,unsigned int*,unsigned int,int (*)(const void*, const void*));
     errno_t boss_fakewin_chsize_s(int, __int64);
     int boss_fakewin_stat(const char*,struct boss_fakewin_struct_stat*);
-	int boss_fakewin_stat64(const char*,struct boss_fakewin_struct_stat64*);
+    int boss_fakewin_stat64(const char*,struct boss_fakewin_struct_stat64*);
     int boss_fakewin_fstat(int,struct boss_fakewin_struct_stat*);
     int boss_fakewin_fstat64(int,struct boss_fakewin_struct_stat64*);
     int boss_fakewin_wchdir(const wchar_t*);
@@ -660,7 +660,7 @@
     int boss_fakewin_getch();
     int boss_fakewin_getdrive();
     unsigned long boss_fakewin_lrotl(unsigned long,int);
-	unsigned long boss_fakewin_lrotr(unsigned long,int);
+    unsigned long boss_fakewin_lrotr(unsigned long,int);
     unsigned int boss_fakewin_rotl(unsigned int,int);
     int boss_fakewin_setmode(int,int);
     int boss_fakewin_stricmp(const char*,const char*);
@@ -685,21 +685,21 @@
     unsigned short boss_fakewin_byteswap_ushort(unsigned short);
     unsigned long boss_fakewin_byteswap_ulong(unsigned long);
     unsigned __int64 boss_fakewin_byteswap_uint64(unsigned __int64);
-	size_t boss_fakewin_strlen(const char *str);
+    size_t boss_fakewin_strlen(const char *str);
     size_t boss_fakewin_wcslen(const wchar_t *str);
-	char* boss_fakewin_strerror(int errnum);
-	errno_t boss_fakewin_strerror_s(char *buf, rsize_t bufsz, errno_t errnum);
-	errno_t boss_fakewin_strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource);
-	errno_t boss_fakewin_wcscpy_s(wchar_t *strDestination, size_t numberOfElements, const wchar_t *strSource);
-	char* boss_fakewin_strcpy(char *strDestination, const char *strSource);
-	wchar_t* boss_fakewin_wcscpy(wchar_t *strDestination, const wchar_t *strSource);
-	char* boss_fakewin_strdup(const char *strSource);
+    char* boss_fakewin_strerror(int errnum);
+    errno_t boss_fakewin_strerror_s(char *buf, rsize_t bufsz, errno_t errnum);
+    errno_t boss_fakewin_strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource);
+    errno_t boss_fakewin_wcscpy_s(wchar_t *strDestination, size_t numberOfElements, const wchar_t *strSource);
+    char* boss_fakewin_strcpy(char *strDestination, const char *strSource);
+    wchar_t* boss_fakewin_wcscpy(wchar_t *strDestination, const wchar_t *strSource);
+    char* boss_fakewin_strdup(const char *strSource);
     wchar_t* boss_fakewin_wcsdup(const wchar_t *strSource);
     char* boss_fakewin_strpbrk(const char *str, const char *strCharSet);
     wchar_t* boss_fakewin_wcspbrk(const wchar_t *str, const wchar_t *strCharSet);
-	#ifdef __cplusplus
-		}
-	#endif
+    #ifdef __cplusplus
+        }
+    #endif
 
     #if BOSS_WINDOWS
         typedef unsigned long u_long;
@@ -744,59 +744,59 @@
         #define __POCC__OLDNAMES
     #endif
 
-	#ifdef  UNICODE                     
-		#define __TEXT(quote)                L##quote
-		#define LoadLibrary                  LoadLibraryW
-		#define GetEnvironmentStrings        GetEnvironmentStringsW
-		#define GetSystemDirectory           GetSystemDirectoryW
-		#define GetEnvironmentVariable       GetEnvironmentVariableW
-		#define ReadConsole                  ReadConsoleW
-		#define GetVersionEx                 GetVersionExW
-		#define FormatMessage                FormatMessageW
-		#define ldap_err2string              ldap_err2stringW
-		#define ldap_get_option              ldap_get_optionW
-		#define ldap_set_option              ldap_set_optionW
-		#define ldap_init                    ldap_initW
-		#define ldap_simple_bind             ldap_simple_bindW
-		#define ldap_simple_bind_s           ldap_simple_bind_sW
-		#define ldap_search                  ldap_searchW
-		#define ldap_search_s                ldap_search_sW
-		#define ldap_get_dn                  ldap_get_dnW
-		#define ldap_memfree                 ldap_memfreeW
-		#define ldap_first_attribute         ldap_first_attributeW
-		#define ldap_next_attribute          ldap_next_attributeW
-		#define ldap_get_values_len          ldap_get_values_lenW
-		#define _tcslen                      wcslen
-		#define _tcsclen                     wcslen
-		#define _tcscpy_s                    wcscpy_s
-		#define _tcscpy                      wcscpy
-		#define _tcsdup                      _wcsdup
-		#define _tcspbrk                     wcspbrk
-	#else   /* UNICODE */               
-		#define __TEXT(quote)                quote
-		#define LoadLibrary                  LoadLibraryA
-		#define GetEnvironmentStringsA       GetEnvironmentStrings
-		#define GetSystemDirectory           GetSystemDirectoryA
-		#define GetEnvironmentVariable       GetEnvironmentVariableA
-		#define ReadConsole                  ReadConsoleA
-		#define GetVersionEx                 GetVersionExA
-		#define FormatMessage                FormatMessageA
-		#define ldap_err2string              ldap_err2stringA
-		#define ldap_simple_bind             ldap_simple_bindA
-		#define ldap_simple_bind_s           ldap_simple_bind_sA
-		#define ldap_search                  ldap_searchA
-		#define ldap_search_s                ldap_search_sA	
-		#define _tcslen                      strlen
-		#define _tcsclen                     strlen
-		#define _tcscpy_s                    strcpy_s
-		#define _tcscpy                      strcpy
-		#define _tcsdup                      _strdup
-		#define _tcspbrk                     strpbrk
-	#endif /* UNICODE */
+    #ifdef  UNICODE                     
+        #define __TEXT(quote)                L##quote
+        #define LoadLibrary                  LoadLibraryW
+        #define GetEnvironmentStrings        GetEnvironmentStringsW
+        #define GetSystemDirectory           GetSystemDirectoryW
+        #define GetEnvironmentVariable       GetEnvironmentVariableW
+        #define ReadConsole                  ReadConsoleW
+        #define GetVersionEx                 GetVersionExW
+        #define FormatMessage                FormatMessageW
+        #define ldap_err2string              ldap_err2stringW
+        #define ldap_get_option              ldap_get_optionW
+        #define ldap_set_option              ldap_set_optionW
+        #define ldap_init                    ldap_initW
+        #define ldap_simple_bind             ldap_simple_bindW
+        #define ldap_simple_bind_s           ldap_simple_bind_sW
+        #define ldap_search                  ldap_searchW
+        #define ldap_search_s                ldap_search_sW
+        #define ldap_get_dn                  ldap_get_dnW
+        #define ldap_memfree                 ldap_memfreeW
+        #define ldap_first_attribute         ldap_first_attributeW
+        #define ldap_next_attribute          ldap_next_attributeW
+        #define ldap_get_values_len          ldap_get_values_lenW
+        #define _tcslen                      wcslen
+        #define _tcsclen                     wcslen
+        #define _tcscpy_s                    wcscpy_s
+        #define _tcscpy                      wcscpy
+        #define _tcsdup                      _wcsdup
+        #define _tcspbrk                     wcspbrk
+    #else   /* UNICODE */               
+        #define __TEXT(quote)                quote
+        #define LoadLibrary                  LoadLibraryA
+        #define GetEnvironmentStringsA       GetEnvironmentStrings
+        #define GetSystemDirectory           GetSystemDirectoryA
+        #define GetEnvironmentVariable       GetEnvironmentVariableA
+        #define ReadConsole                  ReadConsoleA
+        #define GetVersionEx                 GetVersionExA
+        #define FormatMessage                FormatMessageA
+        #define ldap_err2string              ldap_err2stringA
+        #define ldap_simple_bind             ldap_simple_bindA
+        #define ldap_simple_bind_s           ldap_simple_bind_sA
+        #define ldap_search                  ldap_searchA
+        #define ldap_search_s                ldap_search_sA    
+        #define _tcslen                      strlen
+        #define _tcsclen                     strlen
+        #define _tcscpy_s                    strcpy_s
+        #define _tcscpy                      strcpy
+        #define _tcsdup                      _strdup
+        #define _tcspbrk                     strpbrk
+    #endif /* UNICODE */
     #define TEXT(quote)                      __TEXT(quote) 
 
-	#define IN
-	#define OUT
+    #define IN
+    #define OUT
     #define WINAPI
     #define APIENTRY                         WINAPI
     #define CALLBACK
@@ -1100,86 +1100,86 @@
     #define LDAP_SCOPE_SUBTREE               0x02
 #ifndef RC_INVOKED
     #define _SECURECRT_ERRCODE_VALUES_DEFINED
-    #define	EPERM                             1		/* Operation not permitted */
-    #define	ENOENT                            2		/* No such file or directory */
-    #define	ESRCH                             3		/* No such process */
-    #define	EINTR                             4		/* Interrupted system call */
-    #define	EIO                               5		/* Input/output error */
-    #define	ENXIO                             6		/* Device not configured */
-    #define	E2BIG                             7		/* Argument list too long */
-    #define	ENOEXEC                           8		/* Exec format error */
-    #define	EBADF                             9		/* Bad file descriptor */
-    #define	ECHILD                           10		/* No child processes */
-    #define	EDEADLK                          11		/* Resource deadlock avoided */
-    #define	ENOMEM                           12		/* Cannot allocate memory */
-    #define	EACCES                           13		/* Permission denied */
-    #define	EFAULT                           14		/* Bad address */
-    #define	ENOTBLK                          15		/* Block device required */
-    #define	EBUSY                            16		/* Device busy */
-    #define	EEXIST                           17		/* File exists */
-    #define	EXDEV                            18		/* Cross-device link */
-    #define	ENODEV                           19		/* Operation not supported by device */
-    #define	ENOTDIR                          20		/* Not a directory */
-    #define	EISDIR                           21		/* Is a directory */
-    #define	EINVAL                           22		/* Invalid argument */
-    #define	ENFILE                           23		/* Too many open files in system */
-    #define	EMFILE                           24		/* Too many open files */
-    #define	ENOTTY                           25		/* Inappropriate ioctl for device */
-    #define	ETXTBSY                          26		/* Text file busy */
-    #define	EFBIG                            27		/* File too large */
-    #define	ENOSPC                           28		/* No space left on device */
-    #define	ESPIPE                           29		/* Illegal seek */
-    #define	EROFS                            30		/* Read-only file system */
-    #define	EMLINK                           31		/* Too many links */
-    #define	EPIPE                            32		/* Broken pipe */
-    #define	EDOM                             33		/* Numerical argument out of domain */
-    #define	ERANGE                           34		/* Result too large */
-    #define	EAGAIN                           35		/* Resource temporarily unavailable */
-    #define	EWOULDBLOCK                      EAGAIN	/* Operation would block */
-    #define	EINPROGRESS                      36		/* Operation now in progress */
-    #define	EALREADY                         37		/* Operation already in progress */
-    #define	ENOTSOCK                         38		/* Socket operation on non-socket */
-    #define	EDESTADDRREQ                     39		/* Destination address required */
-    #define	EMSGSIZE                         40		/* Message too long */
-    #define	EPROTOTYPE                       41		/* Protocol wrong type for socket */
-    #define	ENOPROTOOPT                      42		/* Protocol not available */
-    #define	EPROTONOSUPPORT                  43		/* Protocol not supported */
-    #define	ESOCKTNOSUPPORT                  44		/* Socket type not supported */
-    #define	EOPNOTSUPP                       45		/* Operation not supported on socket */
-    #define	EPFNOSUPPORT                     46		/* Protocol family not supported */
-    #define	EAFNOSUPPORT                     47		/* Address family not supported by protocol family */
-    #define	EADDRINUSE                       48		/* Address already in use */
-    #define	EADDRNOTAVAIL                    49		/* Can't assign requested address */
-    #define	ENETDOWN                         50		/* Network is down */
-    #define	ENETUNREACH                      51		/* Network is unreachable */
-    #define	ENETRESET                        52		/* Network dropped connection on reset */
-    #define	ECONNABORTED                     53		/* Software caused connection abort */
-    #define	ECONNRESET                       54		/* Connection reset by peer */
-    #define	ENOBUFS                          55		/* No buffer space available */
-    #define	EISCONN                          56		/* Socket is already connected */
-    #define	ENOTCONN                         57		/* Socket is not connected */
-    #define	ESHUTDOWN                        58		/* Can't send after socket shutdown */
-    #define	ETOOMANYREFS                     59		/* Too many references: can't splice */
-    #define	ETIMEDOUT                        60		/* Connection timed out */
-    #define	ECONNREFUSED                     61		/* Connection refused */
-    #define	ELOOP                            62		/* Too many levels of symbolic links */
-    #define	ENAMETOOLONG                     63		/* File name too long */
-    #define	EHOSTDOWN                        64		/* Host is down */
-    #define	EHOSTUNREACH                     65		/* No route to host */
-    #define	ENOTEMPTY                        66		/* Directory not empty */
-    #define	EPROCLIM                         67		/* Too many processes */
-    #define	EUSERS                           68		/* Too many users */
-    #define	EDQUOT                           69		/* Disc quota exceeded */
-    #define	ESTALE                           70		/* Stale NFS file handle */
-    #define	EREMOTE                          71		/* Too many levels of remote in path */
-    #define	EBADRPC                          72		/* RPC struct is bad */
-    #define	ERPCMISMATCH                     73		/* RPC version wrong */
-    #define	EPROGUNAVAIL                     74		/* RPC prog. not avail */
-    #define	EPROGMISMATCH                    75		/* Program version wrong */
-    #define	EPROCUNAVAIL                     76		/* Bad procedure for program */
-    #define	ENOLCK                           77		/* No locks available */
-    #define	ENOSYS                           78		/* Function not implemented */
-    #define	EFTYPE                           79		/* Inappropriate file type or format */
+    #define    EPERM                             1        /* Operation not permitted */
+    #define    ENOENT                            2        /* No such file or directory */
+    #define    ESRCH                             3        /* No such process */
+    #define    EINTR                             4        /* Interrupted system call */
+    #define    EIO                               5        /* Input/output error */
+    #define    ENXIO                             6        /* Device not configured */
+    #define    E2BIG                             7        /* Argument list too long */
+    #define    ENOEXEC                           8        /* Exec format error */
+    #define    EBADF                             9        /* Bad file descriptor */
+    #define    ECHILD                           10        /* No child processes */
+    #define    EDEADLK                          11        /* Resource deadlock avoided */
+    #define    ENOMEM                           12        /* Cannot allocate memory */
+    #define    EACCES                           13        /* Permission denied */
+    #define    EFAULT                           14        /* Bad address */
+    #define    ENOTBLK                          15        /* Block device required */
+    #define    EBUSY                            16        /* Device busy */
+    #define    EEXIST                           17        /* File exists */
+    #define    EXDEV                            18        /* Cross-device link */
+    #define    ENODEV                           19        /* Operation not supported by device */
+    #define    ENOTDIR                          20        /* Not a directory */
+    #define    EISDIR                           21        /* Is a directory */
+    #define    EINVAL                           22        /* Invalid argument */
+    #define    ENFILE                           23        /* Too many open files in system */
+    #define    EMFILE                           24        /* Too many open files */
+    #define    ENOTTY                           25        /* Inappropriate ioctl for device */
+    #define    ETXTBSY                          26        /* Text file busy */
+    #define    EFBIG                            27        /* File too large */
+    #define    ENOSPC                           28        /* No space left on device */
+    #define    ESPIPE                           29        /* Illegal seek */
+    #define    EROFS                            30        /* Read-only file system */
+    #define    EMLINK                           31        /* Too many links */
+    #define    EPIPE                            32        /* Broken pipe */
+    #define    EDOM                             33        /* Numerical argument out of domain */
+    #define    ERANGE                           34        /* Result too large */
+    #define    EAGAIN                           35        /* Resource temporarily unavailable */
+    #define    EWOULDBLOCK                      EAGAIN    /* Operation would block */
+    #define    EINPROGRESS                      36        /* Operation now in progress */
+    #define    EALREADY                         37        /* Operation already in progress */
+    #define    ENOTSOCK                         38        /* Socket operation on non-socket */
+    #define    EDESTADDRREQ                     39        /* Destination address required */
+    #define    EMSGSIZE                         40        /* Message too long */
+    #define    EPROTOTYPE                       41        /* Protocol wrong type for socket */
+    #define    ENOPROTOOPT                      42        /* Protocol not available */
+    #define    EPROTONOSUPPORT                  43        /* Protocol not supported */
+    #define    ESOCKTNOSUPPORT                  44        /* Socket type not supported */
+    #define    EOPNOTSUPP                       45        /* Operation not supported on socket */
+    #define    EPFNOSUPPORT                     46        /* Protocol family not supported */
+    #define    EAFNOSUPPORT                     47        /* Address family not supported by protocol family */
+    #define    EADDRINUSE                       48        /* Address already in use */
+    #define    EADDRNOTAVAIL                    49        /* Can't assign requested address */
+    #define    ENETDOWN                         50        /* Network is down */
+    #define    ENETUNREACH                      51        /* Network is unreachable */
+    #define    ENETRESET                        52        /* Network dropped connection on reset */
+    #define    ECONNABORTED                     53        /* Software caused connection abort */
+    #define    ECONNRESET                       54        /* Connection reset by peer */
+    #define    ENOBUFS                          55        /* No buffer space available */
+    #define    EISCONN                          56        /* Socket is already connected */
+    #define    ENOTCONN                         57        /* Socket is not connected */
+    #define    ESHUTDOWN                        58        /* Can't send after socket shutdown */
+    #define    ETOOMANYREFS                     59        /* Too many references: can't splice */
+    #define    ETIMEDOUT                        60        /* Connection timed out */
+    #define    ECONNREFUSED                     61        /* Connection refused */
+    #define    ELOOP                            62        /* Too many levels of symbolic links */
+    #define    ENAMETOOLONG                     63        /* File name too long */
+    #define    EHOSTDOWN                        64        /* Host is down */
+    #define    EHOSTUNREACH                     65        /* No route to host */
+    #define    ENOTEMPTY                        66        /* Directory not empty */
+    #define    EPROCLIM                         67        /* Too many processes */
+    #define    EUSERS                           68        /* Too many users */
+    #define    EDQUOT                           69        /* Disc quota exceeded */
+    #define    ESTALE                           70        /* Stale NFS file handle */
+    #define    EREMOTE                          71        /* Too many levels of remote in path */
+    #define    EBADRPC                          72        /* RPC struct is bad */
+    #define    ERPCMISMATCH                     73        /* RPC version wrong */
+    #define    EPROGUNAVAIL                     74        /* RPC prog. not avail */
+    #define    EPROGMISMATCH                    75        /* Program version wrong */
+    #define    EPROCUNAVAIL                     76        /* Bad procedure for program */
+    #define    ENOLCK                           77        /* No locks available */
+    #define    ENOSYS                           78        /* Function not implemented */
+    #define    EFTYPE                           79        /* Inappropriate file type or format */
     #define EILSEQ                           42
     #define STRUNCATE                        80
 #endif
@@ -1239,19 +1239,19 @@
     #define _WSAIOW(x,y)                     (IOC_IN|(x)|(y))
     #define _WSAIORW(x,y)                    (IOC_INOUT|(x)|(y))
 
-	#define bswap32(x) _byteswap_ulong(x)
-	#define bswap16(x) _byteswap_ushort(x)
+    #define bswap32(x) _byteswap_ulong(x)
+    #define bswap16(x) _byteswap_ushort(x)
 #ifdef bswap32
-	#undef ntohl
-	#undef htonl
-	#define ntohl(x) bswap32(x)
-	#define htonl(x) bswap32(x)
+    #undef ntohl
+    #undef htonl
+    #define ntohl(x) bswap32(x)
+    #define htonl(x) bswap32(x)
 #endif
 #ifdef bswap16
-	#undef ntohs
-	#undef htons
-	#define ntohs(x) bswap16(x)
-	#define htons(x) bswap16(x)
+    #undef ntohs
+    #undef htons
+    #define ntohs(x) bswap16(x)
+    #define htons(x) bswap16(x)
 #endif
 
     typedef struct _WSANETWORKEVENTS {
@@ -1276,7 +1276,7 @@
         DWORD dwPlatformId;
         WCHAR  szCSDVersion[ 128 ];     // Maintenance string for PSS usage
     } OSVERSIONINFOW, *POSVERSIONINFOW, *LPOSVERSIONINFOW, RTL_OSVERSIONINFOW, *PRTL_OSVERSIONINFOW;
- 	#ifdef UNICODE
+     #ifdef UNICODE
     typedef OSVERSIONINFOW OSVERSIONINFO;
     typedef POSVERSIONINFOW POSVERSIONINFO;
     typedef LPOSVERSIONINFOW LPOSVERSIONINFO;
@@ -1298,7 +1298,7 @@
         } DUMMYUNIONNAME;
         HANDLE  hEvent;
     } OVERLAPPED, *LPOVERLAPPED;
-	
+    
     typedef struct _WSAOVERLAPPED {
         ULONG_PTR Internal;
         ULONG_PTR InternalHigh;
@@ -1749,7 +1749,7 @@
             int       h_length;
         #endif
         char**        h_addr_list;
-		#define h_addr  h_addr_list[0]
+        #define h_addr  h_addr_list[0]
     } HOSTENT, *PHOSTENT, *LPHOSTENT;
     #define hostent boss_fakewin_struct_hostent
 
@@ -1937,7 +1937,7 @@
         int boss_fakewin_getaddrinfo(PCSTR,PCSTR,const ADDRINFOA*,PADDRINFOA*);
         void boss_fakewin_freeaddrinfo(struct addrinfo*);
         const char* boss_fakewin_gai_strerror(int);
-		unsigned long boss_fakewin_inet_addr(const char *cp);
+        unsigned long boss_fakewin_inet_addr(const char *cp);
         int boss_fakewin_bind(SOCKET, const struct boss_fakewin_struct_sockaddr*, int);
         int boss_fakewin_getsockname(SOCKET, struct boss_fakewin_struct_sockaddr*, int*);
         int boss_fakewin_getpeername(SOCKET, struct boss_fakewin_struct_sockaddr*, int*);
@@ -1947,8 +1947,8 @@
         int boss_fakewin_listen(SOCKET s, int backlog);
         struct boss_fakewin_struct_servent* boss_fakewin_getservbyname(const char*, const char*);
         char* boss_fakewin_inet_ntoa(struct boss_fakewin_struct_in_addr in);
-		int boss_fakewin_shutdown(SOCKET, int);
-		void boss_fakewin_exit(int);
+        int boss_fakewin_shutdown(SOCKET, int);
+        void boss_fakewin_exit(int);
         int boss_fakewin_getpid();
         errno_t boss_fakewin_mbstowcs_s(size_t*,wchar_t*,size_t,const char*,size_t);
         errno_t boss_fakewin_wcstombs_s(size_t*,char*,size_t,const wchar_t*,size_t);
@@ -1974,7 +1974,7 @@
         HWND boss_fakewin_FindWindow(LPCTSTR,LPCTSTR);
         BOOL boss_fakewin_FlushConsoleInputBuffer(HANDLE);
         BOOL boss_fakewin_FlushFileBuffers(HANDLE);
-		DWORD boss_fakewin_FormatMessageA(DWORD,LPCVOID,DWORD,DWORD,LPSTR,DWORD,va_list*);
+        DWORD boss_fakewin_FormatMessageA(DWORD,LPCVOID,DWORD,DWORD,LPSTR,DWORD,va_list*);
         DWORD boss_fakewin_FormatMessageW(DWORD,LPCVOID,DWORD,DWORD,LPWSTR,DWORD,va_list*);
         HANDLE boss_fakewin_GetCurrentProcess();
         DWORD boss_fakewin_GetCurrentThreadId();
@@ -2090,39 +2090,39 @@
         BOOL boss_fakewin_GetVersionExA(LPOSVERSIONINFOA);
         BOOL boss_fakewin_GetVersionExW(LPOSVERSIONINFOW);
         int boss_fakewin_WSAIoctl(SOCKET,DWORD,LPVOID,DWORD,LPVOID,DWORD,LPDWORD,LPWSAOVERLAPPED,LPWSAOVERLAPPED_COMPLETION_ROUTINE);
-		PWCHAR boss_fakewin_ldap_err2stringW( ULONG err );
-		PCHAR boss_fakewin_ldap_err2stringA( ULONG err );
-		ULONG boss_fakewin_ldap_get_option( LDAP *ld, int option, void *outvalue );
-		ULONG boss_fakewin_ldap_get_optionW( LDAP *ld, int option, void *outvalue );
+        PWCHAR boss_fakewin_ldap_err2stringW( ULONG err );
+        PCHAR boss_fakewin_ldap_err2stringA( ULONG err );
+        ULONG boss_fakewin_ldap_get_option( LDAP *ld, int option, void *outvalue );
+        ULONG boss_fakewin_ldap_get_optionW( LDAP *ld, int option, void *outvalue );
         ULONG boss_fakewin_ldap_set_option( LDAP *ld, int option, const void *outvalue );
-		ULONG boss_fakewin_ldap_set_optionW( LDAP *ld, int option, const void *outvalue );
-		LDAP* boss_fakewin_ldap_initW(const PWSTR HostName, ULONG PortNumber);
-		LDAP* boss_fakewin_ldap_init(const PSTR HostName, ULONG PortNumber);
+        ULONG boss_fakewin_ldap_set_optionW( LDAP *ld, int option, const void *outvalue );
+        LDAP* boss_fakewin_ldap_initW(const PWSTR HostName, ULONG PortNumber);
+        LDAP* boss_fakewin_ldap_init(const PSTR HostName, ULONG PortNumber);
         ULONG boss_fakewin_ldap_simple_bindW( LDAP *ld, PWSTR dn, PWSTR passwd );
         ULONG boss_fakewin_ldap_simple_bindA( LDAP *ld, PSTR dn, PSTR passwd );
         ULONG boss_fakewin_ldap_simple_bind_sW( LDAP *ld, PWSTR dn, PWSTR passwd );
         ULONG boss_fakewin_ldap_simple_bind_sA( LDAP *ld, PSTR dn, PSTR passwd );
-		ULONG boss_fakewin_ldap_searchW(LDAP *ld, const PWSTR base, ULONG scope, const PWSTR filter, PZPWSTR attrs, LONG attrsonly);
+        ULONG boss_fakewin_ldap_searchW(LDAP *ld, const PWSTR base, ULONG scope, const PWSTR filter, PZPWSTR attrs, LONG attrsonly);
         ULONG boss_fakewin_ldap_searchA(LDAP *ld, const PSTR base, ULONG scope, const PSTR filter, PZPSTR attrs, LONG attrsonly);
         ULONG boss_fakewin_ldap_search_sW(LDAP *ld, const PWSTR base, ULONG scope, const PWSTR filter, PZPWSTR attrs, LONG attrsonly, LDAPMessage** res);
         ULONG boss_fakewin_ldap_search_sA(LDAP *ld, const PSTR base, ULONG scope, const PSTR filter, PZPSTR attrs, LONG attrsonly, LDAPMessage** res);
-		LDAPMessage* boss_fakewin_ldap_first_entry(LDAP *ld, LDAPMessage *res);
-		PWCHAR boss_fakewin_ldap_get_dnW(LDAP *ld, LDAPMessage *entry);
-		PCHAR boss_fakewin_ldap_get_dn(LDAP *ld, LDAPMessage *entry);
-		VOID boss_fakewin_ldap_memfreeW(PWCHAR Block);
-		VOID boss_fakewin_ldap_memfree(PCHAR Block);
-		PWCHAR boss_fakewin_ldap_first_attributeW(LDAP *ld, LDAPMessage* entry, BerElement** ptr);
-		PCHAR boss_fakewin_ldap_first_attribute(LDAP *ld, LDAPMessage* entry, BerElement** ptr);
-		PWCHAR boss_fakewin_ldap_next_attributeW(LDAP *ld, LDAPMessage* entry, BerElement* ptr);
-		PCHAR boss_fakewin_ldap_next_attribute(LDAP *ld, LDAPMessage* entry, BerElement* ptr);
-		struct berval** boss_fakewin_ldap_get_values_lenW(LDAP *ExternalHandle, LDAPMessage* Message, const PWSTR attr);
-		struct berval** boss_fakewin_ldap_get_values_len(LDAP *ExternalHandle, LDAPMessage* Message, const PSTR attr);
-		ULONG boss_fakewin_ldap_value_free_len(struct berval **vals);
-		LDAPMessage* boss_fakewin_ldap_next_entry(LDAP *ld, LDAPMessage *entry);
-		ULONG boss_fakewin_ldap_msgfree(LDAPMessage *res);
-		ULONG boss_fakewin_ldap_unbind(LDAP *ld);
-		ULONG boss_fakewin_ldap_unbind_s(LDAP *ld);
-		VOID boss_fakewin_ber_free(BerElement *pBerElement, INT fbuf);
+        LDAPMessage* boss_fakewin_ldap_first_entry(LDAP *ld, LDAPMessage *res);
+        PWCHAR boss_fakewin_ldap_get_dnW(LDAP *ld, LDAPMessage *entry);
+        PCHAR boss_fakewin_ldap_get_dn(LDAP *ld, LDAPMessage *entry);
+        VOID boss_fakewin_ldap_memfreeW(PWCHAR Block);
+        VOID boss_fakewin_ldap_memfree(PCHAR Block);
+        PWCHAR boss_fakewin_ldap_first_attributeW(LDAP *ld, LDAPMessage* entry, BerElement** ptr);
+        PCHAR boss_fakewin_ldap_first_attribute(LDAP *ld, LDAPMessage* entry, BerElement** ptr);
+        PWCHAR boss_fakewin_ldap_next_attributeW(LDAP *ld, LDAPMessage* entry, BerElement* ptr);
+        PCHAR boss_fakewin_ldap_next_attribute(LDAP *ld, LDAPMessage* entry, BerElement* ptr);
+        struct berval** boss_fakewin_ldap_get_values_lenW(LDAP *ExternalHandle, LDAPMessage* Message, const PWSTR attr);
+        struct berval** boss_fakewin_ldap_get_values_len(LDAP *ExternalHandle, LDAPMessage* Message, const PSTR attr);
+        ULONG boss_fakewin_ldap_value_free_len(struct berval **vals);
+        LDAPMessage* boss_fakewin_ldap_next_entry(LDAP *ld, LDAPMessage *entry);
+        ULONG boss_fakewin_ldap_msgfree(LDAPMessage *res);
+        ULONG boss_fakewin_ldap_unbind(LDAP *ld);
+        ULONG boss_fakewin_ldap_unbind_s(LDAP *ld);
+        VOID boss_fakewin_ber_free(BerElement *pBerElement, INT fbuf);
 
     #ifdef __cplusplus
         }

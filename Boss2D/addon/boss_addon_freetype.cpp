@@ -222,7 +222,7 @@ namespace BOSS
 extern "C++"
 template <typename T> inline T* cplusplus_typeof( T*, void *v )
 {
-	return static_cast <T*> ( v );
+    return static_cast <T*> ( v );
 }
 
 #define FT_RENDER_POOL_SIZE  16384L
@@ -901,23 +901,23 @@ FT_ERR_CAT( FT_ERR_PREFIX, Max ) };
 #define TTAG_wOFF  FT_MAKE_TAG( 'w', 'O', 'F', 'F' )
 
 #if FT_UINT_MAX == 0xFFFFUL
-	#define FT_SIZEOF_INT  (16 / FT_CHAR_BIT)
+    #define FT_SIZEOF_INT  (16 / FT_CHAR_BIT)
 #elif FT_UINT_MAX == 0xFFFFFFFFUL
-	#define FT_SIZEOF_INT  (32 / FT_CHAR_BIT)
+    #define FT_SIZEOF_INT  (32 / FT_CHAR_BIT)
 #elif FT_UINT_MAX > 0xFFFFFFFFUL && FT_UINT_MAX == 0xFFFFFFFFFFFFFFFFUL
-	#define FT_SIZEOF_INT  (64 / FT_CHAR_BIT)
+    #define FT_SIZEOF_INT  (64 / FT_CHAR_BIT)
 #else
-	#error "Unsupported size of int type!"
+    #error "Unsupported size of int type!"
 #endif
 
 #if FT_ULONG_MAX == 0xFFFFFFFFUL
-	#define FT_SIZEOF_LONG  (32 / FT_CHAR_BIT)
+    #define FT_SIZEOF_LONG  (32 / FT_CHAR_BIT)
 #elif FT_ULONG_MAX > 0xFFFFFFFFUL && FT_ULONG_MAX == 0xFFFFFFFFFFUL
-	#define FT_SIZEOF_LONG  (32 / FT_CHAR_BIT)
+    #define FT_SIZEOF_LONG  (32 / FT_CHAR_BIT)
 #elif FT_ULONG_MAX > 0xFFFFFFFFUL && FT_ULONG_MAX == 0xFFFFFFFFFFFFFFFFUL
-	#define FT_SIZEOF_LONG  (64 / FT_CHAR_BIT)
+    #define FT_SIZEOF_LONG  (64 / FT_CHAR_BIT)
 #else
-	#error "Unsupported size of long type!"
+    #error "Unsupported size of long type!"
 #endif
 
 #define FT_Stream_FTell( stream )  \
@@ -929,78 +929,78 @@ FT_ERR_CAT( FT_ERR_PREFIX, Max ) };
 #define GX_PT_POINT_RUN_COUNT_MASK  0x7F
 
 #ifndef FT_UNUSED
-	#define FT_UNUSED(arg)  ( (arg) = (arg) )
+    #define FT_UNUSED(arg)  ( (arg) = (arg) )
 #endif
 
 #if defined( __APPLE__ ) || ( defined( __MWERKS__ ) && defined( macintosh ) )
-	#include <errno.h>
-	#ifdef ECANCELED
-		#include "AvailabilityMacros.h"
-	#endif
-	#if defined( __LP64__ ) && ( MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4 )
-		#undef FT_MACINTOSH
-	#endif
+    #include <errno.h>
+    #ifdef ECANCELED
+        #include "AvailabilityMacros.h"
+    #endif
+    #if defined( __LP64__ ) && ( MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4 )
+        #undef FT_MACINTOSH
+    #endif
 #elif defined( __SC__ ) || defined( __MRC__ )
-	#include "ConditionalMacros.h"
-	#if TARGET_OS_MAC
-		#define FT_MACINTOSH 1
-	#endif
+    #include "ConditionalMacros.h"
+    #if TARGET_OS_MAC
+        #define FT_MACINTOSH 1
+    #endif
 #endif
 
 typedef signed short FT_Int16;
 typedef unsigned short FT_UInt16;
 
 #if FT_SIZEOF_INT == (32 / FT_CHAR_BIT)
-	typedef signed int      FT_Int32;
-	typedef unsigned int    FT_UInt32;
+    typedef signed int      FT_Int32;
+    typedef unsigned int    FT_UInt32;
 #elif FT_SIZEOF_LONG == (32 / FT_CHAR_BIT)
-	typedef signed long     FT_Int32;
-	typedef unsigned long   FT_UInt32;
+    typedef signed long     FT_Int32;
+    typedef unsigned long   FT_UInt32;
 #else
-	#error "no 32bit type found -- please check your configuration files"
+    #error "no 32bit type found -- please check your configuration files"
 #endif
 
 #if FT_SIZEOF_INT >= (32 / FT_CHAR_BIT)
-	typedef int            FT_Fast;
-	typedef unsigned int   FT_UFast;
+    typedef int            FT_Fast;
+    typedef unsigned int   FT_UFast;
 #elif FT_SIZEOF_LONG >= (32 / FT_CHAR_BIT)
-	typedef long           FT_Fast;
-	typedef unsigned long  FT_UFast;
+    typedef long           FT_Fast;
+    typedef unsigned long  FT_UFast;
 #endif
 
 #if FT_SIZEOF_LONG == (64 / FT_CHAR_BIT)
-	#define FT_LONG64
-	#define FT_INT64   long
-	#define FT_UINT64  unsigned long
+    #define FT_LONG64
+    #define FT_INT64   long
+    #define FT_UINT64  unsigned long
 #elif defined( _MSC_VER ) && _MSC_VER >= 900
-	#define FT_LONG64
-	#define FT_INT64   __int64
-	#define FT_UINT64  unsigned __int64
+    #define FT_LONG64
+    #define FT_INT64   __int64
+    #define FT_UINT64  unsigned __int64
 #elif defined( __BORLANDC__ )
-	#define FT_LONG64
-	#define FT_INT64   __int64
-	#define FT_UINT64  unsigned __int64
+    #define FT_LONG64
+    #define FT_INT64   __int64
+    #define FT_UINT64  unsigned __int64
 #elif defined( __WATCOMC__ )
 #elif defined( __MWERKS__ )
-	#define FT_LONG64
-	#define FT_INT64   long long int
-	#define FT_UINT64  unsigned long long int
+    #define FT_LONG64
+    #define FT_INT64   long long int
+    #define FT_UINT64  unsigned long long int
 #elif defined( __GNUC__ )
-	#define FT_LONG64
-	#define FT_INT64   long long int
-	#define FT_UINT64  unsigned long long int
+    #define FT_LONG64
+    #define FT_INT64   long long int
+    #define FT_UINT64  unsigned long long int
 #endif
 
 #if defined( FT_LONG64 ) && !defined( FT_CONFIG_OPTION_FORCE_INT64 )
-	#ifdef __STDC__
-		#undef FT_LONG64
-		#undef FT_INT64
-	#endif
+    #ifdef __STDC__
+        #undef FT_LONG64
+        #undef FT_INT64
+    #endif
 #endif
 
 #ifdef FT_LONG64
-	typedef FT_INT64   FT_Int64;
-	typedef FT_UINT64  FT_UInt64;
+    typedef FT_INT64   FT_Int64;
+    typedef FT_UINT64  FT_UInt64;
 #endif
 
 typedef unsigned char FT_Bool;
@@ -1062,26 +1062,26 @@ typedef const struct TT_CMap_ClassRec_*  TT_CMap_Class;
 
 typedef struct FT_Data_
 {
-	const FT_Byte* pointer;
-	FT_Int length;
+    const FT_Byte* pointer;
+    FT_Int length;
 } FT_Data;
 
 typedef struct FT_Parameter_
 {
-	FT_ULong tag;
-	FT_Pointer data;
+    FT_ULong tag;
+    FT_Pointer data;
 } FT_Parameter;
 
 typedef struct FT_Vector_
 {
-	FT_Pos  x;
-	FT_Pos  y;
+    FT_Pos  x;
+    FT_Pos  y;
 } FT_Vector;
 
 typedef struct FT_Matrix_
 {
-	FT_Fixed xx, xy;
-	FT_Fixed yx, yy;
+    FT_Fixed xx, xy;
+    FT_Fixed yx, yy;
 } FT_Matrix;
 
 typedef struct  TT_CMapInfo_
@@ -1103,20 +1103,20 @@ typedef FT_UInt32 * (*FT_CMap_VariantCharListFunc)( FT_CMap    cmap, FT_Memory  
 
 typedef struct  FT_CMap_ClassRec_
 {
-	FT_ULong               size;
-	FT_CMap_InitFunc       init;
-	FT_CMap_DoneFunc       done;
-	FT_CMap_CharIndexFunc  char_index;
-	FT_CMap_CharNextFunc   char_next;
+    FT_ULong               size;
+    FT_CMap_InitFunc       init;
+    FT_CMap_DoneFunc       done;
+    FT_CMap_CharIndexFunc  char_index;
+    FT_CMap_CharNextFunc   char_next;
 
-	/* Subsequent entries are special ones for format 14 -- the variant */
-	/* selector subtable which behaves like no other                    */
+    /* Subsequent entries are special ones for format 14 -- the variant */
+    /* selector subtable which behaves like no other                    */
 
-	FT_CMap_CharVarIndexFunc      char_var_index;
-	FT_CMap_CharVarIsDefaultFunc  char_var_default;
-	FT_CMap_VariantListFunc       variant_list;
-	FT_CMap_CharVariantListFunc   charvariant_list;
-	FT_CMap_VariantCharListFunc   variantchar_list;
+    FT_CMap_CharVarIndexFunc      char_var_index;
+    FT_CMap_CharVarIsDefaultFunc  char_var_default;
+    FT_CMap_VariantListFunc       variant_list;
+    FT_CMap_CharVariantListFunc   charvariant_list;
+    FT_CMap_VariantCharListFunc   variantchar_list;
 
 } FT_CMap_ClassRec;
 
@@ -1181,293 +1181,293 @@ typedef void (*FT_List_Destructor)(FT_Memory memory, void* data, void* user);
 
 struct FT_BBox_
 {
-	FT_Pos  xMin, yMin;
-	FT_Pos  xMax, yMax;
+    FT_Pos  xMin, yMin;
+    FT_Pos  xMax, yMax;
 };
 
 struct FT_Span_
 {
-	short           x;
-	unsigned short  len;
-	unsigned char   coverage;
+    short           x;
+    unsigned short  len;
+    unsigned char   coverage;
 };
 
 typedef struct  FT_Slot_InternalRec_
 {
-	FT_GlyphLoader  loader;
-	FT_UInt         flags;
-	FT_Bool         glyph_transformed;
-	FT_Matrix       glyph_matrix;
-	FT_Vector       glyph_delta;
-	void*           glyph_hints;
+    FT_GlyphLoader  loader;
+    FT_UInt         flags;
+    FT_Bool         glyph_transformed;
+    FT_Matrix       glyph_matrix;
+    FT_Vector       glyph_delta;
+    void*           glyph_hints;
 } FT_GlyphSlot_InternalRec;
 
 typedef enum  FT_Glyph_Format_
 {
-	FT_IMAGE_TAG(FT_GLYPH_FORMAT_NONE, 0, 0, 0, 0),
-	FT_IMAGE_TAG(FT_GLYPH_FORMAT_COMPOSITE, 'c', 'o', 'm', 'p'),
-	FT_IMAGE_TAG(FT_GLYPH_FORMAT_BITMAP, 'b', 'i', 't', 's'),
-	FT_IMAGE_TAG(FT_GLYPH_FORMAT_OUTLINE, 'o', 'u', 't', 'l'),
-	FT_IMAGE_TAG(FT_GLYPH_FORMAT_PLOTTER, 'p', 'l', 'o', 't')
+    FT_IMAGE_TAG(FT_GLYPH_FORMAT_NONE, 0, 0, 0, 0),
+    FT_IMAGE_TAG(FT_GLYPH_FORMAT_COMPOSITE, 'c', 'o', 'm', 'p'),
+    FT_IMAGE_TAG(FT_GLYPH_FORMAT_BITMAP, 'b', 'i', 't', 's'),
+    FT_IMAGE_TAG(FT_GLYPH_FORMAT_OUTLINE, 'o', 'u', 't', 'l'),
+    FT_IMAGE_TAG(FT_GLYPH_FORMAT_PLOTTER, 'p', 'l', 'o', 't')
 } FT_Glyph_Format;
 
 typedef struct  FT_Raster_Funcs_
 {
-	FT_Glyph_Format        glyph_format;
-	FT_Raster_NewFunc      raster_new;
-	FT_Raster_ResetFunc    raster_reset;
-	FT_Raster_SetModeFunc  raster_set_mode;
-	FT_Raster_RenderFunc   raster_render;
-	FT_Raster_DoneFunc     raster_done;
+    FT_Glyph_Format        glyph_format;
+    FT_Raster_NewFunc      raster_new;
+    FT_Raster_ResetFunc    raster_reset;
+    FT_Raster_SetModeFunc  raster_set_mode;
+    FT_Raster_RenderFunc   raster_render;
+    FT_Raster_DoneFunc     raster_done;
 } FT_Raster_Funcs;
 
 typedef struct  FT_Bitmap_
 {
-	int             rows;
-	int             width;
-	int             pitch;
-	unsigned char*  buffer;
-	short           num_grays;
-	char            pixel_mode;
-	char            palette_mode;
-	void*           palette;
+    int             rows;
+    int             width;
+    int             pitch;
+    unsigned char*  buffer;
+    short           num_grays;
+    char            pixel_mode;
+    char            palette_mode;
+    void*           palette;
 } FT_Bitmap;
 
 struct  FT_Raster_Params_
 {
-	const FT_Bitmap*        target;
-	const void*             source;
-	int                     flags;
-	FT_SpanFunc             gray_spans;
-	FT_SpanFunc             black_spans;  /* doesn't work! */
-	FT_Raster_BitTest_Func  bit_test;     /* doesn't work! */
-	FT_Raster_BitSet_Func   bit_set;      /* doesn't work! */
-	void*                   user;
-	FT_BBox                 clip_box;
+    const FT_Bitmap*        target;
+    const void*             source;
+    int                     flags;
+    FT_SpanFunc             gray_spans;
+    FT_SpanFunc             black_spans;  /* doesn't work! */
+    FT_Raster_BitTest_Func  bit_test;     /* doesn't work! */
+    FT_Raster_BitSet_Func   bit_set;      /* doesn't work! */
+    void*                   user;
+    FT_BBox                 clip_box;
 };
 
 typedef struct  FT_Module_Class_
 {
-	FT_ULong               module_flags;
-	FT_Long                module_size;
-	const FT_String*       module_name;
-	FT_Fixed               module_version;
-	FT_Fixed               module_requires;
-	const void*            module_interface;
-	FT_Module_Constructor  module_init;
-	FT_Module_Destructor   module_done;
-	FT_Module_Requester    get_interface;
+    FT_ULong               module_flags;
+    FT_Long                module_size;
+    const FT_String*       module_name;
+    FT_Fixed               module_version;
+    FT_Fixed               module_requires;
+    const void*            module_interface;
+    FT_Module_Constructor  module_init;
+    FT_Module_Destructor   module_done;
+    FT_Module_Requester    get_interface;
 } FT_Module_Class;
 
 typedef struct  FT_Driver_ClassRec_
 {
-	FT_Module_Class          root;
-	FT_Long                  face_object_size;
-	FT_Long                  size_object_size;
-	FT_Long                  slot_object_size;
-	FT_Face_InitFunc         init_face;
-	FT_Face_DoneFunc         done_face;
-	FT_Size_InitFunc         init_size;
-	FT_Size_DoneFunc         done_size;
-	FT_Slot_InitFunc         init_slot;
-	FT_Slot_DoneFunc         done_slot;
-	FT_Slot_LoadFunc         load_glyph;
-	FT_Face_GetKerningFunc   get_kerning;
-	FT_Face_AttachFunc       attach_file;
-	FT_Face_GetAdvancesFunc  get_advances;
-	/* since version 2.2 */
-	FT_Size_RequestFunc      request_size;
-	FT_Size_SelectFunc       select_size;
+    FT_Module_Class          root;
+    FT_Long                  face_object_size;
+    FT_Long                  size_object_size;
+    FT_Long                  slot_object_size;
+    FT_Face_InitFunc         init_face;
+    FT_Face_DoneFunc         done_face;
+    FT_Size_InitFunc         init_size;
+    FT_Size_DoneFunc         done_size;
+    FT_Slot_InitFunc         init_slot;
+    FT_Slot_DoneFunc         done_slot;
+    FT_Slot_LoadFunc         load_glyph;
+    FT_Face_GetKerningFunc   get_kerning;
+    FT_Face_AttachFunc       attach_file;
+    FT_Face_GetAdvancesFunc  get_advances;
+    /* since version 2.2 */
+    FT_Size_RequestFunc      request_size;
+    FT_Size_SelectFunc       select_size;
 } FT_Driver_ClassRec, *FT_Driver_Class;
 
 typedef struct  FT_Renderer_Class_
 {
-	FT_Module_Class            root;
-	FT_Glyph_Format            glyph_format;
-	FT_Renderer_RenderFunc     render_glyph;
-	FT_Renderer_TransformFunc  transform_glyph;
-	FT_Renderer_GetCBoxFunc    get_glyph_cbox;
-	FT_Renderer_SetModeFunc    set_mode;
-	FT_Raster_Funcs*           raster_class;
+    FT_Module_Class            root;
+    FT_Glyph_Format            glyph_format;
+    FT_Renderer_RenderFunc     render_glyph;
+    FT_Renderer_TransformFunc  transform_glyph;
+    FT_Renderer_GetCBoxFunc    get_glyph_cbox;
+    FT_Renderer_SetModeFunc    set_mode;
+    FT_Raster_Funcs*           raster_class;
 } FT_Renderer_Class;
 
 typedef struct FT_Glyph_Class_
 {
-	FT_Long                 glyph_size;
-	FT_Glyph_Format         glyph_format;
-	FT_Glyph_InitFunc       glyph_init;
-	FT_Glyph_DoneFunc       glyph_done;
-	FT_Glyph_CopyFunc       glyph_copy;
-	FT_Glyph_TransformFunc  glyph_transform;
-	FT_Glyph_GetBBoxFunc    glyph_bbox;
-	FT_Glyph_PrepareFunc    glyph_prepare;
+    FT_Long                 glyph_size;
+    FT_Glyph_Format         glyph_format;
+    FT_Glyph_InitFunc       glyph_init;
+    FT_Glyph_DoneFunc       glyph_done;
+    FT_Glyph_CopyFunc       glyph_copy;
+    FT_Glyph_TransformFunc  glyph_transform;
+    FT_Glyph_GetBBoxFunc    glyph_bbox;
+    FT_Glyph_PrepareFunc    glyph_prepare;
 } FT_Glyph_Class;
 extern const FT_Glyph_Class  ft_outline_glyph_class;
 
 typedef struct  FT_GlyphRec_
 {
-	FT_Library             library;
-	const FT_Glyph_Class*  clazz;
-	FT_Glyph_Format        format;
-	FT_Vector              advance;
+    FT_Library             library;
+    const FT_Glyph_Class*  clazz;
+    FT_Glyph_Format        format;
+    FT_Vector              advance;
 } FT_GlyphRec;
 
 typedef struct  FT_Outline_
 {
-	short       n_contours;      /* number of contours in glyph        */
-	short       n_points;        /* number of points in the glyph      */
-	FT_Vector*  points;          /* the outline's points               */
-	char*       tags;            /* the points flags                   */
-	short*      contours;        /* the contour end points             */
-	int         flags;           /* outline masks                      */
+    short       n_contours;      /* number of contours in glyph        */
+    short       n_points;        /* number of points in the glyph      */
+    FT_Vector*  points;          /* the outline's points               */
+    char*       tags;            /* the points flags                   */
+    short*      contours;        /* the contour end points             */
+    int         flags;           /* outline masks                      */
 } FT_Outline;
 
 typedef struct  FT_BitmapGlyphRec_
 {
-	FT_GlyphRec  root;
-	FT_Int       left;
-	FT_Int       top;
-	FT_Bitmap    bitmap;
+    FT_GlyphRec  root;
+    FT_Int       left;
+    FT_Int       top;
+    FT_Bitmap    bitmap;
 } FT_BitmapGlyphRec;
 
 typedef struct  FT_OutlineGlyphRec_
 {
-	FT_GlyphRec  root;
-	FT_Outline   outline;
+    FT_GlyphRec  root;
+    FT_Outline   outline;
 } FT_OutlineGlyphRec;
 
 typedef struct  FT_SubGlyphRec_
 {
-	FT_Int     index;
-	FT_UShort  flags;
-	FT_Int     arg1;
-	FT_Int     arg2;
-	FT_Matrix  transform;
+    FT_Int     index;
+    FT_UShort  flags;
+    FT_Int     arg1;
+    FT_Int     arg2;
+    FT_Matrix  transform;
 } FT_SubGlyphRec;
 
 typedef struct FT_MemoryRec_
 {
-	void*            user;
-	FT_Alloc_Func    alloc;
-	FT_Free_Func     free;
-	FT_Realloc_Func  realloc;
+    void*            user;
+    FT_Alloc_Func    alloc;
+    FT_Free_Func     free;
+    FT_Realloc_Func  realloc;
 } FT_MemoryRec;
 
 typedef struct FT_ListNodeRec_
 {
-	FT_ListNode prev;
-	FT_ListNode next;
-	void* data;
+    FT_ListNode prev;
+    FT_ListNode next;
+    void* data;
 } FT_ListNodeRec;
 
 typedef struct FT_ListRec_
 {
-	FT_ListNode head;
-	FT_ListNode tail;
+    FT_ListNode head;
+    FT_ListNode tail;
 } FT_ListRec;
 
 #define FT_MAX_MODULES  32
 
 typedef struct FT_LibraryRec_
 {
-	FT_Memory          memory;
-	FT_Int             version_major;
-	FT_Int             version_minor;
-	FT_Int             version_patch;
-	FT_UInt            num_modules;
-	FT_Module          modules[FT_MAX_MODULES];
-	FT_ListRec         renderers;
-	FT_Renderer        cur_renderer;
-	FT_Module          auto_hinter;
-	FT_Byte*           raster_pool;
-	FT_ULong           raster_pool_size;
-	FT_DebugHook_Func  debug_hooks[4];
-	#ifdef FT_CONFIG_OPTION_SUBPIXEL_RENDERING
-		FT_LcdFilter             lcd_filter;
-		FT_Int                   lcd_extra;        /* number of extra pixels */
-		FT_Byte                  lcd_weights[7];   /* filter weights, if any */
-		FT_Bitmap_LcdFilterFunc  lcd_filter_func;  /* filtering callback     */
-	#endif
-	#ifdef FT_CONFIG_OPTION_PIC
-		FT_PIC_Container         pic_container;
-	#endif
-	FT_Int             refcount;
+    FT_Memory          memory;
+    FT_Int             version_major;
+    FT_Int             version_minor;
+    FT_Int             version_patch;
+    FT_UInt            num_modules;
+    FT_Module          modules[FT_MAX_MODULES];
+    FT_ListRec         renderers;
+    FT_Renderer        cur_renderer;
+    FT_Module          auto_hinter;
+    FT_Byte*           raster_pool;
+    FT_ULong           raster_pool_size;
+    FT_DebugHook_Func  debug_hooks[4];
+    #ifdef FT_CONFIG_OPTION_SUBPIXEL_RENDERING
+        FT_LcdFilter             lcd_filter;
+        FT_Int                   lcd_extra;        /* number of extra pixels */
+        FT_Byte                  lcd_weights[7];   /* filter weights, if any */
+        FT_Bitmap_LcdFilterFunc  lcd_filter_func;  /* filtering callback     */
+    #endif
+    #ifdef FT_CONFIG_OPTION_PIC
+        FT_PIC_Container         pic_container;
+    #endif
+    FT_Int             refcount;
 } FT_LibraryRec;
 
 typedef union FT_StreamDesc_
 {
-	long   value;
-	void*  pointer;
+    long   value;
+    void*  pointer;
 } FT_StreamDesc;
 
 typedef struct FT_StreamRec_
 {
-	unsigned char*       base;
-	unsigned long        size;
-	unsigned long        pos;
-	FT_StreamDesc        descriptor;
-	FT_StreamDesc        pathname;
-	FT_Stream_IoFunc     read;
-	FT_Stream_CloseFunc  close;
-	FT_Memory            memory;
-	unsigned char*       cursor;
-	unsigned char*       limit;
+    unsigned char*       base;
+    unsigned long        size;
+    unsigned long        pos;
+    FT_StreamDesc        descriptor;
+    FT_StreamDesc        pathname;
+    FT_Stream_IoFunc     read;
+    FT_Stream_CloseFunc  close;
+    FT_Memory            memory;
+    unsigned char*       cursor;
+    unsigned char*       limit;
 } FT_StreamRec;
 
 typedef struct  FT_ModuleRec_
 {
-	FT_Module_Class*  clazz;
-	FT_Library        library;
-	FT_Memory         memory;
+    FT_Module_Class*  clazz;
+    FT_Library        library;
+    FT_Memory         memory;
 } FT_ModuleRec;
 
 typedef struct  FT_DriverRec_
 {
-	FT_ModuleRec     root;
-	FT_Driver_Class  clazz;
-	FT_ListRec       faces_list;
-	FT_GlyphLoader   glyph_loader;
+    FT_ModuleRec     root;
+    FT_Driver_Class  clazz;
+    FT_ListRec       faces_list;
+    FT_GlyphLoader   glyph_loader;
 } FT_DriverRec;
 
 typedef struct  FT_GlyphLoadRec_
 {
-	FT_Outline   outline;       /* outline                   */
-	FT_Vector*   extra_points;  /* extra points table        */
-	FT_Vector*   extra_points2; /* second extra points table */
-	FT_UInt      num_subglyphs; /* number of subglyphs       */
-	FT_SubGlyph  subglyphs;     /* subglyphs                 */
+    FT_Outline   outline;       /* outline                   */
+    FT_Vector*   extra_points;  /* extra points table        */
+    FT_Vector*   extra_points2; /* second extra points table */
+    FT_UInt      num_subglyphs; /* number of subglyphs       */
+    FT_SubGlyph  subglyphs;     /* subglyphs                 */
 } FT_GlyphLoadRec, *FT_GlyphLoad;
 
 typedef struct  FT_GlyphLoaderRec_
 {
-	FT_Memory        memory;
-	FT_UInt          max_points;
-	FT_UInt          max_contours;
-	FT_UInt          max_subglyphs;
-	FT_Bool          use_extra;
-	FT_GlyphLoadRec  base;
-	FT_GlyphLoadRec  current;
-	void*            other;            /* for possible future extension? */
+    FT_Memory        memory;
+    FT_UInt          max_points;
+    FT_UInt          max_contours;
+    FT_UInt          max_subglyphs;
+    FT_Bool          use_extra;
+    FT_GlyphLoadRec  base;
+    FT_GlyphLoadRec  current;
+    void*            other;            /* for possible future extension? */
 } FT_GlyphLoaderRec;
 
 typedef struct  FT_RendererRec_
 {
-	FT_ModuleRec            root;
-	FT_Renderer_Class*      clazz;
-	FT_Glyph_Format         glyph_format;
-	FT_Glyph_Class          glyph_class;
-	FT_Raster               raster;
-	FT_Raster_RenderFunc    raster_render;
-	FT_Renderer_RenderFunc  render;
+    FT_ModuleRec            root;
+    FT_Renderer_Class*      clazz;
+    FT_Glyph_Format         glyph_format;
+    FT_Glyph_Class          glyph_class;
+    FT_Raster               raster;
+    FT_Raster_RenderFunc    raster_render;
+    FT_Renderer_RenderFunc  render;
 } FT_RendererRec;
 
 typedef struct  FT_Bitmap_Size_
 {
-	FT_Short  height;
-	FT_Short  width;
-	FT_Pos    size;
-	FT_Pos    x_ppem;
-	FT_Pos    y_ppem;
+    FT_Short  height;
+    FT_Short  width;
+    FT_Pos    size;
+    FT_Pos    x_ppem;
+    FT_Pos    y_ppem;
 } FT_Bitmap_Size;
 
 typedef struct  FT_ServiceCacheRec_
@@ -1522,177 +1522,177 @@ typedef FT_Incremental_InterfaceRec*   FT_Incremental_Interface;
 
 typedef struct  FT_Face_InternalRec_
 {
-	FT_Matrix           transform_matrix;
-	FT_Vector           transform_delta;
-	FT_Int              transform_flags;
-	FT_ServiceCacheRec  services;
+    FT_Matrix           transform_matrix;
+    FT_Vector           transform_delta;
+    FT_Int              transform_flags;
+    FT_ServiceCacheRec  services;
 #ifdef FT_CONFIG_OPTION_INCREMENTAL
-	FT_Incremental_InterfaceRec*  incremental_interface;
+    FT_Incremental_InterfaceRec*  incremental_interface;
 #endif
-	FT_Bool             ignore_unpatented_hinter;
-	FT_Int              refcount;
+    FT_Bool             ignore_unpatented_hinter;
+    FT_Int              refcount;
 } FT_Face_InternalRec;
 
 typedef struct FT_Generic_
 {
-	void* data;
-	FT_Generic_Finalizer finalizer;
+    void* data;
+    FT_Generic_Finalizer finalizer;
 } FT_Generic;
 
 typedef struct  FT_FaceRec_
 {
-	FT_Long           num_faces;
-	FT_Long           face_index;
-	FT_Long           face_flags;
-	FT_Long           style_flags;
-	FT_Long           num_glyphs;
-	FT_String*        family_name;
-	FT_String*        style_name;
-	FT_Int            num_fixed_sizes;
-	FT_Bitmap_Size*   available_sizes;
-	FT_Int            num_charmaps;
-	FT_CharMap*       charmaps;
-	FT_Generic        generic;
-	/*# The following member variables (down to `underline_thickness') */
-	/*# are only relevant to scalable outlines; cf. @FT_Bitmap_Size    */
-	/*# for bitmap fonts.                                              */
-	FT_BBox           bbox;
-	FT_UShort         units_per_EM;
-	FT_Short          ascender;
-	FT_Short          descender;
-	FT_Short          height;
-	FT_Short          max_advance_width;
-	FT_Short          max_advance_height;
-	FT_Short          underline_position;
-	FT_Short          underline_thickness;
-	FT_GlyphSlot      glyph;
-	FT_Size           size;
-	FT_CharMap        charmap;
-	/*@private begin */
-	FT_Driver         driver;
-	FT_Memory         memory;
-	FT_Stream         stream;
-	FT_ListRec        sizes_list;
-	FT_Generic        autohint;   /* face-specific auto-hinter data */
-	void*             extensions; /* unused                         */
-	FT_Face_Internal  internal;
-	/*@private end */
+    FT_Long           num_faces;
+    FT_Long           face_index;
+    FT_Long           face_flags;
+    FT_Long           style_flags;
+    FT_Long           num_glyphs;
+    FT_String*        family_name;
+    FT_String*        style_name;
+    FT_Int            num_fixed_sizes;
+    FT_Bitmap_Size*   available_sizes;
+    FT_Int            num_charmaps;
+    FT_CharMap*       charmaps;
+    FT_Generic        generic;
+    /*# The following member variables (down to `underline_thickness') */
+    /*# are only relevant to scalable outlines; cf. @FT_Bitmap_Size    */
+    /*# for bitmap fonts.                                              */
+    FT_BBox           bbox;
+    FT_UShort         units_per_EM;
+    FT_Short          ascender;
+    FT_Short          descender;
+    FT_Short          height;
+    FT_Short          max_advance_width;
+    FT_Short          max_advance_height;
+    FT_Short          underline_position;
+    FT_Short          underline_thickness;
+    FT_GlyphSlot      glyph;
+    FT_Size           size;
+    FT_CharMap        charmap;
+    /*@private begin */
+    FT_Driver         driver;
+    FT_Memory         memory;
+    FT_Stream         stream;
+    FT_ListRec        sizes_list;
+    FT_Generic        autohint;   /* face-specific auto-hinter data */
+    void*             extensions; /* unused                         */
+    FT_Face_Internal  internal;
+    /*@private end */
 } FT_FaceRec;
 
 typedef struct  FT_Size_Metrics_
 {
-	FT_UShort  x_ppem;      /* horizontal pixels per EM               */
-	FT_UShort  y_ppem;      /* vertical pixels per EM                 */
-	FT_Fixed   x_scale;     /* scaling values used to convert font    */
-	FT_Fixed   y_scale;     /* units to 26.6 fractional pixels        */
-	FT_Pos     ascender;    /* ascender in 26.6 frac. pixels          */
-	FT_Pos     descender;   /* descender in 26.6 frac. pixels         */
-	FT_Pos     height;      /* text height in 26.6 frac. pixels       */
-	FT_Pos     max_advance; /* max horizontal advance, in 26.6 pixels */
+    FT_UShort  x_ppem;      /* horizontal pixels per EM               */
+    FT_UShort  y_ppem;      /* vertical pixels per EM                 */
+    FT_Fixed   x_scale;     /* scaling values used to convert font    */
+    FT_Fixed   y_scale;     /* units to 26.6 fractional pixels        */
+    FT_Pos     ascender;    /* ascender in 26.6 frac. pixels          */
+    FT_Pos     descender;   /* descender in 26.6 frac. pixels         */
+    FT_Pos     height;      /* text height in 26.6 frac. pixels       */
+    FT_Pos     max_advance; /* max horizontal advance, in 26.6 pixels */
 } FT_Size_Metrics;
 
 typedef struct  FT_Size_InternalRec_
 {
-	/* empty */
+    /* empty */
 } FT_Size_InternalRec;
 
 typedef struct  FT_SizeRec_
 {
-	FT_Face           face;      /* parent face object              */
-	FT_Generic        generic;   /* generic pointer for client uses */
-	FT_Size_Metrics   metrics;   /* size metrics                    */
-	FT_Size_Internal  internal;
+    FT_Face           face;      /* parent face object              */
+    FT_Generic        generic;   /* generic pointer for client uses */
+    FT_Size_Metrics   metrics;   /* size metrics                    */
+    FT_Size_Internal  internal;
 } FT_SizeRec;
 
 typedef enum  FT_Encoding_
 {
-	FT_ENC_TAG(FT_ENCODING_NONE, 0, 0, 0, 0),
-	FT_ENC_TAG(FT_ENCODING_MS_SYMBOL, 's', 'y', 'm', 'b'),
-	FT_ENC_TAG(FT_ENCODING_UNICODE, 'u', 'n', 'i', 'c'),
-	FT_ENC_TAG(FT_ENCODING_SJIS, 's', 'j', 'i', 's'),
-	FT_ENC_TAG(FT_ENCODING_GB2312, 'g', 'b', ' ', ' '),
-	FT_ENC_TAG(FT_ENCODING_BIG5, 'b', 'i', 'g', '5'),
-	FT_ENC_TAG(FT_ENCODING_WANSUNG, 'w', 'a', 'n', 's'),
-	FT_ENC_TAG(FT_ENCODING_JOHAB, 'j', 'o', 'h', 'a'),
-	FT_ENCODING_MS_SJIS = FT_ENCODING_SJIS,
-	FT_ENCODING_MS_GB2312 = FT_ENCODING_GB2312,
-	FT_ENCODING_MS_BIG5 = FT_ENCODING_BIG5,
-	FT_ENCODING_MS_WANSUNG = FT_ENCODING_WANSUNG,
-	FT_ENCODING_MS_JOHAB = FT_ENCODING_JOHAB,
-	FT_ENC_TAG(FT_ENCODING_ADOBE_STANDARD, 'A', 'D', 'O', 'B'),
-	FT_ENC_TAG(FT_ENCODING_ADOBE_EXPERT, 'A', 'D', 'B', 'E'),
-	FT_ENC_TAG(FT_ENCODING_ADOBE_CUSTOM, 'A', 'D', 'B', 'C'),
-	FT_ENC_TAG(FT_ENCODING_ADOBE_LATIN_1, 'l', 'a', 't', '1'),
-	FT_ENC_TAG(FT_ENCODING_OLD_LATIN_2, 'l', 'a', 't', '2'),
-	FT_ENC_TAG(FT_ENCODING_APPLE_ROMAN, 'a', 'r', 'm', 'n')
+    FT_ENC_TAG(FT_ENCODING_NONE, 0, 0, 0, 0),
+    FT_ENC_TAG(FT_ENCODING_MS_SYMBOL, 's', 'y', 'm', 'b'),
+    FT_ENC_TAG(FT_ENCODING_UNICODE, 'u', 'n', 'i', 'c'),
+    FT_ENC_TAG(FT_ENCODING_SJIS, 's', 'j', 'i', 's'),
+    FT_ENC_TAG(FT_ENCODING_GB2312, 'g', 'b', ' ', ' '),
+    FT_ENC_TAG(FT_ENCODING_BIG5, 'b', 'i', 'g', '5'),
+    FT_ENC_TAG(FT_ENCODING_WANSUNG, 'w', 'a', 'n', 's'),
+    FT_ENC_TAG(FT_ENCODING_JOHAB, 'j', 'o', 'h', 'a'),
+    FT_ENCODING_MS_SJIS = FT_ENCODING_SJIS,
+    FT_ENCODING_MS_GB2312 = FT_ENCODING_GB2312,
+    FT_ENCODING_MS_BIG5 = FT_ENCODING_BIG5,
+    FT_ENCODING_MS_WANSUNG = FT_ENCODING_WANSUNG,
+    FT_ENCODING_MS_JOHAB = FT_ENCODING_JOHAB,
+    FT_ENC_TAG(FT_ENCODING_ADOBE_STANDARD, 'A', 'D', 'O', 'B'),
+    FT_ENC_TAG(FT_ENCODING_ADOBE_EXPERT, 'A', 'D', 'B', 'E'),
+    FT_ENC_TAG(FT_ENCODING_ADOBE_CUSTOM, 'A', 'D', 'B', 'C'),
+    FT_ENC_TAG(FT_ENCODING_ADOBE_LATIN_1, 'l', 'a', 't', '1'),
+    FT_ENC_TAG(FT_ENCODING_OLD_LATIN_2, 'l', 'a', 't', '2'),
+    FT_ENC_TAG(FT_ENCODING_APPLE_ROMAN, 'a', 'r', 'm', 'n')
 } FT_Encoding;
 
 typedef struct  FT_CharMapRec_
 {
-	FT_Face      face;
-	FT_Encoding  encoding;
-	FT_UShort    platform_id;
-	FT_UShort    encoding_id;
+    FT_Face      face;
+    FT_Encoding  encoding;
+    FT_UShort    platform_id;
+    FT_UShort    encoding_id;
 } FT_CharMapRec;
 
 typedef struct FT_UnitVector_
 {
-	FT_F2Dot14 x;
-	FT_F2Dot14 y;
+    FT_F2Dot14 x;
+    FT_F2Dot14 y;
 } FT_UnitVector;
 
 typedef struct FT_Open_Args_
 {
-	FT_UInt flags;
-	const FT_Byte* memory_base;
-	FT_Long memory_size;
-	FT_String* pathname;
-	FT_Stream stream;
-	FT_Module driver;
-	FT_Int num_params;
-	FT_Parameter* params;
+    FT_UInt flags;
+    const FT_Byte* memory_base;
+    FT_Long memory_size;
+    FT_String* pathname;
+    FT_Stream stream;
+    FT_Module driver;
+    FT_Int num_params;
+    FT_Parameter* params;
 } FT_Open_Args;
 
 typedef enum FT_Size_Request_Type_
 {
-	FT_SIZE_REQUEST_TYPE_NOMINAL,
-	FT_SIZE_REQUEST_TYPE_REAL_DIM,
-	FT_SIZE_REQUEST_TYPE_BBOX,
-	FT_SIZE_REQUEST_TYPE_CELL,
-	FT_SIZE_REQUEST_TYPE_SCALES,
-	FT_SIZE_REQUEST_TYPE_MAX
+    FT_SIZE_REQUEST_TYPE_NOMINAL,
+    FT_SIZE_REQUEST_TYPE_REAL_DIM,
+    FT_SIZE_REQUEST_TYPE_BBOX,
+    FT_SIZE_REQUEST_TYPE_CELL,
+    FT_SIZE_REQUEST_TYPE_SCALES,
+    FT_SIZE_REQUEST_TYPE_MAX
 } FT_Size_Request_Type;
 
 typedef struct FT_Size_RequestRec_
 {
-	FT_Size_Request_Type type;
-	FT_Long width;
-	FT_Long height;
-	FT_UInt horiResolution;
-	FT_UInt vertResolution;
+    FT_Size_Request_Type type;
+    FT_Long width;
+    FT_Long height;
+    FT_UInt horiResolution;
+    FT_UInt vertResolution;
 } FT_Size_RequestRec;
 
 typedef struct  FT_CMapRec_
 {
-	FT_CharMapRec  charmap;
-	FT_CMap_Class  clazz;
+    FT_CharMapRec  charmap;
+    FT_CMap_Class  clazz;
 } FT_CMapRec;
 
 typedef enum FT_Render_Mode_
 {
-	FT_RENDER_MODE_NORMAL = 0,
-	FT_RENDER_MODE_LIGHT,
-	FT_RENDER_MODE_MONO,
-	FT_RENDER_MODE_LCD,
-	FT_RENDER_MODE_LCD_V,
-	FT_RENDER_MODE_MAX
+    FT_RENDER_MODE_NORMAL = 0,
+    FT_RENDER_MODE_LIGHT,
+    FT_RENDER_MODE_MONO,
+    FT_RENDER_MODE_LCD,
+    FT_RENDER_MODE_LCD_V,
+    FT_RENDER_MODE_MAX
 } FT_Render_Mode;
 
 typedef enum FT_Kerning_Mode_
 {
-	FT_KERNING_DEFAULT = 0,
-	FT_KERNING_UNFITTED,
-	FT_KERNING_UNSCALED
+    FT_KERNING_DEFAULT = 0,
+    FT_KERNING_UNFITTED,
+    FT_KERNING_UNSCALED
 } FT_Kerning_Mode;
 
 typedef struct  TTC_HeaderRec_
@@ -2093,15 +2093,15 @@ typedef struct  FT_ServiceDescRec_
 typedef TT_CodeRange  TT_CodeRangeTable[TT_MAX_CODE_RANGES];
 
 #ifndef TT_CONFIG_OPTION_STATIC_INTERPRETER /* indirect implementation */
-	#define EXEC_OP_   TT_ExecContext  exc,
-	#define EXEC_OP    TT_ExecContext  exc
-	#define EXEC_ARG_  exc,
-	#define EXEC_ARG   exc
+    #define EXEC_OP_   TT_ExecContext  exc,
+    #define EXEC_OP    TT_ExecContext  exc
+    #define EXEC_ARG_  exc,
+    #define EXEC_ARG   exc
 #else                                       /* static implementation */
-	#define EXEC_OP_   /* void */
-	#define EXEC_OP    /* void */
-	#define EXEC_ARG_  /* void */
-	#define EXEC_ARG   /* void */
+    #define EXEC_OP_   /* void */
+    #define EXEC_OP    /* void */
+    #define EXEC_ARG_  /* void */
+    #define EXEC_ARG   /* void */
 #endif /* TT_CONFIG_OPTION_STATIC_INTERPRETER */
 
 typedef struct TT_ExecContextRec_*  TT_ExecContext;
@@ -2653,49 +2653,49 @@ FT_EXPORT_DEF(FT_Error) FT_Get_Advance(FT_Face face, FT_UInt gindex, FT_Int32 fl
 
 typedef struct  FT_Glyph_Metrics_
 {
-	FT_Pos  width;
-	FT_Pos  height;
-	FT_Pos  horiBearingX;
-	FT_Pos  horiBearingY;
-	FT_Pos  horiAdvance;
-	FT_Pos  vertBearingX;
-	FT_Pos  vertBearingY;
-	FT_Pos  vertAdvance;
+    FT_Pos  width;
+    FT_Pos  height;
+    FT_Pos  horiBearingX;
+    FT_Pos  horiBearingY;
+    FT_Pos  horiAdvance;
+    FT_Pos  vertBearingX;
+    FT_Pos  vertBearingY;
+    FT_Pos  vertAdvance;
 } FT_Glyph_Metrics;
 
 typedef struct  FT_GlyphSlotRec_
 {
-	FT_Library        library;
-	FT_Face           face;
-	FT_GlyphSlot      next;
-	FT_UInt           reserved;       /* retained for binary compatibility */
-	FT_Generic        generic;
+    FT_Library        library;
+    FT_Face           face;
+    FT_GlyphSlot      next;
+    FT_UInt           reserved;       /* retained for binary compatibility */
+    FT_Generic        generic;
 
-	FT_Glyph_Metrics  metrics;
-	FT_Fixed          linearHoriAdvance;
-	FT_Fixed          linearVertAdvance;
-	FT_Vector         advance;
+    FT_Glyph_Metrics  metrics;
+    FT_Fixed          linearHoriAdvance;
+    FT_Fixed          linearVertAdvance;
+    FT_Vector         advance;
 
-	FT_Glyph_Format   format;
+    FT_Glyph_Format   format;
 
-	FT_Bitmap         bitmap;
-	FT_Int            bitmap_left;
-	FT_Int            bitmap_top;
+    FT_Bitmap         bitmap;
+    FT_Int            bitmap_left;
+    FT_Int            bitmap_top;
 
-	FT_Outline        outline;
+    FT_Outline        outline;
 
-	FT_UInt           num_subglyphs;
-	FT_SubGlyph       subglyphs;
+    FT_UInt           num_subglyphs;
+    FT_SubGlyph       subglyphs;
 
-	void*             control_data;
-	long              control_len;
+    void*             control_data;
+    long              control_len;
 
-	FT_Pos            lsb_delta;
-	FT_Pos            rsb_delta;
+    FT_Pos            lsb_delta;
+    FT_Pos            rsb_delta;
 
-	void*             other;
+    void*             other;
 
-	FT_Slot_Internal  internal;
+    FT_Slot_Internal  internal;
 
 } FT_GlyphSlotRec;
 
@@ -2704,58 +2704,58 @@ typedef struct  FT_GlyphSlotRec_
 class FaceInfo
 {
 public:
-	buffer TTF;
-	FT_Face Face;
-	int SavedHeight;
-	FaceInfo(buffer ttf) : TTF(ttf)
-	{
-		Face = nullptr;
-		SavedHeight = 0;
-	}
-	~FaceInfo()
-	{
-		FT_Done_Face(Face);
-		Buffer::Free(TTF);
-	}
+    buffer TTF;
+    FT_Face Face;
+    int SavedHeight;
+    FaceInfo(buffer ttf) : TTF(ttf)
+    {
+        Face = nullptr;
+        SavedHeight = 0;
+    }
+    ~FaceInfo()
+    {
+        FT_Done_Face(Face);
+        Buffer::Free(TTF);
+    }
 };
 
 static void CheckHeight(FaceInfo* info, int height)
 {
-	if(info->SavedHeight != height)
-	{
-		info->SavedHeight = height;
-		if(FT_Set_Pixel_Sizes(info->Face, 0, height) != FT_Err_Ok)
-		{
-			BOSS_ASSERT("해당 폰트의 사이즈설정에 실패하였습니다", false);
-			return;
-		}
-	}
+    if(info->SavedHeight != height)
+    {
+        info->SavedHeight = height;
+        if(FT_Set_Pixel_Sizes(info->Face, 0, height) != FT_Err_Ok)
+        {
+            BOSS_ASSERT("해당 폰트의 사이즈설정에 실패하였습니다", false);
+            return;
+        }
+    }
 }
 
 namespace BOSS
 {
     id_freetype Customized_AddOn_FreeType_Create(buffer ttf)
     {
-	    static FT_Library Library = nullptr;
-	    FT_Error ErrorResult = FT_Err_Ok;
+        static FT_Library Library = nullptr;
+        FT_Error ErrorResult = FT_Err_Ok;
 
-	    if(Library == nullptr)
-	    {
-		    if((ErrorResult = FT_Init_FreeType(&Library)) != FT_Err_Ok)
-		    {
-			    BOSS_ASSERT(String::Format("FreeType의 초기화에 실패하였습니다(ErrCode==%d)", ErrorResult), false);
-			    return nullptr;
-		    }
-	    }
-	    FaceInfo* Info = new FaceInfo(ttf);
+        if(Library == nullptr)
+        {
+            if((ErrorResult = FT_Init_FreeType(&Library)) != FT_Err_Ok)
+            {
+                BOSS_ASSERT(String::Format("FreeType의 초기화에 실패하였습니다(ErrCode==%d)", ErrorResult), false);
+                return nullptr;
+            }
+        }
+        FaceInfo* Info = new FaceInfo(ttf);
         const sint32 TTFLength = Buffer::SizeOf(ttf) * Buffer::CountOf(ttf);
-	    if((ErrorResult = FT_New_Memory_Face(Library, (bytes) ttf, TTFLength, 0, &Info->Face)) != FT_Err_Ok)
-	    {
-		    BOSS_ASSERT(String::Format("해당 폰트의 로드에 실패하였습니다(ErrCode==%d)", ErrorResult), false);
-		    delete Info;
-		    return nullptr;
-	    }
-	    return (id_freetype) Info;
+        if((ErrorResult = FT_New_Memory_Face(Library, (bytes) ttf, TTFLength, 0, &Info->Face)) != FT_Err_Ok)
+        {
+            BOSS_ASSERT(String::Format("해당 폰트의 로드에 실패하였습니다(ErrCode==%d)", ErrorResult), false);
+            delete Info;
+            return nullptr;
+        }
+        return (id_freetype) Info;
     }
 
     void Customized_AddOn_FreeType_Release(id_freetype freetype)
@@ -2765,194 +2765,194 @@ namespace BOSS
 
     id_bitmap Customized_AddOn_FreeType_ToBmp(id_freetype freetype, sint32 height, uint32 code)
     {
-	    FaceInfo* Info = (FaceInfo*) freetype;
-	    if(!Info)
-	    {
-		    // 비트맵구성
-		    const int Width = height / 2 - 1;
-		    const int Height = height;
+        FaceInfo* Info = (FaceInfo*) freetype;
+        if(!Info)
+        {
+            // 비트맵구성
+            const int Width = height / 2 - 1;
+            const int Height = height;
             id_bitmap NewBitmap = Bmp::Create(4, Width, Height);
             auto BitmapFocus = (Bmp::bitmappixel*) Bmp::GetBits(NewBitmap);
 
-		    // 프로세싱
-		    for(int y = 0; y < Height; ++y)
-		    {
-			    Bmp::bitmappixel* BitmapFocusEnd = BitmapFocus-- + Width;
-			    while(++BitmapFocus < BitmapFocusEnd)
-				    BitmapFocus->argb = 0xFF000000;
-		    }
-		    return NewBitmap;
-	    }
+            // 프로세싱
+            for(int y = 0; y < Height; ++y)
+            {
+                Bmp::bitmappixel* BitmapFocusEnd = BitmapFocus-- + Width;
+                while(++BitmapFocus < BitmapFocusEnd)
+                    BitmapFocus->argb = 0xFF000000;
+            }
+            return NewBitmap;
+        }
 
-	    CheckHeight(Info, height);
-	    if(FT_Load_Char(Info->Face, code, FT_LOAD_RENDER) != FT_Err_Ok)
-	    {
-		    BOSS_ASSERT("해당 폰트의 로드에 실패하였습니다", false);
-		    return nullptr;
-	    }
+        CheckHeight(Info, height);
+        if(FT_Load_Char(Info->Face, code, FT_LOAD_RENDER) != FT_Err_Ok)
+        {
+            BOSS_ASSERT("해당 폰트의 로드에 실패하였습니다", false);
+            return nullptr;
+        }
 
-	    // 비트맵구성
-	    FT_Bitmap& FontBitmap = Info->Face->glyph->bitmap;
-	    const int Width = FontBitmap.width;
-	    const int Height = FontBitmap.rows;
-	    const int Ascent = Info->Face->size->metrics.ascender / 64;
-	    const int BearingX = Info->Face->glyph->metrics.horiBearingX / 64;
-	    const int BearingY = Info->Face->glyph->metrics.horiBearingY / 64;
+        // 비트맵구성
+        FT_Bitmap& FontBitmap = Info->Face->glyph->bitmap;
+        const int Width = FontBitmap.width;
+        const int Height = FontBitmap.rows;
+        const int Ascent = Info->Face->size->metrics.ascender / 64;
+        const int BearingX = Info->Face->glyph->metrics.horiBearingX / 64;
+        const int BearingY = Info->Face->glyph->metrics.horiBearingY / 64;
         id_bitmap NewBitmap = Bmp::Create(4, Width, Height, (sint16) BearingX, (sint16) Ascent - BearingY);
         auto BitmapFocus = (Bmp::bitmappixel*) Bmp::GetBits(NewBitmap);
 
-	    // 프로세싱
-	    for(int y = Height - 1; 0 <= y; --y)
-	    {
-		    bytes FontFocus = &FontBitmap.buffer[FontBitmap.pitch * y];
-		    Bmp::bitmappixel* BitmapFocusEnd = BitmapFocus-- + Width;
-		    while(++BitmapFocus < BitmapFocusEnd)
-			    BitmapFocus->argb = ((uint32) (*(FontFocus++) & 0xFF)) << 24;
-	    }
-	    return NewBitmap;
+        // 프로세싱
+        for(int y = Height - 1; 0 <= y; --y)
+        {
+            bytes FontFocus = &FontBitmap.buffer[FontBitmap.pitch * y];
+            Bmp::bitmappixel* BitmapFocusEnd = BitmapFocus-- + Width;
+            while(++BitmapFocus < BitmapFocusEnd)
+                BitmapFocus->argb = ((uint32) (*(FontFocus++) & 0xFF)) << 24;
+        }
+        return NewBitmap;
     }
 
     void Customized_AddOn_FreeType_GetInfo(id_freetype freetype, sint32 height, uint32 code, sint32* width, sint32* ascent)
     {
-	    FaceInfo* Info = (FaceInfo*) freetype;
-	    if(!Info)
-	    {
-		    if(width) *width = height / 2;
-		    if(ascent) *ascent = height * 2 / 3;
-	    }
+        FaceInfo* Info = (FaceInfo*) freetype;
+        if(!Info)
+        {
+            if(width) *width = height / 2;
+            if(ascent) *ascent = height * 2 / 3;
+        }
 
-	    CheckHeight(Info, height);
-	    if(width)
-	    {
-		    FT_UInt  glyph_index = (FT_UInt) code;
-		    glyph_index = (FT_UInt) code;
-		    if(Info->Face->charmap)
-		      glyph_index = FT_Get_Char_Index(Info->Face, code);
-		    FT_Fixed advance = 0;
-		    FT_Get_Advance(Info->Face, glyph_index,
-			    FT_LOAD_NO_HINTING | FT_LOAD_IGNORE_TRANSFORM, &advance);
-		    *width = advance / 1024 / 64;
-	    }
-	    if(ascent)
+        CheckHeight(Info, height);
+        if(width)
+        {
+            FT_UInt  glyph_index = (FT_UInt) code;
+            glyph_index = (FT_UInt) code;
+            if(Info->Face->charmap)
+              glyph_index = FT_Get_Char_Index(Info->Face, code);
+            FT_Fixed advance = 0;
+            FT_Get_Advance(Info->Face, glyph_index,
+                FT_LOAD_NO_HINTING | FT_LOAD_IGNORE_TRANSFORM, &advance);
+            *width = advance / 1024 / 64;
+        }
+        if(ascent)
             *ascent = Info->Face->size->metrics.ascender / 64;
     }
 }
 // ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
 #if defined( __CC_ARM ) || defined( __ARMCC__ )  // RVCT
-	#define FT_MulFix_ASSEMBLER(a, b) FT_MulFix_arm(a, b)
-	#define FT_MULFIX_ASSEMBLER_arm
+    #define FT_MulFix_ASSEMBLER(a, b) FT_MulFix_arm(a, b)
+    #define FT_MULFIX_ASSEMBLER_arm
 #elif defined( __GNUC__ )
-	#if defined( __arm__ ) && !defined( __CC_ARM ) && !defined( __ARMCC__ ) && (!defined( __thumb__ ) || defined( __thumb2__ ))
-		#define FT_MulFix_ASSEMBLER(a, b) FT_MulFix_gnu_arm(a, b)
-		#define FT_MULFIX_ASSEMBLER_gnu_arm
-	#elif defined( __i386__ )
-		#define FT_MulFix_ASSEMBLER(a, b) FT_MulFix_gnu_i386(a, b)
-		#define FT_MULFIX_ASSEMBLER_gnu_i386
-	#endif
+    #if defined( __arm__ ) && !defined( __CC_ARM ) && !defined( __ARMCC__ ) && (!defined( __thumb__ ) || defined( __thumb2__ ))
+        #define FT_MulFix_ASSEMBLER(a, b) FT_MulFix_gnu_arm(a, b)
+        #define FT_MULFIX_ASSEMBLER_gnu_arm
+    #elif defined( __i386__ )
+        #define FT_MulFix_ASSEMBLER(a, b) FT_MulFix_gnu_i386(a, b)
+        #define FT_MULFIX_ASSEMBLER_gnu_i386
+    #endif
 #elif defined( _MSC_VER ) // Visual C++
-	#ifdef _M_IX86
-		#define FT_MulFix_ASSEMBLER(a, b) FT_MulFix_i386(a, b)
-		#define FT_MULFIX_ASSEMBLER_i386
-	#endif
+    #ifdef _M_IX86
+        #define FT_MulFix_ASSEMBLER(a, b) FT_MulFix_i386(a, b)
+        #define FT_MULFIX_ASSEMBLER_i386
+    #endif
 #elif defined( __GNUC__ ) && defined( __x86_64__ )
-	#define FT_MulFix_ASSEMBLER(a, b) FT_MulFix_x86_64(a, b)
-	#define FT_MULFIX_ASSEMBLER_x86_64
+    #define FT_MulFix_ASSEMBLER(a, b) FT_MulFix_x86_64(a, b)
+    #define FT_MULFIX_ASSEMBLER_x86_64
 #endif
 
 #if defined( FT_MULFIX_ASSEMBLER_arm )
-	static __inline FT_Int32 FT_MulFix_arm(FT_Int32 a, FT_Int32 b)
-	{
-		register FT_Int32  t, t2;
-		__asm
-		{
-			smull t2, t,  b,  a           /* (lo=t2,hi=t) = a*b */
-			mov   a,  t,  asr #31         /* a   = (hi >> 31) */
-			add   a,  a,  #0x8000         /* a  += 0x8000 */
-			adds  t2, t2, a               /* t2 += a */
-			adc   t,  t,  #0              /* t  += carry */
-			mov   a,  t2, lsr #16         /* a   = t2 >> 16 */
-			orr   a,  a,  t,  lsl #16     /* a  |= t << 16 */
-		}
-		return a;
-	}
+    static __inline FT_Int32 FT_MulFix_arm(FT_Int32 a, FT_Int32 b)
+    {
+        register FT_Int32  t, t2;
+        __asm
+        {
+            smull t2, t,  b,  a           /* (lo=t2,hi=t) = a*b */
+            mov   a,  t,  asr #31         /* a   = (hi >> 31) */
+            add   a,  a,  #0x8000         /* a  += 0x8000 */
+            adds  t2, t2, a               /* t2 += a */
+            adc   t,  t,  #0              /* t  += carry */
+            mov   a,  t2, lsr #16         /* a   = t2 >> 16 */
+            orr   a,  a,  t,  lsl #16     /* a  |= t << 16 */
+        }
+        return a;
+    }
 #elif defined( FT_MULFIX_ASSEMBLER_gnu_arm )
-	static __inline__ FT_Int32 FT_MulFix_gnu_arm(FT_Int32 a, FT_Int32 b)
-	{
-		register FT_Int32  t, t2;
-		__asm__ __volatile__ (
-			"smull  %1, %2, %4, %3\n\t"       /* (lo=%1,hi=%2) = a*b */
-			"mov    %0, %2, asr #31\n\t"      /* %0  = (hi >> 31) */
-			#if defined( __clang__ ) && defined( __thumb2__ )
-				"add.w  %0, %0, #0x8000\n\t"      /* %0 += 0x8000 */
-			#else
-				"add    %0, %0, #0x8000\n\t"      /* %0 += 0x8000 */
-			#endif
-			"adds   %1, %1, %0\n\t"           /* %1 += %0 */
-			"adc    %2, %2, #0\n\t"           /* %2 += carry */
-			"mov    %0, %1, lsr #16\n\t"      /* %0  = %1 >> 16 */
-			"orr    %0, %0, %2, lsl #16\n\t"  /* %0 |= %2 << 16 */
-			: "=r"(a), "=&r"(t2), "=&r"(t)
-			: "r"(a), "r"(b)
-			: "cc" );
-		return a;
-	}
+    static __inline__ FT_Int32 FT_MulFix_gnu_arm(FT_Int32 a, FT_Int32 b)
+    {
+        register FT_Int32  t, t2;
+        __asm__ __volatile__ (
+            "smull  %1, %2, %4, %3\n\t"       /* (lo=%1,hi=%2) = a*b */
+            "mov    %0, %2, asr #31\n\t"      /* %0  = (hi >> 31) */
+            #if defined( __clang__ ) && defined( __thumb2__ )
+                "add.w  %0, %0, #0x8000\n\t"      /* %0 += 0x8000 */
+            #else
+                "add    %0, %0, #0x8000\n\t"      /* %0 += 0x8000 */
+            #endif
+            "adds   %1, %1, %0\n\t"           /* %1 += %0 */
+            "adc    %2, %2, #0\n\t"           /* %2 += carry */
+            "mov    %0, %1, lsr #16\n\t"      /* %0  = %1 >> 16 */
+            "orr    %0, %0, %2, lsl #16\n\t"  /* %0 |= %2 << 16 */
+            : "=r"(a), "=&r"(t2), "=&r"(t)
+            : "r"(a), "r"(b)
+            : "cc" );
+        return a;
+    }
 #elif defined( FT_MULFIX_ASSEMBLER_gnu_i386 )
-	static __inline__ FT_Int32 FT_MulFix_gnu_i386(FT_Int32 a, FT_Int32 b)
-	{
-		register FT_Int32  result;
-		__asm__ __volatile__ (
-			"imul  %%edx\n"
-			"movl  %%edx, %%ecx\n"
-			"sarl  $31, %%ecx\n"
-			"addl  $0x8000, %%ecx\n"
-			"addl  %%ecx, %%eax\n"
-			"adcl  $0, %%edx\n"
-			"shrl  $16, %%eax\n"
-			"shll  $16, %%edx\n"
-			"addl  %%edx, %%eax\n"
-			: "=a"(result), "=d"(b)
-			: "a"(a), "d"(b)
-			: "%ecx", "cc" );
-		return result;
-	}
+    static __inline__ FT_Int32 FT_MulFix_gnu_i386(FT_Int32 a, FT_Int32 b)
+    {
+        register FT_Int32  result;
+        __asm__ __volatile__ (
+            "imul  %%edx\n"
+            "movl  %%edx, %%ecx\n"
+            "sarl  $31, %%ecx\n"
+            "addl  $0x8000, %%ecx\n"
+            "addl  %%ecx, %%eax\n"
+            "adcl  $0, %%edx\n"
+            "shrl  $16, %%eax\n"
+            "shll  $16, %%edx\n"
+            "addl  %%edx, %%eax\n"
+            : "=a"(result), "=d"(b)
+            : "a"(a), "d"(b)
+            : "%ecx", "cc" );
+        return result;
+    }
 #elif defined( FT_MULFIX_ASSEMBLER_i386 )
-	static __inline FT_Int32 FT_MulFix_i386(FT_Int32 a, FT_Int32 b)
-	{
-		register FT_Int32  result;
-		__asm
-		{
-			mov eax, a
-			mov edx, b
-			imul edx
-			mov ecx, edx
-			sar ecx, 31
-			add ecx, 8000h
-			add eax, ecx
-			adc edx, 0
-			shr eax, 16
-			shl edx, 16
-			add eax, edx
-			mov result, eax
-		}
-		return result;
-	}
+    static __inline FT_Int32 FT_MulFix_i386(FT_Int32 a, FT_Int32 b)
+    {
+        register FT_Int32  result;
+        __asm
+        {
+            mov eax, a
+            mov edx, b
+            imul edx
+            mov ecx, edx
+            sar ecx, 31
+            add ecx, 8000h
+            add eax, ecx
+            adc edx, 0
+            shr eax, 16
+            shl edx, 16
+            add eax, edx
+            mov result, eax
+        }
+        return result;
+    }
 #elif defined( FT_MULFIX_ASSEMBLER_x86_64 )
-	static __inline__ FT_Int32 FT_MulFix_x86_64(FT_Int32 a, FT_Int32 b)
-	{
-		#if ( __GNUC__ > 4 ) || ( ( __GNUC__ == 4 ) && ( __GNUC_MINOR__ >= 6 ) )
-			#pragma GCC diagnostic push
-			#pragma GCC diagnostic ignored "-Wlong-long"
-		#endif
-		long long  ret, tmp;
-		ret = (long long) a * b;
-		tmp = ret >> 63;
-		ret += 0x8000 + tmp;
-		return (FT_Int32) (ret >> 16);
-		#if ( __GNUC__ > 4 ) || ( ( __GNUC__ == 4 ) && ( __GNUC_MINOR__ >= 6 ) )
-			#pragma GCC diagnostic pop
-		#endif
-	}
+    static __inline__ FT_Int32 FT_MulFix_x86_64(FT_Int32 a, FT_Int32 b)
+    {
+        #if ( __GNUC__ > 4 ) || ( ( __GNUC__ == 4 ) && ( __GNUC_MINOR__ >= 6 ) )
+            #pragma GCC diagnostic push
+            #pragma GCC diagnostic ignored "-Wlong-long"
+        #endif
+        long long  ret, tmp;
+        ret = (long long) a * b;
+        tmp = ret >> 63;
+        ret += 0x8000 + tmp;
+        return (FT_Int32) (ret >> 16);
+        #if ( __GNUC__ > 4 ) || ( ( __GNUC__ == 4 ) && ( __GNUC_MINOR__ >= 6 ) )
+            #pragma GCC diagnostic pop
+        #endif
+    }
 #endif
 
 FT_BASE_DEF( int )
@@ -5145,7 +5145,7 @@ FT_EXPORT_DEF( FT_Error )
 
 extern "C" FT_Error FT_Init_FreeType(FT_Library* alibrary)
 {
-	FT_Error   error;
+    FT_Error   error;
     FT_Memory  memory;
 
 
@@ -5173,7 +5173,7 @@ extern "C" FT_Error FT_Init_FreeType(FT_Library* alibrary)
 
 extern "C" FT_Error FT_Done_FreeType(FT_Library library)
 {
-	if ( library )
+    if ( library )
     {
       FT_Memory  memory = library->memory;
 
@@ -5190,7 +5190,7 @@ extern "C" FT_Error FT_Done_FreeType(FT_Library library)
 
 extern "C" FT_Error FT_New_Memory_Face(FT_Library library, const FT_Byte* file_base, FT_Long file_size, FT_Long face_index, FT_Face* aface)
 {
-	FT_Open_Args  args;
+    FT_Open_Args  args;
 
 
     /* test for valid `library' and `face' delayed to FT_Open_Face() */
@@ -6643,7 +6643,7 @@ FT_LOCAL_DEF( FT_Error )
     return error;
   }
 
-									 static FT_Error
+                                     static FT_Error
   tt_sbit_decoder_load_bit_aligned( TT_SBitDecoder  decoder,
                                     FT_Byte*        p,
                                     FT_Byte*        limit,
@@ -8541,7 +8541,7 @@ FT_DEFINE_SERVICE_SFNT_TABLEREC(
     (FT_SFNT_TableGetFunc) get_sfnt_table,
     (FT_SFNT_TableInfoFunc)sfnt_table_info )
 
-	typedef FT_Error
+    typedef FT_Error
   (*FT_Kerning_TrackGetFunc)( FT_Face    face,
                               FT_Fixed   point_size,
                               FT_Int     degree,
@@ -9531,13 +9531,13 @@ static FT_Error
   }
 
 #ifndef FT_CONFIG_OPTION_PIC
-	#define FT_OUTLINE_GLYPH_CLASS_GET  &ft_outline_glyph_class
-	#define FT_BITMAP_GLYPH_CLASS_GET   &ft_bitmap_glyph_class
-	#define FT_DEFAULT_MODULES_GET      ft_default_modules
+    #define FT_OUTLINE_GLYPH_CLASS_GET  &ft_outline_glyph_class
+    #define FT_BITMAP_GLYPH_CLASS_GET   &ft_bitmap_glyph_class
+    #define FT_DEFAULT_MODULES_GET      ft_default_modules
 
-	#ifdef FT_CONFIG_OPTION_GUESSING_EMBEDDED_RFORK
-	#define FT_RACCESS_GUESS_TABLE_GET  ft_raccess_guess_table
-	#endif
+    #ifdef FT_CONFIG_OPTION_GUESSING_EMBEDDED_RFORK
+    #define FT_RACCESS_GUESS_TABLE_GET  ft_raccess_guess_table
+    #endif
 #endif
 
 #ifndef FT_CONFIG_OPTION_PIC
@@ -10352,7 +10352,7 @@ static FT_Error
 
 extern "C" FT_Error FT_Open_Face(FT_Library library, const FT_Open_Args* args, FT_Long face_index, FT_Face* aface)
 {
-	FT_Error     error;
+    FT_Error     error;
     FT_Driver    driver = NULL;
     FT_Memory    memory = NULL;
     FT_Stream    stream = NULL;
@@ -10603,7 +10603,7 @@ extern "C" FT_Error FT_Open_Face(FT_Library library, const FT_Open_Args* args, F
 
 extern "C" FT_Error FT_Done_Face(FT_Face face)
 {
-	FT_Error     error;
+    FT_Error     error;
     FT_Driver    driver;
     FT_Memory    memory;
     FT_ListNode  node;
@@ -10640,7 +10640,7 @@ extern "C" FT_Error FT_Done_Face(FT_Face face)
 
 extern "C" FT_Error FT_Select_Size(FT_Face face, FT_Int strike_index)
 {
-	FT_Driver_Class  clazz;
+    FT_Driver_Class  clazz;
 
 
     if ( !face || !FT_HAS_FIXED_SIZES( face ) )
@@ -10806,7 +10806,7 @@ FT_BASE_DEF( void )
 
 extern "C" FT_Error FT_Request_Size(FT_Face face, FT_Size_Request req)
 {
-	FT_Driver_Class  clazz;
+    FT_Driver_Class  clazz;
     FT_ULong         strike_index;
 
 
@@ -10874,7 +10874,7 @@ extern "C" FT_Error FT_Request_Size(FT_Face face, FT_Size_Request req)
 
 extern "C" FT_Error FT_Set_Char_Size(FT_Face face, FT_F26Dot6 char_width, FT_F26Dot6 char_height, FT_UInt horz_resolution, FT_UInt vert_resolution)
 {
-	FT_Size_RequestRec  req;
+    FT_Size_RequestRec  req;
 
 
     if ( !char_width )
@@ -10906,7 +10906,7 @@ extern "C" FT_Error FT_Set_Char_Size(FT_Face face, FT_F26Dot6 char_width, FT_F26
 
 extern "C" FT_Error FT_Set_Pixel_Sizes(FT_Face face, FT_UInt pixel_width, FT_UInt pixel_height)
 {
-	FT_Size_RequestRec  req;
+    FT_Size_RequestRec  req;
 
 
     if ( pixel_width == 0 )
@@ -10965,7 +10965,7 @@ static void
     slot->rsb_delta         = 0;
   }
 
-	typedef struct FT_AutoHinterRec_  *FT_AutoHinter;
+    typedef struct FT_AutoHinterRec_  *FT_AutoHinter;
 
   typedef void
   (*FT_AutoHinter_GlobalGetFunc)( FT_AutoHinter  hinter,
@@ -11118,7 +11118,7 @@ FT_EXPORT_DEF( void )
 
 extern "C" FT_Error FT_Load_Glyph(FT_Face face, FT_UInt glyph_index, FT_Int32 load_flags)
 {
-	FT_Error      error;
+    FT_Error      error;
     FT_Driver     driver;
     FT_GlyphSlot  slot;
     FT_Library    library;
@@ -11365,7 +11365,7 @@ extern "C" FT_Error FT_Load_Glyph(FT_Face face, FT_UInt glyph_index, FT_Int32 lo
 
 extern "C" FT_Error FT_Load_Char(FT_Face face, FT_ULong char_code, FT_Int32 load_flags)
 {
-	FT_UInt  glyph_index;
+    FT_UInt  glyph_index;
 
 
     if ( !face )
@@ -11380,7 +11380,7 @@ extern "C" FT_Error FT_Load_Char(FT_Face face, FT_ULong char_code, FT_Int32 load
 
 extern "C" void FT_Set_Transform(FT_Face face, FT_Matrix* matrix, FT_Vector* delta)
 {
-	FT_Face_Internal  internal;
+    FT_Face_Internal  internal;
 
 
     if ( !face )
@@ -11568,7 +11568,7 @@ FT_BASE_DEF( FT_Error )
 
 extern "C" FT_Error FT_Render_Glyph(FT_GlyphSlot slot, FT_Render_Mode render_mode)
 {
-	FT_Library  library;
+    FT_Library  library;
 
 
     if ( !slot || !slot->face )
@@ -11581,7 +11581,7 @@ extern "C" FT_Error FT_Render_Glyph(FT_GlyphSlot slot, FT_Render_Mode render_mod
 
 extern "C" FT_Error FT_Get_Kerning(FT_Face face, FT_UInt left_glyph, FT_UInt right_glyph, FT_UInt kern_mode, FT_Vector* akerning)
 {
-	FT_Error   error = FT_Err_Ok;
+    FT_Error   error = FT_Err_Ok;
     FT_Driver  driver;
 
 
@@ -11633,7 +11633,7 @@ extern "C" FT_Error FT_Get_Kerning(FT_Face face, FT_UInt left_glyph, FT_UInt rig
 
 extern "C" FT_Error FT_Get_Track_Kerning(FT_Face face, FT_Fixed point_size, FT_Int degree, FT_Fixed* akerning)
 {
-	FT_Service_Kerning  service;
+    FT_Service_Kerning  service;
     FT_Error            error = FT_Err_Ok;
 
 
@@ -11657,7 +11657,7 @@ extern "C" FT_Error FT_Get_Track_Kerning(FT_Face face, FT_Fixed point_size, FT_I
 
 extern "C" FT_Error FT_Get_Glyph_Name(FT_Face face, FT_UInt glyph_index, FT_Pointer buffer, FT_UInt buffer_max)
 {
-	FT_Error  error = FT_ERR( Invalid_Argument );
+    FT_Error  error = FT_ERR( Invalid_Argument );
 
 
     /* clean up buffer */
@@ -11684,7 +11684,7 @@ extern "C" FT_Error FT_Get_Glyph_Name(FT_Face face, FT_UInt glyph_index, FT_Poin
 
 extern "C" const char* FT_Get_Postscript_Name(FT_Face face)
 {
-	const char*  result = NULL;
+    const char*  result = NULL;
 
 
     if ( !face )
@@ -11709,7 +11709,7 @@ extern "C" const char* FT_Get_Postscript_Name(FT_Face face)
 
 extern "C" FT_Error FT_Select_Charmap(FT_Face face, FT_Encoding encoding)
 {
-	FT_CharMap*  cur;
+    FT_CharMap*  cur;
     FT_CharMap*  limit;
 
 
@@ -11776,7 +11776,7 @@ FT_EXPORT_DEF( FT_Long )
 
 extern "C" FT_Error FT_Set_Charmap(FT_Face face, FT_CharMap charmap)
 {
-	FT_CharMap*  cur;
+    FT_CharMap*  cur;
     FT_CharMap*  limit;
 
 
@@ -11813,7 +11813,7 @@ extern "C" FT_Error FT_Set_Charmap(FT_Face face, FT_CharMap charmap)
 
 extern "C" FT_Int FT_Get_Charmap_Index(FT_CharMap charmap)
 {
-	FT_Int  i;
+    FT_Int  i;
 
 
     if ( !charmap || !charmap->face )
@@ -11839,7 +11839,7 @@ extern "C" FT_Int FT_Get_Charmap_Index(FT_CharMap charmap)
 
 extern "C" FT_UInt FT_Get_Char_Index(FT_Face face, FT_ULong charcode)
 {
-	FT_UInt  result = 0;
+    FT_UInt  result = 0;
 
 
     if ( face && face->charmap )
@@ -11859,7 +11859,7 @@ extern "C" FT_UInt FT_Get_Char_Index(FT_Face face, FT_ULong charcode)
 
 extern "C" FT_ULong FT_Get_First_Char(FT_Face face, FT_UInt* agindex)
 {
-	FT_ULong  result = 0;
+    FT_ULong  result = 0;
     FT_UInt   gindex = 0;
 
 
@@ -11879,7 +11879,7 @@ extern "C" FT_ULong FT_Get_First_Char(FT_Face face, FT_UInt* agindex)
 
 extern "C" FT_ULong FT_Get_Next_Char(FT_Face face, FT_ULong charcode, FT_UInt* agindex)
 {
-	FT_ULong  result = 0;
+    FT_ULong  result = 0;
     FT_UInt   gindex = 0;
 
 
@@ -11906,7 +11906,7 @@ extern "C" FT_ULong FT_Get_Next_Char(FT_Face face, FT_ULong charcode, FT_UInt* a
 
 extern "C" FT_UInt FT_Get_Name_Index(FT_Face face, FT_String* glyph_name)
 {
-	FT_UInt  result = 0;
+    FT_UInt  result = 0;
 
 
     if ( face && FT_HAS_GLYPH_NAMES( face ) )
@@ -11927,7 +11927,7 @@ extern "C" FT_UInt FT_Get_Name_Index(FT_Face face, FT_String* glyph_name)
 
 extern "C" FT_Error FT_Get_SubGlyph_Info(FT_GlyphSlot glyph, FT_UInt sub_index, FT_Int* p_index, FT_UInt* p_flags, FT_Int* p_arg1, FT_Int* p_arg2, FT_Matrix* p_transform)
 {
-	FT_Error  error = FT_ERR( Invalid_Argument );
+    FT_Error  error = FT_ERR( Invalid_Argument );
 
 
     if ( glyph                                      &&
@@ -12120,7 +12120,7 @@ typedef FT_Error
 
 extern "C" FT_UShort FT_Get_FSType_Flags(FT_Face face)
 {
-	TT_OS2*  os2;
+    TT_OS2*  os2;
 
 
     /* first, try to get the fs_type directly from the font */
@@ -12192,7 +12192,7 @@ static FT_CharMap
 
 extern "C" FT_UInt FT_Face_GetCharVariantIndex(FT_Face face, FT_ULong charcode, FT_ULong variantSelector)
 {
-	FT_UInt  result = 0;
+    FT_UInt  result = 0;
 
 
     if ( face && face->charmap &&
@@ -12229,7 +12229,7 @@ extern "C" FT_UInt FT_Face_GetCharVariantIndex(FT_Face face, FT_ULong charcode, 
 
 extern "C" FT_Int FT_Face_GetCharVariantIsDefault(FT_Face face, FT_ULong charcode, FT_ULong variantSelector)
 {
-	FT_Int  result = -1;
+    FT_Int  result = -1;
 
 
     if ( face )
@@ -12264,7 +12264,7 @@ extern "C" FT_Int FT_Face_GetCharVariantIsDefault(FT_Face face, FT_ULong charcod
 
 extern "C" FT_UInt32* FT_Face_GetVariantSelectors(FT_Face face)
 {
-	FT_UInt32  *result = NULL;
+    FT_UInt32  *result = NULL;
 
 
     if ( face )
@@ -12287,7 +12287,7 @@ extern "C" FT_UInt32* FT_Face_GetVariantSelectors(FT_Face face)
 
 extern "C" FT_UInt32* FT_Face_GetVariantsOfChar(FT_Face face, FT_ULong charcode)
 {
-	FT_UInt32  *result = NULL;
+    FT_UInt32  *result = NULL;
 
 
     if ( face )
@@ -12316,7 +12316,7 @@ extern "C" FT_UInt32* FT_Face_GetVariantsOfChar(FT_Face face, FT_ULong charcode)
 
 extern "C" FT_UInt32* FT_Face_GetCharsOfVariant(FT_Face face, FT_ULong variantSelector)
 {
-	FT_UInt32  *result = NULL;
+    FT_UInt32  *result = NULL;
 
 
     if ( face )
@@ -12346,52 +12346,52 @@ extern "C" FT_UInt32* FT_Face_GetCharsOfVariant(FT_Face face, FT_ULong variantSe
 
 extern "C" FT_Long FT_MulDiv(FT_Long a, FT_Long b, FT_Long c)
 {
-	#ifdef FT_LONG64
-		FT_Int   s;
-		FT_Long  d;
+    #ifdef FT_LONG64
+        FT_Int   s;
+        FT_Long  d;
 
 
-		s = 1;
-		if ( a < 0 ) { a = -a; s = -1; }
-		if ( b < 0 ) { b = -b; s = -s; }
-		if ( c < 0 ) { c = -c; s = -s; }
+        s = 1;
+        if ( a < 0 ) { a = -a; s = -1; }
+        if ( b < 0 ) { b = -b; s = -s; }
+        if ( c < 0 ) { c = -c; s = -s; }
 
-		d = (FT_Long)( c > 0 ? ( (FT_Int64)a * b + ( c >> 1 ) ) / c
-							 : 0x7FFFFFFFL );
+        d = (FT_Long)( c > 0 ? ( (FT_Int64)a * b + ( c >> 1 ) ) / c
+                             : 0x7FFFFFFFL );
 
-		return ( s > 0 ) ? d : -d;
-	#else
-		long  s;
-
-
-		/* XXX: this function does not allow 64-bit arguments */
-		if ( a == 0 || b == c )
-		  return a;
-
-		s  = a; a = FT_ABS( a );
-		s ^= b; b = FT_ABS( b );
-		s ^= c; c = FT_ABS( c );
-
-		if ( a <= 46340L && b <= 46340L && c <= 176095L && c > 0 )
-		  a = ( a * b + ( c >> 1 ) ) / c;
-
-		else if ( (FT_Int32)c > 0 )
-		{
-		  FT_Int64  temp, temp2;
+        return ( s > 0 ) ? d : -d;
+    #else
+        long  s;
 
 
-		  ft_multo64( (FT_Int32)a, (FT_Int32)b, &temp );
+        /* XXX: this function does not allow 64-bit arguments */
+        if ( a == 0 || b == c )
+          return a;
 
-		  temp2.hi = 0;
-		  temp2.lo = (FT_UInt32)(c >> 1);
-		  FT_Add64( &temp, &temp2, &temp );
-		  a = ft_div64by32( temp.hi, temp.lo, (FT_Int32)c );
-		}
-		else
-		  a = 0x7FFFFFFFL;
+        s  = a; a = FT_ABS( a );
+        s ^= b; b = FT_ABS( b );
+        s ^= c; c = FT_ABS( c );
 
-		return ( s < 0 ? -a : a );
-	#endif
+        if ( a <= 46340L && b <= 46340L && c <= 176095L && c > 0 )
+          a = ( a * b + ( c >> 1 ) ) / c;
+
+        else if ( (FT_Int32)c > 0 )
+        {
+          FT_Int64  temp, temp2;
+
+
+          ft_multo64( (FT_Int32)a, (FT_Int32)b, &temp );
+
+          temp2.hi = 0;
+          temp2.lo = (FT_UInt32)(c >> 1);
+          FT_Add64( &temp, &temp2, &temp );
+          a = ft_div64by32( temp.hi, temp.lo, (FT_Int32)c );
+        }
+        else
+          a = 0x7FFFFFFFL;
+
+        return ( s < 0 ? -a : a );
+    #endif
 }
 
 FT_BASE_DEF( FT_Long )
@@ -12416,142 +12416,142 @@ FT_BASE_DEF( FT_Long )
 
 extern "C" FT_Long FT_MulFix(FT_Long a, FT_Long b)
 {
-	#ifdef FT_MulFix_ASSEMBLER
-		return FT_MulFix_ASSEMBLER( a, b );
-	#elif defined( FT_LONG64 )
-		FT_Int   s = 1;
-		FT_Long  c;
+    #ifdef FT_MulFix_ASSEMBLER
+        return FT_MulFix_ASSEMBLER( a, b );
+    #elif defined( FT_LONG64 )
+        FT_Int   s = 1;
+        FT_Long  c;
 
 
-		if ( a < 0 )
-		{
-		  a = -a;
-		  s = -1;
-		}
+        if ( a < 0 )
+        {
+          a = -a;
+          s = -1;
+        }
 
-		if ( b < 0 )
-		{
-		  b = -b;
-		  s = -s;
-		}
+        if ( b < 0 )
+        {
+          b = -b;
+          s = -s;
+        }
 
-		c = (FT_Long)( ( (FT_Int64)a * b + 0x8000L ) >> 16 );
+        c = (FT_Long)( ( (FT_Int64)a * b + 0x8000L ) >> 16 );
 
-		return ( s > 0 ) ? c : -c;
-	#else
-		FT_Long   s;
-		FT_ULong  ua, ub;
-
-
-		if ( a == 0 || b == 0x10000L )
-		  return a;
-
-		s  = a; a = FT_ABS( a );
-		s ^= b; b = FT_ABS( b );
-
-		ua = (FT_ULong)a;
-		ub = (FT_ULong)b;
-
-		if ( ua <= 2048 && ub <= 1048576L )
-		  ua = ( ua * ub + 0x8000UL ) >> 16;
-		else
-		{
-		  FT_ULong  al = ua & 0xFFFFUL;
+        return ( s > 0 ) ? c : -c;
+    #else
+        FT_Long   s;
+        FT_ULong  ua, ub;
 
 
-		  ua = ( ua >> 16 ) * ub +  al * ( ub >> 16 ) +
-			   ( ( al * ( ub & 0xFFFFUL ) + 0x8000UL ) >> 16 );
-		}
+        if ( a == 0 || b == 0x10000L )
+          return a;
 
-		return ( s < 0 ? -(FT_Long)ua : (FT_Long)ua );
-	#endif
+        s  = a; a = FT_ABS( a );
+        s ^= b; b = FT_ABS( b );
+
+        ua = (FT_ULong)a;
+        ub = (FT_ULong)b;
+
+        if ( ua <= 2048 && ub <= 1048576L )
+          ua = ( ua * ub + 0x8000UL ) >> 16;
+        else
+        {
+          FT_ULong  al = ua & 0xFFFFUL;
+
+
+          ua = ( ua >> 16 ) * ub +  al * ( ub >> 16 ) +
+               ( ( al * ( ub & 0xFFFFUL ) + 0x8000UL ) >> 16 );
+        }
+
+        return ( s < 0 ? -(FT_Long)ua : (FT_Long)ua );
+    #endif
 }
 
 extern "C" FT_Long FT_DivFix(FT_Long a, FT_Long b)
 {
-	#ifdef FT_LONG64
-		FT_Int32   s;
-		FT_UInt32  q;
+    #ifdef FT_LONG64
+        FT_Int32   s;
+        FT_UInt32  q;
 
 
-		s = 1;
-		if ( a < 0 )
-		{
-		  a = -a;
-		  s = -1;
-		}
-		if ( b < 0 )
-		{
-		  b = -b;
-		  s = -s;
-		}
+        s = 1;
+        if ( a < 0 )
+        {
+          a = -a;
+          s = -1;
+        }
+        if ( b < 0 )
+        {
+          b = -b;
+          s = -s;
+        }
 
-		if ( b == 0 )
-		  /* check for division by 0 */
-		  q = 0x7FFFFFFFL;
-		else
-		  /* compute result directly */
-		  q = (FT_UInt32)( ( ( (FT_UInt64)a << 16 ) + ( b >> 1 ) ) / b );
+        if ( b == 0 )
+          /* check for division by 0 */
+          q = 0x7FFFFFFFL;
+        else
+          /* compute result directly */
+          q = (FT_UInt32)( ( ( (FT_UInt64)a << 16 ) + ( b >> 1 ) ) / b );
 
-		return ( s < 0 ? -(FT_Long)q : (FT_Long)q );
-	#else
-		FT_Int32   s;
-		FT_UInt32  q;
-
-
-		/* XXX: this function does not allow 64-bit arguments */
-		s  = (FT_Int32)a; a = FT_ABS( a );
-		s ^= (FT_Int32)b; b = FT_ABS( b );
-
-		if ( (FT_UInt32)b == 0 )
-		{
-		  /* check for division by 0 */
-		  q = (FT_UInt32)0x7FFFFFFFL;
-		}
-		else if ( ( a >> 16 ) == 0 )
-		{
-		  /* compute result directly */
-		  q = (FT_UInt32)( ( (FT_ULong)a << 16 ) + ( b >> 1 ) ) / (FT_UInt32)b;
-		}
-		else
-		{
-		  /* we need more bits; we have to do it by hand */
-		  FT_Int64  temp, temp2;
+        return ( s < 0 ? -(FT_Long)q : (FT_Long)q );
+    #else
+        FT_Int32   s;
+        FT_UInt32  q;
 
 
-		  temp.hi  = (FT_Int32)( a >> 16 );
-		  temp.lo  = (FT_UInt32)a << 16;
-		  temp2.hi = 0;
-		  temp2.lo = (FT_UInt32)( b >> 1 );
-		  FT_Add64( &temp, &temp2, &temp );
-		  q = ft_div64by32( temp.hi, temp.lo, (FT_Int32)b );
-		}
+        /* XXX: this function does not allow 64-bit arguments */
+        s  = (FT_Int32)a; a = FT_ABS( a );
+        s ^= (FT_Int32)b; b = FT_ABS( b );
 
-		return ( s < 0 ? -(FT_Int32)q : (FT_Int32)q );
-	#endif
+        if ( (FT_UInt32)b == 0 )
+        {
+          /* check for division by 0 */
+          q = (FT_UInt32)0x7FFFFFFFL;
+        }
+        else if ( ( a >> 16 ) == 0 )
+        {
+          /* compute result directly */
+          q = (FT_UInt32)( ( (FT_ULong)a << 16 ) + ( b >> 1 ) ) / (FT_UInt32)b;
+        }
+        else
+        {
+          /* we need more bits; we have to do it by hand */
+          FT_Int64  temp, temp2;
+
+
+          temp.hi  = (FT_Int32)( a >> 16 );
+          temp.lo  = (FT_UInt32)a << 16;
+          temp2.hi = 0;
+          temp2.lo = (FT_UInt32)( b >> 1 );
+          FT_Add64( &temp, &temp2, &temp );
+          q = ft_div64by32( temp.hi, temp.lo, (FT_Int32)b );
+        }
+
+        return ( s < 0 ? -(FT_Int32)q : (FT_Int32)q );
+    #endif
 }
 
 extern "C" FT_Fixed FT_RoundFix(FT_Fixed a)
 {
-	return ( a >= 0 ) ?   ( a + 0x8000L ) & ~0xFFFFL
+    return ( a >= 0 ) ?   ( a + 0x8000L ) & ~0xFFFFL
                       : -((-a + 0x8000L ) & ~0xFFFFL );
 }
 
 extern "C" FT_Fixed FT_CeilFix(FT_Fixed a)
 {
-	return ( a >= 0 ) ?   ( a + 0xFFFFL ) & ~0xFFFFL
+    return ( a >= 0 ) ?   ( a + 0xFFFFL ) & ~0xFFFFL
                       : -((-a + 0xFFFFL ) & ~0xFFFFL );
 }
 
 extern "C" FT_Fixed FT_FloorFix(FT_Fixed a)
 {
-	return ( a >= 0 ) ?   a & ~0xFFFFL
+    return ( a >= 0 ) ?   a & ~0xFFFFL
                       : -((-a) & ~0xFFFFL );
 }
 
 extern "C" void FT_Vector_Transform(FT_Vector* vector, const FT_Matrix* matrix)
 {
-	FT_Pos  xz, yz;
+    FT_Pos  xz, yz;
 
 
     if ( !vector || !matrix )
@@ -12569,7 +12569,7 @@ extern "C" void FT_Vector_Transform(FT_Vector* vector, const FT_Matrix* matrix)
 
 extern "C" void FT_Library_Version(FT_Library library, FT_Int* amajor, FT_Int* aminor, FT_Int* apatch)
 {
-	FT_Int  major = 0;
+    FT_Int  major = 0;
     FT_Int  minor = 0;
     FT_Int  patch = 0;
 
@@ -12821,7 +12821,7 @@ static FT_Bool
 
 extern "C" FT_Bool FT_Face_CheckTrueTypePatents(FT_Face face)
 {
-	FT_Bool  result = FALSE;
+    FT_Bool  result = FALSE;
 
 
     if ( face && FT_IS_SFNT( face ) )
@@ -12832,7 +12832,7 @@ extern "C" FT_Bool FT_Face_CheckTrueTypePatents(FT_Face face)
 
 extern "C" FT_Bool FT_Face_SetUnpatentedHinting(FT_Face face, FT_Bool value)
 {
-	FT_Bool  result = FALSE;
+    FT_Bool  result = FALSE;
 
 
 #if defined( TT_CONFIG_OPTION_UNPATENTED_HINTING ) && \
@@ -13352,13 +13352,13 @@ FT_DECLARE_RENDERER(ft_smooth_renderer_class)
 
 const FT_Module_Class* const ft_default_modules[] =
 {
-	FT_USE_MODULE( FT_Driver_ClassRec, tt_driver_class )
-	FT_USE_MODULE( FT_Module_Class, autofit_module_class )
-	FT_USE_MODULE( FT_Module_Class, sfnt_module_class )
-	FT_USE_MODULE( FT_Module_Class, psnames_module_class )
-	FT_USE_MODULE( FT_Renderer_Class, ft_raster1_renderer_class )
-	FT_USE_MODULE( FT_Renderer_Class, ft_smooth_renderer_class )
-	0
+    FT_USE_MODULE( FT_Driver_ClassRec, tt_driver_class )
+    FT_USE_MODULE( FT_Module_Class, autofit_module_class )
+    FT_USE_MODULE( FT_Module_Class, sfnt_module_class )
+    FT_USE_MODULE( FT_Module_Class, psnames_module_class )
+    FT_USE_MODULE( FT_Renderer_Class, ft_raster1_renderer_class )
+    FT_USE_MODULE( FT_Renderer_Class, ft_smooth_renderer_class )
+    0
 };
 
 // ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -13628,49 +13628,49 @@ FT_DEFINE_SERVICE_PROPERTIESREC(
 
 #ifndef FT_CONFIG_OPTION_PIC
 
-	#define TT_SERVICES_GET                  tt_services
-	#define TT_SERVICE_GX_MULTI_MASTERS_GET  tt_service_gx_multi_masters
-	#define TT_SERVICE_TRUETYPE_GLYF_GET     tt_service_truetype_glyf
-	#define TT_SERVICE_PROPERTIES_GET        tt_service_properties
+    #define TT_SERVICES_GET                  tt_services
+    #define TT_SERVICE_GX_MULTI_MASTERS_GET  tt_service_gx_multi_masters
+    #define TT_SERVICE_TRUETYPE_GLYF_GET     tt_service_truetype_glyf
+    #define TT_SERVICE_PROPERTIES_GET        tt_service_properties
 
 #else /* FT_CONFIG_OPTION_PIC */
 
-	#include FT_MULTIPLE_MASTERS_H
-	#include FT_SERVICE_MULTIPLE_MASTERS_H
-	#include FT_SERVICE_TRUETYPE_GLYF_H
-	#include FT_SERVICE_PROPERTIES_H
+    #include FT_MULTIPLE_MASTERS_H
+    #include FT_SERVICE_MULTIPLE_MASTERS_H
+    #include FT_SERVICE_TRUETYPE_GLYF_H
+    #include FT_SERVICE_PROPERTIES_H
 
 
-	  typedef struct  TTModulePIC_
-	  {
-		FT_ServiceDescRec*          tt_services;
-	#ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
-		FT_Service_MultiMastersRec  tt_service_gx_multi_masters;
-	#endif
-		FT_Service_TTGlyfRec        tt_service_truetype_glyf;
-		FT_Service_PropertiesRec    tt_service_properties;
+      typedef struct  TTModulePIC_
+      {
+        FT_ServiceDescRec*          tt_services;
+    #ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
+        FT_Service_MultiMastersRec  tt_service_gx_multi_masters;
+    #endif
+        FT_Service_TTGlyfRec        tt_service_truetype_glyf;
+        FT_Service_PropertiesRec    tt_service_properties;
 
-	  } TTModulePIC;
-
-
-	#define GET_PIC( lib )                                      \
-			  ( (TTModulePIC*)((lib)->pic_container.truetype) )
-	#define TT_SERVICES_GET                       \
-			  ( GET_PIC( library )->tt_services )
-	#define TT_SERVICE_GX_MULTI_MASTERS_GET                       \
-			  ( GET_PIC( library )->tt_service_gx_multi_masters )
-	#define TT_SERVICE_TRUETYPE_GLYF_GET                       \
-			  ( GET_PIC( library )->tt_service_truetype_glyf )
-	#define TT_SERVICE_PROPERTIES_GET                       \
-			  ( GET_PIC( library )->tt_service_properties )
+      } TTModulePIC;
 
 
-	  /* see ttpic.c for the implementation */
-	  void
-	  tt_driver_class_pic_free( FT_Library  library );
+    #define GET_PIC( lib )                                      \
+              ( (TTModulePIC*)((lib)->pic_container.truetype) )
+    #define TT_SERVICES_GET                       \
+              ( GET_PIC( library )->tt_services )
+    #define TT_SERVICE_GX_MULTI_MASTERS_GET                       \
+              ( GET_PIC( library )->tt_service_gx_multi_masters )
+    #define TT_SERVICE_TRUETYPE_GLYF_GET                       \
+              ( GET_PIC( library )->tt_service_truetype_glyf )
+    #define TT_SERVICE_PROPERTIES_GET                       \
+              ( GET_PIC( library )->tt_service_properties )
 
-	  FT_Error
-	  tt_driver_class_pic_init( FT_Library  library );
+
+      /* see ttpic.c for the implementation */
+      void
+      tt_driver_class_pic_free( FT_Library  library );
+
+      FT_Error
+      tt_driver_class_pic_init( FT_Library  library );
 
 #endif /* FT_CONFIG_OPTION_PIC */
 
@@ -17316,9 +17316,9 @@ FT_LOCAL_DEF( FT_Error )
 
   /* the highest bit in overflow-safe vector components, */
   /* MSB of 0.858785336480436 * sqrt(0.5) * 2^30         */
-	#define FT_TRIG_SAFE_MSB   29
+    #define FT_TRIG_SAFE_MSB   29
   /* this table was generated for FT_PI = 180L << 16, i.e. degrees */
-	#define FT_TRIG_MAX_ITERS  23
+    #define FT_TRIG_MAX_ITERS  23
   static const FT_Fixed
   ft_trig_arctan_table[] =
   {
@@ -19816,116 +19816,116 @@ static FT_Error
 // ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
 #define include_afstyles_h_1 \
-	META_STYLE_LATIN( cyrl, CYRL, "Cyrillic" ) \
-	META_STYLE_LATIN( grek, GREK, "Greek" ) \
-	STYLE( hebr_dflt, HEBR_DFLT, \
-		"Hebrew default style", \
-		AF_WRITING_SYSTEM_LATIN, \
-		AF_SCRIPT_HEBR, \
-		AF_BLUE_STRINGSET_HEBR, \
-		AF_COVERAGE_DEFAULT ) \
-	META_STYLE_LATIN( latn, LATN, "Latin" )
+    META_STYLE_LATIN( cyrl, CYRL, "Cyrillic" ) \
+    META_STYLE_LATIN( grek, GREK, "Greek" ) \
+    STYLE( hebr_dflt, HEBR_DFLT, \
+        "Hebrew default style", \
+        AF_WRITING_SYSTEM_LATIN, \
+        AF_SCRIPT_HEBR, \
+        AF_BLUE_STRINGSET_HEBR, \
+        AF_COVERAGE_DEFAULT ) \
+    META_STYLE_LATIN( latn, LATN, "Latin" )
 #define include_afstyles_h_2 \
-	STYLE( ltn2_dflt, LTN2_DFLT, \
-		"Latin 2 default style", \
-		AF_WRITING_SYSTEM_LATIN2, \
-		AF_SCRIPT_LATN, \
-		AF_BLUE_STRINGSET_LATN, \
-		AF_COVERAGE_DEFAULT )
+    STYLE( ltn2_dflt, LTN2_DFLT, \
+        "Latin 2 default style", \
+        AF_WRITING_SYSTEM_LATIN2, \
+        AF_SCRIPT_LATN, \
+        AF_BLUE_STRINGSET_LATN, \
+        AF_COVERAGE_DEFAULT )
 #define include_afstyles_h_3 \
-	STYLE( none_dflt, NONE_DFLT, \
-		"no style", \
-		AF_WRITING_SYSTEM_DUMMY, \
-		AF_SCRIPT_NONE, \
-		(AF_Blue_Stringset)0, \
-		AF_COVERAGE_DEFAULT )
+    STYLE( none_dflt, NONE_DFLT, \
+        "no style", \
+        AF_WRITING_SYSTEM_DUMMY, \
+        AF_SCRIPT_NONE, \
+        (AF_Blue_Stringset)0, \
+        AF_COVERAGE_DEFAULT )
 #define include_afstyles_h_4 \
-	STYLE_DEFAULT_INDIC( beng, BENG, "Bengali" ) \
-	STYLE_DEFAULT_INDIC( deva, DEVA, "Devanagari" ) \
-	STYLE_DEFAULT_INDIC( gujr, GUJR, "Gujarati" ) \
-	STYLE_DEFAULT_INDIC( guru, GURU, "Gurmukhi" ) \
-	STYLE_DEFAULT_INDIC( knda, KNDA, "Kannada" ) \
-	STYLE_DEFAULT_INDIC( limb, LIMB, "Limbu" ) \
-	STYLE_DEFAULT_INDIC( mlym, MLYM, "Malayalam" ) \
-	STYLE_DEFAULT_INDIC( orya, ORYA, "Oriya" ) \
-	STYLE_DEFAULT_INDIC( sinh, SINH, "Sinhala" ) \
-	STYLE_DEFAULT_INDIC( sund, SUND, "Sundanese" ) \
-	STYLE_DEFAULT_INDIC( sylo, SYLO, "Syloti Nagri" ) \
-	STYLE_DEFAULT_INDIC( taml, TAML, "Tamil" ) \
-	STYLE_DEFAULT_INDIC( telu, TELU, "Telugu" ) \
-	STYLE_DEFAULT_INDIC( tibt, TIBT, "Tibetan" )
+    STYLE_DEFAULT_INDIC( beng, BENG, "Bengali" ) \
+    STYLE_DEFAULT_INDIC( deva, DEVA, "Devanagari" ) \
+    STYLE_DEFAULT_INDIC( gujr, GUJR, "Gujarati" ) \
+    STYLE_DEFAULT_INDIC( guru, GURU, "Gurmukhi" ) \
+    STYLE_DEFAULT_INDIC( knda, KNDA, "Kannada" ) \
+    STYLE_DEFAULT_INDIC( limb, LIMB, "Limbu" ) \
+    STYLE_DEFAULT_INDIC( mlym, MLYM, "Malayalam" ) \
+    STYLE_DEFAULT_INDIC( orya, ORYA, "Oriya" ) \
+    STYLE_DEFAULT_INDIC( sinh, SINH, "Sinhala" ) \
+    STYLE_DEFAULT_INDIC( sund, SUND, "Sundanese" ) \
+    STYLE_DEFAULT_INDIC( sylo, SYLO, "Syloti Nagri" ) \
+    STYLE_DEFAULT_INDIC( taml, TAML, "Tamil" ) \
+    STYLE_DEFAULT_INDIC( telu, TELU, "Telugu" ) \
+    STYLE_DEFAULT_INDIC( tibt, TIBT, "Tibetan" )
 #define include_afstyles_h_5 \
-	STYLE( hani_dflt, HANI_DFLT, \
-		"CJKV ideographs default style", \
-		AF_WRITING_SYSTEM_CJK, \
-		AF_SCRIPT_HANI, \
-		AF_BLUE_STRINGSET_HANI, \
-		AF_COVERAGE_DEFAULT )
+    STYLE( hani_dflt, HANI_DFLT, \
+        "CJKV ideographs default style", \
+        AF_WRITING_SYSTEM_CJK, \
+        AF_SCRIPT_HANI, \
+        AF_BLUE_STRINGSET_HANI, \
+        AF_COVERAGE_DEFAULT )
 
 #define include_afscript_h_1 \
-	SCRIPT( cyrl, CYRL, "Cyrillic", HB_SCRIPT_CYRILLIC, 0x43E, 0x41E, 0x0 ) /* оО */ \
-	SCRIPT( grek, GREK, "Greek", HB_SCRIPT_GREEK, 0x3BF, 0x39F, 0x0 ) /* οΟ */ \
-	SCRIPT( hebr, HEBR, "Hebrew", HB_SCRIPT_HEBREW, 0x5DD, 0x0, 0x0 ) /* ם */ \
-	SCRIPT( latn, LATN, "Latin", HB_SCRIPT_LATIN, 'o', 'O', '0' ) \
-	SCRIPT( none, NONE, "no script", HB_SCRIPT_INVALID, 0x0, 0x0, 0x0 )
+    SCRIPT( cyrl, CYRL, "Cyrillic", HB_SCRIPT_CYRILLIC, 0x43E, 0x41E, 0x0 ) /* оО */ \
+    SCRIPT( grek, GREK, "Greek", HB_SCRIPT_GREEK, 0x3BF, 0x39F, 0x0 ) /* οΟ */ \
+    SCRIPT( hebr, HEBR, "Hebrew", HB_SCRIPT_HEBREW, 0x5DD, 0x0, 0x0 ) /* ם */ \
+    SCRIPT( latn, LATN, "Latin", HB_SCRIPT_LATIN, 'o', 'O', '0' ) \
+    SCRIPT( none, NONE, "no script", HB_SCRIPT_INVALID, 0x0, 0x0, 0x0 )
 #define include_afscript_h_2 \
-	SCRIPT( beng, BENG, "Bengali", HB_SCRIPT_BENGALI, 'o', 0x0, 0x0 ) /* XXX */ \
-	SCRIPT( deva, DEVA, "Devanagari", HB_SCRIPT_DEVANAGARI, 'o', 0x0, 0x0 ) /* XXX */ \
-	SCRIPT( gujr, GUJR, "Gujarati", HB_SCRIPT_GUJARATI, 'o', 0x0, 0x0 ) /* XXX */ \
-	SCRIPT( guru, GURU, "Gurmukhi", HB_SCRIPT_GURMUKHI, 'o', 0x0, 0x0 ) /* XXX */ \
-	SCRIPT( knda, KNDA, "Kannada", HB_SCRIPT_KANNADA, 'o', 0x0, 0x0 ) /* XXX */ \
-	SCRIPT( limb, LIMB, "Limbu", HB_SCRIPT_LIMBU, 'o', 0x0, 0x0 ) /* XXX */ \
-	SCRIPT( mlym, MLYM, "Malayalam", HB_SCRIPT_MALAYALAM, 'o', 0x0, 0x0 ) /* XXX */ \
-	SCRIPT( orya, ORYA, "Oriya", HB_SCRIPT_ORIYA, 'o', 0x0, 0x0 ) /* XXX */ \
-	SCRIPT( sinh, SINH, "Sinhala", HB_SCRIPT_SINHALA, 'o', 0x0, 0x0 ) /* XXX */ \
-	SCRIPT( sund, SUND, "Sundanese", HB_SCRIPT_SUNDANESE, 'o', 0x0, 0x0 ) /* XXX */ \
-	SCRIPT( sylo, SYLO, "Syloti Nagri", HB_SCRIPT_SYLOTI_NAGRI, 'o', 0x0, 0x0 ) /* XXX */ \
-	SCRIPT( taml, TAML, "Tamil", HB_SCRIPT_TAMIL, 'o', 0x0, 0x0 ) /* XXX */ \
-	SCRIPT( telu, TELU, "Telugu", HB_SCRIPT_TELUGU, 'o', 0x0, 0x0 ) /* XXX */ \
-	SCRIPT( tibt, TIBT, "Tibetan", HB_SCRIPT_TIBETAN, 'o', 0x0, 0x0 ) /* XXX */
+    SCRIPT( beng, BENG, "Bengali", HB_SCRIPT_BENGALI, 'o', 0x0, 0x0 ) /* XXX */ \
+    SCRIPT( deva, DEVA, "Devanagari", HB_SCRIPT_DEVANAGARI, 'o', 0x0, 0x0 ) /* XXX */ \
+    SCRIPT( gujr, GUJR, "Gujarati", HB_SCRIPT_GUJARATI, 'o', 0x0, 0x0 ) /* XXX */ \
+    SCRIPT( guru, GURU, "Gurmukhi", HB_SCRIPT_GURMUKHI, 'o', 0x0, 0x0 ) /* XXX */ \
+    SCRIPT( knda, KNDA, "Kannada", HB_SCRIPT_KANNADA, 'o', 0x0, 0x0 ) /* XXX */ \
+    SCRIPT( limb, LIMB, "Limbu", HB_SCRIPT_LIMBU, 'o', 0x0, 0x0 ) /* XXX */ \
+    SCRIPT( mlym, MLYM, "Malayalam", HB_SCRIPT_MALAYALAM, 'o', 0x0, 0x0 ) /* XXX */ \
+    SCRIPT( orya, ORYA, "Oriya", HB_SCRIPT_ORIYA, 'o', 0x0, 0x0 ) /* XXX */ \
+    SCRIPT( sinh, SINH, "Sinhala", HB_SCRIPT_SINHALA, 'o', 0x0, 0x0 ) /* XXX */ \
+    SCRIPT( sund, SUND, "Sundanese", HB_SCRIPT_SUNDANESE, 'o', 0x0, 0x0 ) /* XXX */ \
+    SCRIPT( sylo, SYLO, "Syloti Nagri", HB_SCRIPT_SYLOTI_NAGRI, 'o', 0x0, 0x0 ) /* XXX */ \
+    SCRIPT( taml, TAML, "Tamil", HB_SCRIPT_TAMIL, 'o', 0x0, 0x0 ) /* XXX */ \
+    SCRIPT( telu, TELU, "Telugu", HB_SCRIPT_TELUGU, 'o', 0x0, 0x0 ) /* XXX */ \
+    SCRIPT( tibt, TIBT, "Tibetan", HB_SCRIPT_TIBETAN, 'o', 0x0, 0x0 ) /* XXX */
 #define include_afscript_h_3 \
-	SCRIPT( hani, HANI, "CJKV ideographs", HB_SCRIPT_HAN, 0x7530, 0x56D7, 0x0 ) /* 田囗 */
+    SCRIPT( hani, HANI, "CJKV ideographs", HB_SCRIPT_HAN, 0x7530, 0x56D7, 0x0 ) /* 田囗 */
 
 #define include_afcover_h \
-	COVERAGE( petite_capitals_from_capitals, PETITE_CAPITALS_FROM_CAPITALS, "petite capitals from capitals", 'c', '2', 'c', 'p' ) \
-	COVERAGE( small_capitals_from_capitals, SMALL_CAPITALS_FROM_CAPITALS, "small capitals from capitals", 'c', '2', 's', 'c' ) \
-	COVERAGE( ordinals, ORDINALS, "ordinals", 'o', 'r', 'd', 'n' ) \
-	COVERAGE( petite_capitals, PETITE_CAPITALS, "petite capitals", 'p', 'c', 'a', 'p' ) \
-	COVERAGE( ruby, RUBY, "ruby", 'r', 'u', 'b', 'y' ) \
-	COVERAGE( scientific_inferiors, SCIENTIFIC_INFERIORS, "scientific inferiors", 's', 'i', 'n', 'f' ) \
-	COVERAGE( small_capitals, SMALL_CAPITALS, "small capitals", 's', 'm', 'c', 'p' ) \
-	COVERAGE( subscript, SUBSCRIPT, "subscript", 's', 'u', 'b', 's' ) \
-	COVERAGE( superscript, SUPERSCRIPT, "superscript", 's', 'u', 'p', 's' ) \
-	COVERAGE( titling, TITLING, "titling", 't', 'i', 't', 'l' )
+    COVERAGE( petite_capitals_from_capitals, PETITE_CAPITALS_FROM_CAPITALS, "petite capitals from capitals", 'c', '2', 'c', 'p' ) \
+    COVERAGE( small_capitals_from_capitals, SMALL_CAPITALS_FROM_CAPITALS, "small capitals from capitals", 'c', '2', 's', 'c' ) \
+    COVERAGE( ordinals, ORDINALS, "ordinals", 'o', 'r', 'd', 'n' ) \
+    COVERAGE( petite_capitals, PETITE_CAPITALS, "petite capitals", 'p', 'c', 'a', 'p' ) \
+    COVERAGE( ruby, RUBY, "ruby", 'r', 'u', 'b', 'y' ) \
+    COVERAGE( scientific_inferiors, SCIENTIFIC_INFERIORS, "scientific inferiors", 's', 'i', 'n', 'f' ) \
+    COVERAGE( small_capitals, SMALL_CAPITALS, "small capitals", 's', 'm', 'c', 'p' ) \
+    COVERAGE( subscript, SUBSCRIPT, "subscript", 's', 'u', 'b', 's' ) \
+    COVERAGE( superscript, SUPERSCRIPT, "superscript", 's', 'u', 'p', 's' ) \
+    COVERAGE( titling, TITLING, "titling", 't', 'i', 't', 'l' )
 
 #define include_afwrtsys_h_1 \
-	WRITING_SYSTEM( dummy,  DUMMY  ) \
-	WRITING_SYSTEM( latin,  LATIN  ) \
-	WRITING_SYSTEM( cjk,    CJK    ) \
-	WRITING_SYSTEM( indic,  INDIC  )
+    WRITING_SYSTEM( dummy,  DUMMY  ) \
+    WRITING_SYSTEM( latin,  LATIN  ) \
+    WRITING_SYSTEM( cjk,    CJK    ) \
+    WRITING_SYSTEM( indic,  INDIC  )
 #define include_afwrtsys_h_2 \
-	WRITING_SYSTEM( latin2, LATIN2 )
+    WRITING_SYSTEM( latin2, LATIN2 )
 
 #undef  STYLE_LATIN
 #define STYLE_LATIN( s, S, f, F, ds, df, C ) \
-			STYLE( s ## _ ## f, S ## _ ## F,   \
-					ds " " df " style",         \
-					AF_WRITING_SYSTEM_LATIN,    \
-					AF_SCRIPT_ ## S,            \
-					AF_BLUE_STRINGSET_ ## S,    \
-					AF_COVERAGE_ ## C )
+            STYLE( s ## _ ## f, S ## _ ## F,   \
+                    ds " " df " style",         \
+                    AF_WRITING_SYSTEM_LATIN,    \
+                    AF_SCRIPT_ ## S,            \
+                    AF_BLUE_STRINGSET_ ## S,    \
+                    AF_COVERAGE_ ## C )
 #undef  META_STYLE_LATIN
 #define META_STYLE_LATIN( s, S, ds )                     \
-			STYLE_LATIN( s, S, c2cp, C2CP, ds, "petite capticals from capitals", PETITE_CAPITALS_FROM_CAPITALS )   \
-			STYLE_LATIN( s, S, c2sc, C2SC, ds, "small capticals from capitals", SMALL_CAPITALS_FROM_CAPITALS )    \
-			STYLE_LATIN( s, S, ordn, ORDN, ds, "ordinals", ORDINALS )                        \
-			STYLE_LATIN( s, S, pcap, PCAP, ds, "petite capitals", PETITE_CAPITALS )                 \
-			STYLE_LATIN( s, S, sinf, SINF, ds, "scientific inferiors", SCIENTIFIC_INFERIORS )            \
-			STYLE_LATIN( s, S, smcp, SMCP, ds, "small capitals", SMALL_CAPITALS )                  \
-			STYLE_LATIN( s, S, subs, SUBS, ds, "subscript", SUBSCRIPT )                       \
-			STYLE_LATIN( s, S, sups, SUPS, ds, "superscript", SUPERSCRIPT )                     \
-			STYLE_LATIN( s, S, titl, TITL, ds, "titling", TITLING )                         \
-			STYLE_LATIN( s, S, dflt, DFLT, ds, "default", DEFAULT )
+            STYLE_LATIN( s, S, c2cp, C2CP, ds, "petite capticals from capitals", PETITE_CAPITALS_FROM_CAPITALS )   \
+            STYLE_LATIN( s, S, c2sc, C2SC, ds, "small capticals from capitals", SMALL_CAPITALS_FROM_CAPITALS )    \
+            STYLE_LATIN( s, S, ordn, ORDN, ds, "ordinals", ORDINALS )                        \
+            STYLE_LATIN( s, S, pcap, PCAP, ds, "petite capitals", PETITE_CAPITALS )                 \
+            STYLE_LATIN( s, S, sinf, SINF, ds, "scientific inferiors", SCIENTIFIC_INFERIORS )            \
+            STYLE_LATIN( s, S, smcp, SMCP, ds, "small capitals", SMALL_CAPITALS )                  \
+            STYLE_LATIN( s, S, subs, SUBS, ds, "subscript", SUBSCRIPT )                       \
+            STYLE_LATIN( s, S, sups, SUPS, ds, "superscript", SUPERSCRIPT )                     \
+            STYLE_LATIN( s, S, titl, TITL, ds, "titling", TITLING )                         \
+            STYLE_LATIN( s, S, dflt, DFLT, ds, "default", DEFAULT )
 #undef  STYLE_DEFAULT_INDIC
 #define STYLE_DEFAULT_INDIC( s, S, d )    \
           STYLE( s ## _dflt, S ## _DFLT,  \
@@ -20086,18 +20086,18 @@ static FT_Error
 #define STYLE( s, S, d, ws, sc, ss, c ) AF_STYLE_ ## S,
 typedef enum  AF_Style_
 {
-	include_afstyles_h_1
-	#ifdef FT_OPTION_AUTOFIT2
-		include_afstyles_h_2
-	#endif
-	include_afstyles_h_3
-	#ifdef AF_CONFIG_OPTION_INDIC
-		include_afstyles_h_4
-	#endif
-	#ifdef AF_CONFIG_OPTION_CJK
-		include_afstyles_h_5
-	#endif
-	AF_STYLE_MAX   /* do not remove */
+    include_afstyles_h_1
+    #ifdef FT_OPTION_AUTOFIT2
+        include_afstyles_h_2
+    #endif
+    include_afstyles_h_3
+    #ifdef AF_CONFIG_OPTION_INDIC
+        include_afstyles_h_4
+    #endif
+    #ifdef AF_CONFIG_OPTION_CJK
+        include_afstyles_h_5
+    #endif
+    AF_STYLE_MAX   /* do not remove */
 } AF_Style;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -20106,13 +20106,13 @@ typedef enum  AF_Style_
 /* The list of known scripts. */
 typedef enum  AF_Script_
 {
-	include_afscript_h_1
-	#ifdef AF_CONFIG_OPTION_INDIC
-		include_afscript_h_2
-	#endif
-	#ifdef AF_CONFIG_OPTION_CJK
-		include_afscript_h_3
-	#endif
+    include_afscript_h_1
+    #ifdef AF_CONFIG_OPTION_INDIC
+        include_afscript_h_2
+    #endif
+    #ifdef AF_CONFIG_OPTION_CJK
+        include_afscript_h_3
+    #endif
     AF_SCRIPT_MAX   /* do not remove */
 } AF_Script;
 
@@ -20121,7 +20121,7 @@ typedef enum  AF_Script_
 #define COVERAGE( name, NAME, description, tag1, tag2, tag3, tag4 ) AF_COVERAGE_ ## NAME,
 typedef enum  AF_Coverage_
 {
-	include_afcover_h
+    include_afcover_h
     AF_COVERAGE_DEFAULT
 } AF_Coverage;
 
@@ -20131,11 +20131,11 @@ typedef enum  AF_Coverage_
 /* The list of known writing systems. */
 typedef enum  AF_WritingSystem_
 {
-	include_afwrtsys_h_1
-	#ifdef FT_OPTION_AUTOFIT2
-		include_afwrtsys_h_2
-	#endif
-	AF_WRITING_SYSTEM_MAX   /* do not remove */
+    include_afwrtsys_h_1
+    #ifdef FT_OPTION_AUTOFIT2
+        include_afwrtsys_h_2
+    #endif
+    AF_WRITING_SYSTEM_MAX   /* do not remove */
 } AF_WritingSystem;
 
 typedef struct  AF_ScalerRec_
@@ -20185,19 +20185,19 @@ typedef const AF_StyleClassRec*  AF_StyleClass;
 
 typedef struct AF_Script_UniRangeRec_
 {
-	FT_UInt32  first;
-	FT_UInt32  last;
+    FT_UInt32  first;
+    FT_UInt32  last;
 
 } AF_Script_UniRangeRec;
 typedef const AF_Script_UniRangeRec*  AF_Script_UniRange;
 
 typedef struct  AF_ScriptClassRec_
 {
-	AF_Script  script;
-	AF_Script_UniRange  script_uni_ranges; /* last must be { 0, 0 }        */
-	FT_UInt32  standard_char1;             /* for default width and height */
-	FT_UInt32  standard_char2;             /* ditto                        */
-	FT_UInt32  standard_char3;             /* ditto                        */
+    AF_Script  script;
+    AF_Script_UniRange  script_uni_ranges; /* last must be { 0, 0 }        */
+    FT_UInt32  standard_char1;             /* for default width and height */
+    FT_UInt32  standard_char2;             /* ditto                        */
+    FT_UInt32  standard_char3;             /* ditto                        */
 } AF_ScriptClassRec;
 typedef const AF_ScriptClassRec*  AF_ScriptClass;
 
@@ -20236,17 +20236,17 @@ typedef const AF_WritingSystemClassRec*  AF_WritingSystemClass;
             sc,                          \
             ss,                          \
             c )
-	include_afstyles_h_1
-	#ifdef FT_OPTION_AUTOFIT2
-		include_afstyles_h_2
-	#endif
-	include_afstyles_h_3
-	#ifdef AF_CONFIG_OPTION_INDIC
-		include_afstyles_h_4
-	#endif
-	#ifdef AF_CONFIG_OPTION_CJK
-		include_afstyles_h_5
-	#endif
+    include_afstyles_h_1
+    #ifdef FT_OPTION_AUTOFIT2
+        include_afstyles_h_2
+    #endif
+    include_afstyles_h_3
+    #ifdef AF_CONFIG_OPTION_INDIC
+        include_afstyles_h_4
+    #endif
+    #ifdef AF_CONFIG_OPTION_CJK
+        include_afstyles_h_5
+    #endif
 
 ////////////////////////////////////////////////////////////////////////////////
 #undef  STYLE
@@ -20254,17 +20254,17 @@ typedef const AF_WritingSystemClassRec*  AF_WritingSystemClass;
 FT_LOCAL_ARRAY_DEF( AF_StyleClass )
 af_style_classes[] =
 {
-	include_afstyles_h_1
-	#ifdef FT_OPTION_AUTOFIT2
-		include_afstyles_h_2
-	#endif
-	include_afstyles_h_3
-	#ifdef AF_CONFIG_OPTION_INDIC
-		include_afstyles_h_4
-	#endif
-	#ifdef AF_CONFIG_OPTION_CJK
-		include_afstyles_h_5
-	#endif
+    include_afstyles_h_1
+    #ifdef FT_OPTION_AUTOFIT2
+        include_afstyles_h_2
+    #endif
+    include_afstyles_h_3
+    #ifdef AF_CONFIG_OPTION_INDIC
+        include_afstyles_h_4
+    #endif
+    #ifdef AF_CONFIG_OPTION_CJK
+        include_afstyles_h_5
+    #endif
     NULL  /* do not remove */
 };
 
@@ -20274,46 +20274,46 @@ af_style_classes[] =
 FT_LOCAL_ARRAY_DEF( char* )
 af_style_names[] =
 {
-	include_afstyles_h_1
-	#ifdef FT_OPTION_AUTOFIT2
-		include_afstyles_h_2
-	#endif
-	include_afstyles_h_3
-	#ifdef AF_CONFIG_OPTION_INDIC
-		include_afstyles_h_4
-	#endif
-	#ifdef AF_CONFIG_OPTION_CJK
-		include_afstyles_h_5
-	#endif
+    include_afstyles_h_1
+    #ifdef FT_OPTION_AUTOFIT2
+        include_afstyles_h_2
+    #endif
+    include_afstyles_h_3
+    #ifdef AF_CONFIG_OPTION_INDIC
+        include_afstyles_h_4
+    #endif
+    #ifdef AF_CONFIG_OPTION_CJK
+        include_afstyles_h_5
+    #endif
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 #undef  STYLE
 #define STYLE( s, S, d, ws, sc, ss, c ) AF_DECLARE_STYLE_CLASS( af_ ## s ## _style_class )
-	include_afstyles_h_1
-	#ifdef FT_OPTION_AUTOFIT2
-		include_afstyles_h_2
-	#endif
-	include_afstyles_h_3
-	#ifdef AF_CONFIG_OPTION_INDIC
-		include_afstyles_h_4
-	#endif
-	#ifdef AF_CONFIG_OPTION_CJK
-		include_afstyles_h_5
-	#endif
-	FT_LOCAL_ARRAY( AF_StyleClass )
-	af_style_classes[];
+    include_afstyles_h_1
+    #ifdef FT_OPTION_AUTOFIT2
+        include_afstyles_h_2
+    #endif
+    include_afstyles_h_3
+    #ifdef AF_CONFIG_OPTION_INDIC
+        include_afstyles_h_4
+    #endif
+    #ifdef AF_CONFIG_OPTION_CJK
+        include_afstyles_h_5
+    #endif
+    FT_LOCAL_ARRAY( AF_StyleClass )
+    af_style_classes[];
 
 ////////////////////////////////////////////////////////////////////////////////
 #undef  SCRIPT
 #define SCRIPT( s, S, d, h, sc1, sc2, sc3 ) extern const AF_Script_UniRangeRec  af_ ## s ## _uniranges[];
-	include_afscript_h_1
-	#ifdef AF_CONFIG_OPTION_INDIC
-		include_afscript_h_2
-	#endif
-	#ifdef AF_CONFIG_OPTION_CJK
-		include_afscript_h_3
-	#endif
+    include_afscript_h_1
+    #ifdef AF_CONFIG_OPTION_INDIC
+        include_afscript_h_2
+    #endif
+    #ifdef AF_CONFIG_OPTION_CJK
+        include_afscript_h_3
+    #endif
 
 ////////////////////////////////////////////////////////////////////////////////
 #undef  SCRIPT
@@ -20323,13 +20323,13 @@ af_style_names[] =
             AF_SCRIPT_ ## S,                \
             af_ ## s ## _uniranges,         \
             sc1, sc2, sc3 )
-	include_afscript_h_1
-	#ifdef AF_CONFIG_OPTION_INDIC
-		include_afscript_h_2
-	#endif
-	#ifdef AF_CONFIG_OPTION_CJK
-		include_afscript_h_3
-	#endif
+    include_afscript_h_1
+    #ifdef AF_CONFIG_OPTION_INDIC
+        include_afscript_h_2
+    #endif
+    #ifdef AF_CONFIG_OPTION_CJK
+        include_afscript_h_3
+    #endif
 
 ////////////////////////////////////////////////////////////////////////////////
 #undef  SCRIPT
@@ -20337,36 +20337,36 @@ af_style_names[] =
 FT_LOCAL_ARRAY_DEF( AF_ScriptClass )
 af_script_classes[] =
 {
-	include_afscript_h_1
-	#ifdef AF_CONFIG_OPTION_INDIC
-		include_afscript_h_2
-	#endif
-	#ifdef AF_CONFIG_OPTION_CJK
-		include_afscript_h_3
-	#endif
+    include_afscript_h_1
+    #ifdef AF_CONFIG_OPTION_INDIC
+        include_afscript_h_2
+    #endif
+    #ifdef AF_CONFIG_OPTION_CJK
+        include_afscript_h_3
+    #endif
     NULL  /* do not remove */
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 #undef  SCRIPT
 #define SCRIPT( s, S, d, h, sc1, sc2, sc3 ) AF_DECLARE_SCRIPT_CLASS( af_ ## s ## _script_class )
-	include_afscript_h_1
-	#ifdef AF_CONFIG_OPTION_INDIC
-		include_afscript_h_2
-	#endif
-	#ifdef AF_CONFIG_OPTION_CJK
-		include_afscript_h_3
-	#endif
-	FT_LOCAL_ARRAY( AF_ScriptClass )
-	af_script_classes[];
+    include_afscript_h_1
+    #ifdef AF_CONFIG_OPTION_INDIC
+        include_afscript_h_2
+    #endif
+    #ifdef AF_CONFIG_OPTION_CJK
+        include_afscript_h_3
+    #endif
+    FT_LOCAL_ARRAY( AF_ScriptClass )
+    af_script_classes[];
 
 ////////////////////////////////////////////////////////////////////////////////
 #undef  WRITING_SYSTEM
 #define WRITING_SYSTEM( ws, WS )  /* empty */
-	include_afwrtsys_h_1
-	#ifdef FT_OPTION_AUTOFIT2
-		include_afwrtsys_h_2
-	#endif
+    include_afwrtsys_h_1
+    #ifdef FT_OPTION_AUTOFIT2
+        include_afwrtsys_h_2
+    #endif
 
 ////////////////////////////////////////////////////////////////////////////////
 AF_DECLARE_WRITING_SYSTEM_CLASS( af_dummy_writing_system_class )
@@ -20379,42 +20379,42 @@ AF_DECLARE_WRITING_SYSTEM_CLASS( af_indic_writing_system_class )
 FT_LOCAL_ARRAY_DEF( AF_WritingSystemClass )
 af_writing_system_classes[] =
 {
-	include_afwrtsys_h_1
-	#ifdef FT_OPTION_AUTOFIT2
-		include_afwrtsys_h_2
-	#endif
+    include_afwrtsys_h_1
+    #ifdef FT_OPTION_AUTOFIT2
+        include_afwrtsys_h_2
+    #endif
     NULL  /* do not remove */
 };
 
 typedef enum  AF_Flags_
 {
-	AF_FLAG_NONE = 0,
+    AF_FLAG_NONE = 0,
 
-	/* point type flags */
-	AF_FLAG_CONIC = 1 << 0,
-	AF_FLAG_CUBIC = 1 << 1,
-	AF_FLAG_CONTROL = AF_FLAG_CONIC | AF_FLAG_CUBIC,
+    /* point type flags */
+    AF_FLAG_CONIC = 1 << 0,
+    AF_FLAG_CUBIC = 1 << 1,
+    AF_FLAG_CONTROL = AF_FLAG_CONIC | AF_FLAG_CUBIC,
 
-	/* point extremum flags */
-	AF_FLAG_EXTREMA_X = 1 << 2,
-	AF_FLAG_EXTREMA_Y = 1 << 3,
+    /* point extremum flags */
+    AF_FLAG_EXTREMA_X = 1 << 2,
+    AF_FLAG_EXTREMA_Y = 1 << 3,
 
-	/* point roundness flags */
-	AF_FLAG_ROUND_X = 1 << 4,
-	AF_FLAG_ROUND_Y = 1 << 5,
+    /* point roundness flags */
+    AF_FLAG_ROUND_X = 1 << 4,
+    AF_FLAG_ROUND_Y = 1 << 5,
 
-	/* point touch flags */
-	AF_FLAG_TOUCH_X = 1 << 6,
-	AF_FLAG_TOUCH_Y = 1 << 7,
+    /* point touch flags */
+    AF_FLAG_TOUCH_X = 1 << 6,
+    AF_FLAG_TOUCH_Y = 1 << 7,
 
-	/* candidates for weak interpolation have this flag set */
-	AF_FLAG_WEAK_INTERPOLATION = 1 << 8,
+    /* candidates for weak interpolation have this flag set */
+    AF_FLAG_WEAK_INTERPOLATION = 1 << 8,
 
-	/* all inflection points in the outline have this flag set */
-	AF_FLAG_INFLECTION = 1 << 9,
+    /* all inflection points in the outline have this flag set */
+    AF_FLAG_INFLECTION = 1 << 9,
 
-	/* the current point is very near to another one */
-	AF_FLAG_NEAR = 1 << 10
+    /* the current point is very near to another one */
+    AF_FLAG_NEAR = 1 << 10
 
 } AF_Flags;
 
@@ -20422,10 +20422,10 @@ typedef enum  AF_Flags_
 /* edge hint flags */
 typedef enum  AF_Edge_Flags_
 {
-	AF_EDGE_NORMAL = 0,
-	AF_EDGE_ROUND = 1 << 0,
-	AF_EDGE_SERIF = 1 << 1,
-	AF_EDGE_DONE = 1 << 2
+    AF_EDGE_NORMAL = 0,
+    AF_EDGE_ROUND = 1 << 0,
+    AF_EDGE_SERIF = 1 << 1,
+    AF_EDGE_DONE = 1 << 2
 
 } AF_Edge_Flags;
 
@@ -20964,47 +20964,47 @@ FT_EXPORT_DEF( FT_Error )
 
 static AF_Direction af_direction_compute(FT_Pos  dx, FT_Pos  dy)
 {
-	FT_Pos        ll, ss;  /* long and short arm lengths */
-	AF_Direction  dir;     /* candidate direction        */
+    FT_Pos        ll, ss;  /* long and short arm lengths */
+    AF_Direction  dir;     /* candidate direction        */
 
-	if(dy >= dx)
-	{
-		if(dy >= -dx)
-		{
-			dir = AF_DIR_UP;
-			ll = dy;
-			ss = dx;
-		}
-		else
-		{
-			dir = AF_DIR_LEFT;
-			ll = -dx;
-			ss = dy;
-		}
-	}
-	else /* dy < dx */
-	{
-		if(dy >= -dx)
-		{
-			dir = AF_DIR_RIGHT;
-			ll = dx;
-			ss = dy;
-		}
-		else
-		{
-			dir = AF_DIR_DOWN;
-			ll = dy;
-			ss = dx;
-		}
-	}
+    if(dy >= dx)
+    {
+        if(dy >= -dx)
+        {
+            dir = AF_DIR_UP;
+            ll = dy;
+            ss = dx;
+        }
+        else
+        {
+            dir = AF_DIR_LEFT;
+            ll = -dx;
+            ss = dy;
+        }
+    }
+    else /* dy < dx */
+    {
+        if(dy >= -dx)
+        {
+            dir = AF_DIR_RIGHT;
+            ll = dx;
+            ss = dy;
+        }
+        else
+        {
+            dir = AF_DIR_DOWN;
+            ll = dy;
+            ss = dx;
+        }
+    }
 
-	/* return no direction if arm lengths differ too much            */
-	/* (value 14 is heuristic, corresponding to approx. 4.1 degrees) */
-	ss *= 14;
-	if(FT_ABS(ll) <= FT_ABS(ss))
-		dir = AF_DIR_NONE;
+    /* return no direction if arm lengths differ too much            */
+    /* (value 14 is heuristic, corresponding to approx. 4.1 degrees) */
+    ss *= 14;
+    if(FT_ABS(ll) <= FT_ABS(ss))
+        dir = AF_DIR_NONE;
 
-	return dir;
+    return dir;
 }
 
 FT_BASE_DEF( FT_Int )
@@ -22165,11 +22165,11 @@ FT_LOCAL_DEF( void )
   }
 
 #define AF_LATIN_IS_TOP_BLUE( b ) \
-	( (b)->properties & AF_BLUE_PROPERTY_LATIN_TOP )
+    ( (b)->properties & AF_BLUE_PROPERTY_LATIN_TOP )
 #define AF_LATIN_IS_X_HEIGHT_BLUE( b ) \
-	( (b)->properties & AF_BLUE_PROPERTY_LATIN_X_HEIGHT )
+    ( (b)->properties & AF_BLUE_PROPERTY_LATIN_X_HEIGHT )
 #define AF_LATIN_IS_LONG_BLUE( b ) \
-	( (b)->properties & AF_BLUE_PROPERTY_LATIN_LONG )
+    ( (b)->properties & AF_BLUE_PROPERTY_LATIN_LONG )
 
 #define AF_LATIN_MAX_WIDTHS  16
 
@@ -26510,40 +26510,40 @@ FT_DEFINE_AUTOHINTER_INTERFACE(
 
 FT_DEFINE_MODULE
 (
-	autofit_module_class,
-	FT_MODULE_HINTER,
-	sizeof ( AF_ModuleRec ),
-	"autofitter",
-	0x10000L,   /* version 1.0 of the autofitter  */
-	0x20000L,   /* requires FreeType 2.0 or above */
-	(const void*)&AF_INTERFACE_GET,
-	(FT_Module_Constructor)af_autofitter_init,
-	(FT_Module_Destructor) af_autofitter_done,
-	(FT_Module_Requester)  af_get_interface
+    autofit_module_class,
+    FT_MODULE_HINTER,
+    sizeof ( AF_ModuleRec ),
+    "autofitter",
+    0x10000L,   /* version 1.0 of the autofitter  */
+    0x20000L,   /* requires FreeType 2.0 or above */
+    (const void*)&AF_INTERFACE_GET,
+    (FT_Module_Constructor)af_autofitter_init,
+    (FT_Module_Destructor) af_autofitter_done,
+    (FT_Module_Requester)  af_get_interface
 )
 
 AF_DEFINE_WRITING_SYSTEM_CLASS
 (
-	af_dummy_writing_system_class,
-	AF_WRITING_SYSTEM_DUMMY,
-	sizeof ( AF_StyleMetricsRec ),
-	(AF_WritingSystem_InitMetricsFunc) NULL,
-	(AF_WritingSystem_ScaleMetricsFunc)NULL,
-	(AF_WritingSystem_DoneMetricsFunc) NULL,
-	(AF_WritingSystem_InitHintsFunc)   af_dummy_hints_init,
-	(AF_WritingSystem_ApplyHintsFunc)  af_dummy_hints_apply
+    af_dummy_writing_system_class,
+    AF_WRITING_SYSTEM_DUMMY,
+    sizeof ( AF_StyleMetricsRec ),
+    (AF_WritingSystem_InitMetricsFunc) NULL,
+    (AF_WritingSystem_ScaleMetricsFunc)NULL,
+    (AF_WritingSystem_DoneMetricsFunc) NULL,
+    (AF_WritingSystem_InitHintsFunc)   af_dummy_hints_init,
+    (AF_WritingSystem_ApplyHintsFunc)  af_dummy_hints_apply
 )
 
 AF_DEFINE_WRITING_SYSTEM_CLASS
 (
-	af_latin_writing_system_class,
-	AF_WRITING_SYSTEM_LATIN,
-	sizeof ( AF_LatinMetricsRec ),
-	(AF_WritingSystem_InitMetricsFunc) af_latin_metrics_init,
-	(AF_WritingSystem_ScaleMetricsFunc)af_latin_metrics_scale,
-	(AF_WritingSystem_DoneMetricsFunc) NULL,
-	(AF_WritingSystem_InitHintsFunc)   af_latin_hints_init,
-	(AF_WritingSystem_ApplyHintsFunc)  af_latin_hints_apply
+    af_latin_writing_system_class,
+    AF_WRITING_SYSTEM_LATIN,
+    sizeof ( AF_LatinMetricsRec ),
+    (AF_WritingSystem_InitMetricsFunc) af_latin_metrics_init,
+    (AF_WritingSystem_ScaleMetricsFunc)af_latin_metrics_scale,
+    (AF_WritingSystem_DoneMetricsFunc) NULL,
+    (AF_WritingSystem_InitHintsFunc)   af_latin_hints_init,
+    (AF_WritingSystem_ApplyHintsFunc)  af_latin_hints_apply
 )
 
 // ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -30071,121 +30071,121 @@ FT_BASE_DEF( void )
 #endif /* TT_CONFIG_CMAP_FORMAT_14 */
 
 #ifndef FT_CONFIG_OPTION_PIC
-	static const TT_CMap_Class  tt_cmap_classes[] =
-	{
-		#define TTCMAPCITEM( a )  &a,
-		#ifdef TT_CONFIG_CMAP_FORMAT_0
-		  TTCMAPCITEM( tt_cmap0_class_rec )
-		#endif
+    static const TT_CMap_Class  tt_cmap_classes[] =
+    {
+        #define TTCMAPCITEM( a )  &a,
+        #ifdef TT_CONFIG_CMAP_FORMAT_0
+          TTCMAPCITEM( tt_cmap0_class_rec )
+        #endif
 
-		#ifdef TT_CONFIG_CMAP_FORMAT_2
-		  TTCMAPCITEM( tt_cmap2_class_rec )
-		#endif
+        #ifdef TT_CONFIG_CMAP_FORMAT_2
+          TTCMAPCITEM( tt_cmap2_class_rec )
+        #endif
 
-		#ifdef TT_CONFIG_CMAP_FORMAT_4
-		  TTCMAPCITEM( tt_cmap4_class_rec )
-		#endif
+        #ifdef TT_CONFIG_CMAP_FORMAT_4
+          TTCMAPCITEM( tt_cmap4_class_rec )
+        #endif
 
-		#ifdef TT_CONFIG_CMAP_FORMAT_6
-		  TTCMAPCITEM( tt_cmap6_class_rec )
-		#endif
+        #ifdef TT_CONFIG_CMAP_FORMAT_6
+          TTCMAPCITEM( tt_cmap6_class_rec )
+        #endif
 
-		#ifdef TT_CONFIG_CMAP_FORMAT_8
-		  TTCMAPCITEM( tt_cmap8_class_rec )
-		#endif
+        #ifdef TT_CONFIG_CMAP_FORMAT_8
+          TTCMAPCITEM( tt_cmap8_class_rec )
+        #endif
 
-		#ifdef TT_CONFIG_CMAP_FORMAT_10
-		  TTCMAPCITEM( tt_cmap10_class_rec )
-		#endif
+        #ifdef TT_CONFIG_CMAP_FORMAT_10
+          TTCMAPCITEM( tt_cmap10_class_rec )
+        #endif
 
-		#ifdef TT_CONFIG_CMAP_FORMAT_12
-		  TTCMAPCITEM( tt_cmap12_class_rec )
-		#endif
+        #ifdef TT_CONFIG_CMAP_FORMAT_12
+          TTCMAPCITEM( tt_cmap12_class_rec )
+        #endif
 
-		#ifdef TT_CONFIG_CMAP_FORMAT_13
-		  TTCMAPCITEM( tt_cmap13_class_rec )
-		#endif
+        #ifdef TT_CONFIG_CMAP_FORMAT_13
+          TTCMAPCITEM( tt_cmap13_class_rec )
+        #endif
 
-		#ifdef TT_CONFIG_CMAP_FORMAT_14
-		  TTCMAPCITEM( tt_cmap14_class_rec )
-		#endif
-		NULL,
-	};
+        #ifdef TT_CONFIG_CMAP_FORMAT_14
+          TTCMAPCITEM( tt_cmap14_class_rec )
+        #endif
+        NULL,
+    };
 #endif
 
 #ifndef FT_CONFIG_OPTION_PIC
-	#define SFNT_SERVICES_GET            sfnt_services
-	#define SFNT_SERVICE_GLYPH_DICT_GET  sfnt_service_glyph_dict
-	#define SFNT_SERVICE_PS_NAME_GET     sfnt_service_ps_name
-	#define TT_SERVICE_CMAP_INFO_GET     tt_service_get_cmap_info
-	#define SFNT_SERVICES_GET            sfnt_services
-	#define TT_CMAP_CLASSES_GET          tt_cmap_classes
-	#define SFNT_SERVICE_SFNT_TABLE_GET  sfnt_service_sfnt_table
-	#define SFNT_SERVICE_BDF_GET         sfnt_service_bdf
-	#define SFNT_INTERFACE_GET           sfnt_interface
-	#define FT_DEFINE_SFNT_INTERFACE(        \
-			  class_,                        \
-			  goto_table_,                   \
-			  init_face_,                    \
-			  load_face_,                    \
-			  done_face_,                    \
-			  get_interface_,                \
-			  load_any_,                     \
-			  load_head_,                    \
-			  load_hhea_,                    \
-			  load_cmap_,                    \
-			  load_maxp_,                    \
-			  load_os2_,                     \
-			  load_post_,                    \
-			  load_name_,                    \
-			  free_name_,                    \
-			  load_kern_,                    \
-			  load_gasp_,                    \
-			  load_pclt_,                    \
-			  load_bhed_,                    \
-			  load_sbit_image_,              \
-			  get_psname_,                   \
-			  free_psnames_,                 \
-			  get_kerning_,                  \
-			  load_font_dir_,                \
-			  load_hmtx_,                    \
-			  load_eblc_,                    \
-			  free_eblc_,                    \
-			  set_sbit_strike_,              \
-			  load_strike_metrics_,          \
-			  get_metrics_ )                 \
-	  static const SFNT_Interface  class_ =  \
-	  {                                      \
-		goto_table_,                         \
-		init_face_,                          \
-		load_face_,                          \
-		done_face_,                          \
-		get_interface_,                      \
-		load_any_,                           \
-		load_head_,                          \
-		load_hhea_,                          \
-		load_cmap_,                          \
-		load_maxp_,                          \
-		load_os2_,                           \
-		load_post_,                          \
-		load_name_,                          \
-		free_name_,                          \
-		load_kern_,                          \
-		load_gasp_,                          \
-		load_pclt_,                          \
-		load_bhed_,                          \
-		load_sbit_image_,                    \
-		get_psname_,                         \
-		free_psnames_,                       \
-		get_kerning_,                        \
-		load_font_dir_,                      \
-		load_hmtx_,                          \
-		load_eblc_,                          \
-		free_eblc_,                          \
-		set_sbit_strike_,                    \
-		load_strike_metrics_,                \
-		get_metrics_,                        \
-	  };
+    #define SFNT_SERVICES_GET            sfnt_services
+    #define SFNT_SERVICE_GLYPH_DICT_GET  sfnt_service_glyph_dict
+    #define SFNT_SERVICE_PS_NAME_GET     sfnt_service_ps_name
+    #define TT_SERVICE_CMAP_INFO_GET     tt_service_get_cmap_info
+    #define SFNT_SERVICES_GET            sfnt_services
+    #define TT_CMAP_CLASSES_GET          tt_cmap_classes
+    #define SFNT_SERVICE_SFNT_TABLE_GET  sfnt_service_sfnt_table
+    #define SFNT_SERVICE_BDF_GET         sfnt_service_bdf
+    #define SFNT_INTERFACE_GET           sfnt_interface
+    #define FT_DEFINE_SFNT_INTERFACE(        \
+              class_,                        \
+              goto_table_,                   \
+              init_face_,                    \
+              load_face_,                    \
+              done_face_,                    \
+              get_interface_,                \
+              load_any_,                     \
+              load_head_,                    \
+              load_hhea_,                    \
+              load_cmap_,                    \
+              load_maxp_,                    \
+              load_os2_,                     \
+              load_post_,                    \
+              load_name_,                    \
+              free_name_,                    \
+              load_kern_,                    \
+              load_gasp_,                    \
+              load_pclt_,                    \
+              load_bhed_,                    \
+              load_sbit_image_,              \
+              get_psname_,                   \
+              free_psnames_,                 \
+              get_kerning_,                  \
+              load_font_dir_,                \
+              load_hmtx_,                    \
+              load_eblc_,                    \
+              free_eblc_,                    \
+              set_sbit_strike_,              \
+              load_strike_metrics_,          \
+              get_metrics_ )                 \
+      static const SFNT_Interface  class_ =  \
+      {                                      \
+        goto_table_,                         \
+        init_face_,                          \
+        load_face_,                          \
+        done_face_,                          \
+        get_interface_,                      \
+        load_any_,                           \
+        load_head_,                          \
+        load_hhea_,                          \
+        load_cmap_,                          \
+        load_maxp_,                          \
+        load_os2_,                           \
+        load_post_,                          \
+        load_name_,                          \
+        free_name_,                          \
+        load_kern_,                          \
+        load_gasp_,                          \
+        load_pclt_,                          \
+        load_bhed_,                          \
+        load_sbit_image_,                    \
+        get_psname_,                         \
+        free_psnames_,                       \
+        get_kerning_,                        \
+        load_font_dir_,                      \
+        load_hmtx_,                          \
+        load_eblc_,                          \
+        free_eblc_,                          \
+        set_sbit_strike_,                    \
+        load_strike_metrics_,                \
+        get_metrics_,                        \
+      };
 #endif
 
 #define FT_FACE_FIND_GLOBAL_SERVICE( face, ptr, id )               \
@@ -37901,7 +37901,7 @@ FT_CALLBACK_DEF( int )
 
 static FT_UInt32 ps_unicode_value( const char*  glyph_name );
 static FT_Error ps_unicodes_init( FT_Memory memory, PS_Unicodes table, FT_UInt num_glyphs,
-	PS_GetGlyphNameFunc get_glyph_name, PS_FreeGlyphNameFunc free_glyph_name, FT_Pointer glyph_data );
+    PS_GetGlyphNameFunc get_glyph_name, PS_FreeGlyphNameFunc free_glyph_name, FT_Pointer glyph_data );
 static FT_UInt ps_unicodes_char_index( PS_Unicodes  table, FT_UInt32    unicode );
 static FT_UInt32 ps_unicodes_char_next( PS_Unicodes  table, FT_UInt32   *unicode );
 static const char* ps_get_macintosh_name( FT_UInt  name_index );
@@ -43030,13 +43030,13 @@ static void
   }
 
 FT_DEFINE_OUTLINE_FUNCS(
-	func_interface,
-	(FT_Outline_MoveTo_Func) gray_move_to,
-	(FT_Outline_LineTo_Func) gray_line_to,
-	(FT_Outline_ConicTo_Func)gray_conic_to,
-	(FT_Outline_CubicTo_Func)gray_cubic_to,
-	0,
-	0
+    func_interface,
+    (FT_Outline_MoveTo_Func) gray_move_to,
+    (FT_Outline_LineTo_Func) gray_line_to,
+    (FT_Outline_ConicTo_Func)gray_conic_to,
+    (FT_Outline_CubicTo_Func)gray_cubic_to,
+    0,
+    0
 )
 
 static void
@@ -43448,7 +43448,7 @@ static int
   }
 
 FT_DEFINE_RASTER_FUNCS(
-	ft_grays_raster,
+    ft_grays_raster,
     FT_GLYPH_FORMAT_OUTLINE,
 
     (FT_Raster_New_Func)     gray_raster_new,

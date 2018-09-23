@@ -79,79 +79,79 @@ namespace BOSS
         static Dot Result;
         // 최대최소평가
         const float DstMinX = Math::MinF(DstB.x, DstE.x), SrcMaxX = Math::MaxF(SrcB.x, SrcE.x);
-		if(DstMinX > SrcMaxX) return nullptr;
+        if(DstMinX > SrcMaxX) return nullptr;
         const float DstMaxX = Math::MaxF(DstB.x, DstE.x), SrcMinX = Math::MinF(SrcB.x, SrcE.x);
-		if(DstMaxX < SrcMinX) return nullptr;
+        if(DstMaxX < SrcMinX) return nullptr;
         const float DstMinY = Math::MinF(DstB.y, DstE.y), SrcMaxY = Math::MaxF(SrcB.y, SrcE.y);
-		if(DstMinY > SrcMaxY) return nullptr;
+        if(DstMinY > SrcMaxY) return nullptr;
         const float DstMaxY = Math::MaxF(DstB.y, DstE.y), SrcMinY = Math::MinF(SrcB.y, SrcE.y);
-		if(DstMaxY < SrcMinY) return nullptr;
+        if(DstMaxY < SrcMinY) return nullptr;
 
-		const int ResultA1 = GetClockwiseValue(DstB, DstE, SrcB);
-		const int ResultB1 = GetClockwiseValue(DstB, DstE, SrcE);
-		const int ResultA2 = GetClockwiseValue(SrcB, SrcE, DstB);
-		const int ResultB2 = GetClockwiseValue(SrcB, SrcE, DstE);
-		if((ResultA1 == 0 || ResultB1 == 0 || (ResultA1 < 0 && 0 < ResultB1) || (0 < ResultA1 && ResultB1 < 0))
-			&& (ResultA2 == 0 || ResultB2 == 0 || (ResultA2 < 0 && 0 < ResultB2) || (0 < ResultA2 && ResultB2 < 0)))
-		{
-			// 수직
-			if(DstB.x == DstE.x && SrcB.x == SrcE.x)
-			{
+        const int ResultA1 = GetClockwiseValue(DstB, DstE, SrcB);
+        const int ResultB1 = GetClockwiseValue(DstB, DstE, SrcE);
+        const int ResultA2 = GetClockwiseValue(SrcB, SrcE, DstB);
+        const int ResultB2 = GetClockwiseValue(SrcB, SrcE, DstE);
+        if((ResultA1 == 0 || ResultB1 == 0 || (ResultA1 < 0 && 0 < ResultB1) || (0 < ResultA1 && ResultB1 < 0))
+            && (ResultA2 == 0 || ResultB2 == 0 || (ResultA2 < 0 && 0 < ResultB2) || (0 < ResultA2 && ResultB2 < 0)))
+        {
+            // 수직
+            if(DstB.x == DstE.x && SrcB.x == SrcE.x)
+            {
                 if(DstMinY <= SrcB.y && SrcB.y <= DstMaxY)
                     Result = SrcB;
                 else if(DstMinY <= SrcE.y && SrcE.y <= DstMaxY)
                     Result = SrcE;
                 else Result = DstB;
-			}
-			// 수평
-			else if(DstB.y == DstE.y && SrcB.y == SrcE.y)
-			{
+            }
+            // 수평
+            else if(DstB.y == DstE.y && SrcB.y == SrcE.y)
+            {
                 if(DstMinX <= SrcB.x && SrcB.x <= DstMaxX)
                     Result = SrcB;
                 else if(DstMinX <= SrcE.x && SrcE.x <= DstMaxX)
                     Result = SrcE;
                 else Result = DstB;
-			}
-			// 직교
-			else if(DstB.x == DstE.x && SrcB.y == SrcE.y)
-			{
-				Result.x = DstB.x;
-				Result.y = SrcB.y;
-			}
-			else if(SrcB.x == SrcE.x && DstB.y == DstE.y)
-			{
-				Result.x = SrcB.x;
-				Result.y = DstB.y;
-			}
-			// 꼭지점
+            }
+            // 직교
+            else if(DstB.x == DstE.x && SrcB.y == SrcE.y)
+            {
+                Result.x = DstB.x;
+                Result.y = SrcB.y;
+            }
+            else if(SrcB.x == SrcE.x && DstB.y == DstE.y)
+            {
+                Result.x = SrcB.x;
+                Result.y = DstB.y;
+            }
+            // 꼭지점
             else if((DstB.x == SrcB.x && DstB.y == SrcB.y) || (DstB.x == SrcE.x && DstB.y == SrcE.y))
                 Result = DstB;
             else if((DstE.x == SrcE.x && DstE.y == SrcE.y) || (DstE.x == SrcB.x && DstE.y == SrcB.y))
                 Result = DstE;
-			else
-			{
-				// 직선A
-				float A_A = DstB.y - DstE.y;
-				float A_B = DstE.x - DstB.x;
-				const float A_Distance = Math::Sqrt(Math::Pow(A_A) + Math::Pow(A_B));
-				A_A /= A_Distance;
-				A_B /= A_Distance;
-				const float A_C = A_A * DstB.x + A_B * DstB.y;
-				// 직선B
-				float B_A = SrcB.y - SrcE.y;
-				float B_B = SrcE.x - SrcB.x;
-				const float B_Distance = Math::Sqrt(Math::Pow(B_A) + Math::Pow(B_B));
-				B_A /= B_Distance;
-				B_B /= B_Distance;
-				const float B_C = B_A * SrcB.x + B_B * SrcB.y;
-				// 교점구하기
-				const float Rate = A_B * B_A - A_A * B_B;
-				Result.x = (A_B * B_C - B_B * A_C) / Rate;
-				Result.y = (A_A * B_C - B_A * A_C) / -Rate;
-			}
-			return &Result;
-		}
-		return nullptr;
+            else
+            {
+                // 직선A
+                float A_A = DstB.y - DstE.y;
+                float A_B = DstE.x - DstB.x;
+                const float A_Distance = Math::Sqrt(Math::Pow(A_A) + Math::Pow(A_B));
+                A_A /= A_Distance;
+                A_B /= A_Distance;
+                const float A_C = A_A * DstB.x + A_B * DstB.y;
+                // 직선B
+                float B_A = SrcB.y - SrcE.y;
+                float B_B = SrcE.x - SrcB.x;
+                const float B_Distance = Math::Sqrt(Math::Pow(B_A) + Math::Pow(B_B));
+                B_A /= B_Distance;
+                B_B /= B_Distance;
+                const float B_C = B_A * SrcB.x + B_B * SrcB.y;
+                // 교점구하기
+                const float Rate = A_B * B_A - A_A * B_B;
+                Result.x = (A_B * B_C - B_B * A_C) / Rate;
+                Result.y = (A_A * B_C - B_A * A_C) / -Rate;
+            }
+            return &Result;
+        }
+        return nullptr;
     }
 
     bool TryWorld::Util::PtInPolygon(const DotList& Polygon, const Dot& Pt)
@@ -199,18 +199,18 @@ namespace BOSS
     // TryWorld::Map
     ////////////////////////////////////////////////////////////////////////////////
     TryWorld::Map::Map()
-	{
-	}
+    {
+    }
 
-	TryWorld::Map::~Map()
-	{
-	}
+    TryWorld::Map::~Map()
+    {
+    }
 
-	void TryWorld::Map::Release(Map*& map)
-	{
-		delete map;
+    void TryWorld::Map::Release(Map*& map)
+    {
+        delete map;
         map = nullptr;
-	}
+    }
 
     TryWorld::Path* TryWorld::Map::CreatePath(const int step)
     {
@@ -218,52 +218,52 @@ namespace BOSS
     }
 
     TryWorld::Path* TryWorld::Map::BuildPath(const Dot& beginPos, const Dot& endPos, const int step, int* score, ScoreCB cb)
-	{
-		Triangle* ClearNode = &Top;
-		while(ClearNode = ClearNode->Next)
-		{
-			ClearNode->WayDot = Dot(0, 0);
-			ClearNode->WayBack = nullptr;
+    {
+        Triangle* ClearNode = &Top;
+        while(ClearNode = ClearNode->Next)
+        {
+            ClearNode->WayDot = Dot(0, 0);
+            ClearNode->WayBack = nullptr;
             ClearNode->ObjectScore = -1;
-			ClearNode->DistanceSum = 0;
-		}
+            ClearNode->DistanceSum = 0;
+        }
         Triangle* Begin = FIND_PICK_TRIANGLE(beginPos);
         Triangle* End = FIND_PICK_TRIANGLE(endPos);
-		if(Begin && End)
-		{
-			Begin->WayDot = beginPos;
-			Begin->WayBack = (Triangle*) -1;
+        if(Begin && End)
+        {
+            Begin->WayDot = beginPos;
+            Begin->WayBack = (Triangle*) -1;
             bool IsSuccess = PATH_FIND(Begin, End, endPos, cb);
-			Begin->WayBack = nullptr;
-			if(IsSuccess)
-			{
+            Begin->WayBack = nullptr;
+            if(IsSuccess)
+            {
                 Path* Result = CreatePath(step);
-				Result->Dots.AtAdding() = endPos;
-				Triangle* CurTriangle = End;
-				while(CurTriangle)
-				{
-					// 중간정점 삽입
-					if(0 < step)
-					{
-						const Dot DotA = Result->Dots[-1];
-						const Dot DotB = CurTriangle->WayDot;
-						const int Distance = Math::Sqrt(Math::Pow(DotB.x - DotA.x) + Math::Pow(DotB.y - DotA.y));
-						for(int f = step; f < Distance; f += step)
-							Result->Dots.AtAdding() = Dot((DotA.x * (Distance - f) + DotB.x * f) / Distance, (DotA.y * (Distance - f) + DotB.y * f) / Distance);
-					}
-					Result->Dots.AtAdding() = CurTriangle->WayDot;
-					CurTriangle = CurTriangle->WayBack;
-				}
+                Result->Dots.AtAdding() = endPos;
+                Triangle* CurTriangle = End;
+                while(CurTriangle)
+                {
+                    // 중간정점 삽입
+                    if(0 < step)
+                    {
+                        const Dot DotA = Result->Dots[-1];
+                        const Dot DotB = CurTriangle->WayDot;
+                        const int Distance = Math::Sqrt(Math::Pow(DotB.x - DotA.x) + Math::Pow(DotB.y - DotA.y));
+                        for(int f = step; f < Distance; f += step)
+                            Result->Dots.AtAdding() = Dot((DotA.x * (Distance - f) + DotB.x * f) / Distance, (DotA.y * (Distance - f) + DotB.y * f) / Distance);
+                    }
+                    Result->Dots.AtAdding() = CurTriangle->WayDot;
+                    CurTriangle = CurTriangle->WayBack;
+                }
                 if(score) *score = End->DistanceSum;
-				return Result;
-			}
-		}
-		return nullptr;
-	}
+                return Result;
+            }
+        }
+        return nullptr;
+    }
 
     bool TryWorld::Map::MAPPING(PolygonList& list)
-	{
-		for(int i = 0; i < list.Count(); ++i)
+    {
+        for(int i = 0; i < list.Count(); ++i)
         for(int j = 0, jend = list[i].DotArray.Count(); j < jend; ++j)
         {
             const int CurIndex = Dots.Count();
@@ -274,51 +274,51 @@ namespace BOSS
                 Lines.AtAdding().Set(linetype_bound, CurIndex, CurIndex + ((j + 1) % jend) - j);
             else Lines.AtAdding().Set(linetype_wall, CurIndex, CurIndex + ((j + 1) % jend) - j);
         }
-		if(!CREATE_TRIANGLES(Top.INSERT_FIRST(), nullptr, linetype_bound, Dots.Count() - 2, Dots.Count() - 1))
+        if(!CREATE_TRIANGLES(Top.INSERT_FIRST(), nullptr, linetype_bound, Dots.Count() - 2, Dots.Count() - 1))
         {
             Top.DELETE_FIRST();
             return false;
         }
         return true;
-	}
+    }
 
-	bool TryWorld::Map::CREATE_TRIANGLES(Triangle* focus, Triangle* parent, linetype type, int dotA, int dotB)
-	{
-		for(int dotC = 0; dotC < Dots.Count(); ++dotC)
-		{
-			// 점C의 조건
-			if(!parent) {if(dotC == dotA || dotC == dotB) continue;}
-			else if(dotC == parent->DotA || dotC == parent->DotB || dotC == parent->DotC)
-				continue;
-			// 삼각형구성의 조건
-			if(IS_INCLUDE_ANY_DOT_BY(dotA, dotB, dotC)) continue;
-			int LineAC = FIND_LINE_ID(dotA, dotC);
-			int LineBC = FIND_LINE_ID(dotB, dotC);
-			if((LineAC != -1 || !IS_CROSSING_ANY_LINE_BY(dotA, dotC)) && (LineBC != -1 || !IS_CROSSING_ANY_LINE_BY(dotB, dotC)))
-			{
-				// 삼각형추가
-				focus->TypeAB = type;
-				focus->TypeAC = (LineAC == -1)? linetype_space : Lines[LineAC].Type;
-				focus->TypeBC = (LineBC == -1)? linetype_space : Lines[LineBC].Type;
-				focus->DotA = dotA;
-				focus->DotB = dotB;
-				focus->DotC = dotC;
-				// 선추가
+    bool TryWorld::Map::CREATE_TRIANGLES(Triangle* focus, Triangle* parent, linetype type, int dotA, int dotB)
+    {
+        for(int dotC = 0; dotC < Dots.Count(); ++dotC)
+        {
+            // 점C의 조건
+            if(!parent) {if(dotC == dotA || dotC == dotB) continue;}
+            else if(dotC == parent->DotA || dotC == parent->DotB || dotC == parent->DotC)
+                continue;
+            // 삼각형구성의 조건
+            if(IS_INCLUDE_ANY_DOT_BY(dotA, dotB, dotC)) continue;
+            int LineAC = FIND_LINE_ID(dotA, dotC);
+            int LineBC = FIND_LINE_ID(dotB, dotC);
+            if((LineAC != -1 || !IS_CROSSING_ANY_LINE_BY(dotA, dotC)) && (LineBC != -1 || !IS_CROSSING_ANY_LINE_BY(dotB, dotC)))
+            {
+                // 삼각형추가
+                focus->TypeAB = type;
+                focus->TypeAC = (LineAC == -1)? linetype_space : Lines[LineAC].Type;
+                focus->TypeBC = (LineBC == -1)? linetype_space : Lines[LineBC].Type;
+                focus->DotA = dotA;
+                focus->DotB = dotB;
+                focus->DotC = dotC;
+                // 선추가
                 int IndexLineAC = -1;
                 int IndexLineBC = -1;
-				if(LineAC == -1)
+                if(LineAC == -1)
                 {
                     IndexLineAC = Lines.Count();
                     Lines.AtAdding().Set(linetype_space, focus->DotA, focus->DotC);
                 }
-				if(LineBC == -1)
+                if(LineBC == -1)
                 {
                     IndexLineBC = Lines.Count();
                     Lines.AtAdding().Set(linetype_space, focus->DotB, focus->DotC);
                 }
-				// 연결되는 삼각형정보
-				focus->LinkAB = parent;
-				if(focus->TypeAC != linetype_bound && !(focus->LinkAC = FIND_SAME_TRIANGLE(focus->DotA, focus->DotC, focus)))
+                // 연결되는 삼각형정보
+                focus->LinkAB = parent;
+                if(focus->TypeAC != linetype_bound && !(focus->LinkAC = FIND_SAME_TRIANGLE(focus->DotA, focus->DotC, focus)))
                 {
                     if(!CREATE_TRIANGLES(focus->LinkAC = Top.INSERT_FIRST(), focus, focus->TypeAC, focus->DotA, focus->DotC))
                     {
@@ -328,9 +328,9 @@ namespace BOSS
                             Lines.At(IndexLineAC).Set(linetype_wall, focus->DotA, focus->DotC);
                     }
                 }
-				if(focus->TypeBC != linetype_bound && !(focus->LinkBC = FIND_SAME_TRIANGLE(focus->DotB, focus->DotC, focus)))
+                if(focus->TypeBC != linetype_bound && !(focus->LinkBC = FIND_SAME_TRIANGLE(focus->DotB, focus->DotC, focus)))
                 {
-					if(!CREATE_TRIANGLES(focus->LinkBC = Top.INSERT_FIRST(), focus, focus->TypeBC, focus->DotB, focus->DotC))
+                    if(!CREATE_TRIANGLES(focus->LinkBC = Top.INSERT_FIRST(), focus, focus->TypeBC, focus->DotB, focus->DotC))
                     {
                         focus->TypeBC = linetype_wall;
                         focus->LinkBC = Top.DELETE_FIRST();
@@ -338,106 +338,106 @@ namespace BOSS
                             Lines.At(IndexLineBC).Set(linetype_wall, focus->DotB, focus->DotC);
                     }
                 }
-				return true;
-			}
-		}
+                return true;
+            }
+        }
         return false;
-	}
+    }
 
     bool TryWorld::Map::IS_INCLUDE_ANY_DOT_BY(int dotA, int dotB, int dotC) const
-	{
-		if(R_SIDE1(dotA, dotB, dotC) < 0)
-		{
-			int Swap = dotB;
-			dotB = dotC;
-			dotC = Swap;
-		}
-		for(int i = 0; i < Dots.Count(); ++i)
-		{
-			if(i == dotA || i == dotB || i == dotC) continue;
-			if(R_SIDE1(dotA, dotB, i) < 0 || R_SIDE1(dotB, dotC, i) < 0 || R_SIDE1(dotC, dotA, i) < 0)
-				continue;
-			return true;
-		}
-		return false;
-	}
+    {
+        if(R_SIDE1(dotA, dotB, dotC) < 0)
+        {
+            int Swap = dotB;
+            dotB = dotC;
+            dotC = Swap;
+        }
+        for(int i = 0; i < Dots.Count(); ++i)
+        {
+            if(i == dotA || i == dotB || i == dotC) continue;
+            if(R_SIDE1(dotA, dotB, i) < 0 || R_SIDE1(dotB, dotC, i) < 0 || R_SIDE1(dotC, dotA, i) < 0)
+                continue;
+            return true;
+        }
+        return false;
+    }
 
     bool TryWorld::Map::IS_CROSSING_ANY_LINE_BY(int dotA, int dotB) const
-	{
-		for(int i = 0; i < Lines.Count(); ++i)
-		{
-			const Line* Node = &Lines[i];
-			if(dotA == Node->DotA || dotA == Node->DotB
-				|| dotB == Node->DotA || dotB == Node->DotB)
-				continue;
-			if(Math::MaxF(Dots[Node->DotA].x, Dots[Node->DotB].x) < Math::MinF(Dots[dotA].x, Dots[dotB].x)
-				|| Math::MaxF(Dots[dotA].x, Dots[dotB].x) < Math::MinF(Dots[Node->DotA].x, Dots[Node->DotB].x)
-				|| Math::MaxF(Dots[Node->DotA].y, Dots[Node->DotB].y) < Math::MinF(Dots[dotA].y, Dots[dotB].y)
-				|| Math::MaxF(Dots[dotA].y, Dots[dotB].y) < Math::MinF(Dots[Node->DotA].y, Dots[Node->DotB].y))
-				continue;
-			int ResultA1 = R_SIDE1(dotA, dotB, Node->DotA);
-			int ResultB1 = R_SIDE1(dotA, dotB, Node->DotB);
-			int ResultA2 = R_SIDE1(Node->DotA, Node->DotB, dotA);
-			int ResultB2 = R_SIDE1(Node->DotA, Node->DotB, dotB);
-			if((ResultA1 == 0 || ResultB1 == 0 || (ResultA1 < 0 && 0 < ResultB1) || (0 < ResultA1 && ResultB1 < 0))
-				&& (ResultA2 == 0 || ResultB2 == 0 || (ResultA2 < 0 && 0 < ResultB2) || (0 < ResultA2 && ResultB2 < 0)))
-				return true;
-		}
-		return false;
-	}
+    {
+        for(int i = 0; i < Lines.Count(); ++i)
+        {
+            const Line* Node = &Lines[i];
+            if(dotA == Node->DotA || dotA == Node->DotB
+                || dotB == Node->DotA || dotB == Node->DotB)
+                continue;
+            if(Math::MaxF(Dots[Node->DotA].x, Dots[Node->DotB].x) < Math::MinF(Dots[dotA].x, Dots[dotB].x)
+                || Math::MaxF(Dots[dotA].x, Dots[dotB].x) < Math::MinF(Dots[Node->DotA].x, Dots[Node->DotB].x)
+                || Math::MaxF(Dots[Node->DotA].y, Dots[Node->DotB].y) < Math::MinF(Dots[dotA].y, Dots[dotB].y)
+                || Math::MaxF(Dots[dotA].y, Dots[dotB].y) < Math::MinF(Dots[Node->DotA].y, Dots[Node->DotB].y))
+                continue;
+            int ResultA1 = R_SIDE1(dotA, dotB, Node->DotA);
+            int ResultB1 = R_SIDE1(dotA, dotB, Node->DotB);
+            int ResultA2 = R_SIDE1(Node->DotA, Node->DotB, dotA);
+            int ResultB2 = R_SIDE1(Node->DotA, Node->DotB, dotB);
+            if((ResultA1 == 0 || ResultB1 == 0 || (ResultA1 < 0 && 0 < ResultB1) || (0 < ResultA1 && ResultB1 < 0))
+                && (ResultA2 == 0 || ResultB2 == 0 || (ResultA2 < 0 && 0 < ResultB2) || (0 < ResultA2 && ResultB2 < 0)))
+                return true;
+        }
+        return false;
+    }
 
     int TryWorld::Map::FIND_LINE_ID(int dotA, int dotB) const
-	{
-		int Count = 0;
-		for(int i = 0; i < Lines.Count(); ++i)
-		{
-			const Line* Node = &Lines[i];
-			if((dotA == Node->DotA && dotB == Node->DotB)
-				|| (dotA == Node->DotB && dotB == Node->DotA))
-				return Count;
-			Count++;
-		}
-		return -1;
-	}
+    {
+        int Count = 0;
+        for(int i = 0; i < Lines.Count(); ++i)
+        {
+            const Line* Node = &Lines[i];
+            if((dotA == Node->DotA && dotB == Node->DotB)
+                || (dotA == Node->DotB && dotB == Node->DotA))
+                return Count;
+            Count++;
+        }
+        return -1;
+    }
 
     TryWorld::Map::Triangle* TryWorld::Map::FIND_PICK_TRIANGLE(const Dot& pos)
-	{
+    {
         Triangle* Node = &Top;
-		while(Node = Node->Next)
-		{
+        while(Node = Node->Next)
+        {
             BOSS_ASSERT("잘못된 시나리오입니다", Node->DotA != -1 && Node->DotB != -1 && Node->DotC != -1);
-			if(R_SIDE1(Node->DotA, Node->DotB, Node->DotC) < 0)
-			{
-				if(0 < R_SIDE2(Node->DotA, Node->DotB, pos)
-					|| 0 < R_SIDE2(Node->DotB, Node->DotC, pos)
-					|| 0 < R_SIDE2(Node->DotC, Node->DotA, pos))
-					continue;
-			}
-			else if(R_SIDE2(Node->DotA, Node->DotB, pos) < 0
-				|| R_SIDE2(Node->DotB, Node->DotC, pos) < 0
-				|| R_SIDE2(Node->DotC, Node->DotA, pos) < 0)
-				continue;
-			return Node;
-		}
-		return nullptr;
-	}
+            if(R_SIDE1(Node->DotA, Node->DotB, Node->DotC) < 0)
+            {
+                if(0 < R_SIDE2(Node->DotA, Node->DotB, pos)
+                    || 0 < R_SIDE2(Node->DotB, Node->DotC, pos)
+                    || 0 < R_SIDE2(Node->DotC, Node->DotA, pos))
+                    continue;
+            }
+            else if(R_SIDE2(Node->DotA, Node->DotB, pos) < 0
+                || R_SIDE2(Node->DotB, Node->DotC, pos) < 0
+                || R_SIDE2(Node->DotC, Node->DotA, pos) < 0)
+                continue;
+            return Node;
+        }
+        return nullptr;
+    }
 
     TryWorld::Map::Triangle* TryWorld::Map::FIND_SAME_TRIANGLE(int dotA, int dotB, Triangle* parent)
-	{
+    {
         Triangle* Node = &Top;
-		while(Node = Node->Next)
-		{
+        while(Node = Node->Next)
+        {
             BOSS_ASSERT("잘못된 시나리오입니다", Node->DotA != -1 && Node->DotB != -1 && Node->DotC != -1);
-			if(Node == parent) continue;
-			if((dotA == Node->DotA || dotA == Node->DotB || dotA == Node->DotC)
-				&& (dotB == Node->DotA || dotB == Node->DotB || dotB == Node->DotC))
-				return Node;
-		}
-		return nullptr;
-	}
+            if(Node == parent) continue;
+            if((dotA == Node->DotA || dotA == Node->DotB || dotA == Node->DotC)
+                && (dotB == Node->DotA || dotB == Node->DotB || dotB == Node->DotC))
+                return Node;
+        }
+        return nullptr;
+    }
 
     bool TryWorld::Map::PATH_FIND(Triangle* focus, const Triangle* target, const Dot& endPos, ScoreCB cb) const
-	{
+    {
         if(target == focus) return true;
         else if(focus->ObjectScore == -1)
         {
@@ -445,53 +445,53 @@ namespace BOSS
             else focus->ObjectScore = 0;
         }
 
-		bool Result = false;
-		const Dot DotAB = (DISTANCE(focus->WayDot, Dots[focus->DotA]) < DISTANCE(focus->WayDot, Dots[focus->DotB]))? DOT_AB_SIDE_A(*focus) : DOT_AB_SIDE_B(*focus);
-		const Dot DotAC = (DISTANCE(focus->WayDot, Dots[focus->DotA]) < DISTANCE(focus->WayDot, Dots[focus->DotC]))? DOT_AC_SIDE_A(*focus) : DOT_AC_SIDE_C(*focus);
-		const Dot DotBC = (DISTANCE(focus->WayDot, Dots[focus->DotB]) < DISTANCE(focus->WayDot, Dots[focus->DotC]))? DOT_BC_SIDE_B(*focus) : DOT_BC_SIDE_C(*focus);
+        bool Result = false;
+        const Dot DotAB = (DISTANCE(focus->WayDot, Dots[focus->DotA]) < DISTANCE(focus->WayDot, Dots[focus->DotB]))? DOT_AB_SIDE_A(*focus) : DOT_AB_SIDE_B(*focus);
+        const Dot DotAC = (DISTANCE(focus->WayDot, Dots[focus->DotA]) < DISTANCE(focus->WayDot, Dots[focus->DotC]))? DOT_AC_SIDE_A(*focus) : DOT_AC_SIDE_C(*focus);
+        const Dot DotBC = (DISTANCE(focus->WayDot, Dots[focus->DotB]) < DISTANCE(focus->WayDot, Dots[focus->DotC]))? DOT_BC_SIDE_B(*focus) : DOT_BC_SIDE_C(*focus);
         const int DistanceAB = DISTANCE(focus->WayDot, DotAB) + ((target == focus->LinkAB)? DISTANCE(DotAB, endPos) : 0) + focus->ObjectScore;
         const int DistanceAC = DISTANCE(focus->WayDot, DotAC) + ((target == focus->LinkAC)? DISTANCE(DotAC, endPos) : 0) + focus->ObjectScore;
         const int DistanceBC = DISTANCE(focus->WayDot, DotBC) + ((target == focus->LinkBC)? DISTANCE(DotBC, endPos) : 0) + focus->ObjectScore;
-		if(focus->TypeAB == linetype_space && (!focus->LinkAB->WayBack || focus->DistanceSum + DistanceAB < focus->LinkAB->DistanceSum))
-		{
-			focus->LinkAB->WayDot = DotAB;
-			focus->LinkAB->WayBack = focus;
-			focus->LinkAB->DistanceSum = focus->DistanceSum + DistanceAB;
+        if(focus->TypeAB == linetype_space && (!focus->LinkAB->WayBack || focus->DistanceSum + DistanceAB < focus->LinkAB->DistanceSum))
+        {
+            focus->LinkAB->WayDot = DotAB;
+            focus->LinkAB->WayBack = focus;
+            focus->LinkAB->DistanceSum = focus->DistanceSum + DistanceAB;
             Result |= PATH_FIND(focus->LinkAB, target, endPos, cb);
-		}
-		if(focus->TypeAC == linetype_space && (!focus->LinkAC->WayBack || focus->DistanceSum + DistanceAC < focus->LinkAC->DistanceSum))
-		{
-			focus->LinkAC->WayDot = DotAC;
-			focus->LinkAC->WayBack = focus;
-			focus->LinkAC->DistanceSum = focus->DistanceSum + DistanceAC;
+        }
+        if(focus->TypeAC == linetype_space && (!focus->LinkAC->WayBack || focus->DistanceSum + DistanceAC < focus->LinkAC->DistanceSum))
+        {
+            focus->LinkAC->WayDot = DotAC;
+            focus->LinkAC->WayBack = focus;
+            focus->LinkAC->DistanceSum = focus->DistanceSum + DistanceAC;
             Result |= PATH_FIND(focus->LinkAC, target, endPos, cb);
-		}
-		if(focus->TypeBC == linetype_space && (!focus->LinkBC->WayBack || focus->DistanceSum + DistanceBC < focus->LinkBC->DistanceSum))
-		{
-			focus->LinkBC->WayDot = DotBC;
-			focus->LinkBC->WayBack = focus;
-			focus->LinkBC->DistanceSum = focus->DistanceSum + DistanceBC;
+        }
+        if(focus->TypeBC == linetype_space && (!focus->LinkBC->WayBack || focus->DistanceSum + DistanceBC < focus->LinkBC->DistanceSum))
+        {
+            focus->LinkBC->WayDot = DotBC;
+            focus->LinkBC->WayBack = focus;
+            focus->LinkBC->DistanceSum = focus->DistanceSum + DistanceBC;
             Result |= PATH_FIND(focus->LinkBC, target, endPos, cb);
-		}
-		return Result;
-	}
+        }
+        return Result;
+    }
 
     ////////////////////////////////////////////////////////////////////////////////
     // TryWorld::Hurdle
     ////////////////////////////////////////////////////////////////////////////////
     TryWorld::Hurdle::Hurdle(sint32 diffBorder) : DiffBorder(diffBorder)
-	{
+    {
         BuildFlag = false;
-	}
+    }
 
-	TryWorld::Hurdle::~Hurdle()
-	{
-	}
+    TryWorld::Hurdle::~Hurdle()
+    {
+    }
 
-	TryWorld::Hurdle* TryWorld::Hurdle::Create(Hurdle* hurdle, sint32 diffBorder)
-	{
-		Hurdle* Result = new Hurdle((hurdle)? hurdle->DiffBorder : diffBorder);
-		if(hurdle)
+    TryWorld::Hurdle* TryWorld::Hurdle::Create(Hurdle* hurdle, sint32 diffBorder)
+    {
+        Hurdle* Result = new Hurdle((hurdle)? hurdle->DiffBorder : diffBorder);
+        if(hurdle)
         {
             Result->BuildFlag = hurdle->BuildFlag;
             Result->List = hurdle->List;
@@ -501,34 +501,34 @@ namespace BOSS
                 Result->List.SubtractionOne();
             }
         }
-		return Result;
-	}
+        return Result;
+    }
 
-	void TryWorld::Hurdle::Release(Hurdle*& hurdle)
-	{
-		delete hurdle;
+    void TryWorld::Hurdle::Release(Hurdle*& hurdle)
+    {
+        delete hurdle;
         hurdle = nullptr;
-	}
+    }
 
     void TryWorld::Hurdle::Add(DotList& polygon, bool add_or_sub)
-	{
+    {
         // 전개
         gpc_polygon CurPolygonList;
-		CurPolygonList.num_contours = 0;
-		CurPolygonList.hole = nullptr;
-		CurPolygonList.contour = nullptr;
+        CurPolygonList.num_contours = 0;
+        CurPolygonList.hole = nullptr;
+        CurPolygonList.contour = nullptr;
         for(int i = 0, iend = List.Count(); i < iend; ++i)
         {
             auto& CurDotArray = List[i].DotArray;
             gpc_vertex_list NewVertexList;
-		    NewVertexList.num_vertices = CurDotArray.Count();
-		    NewVertexList.vertex = new gpc_vertex[CurDotArray.Count()];
-		    for(sint32 j = 0, jend = CurDotArray.Count(); j < jend; ++j)
-		    {
-				auto& CurDot = CurDotArray[j];
-			    NewVertexList.vertex[j].x = CurDot.x;
-			    NewVertexList.vertex[j].y = CurDot.y;
-		    }
+            NewVertexList.num_vertices = CurDotArray.Count();
+            NewVertexList.vertex = new gpc_vertex[CurDotArray.Count()];
+            for(sint32 j = 0, jend = CurDotArray.Count(); j < jend; ++j)
+            {
+                auto& CurDot = CurDotArray[j];
+                NewVertexList.vertex[j].x = CurDot.x;
+                NewVertexList.vertex[j].y = CurDot.y;
+            }
             gpc_add_contour(&CurPolygonList, &NewVertexList, 0);
             delete[] NewVertexList.vertex;
         }
@@ -536,66 +536,66 @@ namespace BOSS
         // 추가분
         gpc_polygon NewPolygonList;
         NewPolygonList.num_contours = 0;
-		NewPolygonList.hole = nullptr;
-		NewPolygonList.contour = nullptr;
+        NewPolygonList.hole = nullptr;
+        NewPolygonList.contour = nullptr;
         gpc_vertex_list NewVertexList;
-		NewVertexList.num_vertices = polygon.Count();
-		NewVertexList.vertex = new gpc_vertex[polygon.Count()];
-		for(sint32 i = 0, iend = polygon.Count(); i < iend; ++i)
-		{
-			auto& CurDot = polygon[i];
-			NewVertexList.vertex[i].x = CurDot.x;
-			NewVertexList.vertex[i].y = CurDot.y;
-		}
+        NewVertexList.num_vertices = polygon.Count();
+        NewVertexList.vertex = new gpc_vertex[polygon.Count()];
+        for(sint32 i = 0, iend = polygon.Count(); i < iend; ++i)
+        {
+            auto& CurDot = polygon[i];
+            NewVertexList.vertex[i].x = CurDot.x;
+            NewVertexList.vertex[i].y = CurDot.y;
+        }
         gpc_add_contour(&NewPolygonList, &NewVertexList, 0);
         delete[] NewVertexList.vertex;
 
         // 병합
         gpc_polygon ResultPolygonList;
-		ResultPolygonList.num_contours = 0;
-		ResultPolygonList.hole = nullptr;
-		ResultPolygonList.contour = nullptr;
+        ResultPolygonList.num_contours = 0;
+        ResultPolygonList.hole = nullptr;
+        ResultPolygonList.contour = nullptr;
         gpc_op OP = (add_or_sub)? GPC_UNION : GPC_DIFF;
-		// 첫 폴리곤이 DIFF면 약간 더 큰 폴리곤 삽입
-		if(List.Count() == 0 && OP == GPC_DIFF)
-		{
-			Rect FirstRect(polygon[0].x, polygon[0].y, polygon[0].x, polygon[0].y);
-			for(sint32 i = 1, iend = polygon.Count(); i < iend; ++i)
-			{
-				FirstRect.l = Math::MinF(FirstRect.l, polygon[i].x);
-				FirstRect.t = Math::MinF(FirstRect.t, polygon[i].y);
-				FirstRect.r = Math::MaxF(FirstRect.r, polygon[i].x);
-				FirstRect.b = Math::MaxF(FirstRect.b, polygon[i].y);
-			}
-			FirstRect = FirstRect.Inflate(DiffBorder, DiffBorder);
+        // 첫 폴리곤이 DIFF면 약간 더 큰 폴리곤 삽입
+        if(List.Count() == 0 && OP == GPC_DIFF)
+        {
+            Rect FirstRect(polygon[0].x, polygon[0].y, polygon[0].x, polygon[0].y);
+            for(sint32 i = 1, iend = polygon.Count(); i < iend; ++i)
+            {
+                FirstRect.l = Math::MinF(FirstRect.l, polygon[i].x);
+                FirstRect.t = Math::MinF(FirstRect.t, polygon[i].y);
+                FirstRect.r = Math::MaxF(FirstRect.r, polygon[i].x);
+                FirstRect.b = Math::MaxF(FirstRect.b, polygon[i].y);
+            }
+            FirstRect = FirstRect.Inflate(DiffBorder, DiffBorder);
 
-			gpc_polygon FirstPolygonList;
-			FirstPolygonList.num_contours = 0;
-			FirstPolygonList.hole = nullptr;
-			FirstPolygonList.contour = nullptr;
-			gpc_vertex_list FirstVertexList;
-			FirstVertexList.num_vertices = 4;
-			FirstVertexList.vertex = new gpc_vertex[4];
-			FirstVertexList.vertex[0].x = FirstRect.l;
-			FirstVertexList.vertex[0].y = FirstRect.t;
-			FirstVertexList.vertex[1].x = FirstRect.r;
-			FirstVertexList.vertex[1].y = FirstRect.t;
-			FirstVertexList.vertex[2].x = FirstRect.r;
-			FirstVertexList.vertex[2].y = FirstRect.b;
-			FirstVertexList.vertex[3].x = FirstRect.l;
-			FirstVertexList.vertex[3].y = FirstRect.b;
-			gpc_add_contour(&FirstPolygonList, &FirstVertexList, 0);
-			delete[] FirstVertexList.vertex;
+            gpc_polygon FirstPolygonList;
+            FirstPolygonList.num_contours = 0;
+            FirstPolygonList.hole = nullptr;
+            FirstPolygonList.contour = nullptr;
+            gpc_vertex_list FirstVertexList;
+            FirstVertexList.num_vertices = 4;
+            FirstVertexList.vertex = new gpc_vertex[4];
+            FirstVertexList.vertex[0].x = FirstRect.l;
+            FirstVertexList.vertex[0].y = FirstRect.t;
+            FirstVertexList.vertex[1].x = FirstRect.r;
+            FirstVertexList.vertex[1].y = FirstRect.t;
+            FirstVertexList.vertex[2].x = FirstRect.r;
+            FirstVertexList.vertex[2].y = FirstRect.b;
+            FirstVertexList.vertex[3].x = FirstRect.l;
+            FirstVertexList.vertex[3].y = FirstRect.b;
+            gpc_add_contour(&FirstPolygonList, &FirstVertexList, 0);
+            delete[] FirstVertexList.vertex;
 
-			gpc_polygon ResultFirstPolygonList;
-			ResultFirstPolygonList.num_contours = 0;
-			ResultFirstPolygonList.hole = nullptr;
-			ResultFirstPolygonList.contour = nullptr;
-			gpc_polygon_clip(GPC_UNION, &CurPolygonList, &FirstPolygonList, &ResultFirstPolygonList);
-			gpc_polygon_clip(OP, &ResultFirstPolygonList, &NewPolygonList, &ResultPolygonList);
-			gpc_free_polygon(&FirstPolygonList);
-			gpc_free_polygon(&ResultFirstPolygonList);
-		}
+            gpc_polygon ResultFirstPolygonList;
+            ResultFirstPolygonList.num_contours = 0;
+            ResultFirstPolygonList.hole = nullptr;
+            ResultFirstPolygonList.contour = nullptr;
+            gpc_polygon_clip(GPC_UNION, &CurPolygonList, &FirstPolygonList, &ResultFirstPolygonList);
+            gpc_polygon_clip(OP, &ResultFirstPolygonList, &NewPolygonList, &ResultPolygonList);
+            gpc_free_polygon(&FirstPolygonList);
+            gpc_free_polygon(&ResultFirstPolygonList);
+        }
         else gpc_polygon_clip(OP, &CurPolygonList, &NewPolygonList, &ResultPolygonList);
 
         // 수집
@@ -605,112 +605,112 @@ namespace BOSS
             auto& CurContour = ResultPolygonList.contour[i];
             auto& NewPolygon = List.AtAdding();
             NewPolygon.Enable = (2 < CurContour.num_vertices);
-		    for(sint32 j = 0, jend = CurContour.num_vertices; j < jend; ++j)
-		    {
-			    auto& NewPoint = NewPolygon.DotArray.AtAdding();
-			    NewPoint.x = CurContour.vertex[j].x;
-			    NewPoint.y = CurContour.vertex[j].y;
-		    }
+            for(sint32 j = 0, jend = CurContour.num_vertices; j < jend; ++j)
+            {
+                auto& NewPoint = NewPolygon.DotArray.AtAdding();
+                NewPoint.x = CurContour.vertex[j].x;
+                NewPoint.y = CurContour.vertex[j].y;
+            }
         }
 
         gpc_free_polygon(&CurPolygonList);
         gpc_free_polygon(&NewPolygonList);
         gpc_free_polygon(&ResultPolygonList);
-	}
+    }
 
     void TryWorld::Hurdle::AddWithoutMerging(const DotList& polygon)
-	{
+    {
         auto& NewPolygon = List.AtAdding();
         NewPolygon.Enable = (2 < polygon.Count());
         NewPolygon.DotArray = polygon;
-	}
+    }
 
-	void TryWorld::Hurdle::SetPayload(const Rect& testRect, int payload)
-	{
-		for(int i = 0, iend = List.Count(); i < iend; ++i)
+    void TryWorld::Hurdle::SetPayload(const Rect& testRect, int payload)
+    {
+        for(int i = 0, iend = List.Count(); i < iend; ++i)
         {
             auto& CurDotArray = List.At(i).DotArray;
             for(sint32 j = 0, jend = CurDotArray.Count(); j < jend; ++j)
-		    {
-				auto& CurDot = CurDotArray.At(j);
-				if(testRect.PtInRect(CurDot.x, CurDot.y))
-					CurDot.Payload = payload;
-		    }
+            {
+                auto& CurDot = CurDotArray.At(j);
+                if(testRect.PtInRect(CurDot.x, CurDot.y))
+                    CurDot.Payload = payload;
+            }
         }
-	}
+    }
 
-	TryWorld::Map* TryWorld::Hurdle::BuildMap(const Rect& boundBox)
-	{
+    TryWorld::Map* TryWorld::Hurdle::BuildMap(const Rect& boundBox)
+    {
         if(BuildFlag)
             List.SubtractionOne();
         else BuildFlag = true;
 
-		DotList BoundPolygon;
-		BoundPolygon.AtAdding() = Dot(boundBox.l, boundBox.t);
-		BoundPolygon.AtAdding() = Dot(boundBox.l, boundBox.b);
-		BoundPolygon.AtAdding() = Dot(boundBox.r, boundBox.b);
-		BoundPolygon.AtAdding() = Dot(boundBox.r, boundBox.t);
+        DotList BoundPolygon;
+        BoundPolygon.AtAdding() = Dot(boundBox.l, boundBox.t);
+        BoundPolygon.AtAdding() = Dot(boundBox.l, boundBox.b);
+        BoundPolygon.AtAdding() = Dot(boundBox.r, boundBox.b);
+        BoundPolygon.AtAdding() = Dot(boundBox.r, boundBox.t);
         AddWithoutMerging(BoundPolygon);
-		Map* Result = new Map();
+        Map* Result = new Map();
         if(!Result->MAPPING(List))
         {
             delete Result;
             return nullptr;
         }
-		return Result;
-	}
+        return Result;
+    }
 
     ////////////////////////////////////////////////////////////////////////////////
     // TryWorld::GetPosition
     ////////////////////////////////////////////////////////////////////////////////
     TryWorld::GetPosition::GetPosition()
-	{
-	}
+    {
+    }
 
-	TryWorld::GetPosition::~GetPosition()
-	{
-	}
+    TryWorld::GetPosition::~GetPosition()
+    {
+    }
 
     bool TryWorld::GetPosition::SubTarget(const Hurdle* hurdle, Path* path, const Point& curPos, Point& targetPos)
-	{
+    {
         if(hurdle && path)
         {
             const int CurDot = path->Dots.Count() - 1 - path->DotFocus;
             int DotBegin = Math::Max(0, CurDot - 2 * (1 + path->Step));
-			for(int p = DotBegin; p < path->Dots.Count(); ++p)
-			{
-				bool IsFindHurdle = false;
-				const Dot& CurTarget = path->Dots[p];
-				for(int h = 0; !IsFindHurdle && h < hurdle->List.Count(); ++h)
-				{
+            for(int p = DotBegin; p < path->Dots.Count(); ++p)
+            {
+                bool IsFindHurdle = false;
+                const Dot& CurTarget = path->Dots[p];
+                for(int h = 0; !IsFindHurdle && h < hurdle->List.Count(); ++h)
+                {
                     if(!hurdle->List[h].Enable) continue;
                     const auto& CurDots = hurdle->List[h].DotArray;
-					for(int l = 0, lend = CurDots.Count(); !IsFindHurdle && l < lend; ++l)
-					{
+                    for(int l = 0, lend = CurDots.Count(); !IsFindHurdle && l < lend; ++l)
+                    {
                         IsFindHurdle = (nullptr != Util::GetDotByLineCross(CurDots[l], CurDots[(l + 1) % lend], curPos, CurTarget));
                         if(IsFindHurdle && 0 < Util::GetClockwiseValue(CurDots[l], CurDots[(l + 1) % lend], curPos))
-							IsFindHurdle = false;
-					}
-				}
-				if(!IsFindHurdle)
+                            IsFindHurdle = false;
+                    }
+                }
+                if(!IsFindHurdle)
                 {
                     path->DotFocus = path->Dots.Count() - 1 - p;
                     targetPos = Point(CurTarget.x, CurTarget.y);
                     return true;
                 }
-			}
+            }
         }
         return false;
-	}
+    }
 
     const TryWorld::Dot** TryWorld::GetPosition::GetValidNext(const Hurdle* hurdle, const Point& curPos, const Point& nextPos,
         Point& resultPos, Point& reflectPos, float distanceMin)
-	{
+    {
         static const Dot* ResultArray[2] = {nullptr, nullptr};
         const Dot** Result = nullptr;
         Dot ResultPos = nextPos;
         float ResultDistance = distanceMin;
-		for(int h = 0; h < hurdle->List.Count(); ++h)
+        for(int h = 0; h < hurdle->List.Count(); ++h)
         {
             if(!hurdle->List[h].Enable) continue;
             const auto& CurDots = hurdle->List[h].DotArray;
@@ -744,7 +744,7 @@ namespace BOSS
         }
         resultPos = Point(ResultPos.x, ResultPos.y);
         return Result;
-	}
+    }
 
     /*
     ===========================================================================
@@ -1428,104 +1428,104 @@ namespace BOSS
 
     static void swap_intersecting_edge_bundles(edge_node **aet, it_node *intersect)
     {
-	    edge_node *e0 = intersect->ie[0];
-	    edge_node *e1 = intersect->ie[1];
-	    edge_node *e0t = e0;
-	    edge_node *e1t = e1;
-	    edge_node *e0n = e0->next;
-	    edge_node *e1n = e1->next;
+        edge_node *e0 = intersect->ie[0];
+        edge_node *e1 = intersect->ie[1];
+        edge_node *e0t = e0;
+        edge_node *e1t = e1;
+        edge_node *e0n = e0->next;
+        edge_node *e1n = e1->next;
 
-	    // Find the node before the e0 bundle
-	    edge_node *e0p = e0->prev;
-	    if (e0->bstate[ABOVE] == BUNDLE_HEAD)
-	    {
-		    do
-		    {
-			    e0t = e0p;
-			    e0p = e0p->prev;
-		    }
-		    while (e0p && (e0p->bstate[ABOVE] == BUNDLE_TAIL));
-	    }
+        // Find the node before the e0 bundle
+        edge_node *e0p = e0->prev;
+        if (e0->bstate[ABOVE] == BUNDLE_HEAD)
+        {
+            do
+            {
+                e0t = e0p;
+                e0p = e0p->prev;
+            }
+            while (e0p && (e0p->bstate[ABOVE] == BUNDLE_TAIL));
+        }
 
-	    // Find the node before the e1 bundle
-	    edge_node *e1p = e1->prev;
-	    if (e1->bstate[ABOVE] == BUNDLE_HEAD)
-	    {
-		    do
-		    {
-			    e1t = e1p;
-			    e1p = e1p->prev;
-		    }
-		    while (e1p && (e1p->bstate[ABOVE] == BUNDLE_TAIL));
-	    }
+        // Find the node before the e1 bundle
+        edge_node *e1p = e1->prev;
+        if (e1->bstate[ABOVE] == BUNDLE_HEAD)
+        {
+            do
+            {
+                e1t = e1p;
+                e1p = e1p->prev;
+            }
+            while (e1p && (e1p->bstate[ABOVE] == BUNDLE_TAIL));
+        }
 
-	    // Swap the e0p and e1p links
-	    if (e0p)
-	    {
-		    if (e1p)
-		    {
-			    if (e0p != e1)
-			    {
-				    e0p->next = e1t;
-				    e1t->prev = e0p;
-			    }
-			    if (e1p != e0)
-			    {
-				    e1p->next = e0t;
-				    e0t->prev = e1p;
-			    }
-		    }
-		    else
-		    {
-			    if (e0p != e1)
-			    {
-				    e0p->next = e1t;
-				    e1t->prev = e0p;
-			    }
-			    *aet = e0t;
-			    e0t->prev = NULL;
-		    }
-	    }
-	    else
-	    {
-		    if (e1p != e0)
-		    {
-			    e1p->next = e0t;
-			    e0t->prev = e1p;
-		    }
-		    *aet = e1t;
-		    e1t->prev = NULL;
-	    }
+        // Swap the e0p and e1p links
+        if (e0p)
+        {
+            if (e1p)
+            {
+                if (e0p != e1)
+                {
+                    e0p->next = e1t;
+                    e1t->prev = e0p;
+                }
+                if (e1p != e0)
+                {
+                    e1p->next = e0t;
+                    e0t->prev = e1p;
+                }
+            }
+            else
+            {
+                if (e0p != e1)
+                {
+                    e0p->next = e1t;
+                    e1t->prev = e0p;
+                }
+                *aet = e0t;
+                e0t->prev = NULL;
+            }
+        }
+        else
+        {
+            if (e1p != e0)
+            {
+                e1p->next = e0t;
+                e0t->prev = e1p;
+            }
+            *aet = e1t;
+            e1t->prev = NULL;
+        }
 
-	    // Re-link after e0
-	    if (e0p != e1)
-	    {
-		    e0->next = e1n;
-		    if (e1n)
-		    {
-			    e1n->prev = e0;
-		    }
-	    }
-	    else
-	    {
-		    e0->next = e1t;
-		    e1t->prev = e0;
-	    }
+        // Re-link after e0
+        if (e0p != e1)
+        {
+            e0->next = e1n;
+            if (e1n)
+            {
+                e1n->prev = e0;
+            }
+        }
+        else
+        {
+            e0->next = e1t;
+            e1t->prev = e0;
+        }
 
-	    // Re-link after e1
-	    if (e1p != e0)
-	    {
-		    e1->next = e0n;
-		    if (e0n)
-		    {
-			    e0n->prev = e1;
-		    }
-	    }
-	    else
-	    {
-		    e1->next = e0t;
-		    e0t->prev = e1;
-	    }
+        // Re-link after e1
+        if (e1p != e0)
+        {
+            e1->next = e0n;
+            if (e0n)
+            {
+                e0n->prev = e1;
+            }
+        }
+        else
+        {
+            e1->next = e0t;
+            e0t->prev = e1;
+        }
     }
 
 
@@ -2034,7 +2034,7 @@ namespace BOSS
           if (next_edge->bundle[ABOVE][next_edge->type])
           {
             if (EQ(e0->xb, next_edge->xb) && EQ(e0->dx, next_edge->dx)
-	     && (e0->top.y != yb))
+         && (e0->top.y != yb))
             {
               next_edge->bundle[ABOVE][ next_edge->type]^= 
                 e0->bundle[ABOVE][ next_edge->type];
@@ -2189,10 +2189,10 @@ namespace BOSS
                 break;
               case IMM:
                 if (xb != px)
-	        {
+            {
                   add_right(cf, xb, yb);
                   px= xb;
-	        }
+            }
                 merge_left(cf, edge->outp[BELOW], out_poly);
                 edge->outp[BELOW]= NULL;
                 add_local_min(&out_poly, edge, xb, yb);
@@ -2200,10 +2200,10 @@ namespace BOSS
                 break;
               case EMM:
                 if (xb != px)
-	        {
+            {
                   add_left(cf, xb, yb);
                   px= xb;
-	        }
+            }
                 merge_right(cf, edge->outp[BELOW], out_poly);
                 edge->outp[BELOW]= NULL;
                 add_local_min(&out_poly, edge, xb, yb);
@@ -2244,7 +2244,7 @@ namespace BOSS
 
             /* Copy bundle head state to the adjacent tail edge if required */
             if ((edge->bstate[BELOW] == BUNDLE_HEAD) && prev_edge)
-	    {
+        {
               if (prev_edge->bstate[BELOW] == BUNDLE_TAIL)
               {
                 prev_edge->outp[BELOW]= edge->outp[BELOW];
@@ -2252,8 +2252,8 @@ namespace BOSS
                 if (prev_edge->prev)
                   if (prev_edge->prev->bstate[BELOW] == BUNDLE_TAIL)
                     prev_edge->bstate[BELOW]= BUNDLE_HEAD;
-	      }
-	    }
+          }
+        }
           }
           else
           {
@@ -2279,7 +2279,7 @@ namespace BOSS
             /* Only generate output for contributing intersections */
             if ((e0->bundle[ABOVE][CLIP] || e0->bundle[ABOVE][SUBJ])
              && (e1->bundle[ABOVE][CLIP] || e1->bundle[ABOVE][SUBJ]))
-	    {
+        {
               p= e0->outp[ABOVE];
               q= e1->outp[ABOVE];
               ix= intersect->point.x;
@@ -2329,7 +2329,7 @@ namespace BOSS
                  || (in[SUBJ] ^ e1->bundle[ABOVE][SUBJ] ^ e0->bundle[ABOVE][SUBJ]);
                 break;
               }
-	  
+      
               vclass= tr + (tl << 1) + (br << 2) + (bl << 3);
 
               switch (vclass)
@@ -2654,7 +2654,7 @@ namespace BOSS
           if (next_edge->bundle[ABOVE][next_edge->type])
           {
             if (EQ(e0->xb, next_edge->xb) && EQ(e0->dx, next_edge->dx)
-	     && (e0->top.y != yb))
+         && (e0->top.y != yb))
             {
               next_edge->bundle[ABOVE][ next_edge->type]^= 
                 e0->bundle[ABOVE][ next_edge->type];
@@ -2776,11 +2776,11 @@ namespace BOSS
                 break;
               case IMN:
                 if (cft == LED)
-	        {
+            {
                   if (cf->bot.y != yb)
                     VERTEX(cf, BELOW, LEFT, cf->xb, yb);
                   new_tristrip(&tlist, cf, cf->xb, yb);
-	        }
+            }
                 edge->outp[ABOVE]= cf->outp[ABOVE];
                 VERTEX(edge, ABOVE, RIGHT, xb, yb);
                 break;
@@ -2791,11 +2791,11 @@ namespace BOSS
                 break;
               case IRI:
                 if (cft == LED)
-	        {
+            {
                   if (cf->bot.y != yb)
                     VERTEX(cf, BELOW, LEFT, cf->xb, yb);
                   new_tristrip(&tlist, cf, cf->xb, yb);
-	        }
+            }
                 VERTEX(edge, BELOW, RIGHT, xb, yb);
                 edge->outp[ABOVE]= NULL;
                 break;
@@ -2804,7 +2804,7 @@ namespace BOSS
                 edge->outp[ABOVE]= NULL;
                 cft= IMX;
                 break;
-	      case IMM:
+          case IMM:
                 VERTEX(edge, BELOW, LEFT, xb, yb);
                 edge->outp[ABOVE]= cf->outp[ABOVE];
                 if (xb != cf->xb)
@@ -2827,25 +2827,25 @@ namespace BOSS
               case RED:
                 edge->outp[ABOVE]= cf->outp[ABOVE];
                 if (cft == LED)
-	        {
+            {
                   if (cf->bot.y == yb)
-	          {
+              {
                     VERTEX(edge, BELOW, RIGHT, xb, yb);
-	          }
+              }
                   else
-	          {
+              {
                     if (edge->bot.y == yb)
-		    {
+            {
                       VERTEX(cf, BELOW, LEFT, cf->xb, yb);
                       VERTEX(edge, BELOW, RIGHT, xb, yb);
-		    }
-	          }
-	        }
+            }
+              }
+            }
                 else
-	        {
+            {
                   VERTEX(edge, BELOW, RIGHT, xb, yb);
                   VERTEX(edge, ABOVE, RIGHT, xb, yb);
-	        }
+            }
                 cf= NULL;
                 break;
               default:
@@ -2871,7 +2871,7 @@ namespace BOSS
 
             /* Copy bundle head state to the adjacent tail edge if required */
             if ((edge->bstate[BELOW] == BUNDLE_HEAD) && prev_edge)
-	    {
+        {
               if (prev_edge->bstate[BELOW] == BUNDLE_TAIL)
               {
                 prev_edge->outp[BELOW]= edge->outp[BELOW];
@@ -2879,8 +2879,8 @@ namespace BOSS
                 if (prev_edge->prev)
                   if (prev_edge->prev->bstate[BELOW] == BUNDLE_TAIL)
                     prev_edge->bstate[BELOW]= BUNDLE_HEAD;
-	      }
-	    }
+          }
+        }
           }
           else
           {
@@ -2906,7 +2906,7 @@ namespace BOSS
             /* Only generate output for contributing intersections */
             if ((e0->bundle[ABOVE][CLIP] || e0->bundle[ABOVE][SUBJ])
              && (e1->bundle[ABOVE][CLIP] || e1->bundle[ABOVE][SUBJ]))
-	    {
+        {
               p= e0->outp[ABOVE];
               q= e1->outp[ABOVE];
               ix= intersect->point.x;

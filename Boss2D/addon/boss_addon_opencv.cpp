@@ -117,7 +117,7 @@ namespace BOSS
 
             Bmp::Remove(NewBitmap);
         }
-	}
+    }
 
     id_bitmap Customized_AddOn_OpenCV_GetUpdatedImage(id_opencv opencv)
     {
@@ -169,10 +169,10 @@ namespace BOSS
 
         // 허프식 선분감지
         std::vector< cv::Vec4f > Lines;
-		sint32 Threshold = 100;
+        sint32 Threshold = 100;
         cv::HoughLinesP(*CurCV->mResult, Lines, 1, Math::ToRadian(1), Threshold, LineMinSize, LineMaxGap);
 
-		for(size_t i = 0, iend = Lines.size(); i < iend; ++i)
+        for(size_t i = 0, iend = Lines.size(); i < iend; ++i)
         {
             const auto& CurLine = Lines[i];
             cb(Point(CurLine[0], CurLine[1]), Point(CurLine[2], CurLine[3]), data);

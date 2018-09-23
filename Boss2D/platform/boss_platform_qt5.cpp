@@ -304,7 +304,7 @@
                 //auto TitleBarHeight = QApplication::style()->pixelMetric(QStyle::PM_TitleBarHeight);
                 //auto WindowFrame = QApplication::style()->pixelMetric(QStyle::PM_MdiSubWindowFrameWidth);
                 //g_window->move(x - WindowFrame, y - TitleBarHeight - WindowFrame / 2);
-				g_window->move(x, y);
+                g_window->move(x, y);
             }
         }
 
@@ -893,8 +893,8 @@
             return NumScreens;
         }
 
-		bool Platform::Utility::IsScreenConnected()
-		{
+        bool Platform::Utility::IsScreenConnected()
+        {
             #if BOSS_ANDROID
                 id_file_read Hdmi = Platform::File::OpenForRead("/sys/devices/virtual/switch/hdmi/state");
                 if(!Hdmi) Hdmi = Platform::File::OpenForRead("/sys/class/switch/hdmi/state");
@@ -907,8 +907,8 @@
                     return HasPhygicalMonitor;
                 }
             #endif
-			return true;
-		}
+            return true;
+        }
 
         id_image_read Platform::Utility::GetScreenshotImage(const rect128& rect)
         {
@@ -2332,7 +2332,7 @@
             #else
                 String NewPath = "../assets/";
             #endif
-			
+            
             PlatformImpl::Core::SetRoot(0, PlatformImpl::Core::NormalPath(NewPath, false));
             _CreateMiddleDir(PlatformImpl::Core::NormalPath(PlatformImpl::Core::GetCopiedRoot(0)));
             BOSS_TRACE("Platform::File::RootForAssets() ==> \"%s\"", (chars) PlatformImpl::Core::GetCopiedRoot(0));
@@ -3043,7 +3043,7 @@
         {
             if(WebPrivate* CurWeb = (WebPrivate*) web.get())
                 return CurWeb->Resize(width, height);
-			return false;
+            return false;
         }
 
         void Platform::Web::SendTouchEvent(h_web web, TouchType type, sint32 x, sint32 y)

@@ -21,7 +21,7 @@ namespace BOSS
         UIFA_LeftAscent, UIFA_CenterAscent, UIFA_RightAscent, UIFA_JustifyAscent,
         UIFA_LeftBottom, UIFA_CenterBottom, UIFA_RightBottom, UIFA_JustifyBottom};
     enum UIFontElide {UIFE_None, UIFE_Left, UIFE_Center, UIFE_Right};
-	enum UIStretchForm {UISF_Strong, UISF_Inner, UISF_Outer, UISF_Width, UISF_Height};
+    enum UIStretchForm {UISF_Strong, UISF_Inner, UISF_Outer, UISF_Width, UISF_Height};
     enum UIEditType {UIET_String, UIET_Int, UIET_Float};
     enum UITestOrder {UITO_ScissorOn, UITO_ScissorOff};
     enum UIStack {UIS_PushPop, UIS_Push, UIS_Current, UIS_Pop};
@@ -492,13 +492,13 @@ namespace BOSS
             */
             static sint32 GetPixelScale();
 
-			/*!
-			\brief 플랫폼에 따른 폰트 배율 얻기
-			\param def_depth : 기준 Depth
-			\param def_dpi : 기준 DPI
-			\return 폰트 배율
-			*/
-			static float GetFontScaleRate(sint32 def_depth = 32, sint32 def_dpi = 96);
+            /*!
+            \brief 플랫폼에 따른 폰트 배율 얻기
+            \param def_depth : 기준 Depth
+            \param def_dpi : 기준 DPI
+            \return 폰트 배율
+            */
+            static float GetFontScaleRate(sint32 def_depth = 32, sint32 def_dpi = 96);
 
             /*!
             \brief OS명칭 얻기
@@ -1744,7 +1744,7 @@ namespace BOSS
             \param web : 해당 웹핸들
             \param width : 웹페이지 가로길이(px)
             \param height : 웹페이지 세로길이(px)
-			\return 리사이징 실시여부
+            \return 리사이징 실시여부
             */
             static bool Resize(h_web web, sint32 width, sint32 height);
 

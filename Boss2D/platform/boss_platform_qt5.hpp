@@ -2192,9 +2192,9 @@
                 {
                     mView.resize(width, height);
                     mLastImage = QImage(width, height, QImage::Format_ARGB32);
-					return true;
+                    return true;
                 }
-				return false;
+                return false;
             }
             void SetCallback(Platform::Web::EventCB cb, payload data)
             {

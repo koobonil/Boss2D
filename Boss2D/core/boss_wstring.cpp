@@ -9,7 +9,7 @@ extern const uint16* gKssmTable;
 
 static chars_cp949 Cp949Finder(wchar_t code)
 {
-	const sint32 Length = 98 + 51 + 2350;
+    const sint32 Length = 98 + 51 + 2350;
     static wchar_t SortedWChars[Length];
     static uint16 SortedCp949s[Length];
     static bool NeedSort = true;
@@ -19,34 +19,34 @@ static chars_cp949 Cp949Finder(wchar_t code)
         Memory::Copy(SortedWChars, gWCharTable, sizeof(wchar_t) * Length);
         Memory::Copy(SortedCp949s, gCp949Table, sizeof(uint16) * Length);
         for(sint32 i = 0; i < Length - 1; ++i)
-		{
-			sint32 iBest = i;
-			for(sint32 j = i + 1; j < Length; ++j)
-				if(SortedWChars[j] < SortedWChars[iBest])
-					iBest = j;
-			if(iBest != i)
-			{
-				const wchar_t TempA = SortedWChars[i];
-				SortedWChars[i] = SortedWChars[iBest];
-				SortedWChars[iBest] = TempA;
-				const uint16 TempB = SortedCp949s[i];
-				SortedCp949s[i] = SortedCp949s[iBest];
-				SortedCp949s[iBest] = TempB;
-			}
-		}
+        {
+            sint32 iBest = i;
+            for(sint32 j = i + 1; j < Length; ++j)
+                if(SortedWChars[j] < SortedWChars[iBest])
+                    iBest = j;
+            if(iBest != i)
+            {
+                const wchar_t TempA = SortedWChars[i];
+                SortedWChars[i] = SortedWChars[iBest];
+                SortedWChars[iBest] = TempA;
+                const uint16 TempB = SortedCp949s[i];
+                SortedCp949s[i] = SortedCp949s[iBest];
+                SortedCp949s[iBest] = TempB;
+            }
+        }
     }
 
     sint32 Lower = 0, Upper = Length - 1;
-	while(Lower <= Upper)
-	{
-		const sint32 Middle = (Lower + Upper) / 2;
-		if(SortedWChars[Middle] == code)
-			return (chars_cp949) &SortedCp949s[Middle];
-		if(SortedWChars[Middle] < code)
-			Lower = Middle + 1;
-		else Upper = Middle - 1;
-	}
-	return (chars_cp949) "\xA1\xE0";
+    while(Lower <= Upper)
+    {
+        const sint32 Middle = (Lower + Upper) / 2;
+        if(SortedWChars[Middle] == code)
+            return (chars_cp949) &SortedCp949s[Middle];
+        if(SortedWChars[Middle] < code)
+            Lower = Middle + 1;
+        else Upper = Middle - 1;
+    }
+    return (chars_cp949) "\xA1\xE0";
 }
 
 static wchars WCharFromCp949Finder(char code1, char code2 = ' ')
@@ -61,40 +61,40 @@ static wchars WCharFromCp949Finder(char code1, char code2 = ' ')
         Memory::Copy(SortedWChars, gWCharTable, sizeof(wchar_t) * Length);
         Memory::Copy(SortedCp949s, gCp949Table, sizeof(uint16) * Length);
         for(sint32 i = 0; i < Length - 1; ++i)
-		{
-			sint32 iBest = i;
-			for(sint32 j = i + 1; j < Length; ++j)
-				if(SortedCp949s[j] < SortedCp949s[iBest])
-					iBest = j;
-			if(iBest != i)
-			{
-				const wchar_t TempA = SortedWChars[i];
-				SortedWChars[i] = SortedWChars[iBest];
-				SortedWChars[iBest] = TempA;
-				const uint16 TempB = SortedCp949s[i];
-				SortedCp949s[i] = SortedCp949s[iBest];
-				SortedCp949s[iBest] = TempB;
-			}
-		}
+        {
+            sint32 iBest = i;
+            for(sint32 j = i + 1; j < Length; ++j)
+                if(SortedCp949s[j] < SortedCp949s[iBest])
+                    iBest = j;
+            if(iBest != i)
+            {
+                const wchar_t TempA = SortedWChars[i];
+                SortedWChars[i] = SortedWChars[iBest];
+                SortedWChars[iBest] = TempA;
+                const uint16 TempB = SortedCp949s[i];
+                SortedCp949s[i] = SortedCp949s[iBest];
+                SortedCp949s[iBest] = TempB;
+            }
+        }
     }
 
     const uint16 Code = ((code2 & 0xFF) << 8) | (code1 & 0xFF);
     sint32 Lower = 0, Upper = Length - 1;
-	while(Lower <= Upper)
-	{
-		const sint32 Middle = (Lower + Upper) / 2;
-		if(SortedCp949s[Middle] == Code)
-			return &SortedWChars[Middle];
-		if(SortedCp949s[Middle] < Code)
-			Lower = Middle + 1;
-		else Upper = Middle - 1;
-	}
-	return L"\x25A1";
+    while(Lower <= Upper)
+    {
+        const sint32 Middle = (Lower + Upper) / 2;
+        if(SortedCp949s[Middle] == Code)
+            return &SortedWChars[Middle];
+        if(SortedCp949s[Middle] < Code)
+            Lower = Middle + 1;
+        else Upper = Middle - 1;
+    }
+    return L"\x25A1";
 }
 
 static chars_kssm KssmFinder(wchar_t code)
 {
-	const sint32 Length = 98 + 51 + 2350;
+    const sint32 Length = 98 + 51 + 2350;
     static wchar_t SortedWChars[Length];
     static uint16 SortedKssms[Length];
     static bool NeedSort = true;
@@ -104,34 +104,34 @@ static chars_kssm KssmFinder(wchar_t code)
         Memory::Copy(SortedWChars, gWCharTable, sizeof(wchar_t) * Length);
         Memory::Copy(SortedKssms, gKssmTable, sizeof(uint16) * Length);
         for(sint32 i = 0; i < Length - 1; ++i)
-		{
-			sint32 iBest = i;
-			for(sint32 j = i + 1; j < Length; ++j)
-				if(SortedWChars[j] < SortedWChars[iBest])
-					iBest = j;
-			if(iBest != i)
-			{
-				const wchar_t TempA = SortedWChars[i];
-				SortedWChars[i] = SortedWChars[iBest];
-				SortedWChars[iBest] = TempA;
-				const uint16 TempB = SortedKssms[i];
-				SortedKssms[i] = SortedKssms[iBest];
-				SortedKssms[iBest] = TempB;
-			}
-		}
+        {
+            sint32 iBest = i;
+            for(sint32 j = i + 1; j < Length; ++j)
+                if(SortedWChars[j] < SortedWChars[iBest])
+                    iBest = j;
+            if(iBest != i)
+            {
+                const wchar_t TempA = SortedWChars[i];
+                SortedWChars[i] = SortedWChars[iBest];
+                SortedWChars[iBest] = TempA;
+                const uint16 TempB = SortedKssms[i];
+                SortedKssms[i] = SortedKssms[iBest];
+                SortedKssms[iBest] = TempB;
+            }
+        }
     }
 
     sint32 Lower = 0, Upper = Length - 1;
-	while(Lower <= Upper)
-	{
-		const sint32 Middle = (Lower + Upper) / 2;
-		if(SortedWChars[Middle] == code)
-			return (chars_kssm) &SortedKssms[Middle];
-		if(SortedWChars[Middle] < code)
-			Lower = Middle + 1;
-		else Upper = Middle - 1;
-	}
-	return (chars_kssm) nullptr;
+    while(Lower <= Upper)
+    {
+        const sint32 Middle = (Lower + Upper) / 2;
+        if(SortedWChars[Middle] == code)
+            return (chars_kssm) &SortedKssms[Middle];
+        if(SortedWChars[Middle] < code)
+            Lower = Middle + 1;
+        else Upper = Middle - 1;
+    }
+    return (chars_kssm) nullptr;
 }
 
 static wchars WCharFromKssmFinder(char code1, char code2 = ' ')
@@ -146,35 +146,35 @@ static wchars WCharFromKssmFinder(char code1, char code2 = ' ')
         Memory::Copy(SortedWChars, gWCharTable, sizeof(wchar_t) * Length);
         Memory::Copy(SortedKssms, gKssmTable, sizeof(uint16) * Length);
         for(sint32 i = 0; i < Length - 1; ++i)
-		{
-			sint32 iBest = i;
-			for(sint32 j = i + 1; j < Length; ++j)
-				if(SortedKssms[j] < SortedKssms[iBest])
-					iBest = j;
-			if(iBest != i)
-			{
-				const wchar_t TempA = SortedWChars[i];
-				SortedWChars[i] = SortedWChars[iBest];
-				SortedWChars[iBest] = TempA;
-				const uint16 TempB = SortedKssms[i];
-				SortedKssms[i] = SortedKssms[iBest];
-				SortedKssms[iBest] = TempB;
-			}
-		}
+        {
+            sint32 iBest = i;
+            for(sint32 j = i + 1; j < Length; ++j)
+                if(SortedKssms[j] < SortedKssms[iBest])
+                    iBest = j;
+            if(iBest != i)
+            {
+                const wchar_t TempA = SortedWChars[i];
+                SortedWChars[i] = SortedWChars[iBest];
+                SortedWChars[iBest] = TempA;
+                const uint16 TempB = SortedKssms[i];
+                SortedKssms[i] = SortedKssms[iBest];
+                SortedKssms[iBest] = TempB;
+            }
+        }
     }
 
     const uint16 Code = ((code2 & 0xFF) << 8) | (code1 & 0xFF);
     sint32 Lower = 0, Upper = Length - 1;
-	while(Lower <= Upper)
-	{
-		const sint32 Middle = (Lower + Upper) / 2;
-		if(SortedKssms[Middle] == Code)
-			return &SortedWChars[Middle];
-		if(SortedKssms[Middle] < Code)
-			Lower = Middle + 1;
-		else Upper = Middle - 1;
-	}
-	return (wchars) nullptr;
+    while(Lower <= Upper)
+    {
+        const sint32 Middle = (Lower + Upper) / 2;
+        if(SortedKssms[Middle] == Code)
+            return &SortedWChars[Middle];
+        if(SortedKssms[Middle] < Code)
+            Lower = Middle + 1;
+        else Upper = Middle - 1;
+    }
+    return (wchars) nullptr;
 }
 
 namespace BOSS
@@ -791,107 +791,107 @@ namespace BOSS
 }
 
 wchars gWCharTable =
-	L"\t\n\r !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKL"
-	L"MNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
-	L"ㄱㄲㄳㄴㄵㄶㄷㄸㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅃㅄㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ"
-	L"ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ"
-	L"가각간갇갈갉갊감갑값갓갔강갖갗같갚갛개객갠갤갬갭갯"
-	L"갰갱갸갹갼걀걋걍걔걘걜거걱건걷걸걺검겁것겄겅겆겉겊"
-	L"겋게겐겔겜겝겟겠겡겨격겪견겯결겸겹겻겼경곁계곈곌곕"
-	L"곗고곡곤곧골곪곬곯곰곱곳공곶과곽관괄괆괌괍괏광괘괜"
-	L"괠괨괬괭괴괵괸괼굄굅굇굉교굔굘굡굣구국군굳굴굵굶굻"
-	L"굼굽굿궁궂궈궉권궐궜궝궤궷귀귁귄귈귐귑귓규균귤그극"
-	L"근귿글긁금급긋긍긔기긱긴긷길긺김깁깃깅깆깊까깍깎깐"
-	L"깔깖깜깝깟깠깡깥깨깩깬깰깸깹깻깼깽꺄꺅꺌꺼꺽꺾껀껄"
-	L"껌껍껏껐껑께껙껜껨껫껭껴껸껼꼇꼈꼍꼐꼬꼭꼰꼲꼴꼼꼽"
-	L"꼿꽁꽂꽃꽈꽉꽐꽜꽝꽤꽥꽹꾀꾄꾈꾐꾑꾕꾜꾸꾹꾼꿀꿇꿈"
-	L"꿉꿋꿍꿎꿔꿜꿨꿩꿰꿱꿴꿸뀀뀁뀄뀌뀐뀔뀜뀝뀨끄끅끈끊"
-	L"끌끎끓끔끕끗끙끝끼끽낀낄낌낍낏낑나낙낚난낟날낡낢남"
-	L"납낫났낭낮낯낱낳내낵낸낼냄냅냇냈냉냐냑냔냘냠냥너넉"
-	L"넋넌널넒넓넘넙넛넜넝넣네넥넨넬넴넵넷넸넹녀녁년녈념"
-	L"녑녔녕녘녜녠노녹논놀놂놈놉놋농높놓놔놘놜놨뇌뇐뇔뇜"
-	L"뇝뇟뇨뇩뇬뇰뇹뇻뇽누눅눈눋눌눔눕눗눙눠눴눼뉘뉜뉠뉨"
-	L"뉩뉴뉵뉼늄늅늉느늑는늘늙늚늠늡늣능늦늪늬늰늴니닉닌"
-	L"닐닖님닙닛닝닢다닥닦단닫달닭닮닯닳담답닷닸당닺닻닿"
-	L"대댁댄댈댐댑댓댔댕댜더덕덖던덛덜덞덟덤덥덧덩덫덮데"
-	L"덱덴델뎀뎁뎃뎄뎅뎌뎐뎔뎠뎡뎨뎬도독돈돋돌돎돐돔돕돗"
-	L"동돛돝돠돤돨돼됐되된될됨됩됫됴두둑둔둘둠둡둣둥둬뒀"
-	L"뒈뒝뒤뒨뒬뒵뒷뒹듀듄듈듐듕드득든듣들듦듬듭듯등듸디"
-	L"딕딘딛딜딤딥딧딨딩딪따딱딴딸땀땁땃땄땅땋때땍땐땔땜"
-	L"땝땟땠땡떠떡떤떨떪떫떰떱떳떴떵떻떼떽뗀뗄뗌뗍뗏뗐뗑"
-	L"뗘뗬또똑똔똘똥똬똴뙈뙤뙨뚜뚝뚠뚤뚫뚬뚱뛔뛰뛴뛸뜀뜁"
-	L"뜅뜨뜩뜬뜯뜰뜸뜹뜻띄띈띌띔띕띠띤띨띰띱띳띵라락란랄"
-	L"람랍랏랐랑랒랖랗래랙랜랠램랩랫랬랭랴략랸럇량러럭런"
-	L"럴럼럽럿렀렁렇레렉렌렐렘렙렛렝려력련렬렴렵렷렸령례"
-	L"롄롑롓로록론롤롬롭롯롱롸롼뢍뢨뢰뢴뢸룀룁룃룅료룐룔"
-	L"룝룟룡루룩룬룰룸룹룻룽뤄뤘뤠뤼뤽륀륄륌륏륑류륙륜률"
-	L"륨륩륫륭르륵른를름릅릇릉릊릍릎리릭린릴림립릿링마막"
-	L"만많맏말맑맒맘맙맛망맞맡맣매맥맨맬맴맵맷맸맹맺먀먁"
-	L"먈먕머먹먼멀멂멈멉멋멍멎멓메멕멘멜멤멥멧멨멩며멱면"
-	L"멸몃몄명몇몌모목몫몬몰몲몸몹못몽뫄뫈뫘뫙뫼묀묄묍묏"
-	L"묑묘묜묠묩묫무묵묶문묻물묽묾뭄뭅뭇뭉뭍뭏뭐뭔뭘뭡뭣"
-	L"뭬뮈뮌뮐뮤뮨뮬뮴뮷므믄믈믐믓미믹민믿밀밂밈밉밋밌밍"
-	L"및밑바박밖밗반받발밝밞밟밤밥밧방밭배백밴밸뱀뱁뱃뱄"
-	L"뱅뱉뱌뱍뱐뱝버벅번벋벌벎범법벗벙벚베벡벤벧벨벰벱벳"
-	L"벴벵벼벽변별볍볏볐병볕볘볜보복볶본볼봄봅봇봉봐봔봤"
-	L"봬뵀뵈뵉뵌뵐뵘뵙뵤뵨부북분붇불붉붊붐붑붓붕붙붚붜붤"
-	L"붰붸뷔뷕뷘뷜뷩뷰뷴뷸븀븃븅브븍븐블븜븝븟비빅빈빌빎"
-	L"빔빕빗빙빚빛빠빡빤빨빪빰빱빳빴빵빻빼빽뺀뺄뺌뺍뺏뺐"
-	L"뺑뺘뺙뺨뻐뻑뻔뻗뻘뻠뻣뻤뻥뻬뼁뼈뼉뼘뼙뼛뼜뼝뽀뽁뽄"
-	L"뽈뽐뽑뽕뾔뾰뿅뿌뿍뿐뿔뿜뿟뿡쀼쁑쁘쁜쁠쁨쁩삐삑삔삘"
-	L"삠삡삣삥사삭삯산삳살삵삶삼삽삿샀상샅새색샌샐샘샙샛"
-	L"샜생샤샥샨샬샴샵샷샹섀섄섈섐섕서석섞섟선섣설섦섧섬"
-	L"섭섯섰성섶세섹센셀셈셉셋셌셍셔셕션셜셤셥셧셨셩셰셴"
-	L"셸솅소속솎손솔솖솜솝솟송솥솨솩솬솰솽쇄쇈쇌쇔쇗쇘쇠"
-	L"쇤쇨쇰쇱쇳쇼쇽숀숄숌숍숏숑수숙순숟술숨숩숫숭숯숱숲"
-	L"숴쉈쉐쉑쉔쉘쉠쉥쉬쉭쉰쉴쉼쉽쉿슁슈슉슐슘슛슝스슥슨"
-	L"슬슭슴습슷승시식신싣실싫심십싯싱싶싸싹싻싼쌀쌈쌉쌌"
-	L"쌍쌓쌔쌕쌘쌜쌤쌥쌨쌩썅써썩썬썰썲썸썹썼썽쎄쎈쎌쎙쏘"
-	L"쏙쏜쏟쏠쏢쏨쏩쏭쏴쏵쏸쐈쐐쐤쐬쐰쐴쐼쐽쑈쑤쑥쑨쑬쑴"
-	L"쑵쑹쒀쒔쒜쒸쒼쓩쓰쓱쓴쓸쓺쓿씀씁씌씐씔씜씨씩씬씰씸"
-	L"씹씻씽아악안앉않알앍앎앓암압앗았앙앝앞애액앤앨앰앱"
-	L"앳앴앵야약얀얄얇얌얍얏양얕얗얘얜얠얩어억언얹얻얼얽"
-	L"얾엄업없엇었엉엊엌엎에엑엔엘엠엡엣엥여역엮연열엶엷"
-	L"염엽엾엿였영옅옆옇예옌옐옘옙옛옜오옥온올옭옮옰옳옴"
-	L"옵옷옹옻와왁완왈왐왑왓왔왕왜왝왠왬왯왱외왹왼욀욈욉"
-	L"욋욍요욕욘욜욤욥욧용우욱운울욹욺움웁웃웅워웍원월웜"
-	L"웝웠웡웨웩웬웰웸웹웽위윅윈윌윔윕윗윙유육윤율윰윱윳"
-	L"융윷으윽은을읊음읍읏응읒읓읔읕읖읗의읜읠읨읫이익인"
-	L"일읽읾잃임입잇있잉잊잎자작잔잖잗잘잚잠잡잣잤장잦재"
-	L"잭잰잴잼잽잿쟀쟁쟈쟉쟌쟎쟐쟘쟝쟤쟨쟬저적전절젊점접"
-	L"젓정젖제젝젠젤젬젭젯젱져젼졀졈졉졌졍졔조족존졸졺좀"
-	L"좁좃종좆좇좋좌좍좔좝좟좡좨좼좽죄죈죌죔죕죗죙죠죡죤"
-	L"죵주죽준줄줅줆줌줍줏중줘줬줴쥐쥑쥔쥘쥠쥡쥣쥬쥰쥴쥼"
-	L"즈즉즌즐즘즙즛증지직진짇질짊짐집짓징짖짙짚짜짝짠짢"
-	L"짤짧짬짭짯짰짱째짹짼쨀쨈쨉쨋쨌쨍쨔쨘쨩쩌쩍쩐쩔쩜쩝"
-	L"쩟쩠쩡쩨쩽쪄쪘쪼쪽쫀쫄쫌쫍쫏쫑쫓쫘쫙쫠쫬쫴쬈쬐쬔쬘"
-	L"쬠쬡쭁쭈쭉쭌쭐쭘쭙쭝쭤쭸쭹쮜쮸쯔쯤쯧쯩찌찍찐찔찜찝"
-	L"찡찢찧차착찬찮찰참찹찻찼창찾채책챈챌챔챕챗챘챙챠챤"
-	L"챦챨챰챵처척천철첨첩첫첬청체첵첸첼쳄쳅쳇쳉쳐쳔쳤쳬"
-	L"쳰촁초촉촌촐촘촙촛총촤촨촬촹최쵠쵤쵬쵭쵯쵱쵸춈추축"
-	L"춘출춤춥춧충춰췄췌췐취췬췰췸췹췻췽츄츈츌츔츙츠측츤"
-	L"츨츰츱츳층치칙친칟칠칡침칩칫칭카칵칸칼캄캅캇캉캐캑"
-	L"캔캘캠캡캣캤캥캬캭컁커컥컨컫컬컴컵컷컸컹케켁켄켈켐"
-	L"켑켓켕켜켠켤켬켭켯켰켱켸코콕콘콜콤콥콧콩콰콱콴콸쾀"
-	L"쾅쾌쾡쾨쾰쿄쿠쿡쿤쿨쿰쿱쿳쿵쿼퀀퀄퀑퀘퀭퀴퀵퀸퀼큄"
-	L"큅큇큉큐큔큘큠크큭큰클큼큽킁키킥킨킬킴킵킷킹타탁탄"
-	L"탈탉탐탑탓탔탕태택탠탤탬탭탯탰탱탸턍터턱턴털턺텀텁"
-	L"텃텄텅테텍텐텔템텝텟텡텨텬텼톄톈토톡톤톨톰톱톳통톺"
-	L"톼퇀퇘퇴퇸툇툉툐투툭툰툴툼툽툿퉁퉈퉜퉤튀튁튄튈튐튑"
-	L"튕튜튠튤튬튱트특튼튿틀틂틈틉틋틔틘틜틤틥티틱틴틸팀"
-	L"팁팃팅파팍팎판팔팖팜팝팟팠팡팥패팩팬팰팸팹팻팼팽퍄"
-	L"퍅퍼퍽펀펄펌펍펏펐펑페펙펜펠펨펩펫펭펴편펼폄폅폈평"
-	L"폐폘폡폣포폭폰폴폼폽폿퐁퐈퐝푀푄표푠푤푭푯푸푹푼푿"
-	L"풀풂품풉풋풍풔풩퓌퓐퓔퓜퓟퓨퓬퓰퓸퓻퓽프픈플픔픕픗"
-	L"피픽핀필핌핍핏핑하학한할핥함합핫항해핵핸핼햄햅햇했"
-	L"행햐향허헉헌헐헒험헙헛헝헤헥헨헬헴헵헷헹혀혁현혈혐"
-	L"협혓혔형혜혠혤혭호혹혼홀홅홈홉홋홍홑화확환활홧황홰"
-	L"홱홴횃횅회획횐횔횝횟횡효횬횰횹횻후훅훈훌훑훔훗훙훠"
-	L"훤훨훰훵훼훽휀휄휑휘휙휜휠휨휩휫휭휴휵휸휼흄흇흉흐"
-	L"흑흔흖흗흘흙흠흡흣흥흩희흰흴흼흽힁히힉힌힐힘힙힛힝";
+    L"\t\n\r !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKL"
+    L"MNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
+    L"ㄱㄲㄳㄴㄵㄶㄷㄸㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅃㅄㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ"
+    L"ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ"
+    L"가각간갇갈갉갊감갑값갓갔강갖갗같갚갛개객갠갤갬갭갯"
+    L"갰갱갸갹갼걀걋걍걔걘걜거걱건걷걸걺검겁것겄겅겆겉겊"
+    L"겋게겐겔겜겝겟겠겡겨격겪견겯결겸겹겻겼경곁계곈곌곕"
+    L"곗고곡곤곧골곪곬곯곰곱곳공곶과곽관괄괆괌괍괏광괘괜"
+    L"괠괨괬괭괴괵괸괼굄굅굇굉교굔굘굡굣구국군굳굴굵굶굻"
+    L"굼굽굿궁궂궈궉권궐궜궝궤궷귀귁귄귈귐귑귓규균귤그극"
+    L"근귿글긁금급긋긍긔기긱긴긷길긺김깁깃깅깆깊까깍깎깐"
+    L"깔깖깜깝깟깠깡깥깨깩깬깰깸깹깻깼깽꺄꺅꺌꺼꺽꺾껀껄"
+    L"껌껍껏껐껑께껙껜껨껫껭껴껸껼꼇꼈꼍꼐꼬꼭꼰꼲꼴꼼꼽"
+    L"꼿꽁꽂꽃꽈꽉꽐꽜꽝꽤꽥꽹꾀꾄꾈꾐꾑꾕꾜꾸꾹꾼꿀꿇꿈"
+    L"꿉꿋꿍꿎꿔꿜꿨꿩꿰꿱꿴꿸뀀뀁뀄뀌뀐뀔뀜뀝뀨끄끅끈끊"
+    L"끌끎끓끔끕끗끙끝끼끽낀낄낌낍낏낑나낙낚난낟날낡낢남"
+    L"납낫났낭낮낯낱낳내낵낸낼냄냅냇냈냉냐냑냔냘냠냥너넉"
+    L"넋넌널넒넓넘넙넛넜넝넣네넥넨넬넴넵넷넸넹녀녁년녈념"
+    L"녑녔녕녘녜녠노녹논놀놂놈놉놋농높놓놔놘놜놨뇌뇐뇔뇜"
+    L"뇝뇟뇨뇩뇬뇰뇹뇻뇽누눅눈눋눌눔눕눗눙눠눴눼뉘뉜뉠뉨"
+    L"뉩뉴뉵뉼늄늅늉느늑는늘늙늚늠늡늣능늦늪늬늰늴니닉닌"
+    L"닐닖님닙닛닝닢다닥닦단닫달닭닮닯닳담답닷닸당닺닻닿"
+    L"대댁댄댈댐댑댓댔댕댜더덕덖던덛덜덞덟덤덥덧덩덫덮데"
+    L"덱덴델뎀뎁뎃뎄뎅뎌뎐뎔뎠뎡뎨뎬도독돈돋돌돎돐돔돕돗"
+    L"동돛돝돠돤돨돼됐되된될됨됩됫됴두둑둔둘둠둡둣둥둬뒀"
+    L"뒈뒝뒤뒨뒬뒵뒷뒹듀듄듈듐듕드득든듣들듦듬듭듯등듸디"
+    L"딕딘딛딜딤딥딧딨딩딪따딱딴딸땀땁땃땄땅땋때땍땐땔땜"
+    L"땝땟땠땡떠떡떤떨떪떫떰떱떳떴떵떻떼떽뗀뗄뗌뗍뗏뗐뗑"
+    L"뗘뗬또똑똔똘똥똬똴뙈뙤뙨뚜뚝뚠뚤뚫뚬뚱뛔뛰뛴뛸뜀뜁"
+    L"뜅뜨뜩뜬뜯뜰뜸뜹뜻띄띈띌띔띕띠띤띨띰띱띳띵라락란랄"
+    L"람랍랏랐랑랒랖랗래랙랜랠램랩랫랬랭랴략랸럇량러럭런"
+    L"럴럼럽럿렀렁렇레렉렌렐렘렙렛렝려력련렬렴렵렷렸령례"
+    L"롄롑롓로록론롤롬롭롯롱롸롼뢍뢨뢰뢴뢸룀룁룃룅료룐룔"
+    L"룝룟룡루룩룬룰룸룹룻룽뤄뤘뤠뤼뤽륀륄륌륏륑류륙륜률"
+    L"륨륩륫륭르륵른를름릅릇릉릊릍릎리릭린릴림립릿링마막"
+    L"만많맏말맑맒맘맙맛망맞맡맣매맥맨맬맴맵맷맸맹맺먀먁"
+    L"먈먕머먹먼멀멂멈멉멋멍멎멓메멕멘멜멤멥멧멨멩며멱면"
+    L"멸몃몄명몇몌모목몫몬몰몲몸몹못몽뫄뫈뫘뫙뫼묀묄묍묏"
+    L"묑묘묜묠묩묫무묵묶문묻물묽묾뭄뭅뭇뭉뭍뭏뭐뭔뭘뭡뭣"
+    L"뭬뮈뮌뮐뮤뮨뮬뮴뮷므믄믈믐믓미믹민믿밀밂밈밉밋밌밍"
+    L"및밑바박밖밗반받발밝밞밟밤밥밧방밭배백밴밸뱀뱁뱃뱄"
+    L"뱅뱉뱌뱍뱐뱝버벅번벋벌벎범법벗벙벚베벡벤벧벨벰벱벳"
+    L"벴벵벼벽변별볍볏볐병볕볘볜보복볶본볼봄봅봇봉봐봔봤"
+    L"봬뵀뵈뵉뵌뵐뵘뵙뵤뵨부북분붇불붉붊붐붑붓붕붙붚붜붤"
+    L"붰붸뷔뷕뷘뷜뷩뷰뷴뷸븀븃븅브븍븐블븜븝븟비빅빈빌빎"
+    L"빔빕빗빙빚빛빠빡빤빨빪빰빱빳빴빵빻빼빽뺀뺄뺌뺍뺏뺐"
+    L"뺑뺘뺙뺨뻐뻑뻔뻗뻘뻠뻣뻤뻥뻬뼁뼈뼉뼘뼙뼛뼜뼝뽀뽁뽄"
+    L"뽈뽐뽑뽕뾔뾰뿅뿌뿍뿐뿔뿜뿟뿡쀼쁑쁘쁜쁠쁨쁩삐삑삔삘"
+    L"삠삡삣삥사삭삯산삳살삵삶삼삽삿샀상샅새색샌샐샘샙샛"
+    L"샜생샤샥샨샬샴샵샷샹섀섄섈섐섕서석섞섟선섣설섦섧섬"
+    L"섭섯섰성섶세섹센셀셈셉셋셌셍셔셕션셜셤셥셧셨셩셰셴"
+    L"셸솅소속솎손솔솖솜솝솟송솥솨솩솬솰솽쇄쇈쇌쇔쇗쇘쇠"
+    L"쇤쇨쇰쇱쇳쇼쇽숀숄숌숍숏숑수숙순숟술숨숩숫숭숯숱숲"
+    L"숴쉈쉐쉑쉔쉘쉠쉥쉬쉭쉰쉴쉼쉽쉿슁슈슉슐슘슛슝스슥슨"
+    L"슬슭슴습슷승시식신싣실싫심십싯싱싶싸싹싻싼쌀쌈쌉쌌"
+    L"쌍쌓쌔쌕쌘쌜쌤쌥쌨쌩썅써썩썬썰썲썸썹썼썽쎄쎈쎌쎙쏘"
+    L"쏙쏜쏟쏠쏢쏨쏩쏭쏴쏵쏸쐈쐐쐤쐬쐰쐴쐼쐽쑈쑤쑥쑨쑬쑴"
+    L"쑵쑹쒀쒔쒜쒸쒼쓩쓰쓱쓴쓸쓺쓿씀씁씌씐씔씜씨씩씬씰씸"
+    L"씹씻씽아악안앉않알앍앎앓암압앗았앙앝앞애액앤앨앰앱"
+    L"앳앴앵야약얀얄얇얌얍얏양얕얗얘얜얠얩어억언얹얻얼얽"
+    L"얾엄업없엇었엉엊엌엎에엑엔엘엠엡엣엥여역엮연열엶엷"
+    L"염엽엾엿였영옅옆옇예옌옐옘옙옛옜오옥온올옭옮옰옳옴"
+    L"옵옷옹옻와왁완왈왐왑왓왔왕왜왝왠왬왯왱외왹왼욀욈욉"
+    L"욋욍요욕욘욜욤욥욧용우욱운울욹욺움웁웃웅워웍원월웜"
+    L"웝웠웡웨웩웬웰웸웹웽위윅윈윌윔윕윗윙유육윤율윰윱윳"
+    L"융윷으윽은을읊음읍읏응읒읓읔읕읖읗의읜읠읨읫이익인"
+    L"일읽읾잃임입잇있잉잊잎자작잔잖잗잘잚잠잡잣잤장잦재"
+    L"잭잰잴잼잽잿쟀쟁쟈쟉쟌쟎쟐쟘쟝쟤쟨쟬저적전절젊점접"
+    L"젓정젖제젝젠젤젬젭젯젱져젼졀졈졉졌졍졔조족존졸졺좀"
+    L"좁좃종좆좇좋좌좍좔좝좟좡좨좼좽죄죈죌죔죕죗죙죠죡죤"
+    L"죵주죽준줄줅줆줌줍줏중줘줬줴쥐쥑쥔쥘쥠쥡쥣쥬쥰쥴쥼"
+    L"즈즉즌즐즘즙즛증지직진짇질짊짐집짓징짖짙짚짜짝짠짢"
+    L"짤짧짬짭짯짰짱째짹짼쨀쨈쨉쨋쨌쨍쨔쨘쨩쩌쩍쩐쩔쩜쩝"
+    L"쩟쩠쩡쩨쩽쪄쪘쪼쪽쫀쫄쫌쫍쫏쫑쫓쫘쫙쫠쫬쫴쬈쬐쬔쬘"
+    L"쬠쬡쭁쭈쭉쭌쭐쭘쭙쭝쭤쭸쭹쮜쮸쯔쯤쯧쯩찌찍찐찔찜찝"
+    L"찡찢찧차착찬찮찰참찹찻찼창찾채책챈챌챔챕챗챘챙챠챤"
+    L"챦챨챰챵처척천철첨첩첫첬청체첵첸첼쳄쳅쳇쳉쳐쳔쳤쳬"
+    L"쳰촁초촉촌촐촘촙촛총촤촨촬촹최쵠쵤쵬쵭쵯쵱쵸춈추축"
+    L"춘출춤춥춧충춰췄췌췐취췬췰췸췹췻췽츄츈츌츔츙츠측츤"
+    L"츨츰츱츳층치칙친칟칠칡침칩칫칭카칵칸칼캄캅캇캉캐캑"
+    L"캔캘캠캡캣캤캥캬캭컁커컥컨컫컬컴컵컷컸컹케켁켄켈켐"
+    L"켑켓켕켜켠켤켬켭켯켰켱켸코콕콘콜콤콥콧콩콰콱콴콸쾀"
+    L"쾅쾌쾡쾨쾰쿄쿠쿡쿤쿨쿰쿱쿳쿵쿼퀀퀄퀑퀘퀭퀴퀵퀸퀼큄"
+    L"큅큇큉큐큔큘큠크큭큰클큼큽킁키킥킨킬킴킵킷킹타탁탄"
+    L"탈탉탐탑탓탔탕태택탠탤탬탭탯탰탱탸턍터턱턴털턺텀텁"
+    L"텃텄텅테텍텐텔템텝텟텡텨텬텼톄톈토톡톤톨톰톱톳통톺"
+    L"톼퇀퇘퇴퇸툇툉툐투툭툰툴툼툽툿퉁퉈퉜퉤튀튁튄튈튐튑"
+    L"튕튜튠튤튬튱트특튼튿틀틂틈틉틋틔틘틜틤틥티틱틴틸팀"
+    L"팁팃팅파팍팎판팔팖팜팝팟팠팡팥패팩팬팰팸팹팻팼팽퍄"
+    L"퍅퍼퍽펀펄펌펍펏펐펑페펙펜펠펨펩펫펭펴편펼폄폅폈평"
+    L"폐폘폡폣포폭폰폴폼폽폿퐁퐈퐝푀푄표푠푤푭푯푸푹푼푿"
+    L"풀풂품풉풋풍풔풩퓌퓐퓔퓜퓟퓨퓬퓰퓸퓻퓽프픈플픔픕픗"
+    L"피픽핀필핌핍핏핑하학한할핥함합핫항해핵핸핼햄햅햇했"
+    L"행햐향허헉헌헐헒험헙헛헝헤헥헨헬헴헵헷헹혀혁현혈혐"
+    L"협혓혔형혜혠혤혭호혹혼홀홅홈홉홋홍홑화확환활홧황홰"
+    L"홱홴횃횅회획횐횔횝횟횡효횬횰횹횻후훅훈훌훑훔훗훙훠"
+    L"훤훨훰훵훼훽휀휄휑휘휙휜휠휨휩휫휭휴휵휸휼흄흇흉흐"
+    L"흑흔흖흗흘흙흠흡흣흥흩희흰흴흼흽힁히힉힌힐힘힙힛힝";
 const uint16* gCp949Table = (const uint16*)
     "\t \n \r   ! \" # $ % & \' ( ) * + , - . / 0 1 2 3 4 5 6 7 8 9 : ; < = > ? @ A B C D E F G H I J K L "
-	"M N O P Q R S T U V W X Y Z [ \\ ] ^ _ ` a b c d e f g h i j k l m n o p q r s t u v w x y z { | } ~ "
+    "M N O P Q R S T U V W X Y Z [ \\ ] ^ _ ` a b c d e f g h i j k l m n o p q r s t u v w x y z { | } ~ "
     "\xA4\xA1\xA4\xA2\xA4\xA3\xA4\xA4\xA4\xA5\xA4\xA6\xA4\xA7\xA4\xA8\xA4\xA9\xA4\xAA\xA4\xAB\xA4\xAC\xA4\xAD\xA4\xAE\xA4\xAF\xA4\xB0\xA4\xB1\xA4\xB2\xA4\xB3\xA4\xB4\xA4\xB5\xA4\xB6\xA4\xB7\xA4\xB8\xA4\xB9\xA4\xBA\xA4\xBB\xA4\xBC\xA4\xBD\xA4\xBE"
     "\xA4\xBF\xA4\xC0\xA4\xC1\xA4\xC2\xA4\xC3\xA4\xC4\xA4\xC5\xA4\xC6\xA4\xC7\xA4\xC8\xA4\xC9\xA4\xCA\xA4\xCB\xA4\xCC\xA4\xCD\xA4\xCE\xA4\xCF\xA4\xD0\xA4\xD1\xA4\xD2\xA4\xD3"
     "\xB0\xA1\xB0\xA2\xB0\xA3\xB0\xA4\xB0\xA5\xB0\xA6\xB0\xA7\xB0\xA8\xB0\xA9\xB0\xAA\xB0\xAB\xB0\xAC\xB0\xAD\xB0\xAE\xB0\xAF\xB0\xB0\xB0\xB1\xB0\xB2\xB0\xB3\xB0\xB4\xB0\xB5\xB0\xB6\xB0\xB7\xB0\xB8\xB0\xB9"
@@ -990,7 +990,7 @@ const uint16* gCp949Table = (const uint16*)
     "\xC8\xE6\xC8\xE7\xC8\xE8\xC8\xE9\xC8\xEA\xC8\xEB\xC8\xEC\xC8\xED\xC8\xEE\xC8\xEF\xC8\xF0\xC8\xF1\xC8\xF2\xC8\xF3\xC8\xF4\xC8\xF5\xC8\xF6\xC8\xF7\xC8\xF8\xC8\xF9\xC8\xFA\xC8\xFB\xC8\xFC\xC8\xFD\xC8\xFE";
 const uint16* gKssmTable = (const uint16*)
     "\t \n \r   ! \" # $ % & \' ( ) * + , - . / 0 1 2 3 4 5 6 7 8 9 : ; < = > ? @ A B C D E F G H I J K L "
-	"M N O P Q R S T U V W X Y Z [ \\ ] ^ _ ` a b c d e f g h i j k l m n o p q r s t u v w x y z { | } ~ "
+    "M N O P Q R S T U V W X Y Z [ \\ ] ^ _ ` a b c d e f g h i j k l m n o p q r s t u v w x y z { | } ~ "
     "\x88\x41\x8C\x41\x84\x44\x90\x41\x84\x46\x84\x47\x94\x41\x98\x41\x9C\x41\x84\x4A\x84\x4B\x84\x4C\x84\x4D\x84\x4E\x84\x4F\x84\x50\xA0\x41\xA4\x41\xA8\x41\x84\x54\xAC\x41\xB0\x41\xB4\x41\xB8\x41\xBC\x41\xC0\x41\xC4\x41\xC8\x41\xCC\x41\xD0\x41"
     "\x84\x61\x84\x81\x84\xA1\x84\xC1\x84\xE1\x85\x41\x85\x61\x85\x81\x85\xA1\x85\xC1\x85\xE1\x86\x41\x86\x61\x86\x81\x86\xA1\x86\xC1\x86\xE1\x87\x41\x87\x61\x87\x81\x87\xA1"
     "\x88\x61\x88\x62\x88\x65\x88\x68\x88\x69\x88\x6A\x88\x6B\x88\x71\x88\x73\x88\x74\x88\x75\x88\x76\x88\x77\x88\x78\x88\x79\x88\x7B\x88\x7C\x88\x7D\x88\x81\x88\x82\x88\x85\x88\x89\x88\x91\x88\x93\x88\x95"

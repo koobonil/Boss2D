@@ -84,11 +84,11 @@ namespace BOSS
 
     // About reference converter
     template<class TYPE>
-	struct _ToReference {typedef TYPE type;};
+    struct _ToReference {typedef TYPE type;};
     template<class TYPE>
-	struct _ToReference<TYPE&> {typedef TYPE type;};
+    struct _ToReference<TYPE&> {typedef TYPE type;};
     template<class TYPE>
-	struct _ToReference<TYPE&&> {typedef TYPE type;};
+    struct _ToReference<TYPE&&> {typedef TYPE type;};
     template<typename TYPE>
     inline typename _ToReference<TYPE>::type&& ToReference(TYPE&& param)
     {

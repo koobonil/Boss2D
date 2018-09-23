@@ -42,8 +42,8 @@ namespace BOSS
             String mServiceId;
             String mName;
             String mComment;
-			String mPictureUrl;
-			String mBackgroundUrl;
+            String mPictureUrl;
+            String mBackgroundUrl;
             Image mPicture;
             Image mBackground;
             id_bitmap mPictureClipper;
@@ -145,14 +145,14 @@ namespace BOSS
         {
             return data_const().mBackground;
         }
-		chars GetPictureUrl() const override
-		{
-			return data_const().mPictureUrl;
-		}
-		chars GetBackgroundUrl() const override
-		{
-			return data_const().mBackgroundUrl;
-		}
+        chars GetPictureUrl() const override
+        {
+            return data_const().mPictureUrl;
+        }
+        chars GetBackgroundUrl() const override
+        {
+            return data_const().mBackgroundUrl;
+        }
 
     protected:
         virtual buffer CreateShare()
@@ -290,10 +290,10 @@ namespace BOSS
                 (sint32) ResultBJson("circledByCount").GetInt(), (chars) ResultBJson("tagline").GetString());
 
             // 사진/배경 얻기
-			data().mPictureUrl = ResultBJson("image")("url").GetString(nullptr);
-			ReloadPicture(data().mPictureUrl);
-			data().mBackgroundUrl = ResultBJson("cover")("coverPhoto")("url").GetString(nullptr);
-			ReloadBackground(data().mBackgroundUrl);
+            data().mPictureUrl = ResultBJson("image")("url").GetString(nullptr);
+            ReloadPicture(data().mPictureUrl);
+            data().mBackgroundUrl = ResultBJson("cover")("coverPhoto")("url").GetString(nullptr);
+            ReloadBackground(data().mBackgroundUrl);
         }
     };
 
@@ -320,7 +320,7 @@ namespace BOSS
             return String::Format(
                 "https://" "www.facebook.com/dialog/oauth?"
                 "client_id=%s&"
-				"display=popup&"
+                "display=popup&"
                 "redirect_uri=http://" "localhost/oauth2callback&"
                 "scope=public_profile,user_photos", clientId);
         }
@@ -349,12 +349,12 @@ namespace BOSS
                 (sint32) ResultBJson("context")("mutual_likes")("summary")("total_count").GetInt());
 
             // 사진/배경 얻기
-			data().mPictureUrl = ResultBJson("picture")("data")("url").GetString(nullptr);
-			if(0 < data().mPictureUrl.Length())
-				ReloadPicture(data().mPictureUrl);
-			data().mBackgroundUrl = ResultBJson("cover")("source").GetString(nullptr);
-			if(0 < data().mBackgroundUrl.Length())
-				ReloadBackground(data().mBackgroundUrl);
+            data().mPictureUrl = ResultBJson("picture")("data")("url").GetString(nullptr);
+            if(0 < data().mPictureUrl.Length())
+                ReloadPicture(data().mPictureUrl);
+            data().mBackgroundUrl = ResultBJson("cover")("source").GetString(nullptr);
+            if(0 < data().mBackgroundUrl.Length())
+                ReloadBackground(data().mBackgroundUrl);
         }
     };
 
@@ -412,10 +412,10 @@ namespace BOSS
             data().mComment = String::Format("생일%s %d월 %d일", BirthType, BirthDay / 100, BirthDay % 100);
 
             // 사진/배경 얻기
-			data().mPictureUrl = ResultBJson("thumbnailURL").GetString(nullptr);
-			ReloadPicture(data().mPictureUrl);
-			data().mBackgroundUrl = ResultBJson("bgImageURL").GetString(nullptr);
-			ReloadBackground(data().mBackgroundUrl);
+            data().mPictureUrl = ResultBJson("thumbnailURL").GetString(nullptr);
+            ReloadPicture(data().mPictureUrl);
+            data().mBackgroundUrl = ResultBJson("bgImageURL").GetString(nullptr);
+            ReloadBackground(data().mBackgroundUrl);
 
             // ID정보 얻기
             chars ResultC = AddOn::Curl::GetString(data().mCurl,

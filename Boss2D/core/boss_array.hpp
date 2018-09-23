@@ -187,32 +187,32 @@ namespace BOSS
         \param index : 삽입할 시작인덱스
         \param src : 이동할 대상인스턴스
         */
-		void DeliveryOne(sint32 index, TYPE&& src)
-		{
+        void DeliveryOne(sint32 index, TYPE&& src)
+        {
             const Share* OldShare = share;
-			share = Share::Create(SampleBuffer(), OldShare->count() + 1);
+            share = Share::Create(SampleBuffer(), OldShare->count() + 1);
             for(sint32 i = 0; i < index; ++i)
                 AtAdding() = ToReference(OldShare->At<TYPE>(i));
             AtAdding() = ToReference(src);
             for(sint32 i = index, iend = OldShare->count(); i < iend; ++i)
                 AtAdding() = ToReference(OldShare->At<TYPE>(i));
             Share::Remove(OldShare);
-		}
+        }
 
-		/*!
+        /*!
         \brief 구간이동(대상인스턴스의 메모리공간은 보존)
         \param index : 삽입할 시작인덱스
         \param src : 이동할 대상인스턴스
         \param srcindex : 이동할 시작인덱스
         \param srclength : 시작인덱스로부터 이동길이
-		\return 이동 정상수행여부
+        \return 이동 정상수행여부
         */
-		bool DeliverySection(sint32 index, Array&& src, sint32 srcindex, sint32 srclength = 1)
-		{
+        bool DeliverySection(sint32 index, Array&& src, sint32 srcindex, sint32 srclength = 1)
+        {
             BOSS_ASSERT("length는 0보다 커야 합니다", 0 < srclength);
             const Share* OldShare = share;
             const Share* NewShare = src.share;
-			share = Share::Create(SampleBuffer(), OldShare->count() + srclength);
+            share = Share::Create(SampleBuffer(), OldShare->count() + srclength);
             for(sint32 i = 0; i < index; ++i)
                 AtAdding() = ToReference(OldShare->At<TYPE>(i));
             for(sint32 i = srcindex, iend = i + srclength; i < iend; ++i)
@@ -223,7 +223,7 @@ namespace BOSS
             if(srcindex == 0 && srclength == src.Count())
                 return src.SubtractionAll();
             return src.SubtractionSection(srcindex, srclength);
-		}
+        }
 
         /*!
         \brief 타입명 구하기
