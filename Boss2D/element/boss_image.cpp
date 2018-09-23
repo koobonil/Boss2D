@@ -700,13 +700,6 @@ namespace BOSS
     {
         Bmp::Remove(m_bitmap);
         m_bitmap = nullptr;
-        for(sint32 i = 0, iend = m_image_cached_map.Count(); i < iend; ++i)
-        {
-            ImageMap& OldImageMap = *m_image_cached_map.AccessByOrder(i);
-            for(sint32 j = 0, jend = OldImageMap.Count(); j < jend; ++j)
-                Platform::Graphics::RemoveImage(*OldImageMap.AccessByOrder(j));
-        }
-        m_image_cached_map.Reset();
         while(m_image_cached_queue.Count())
             delete m_image_cached_queue.Dequeue();
     }
@@ -791,23 +784,15 @@ namespace BOSS
         if(!m_bitmap) return nullptr;
         width = Math::Max(1, width);
         height = Math::Max(1, height);
-        const uint64 SizingKey = ((uint64) width) | (((uint64) height) << 32);
-        if(ImageMap* ResultMap = m_image_cached_map.Access(coloring.rgba))
-        if(id_image* Result = ResultMap->Access(SizingKey))
-            return *Result;
+        const sint64 SizingKey = ((uint64) width) | (((uint64) height) << 32);
+        if(PlatformImage* Result = m_image_cached_map[coloring.rgba][SizingKey].Value())
+            return Result->mImage;
 
         // 최대수량을 초과한 오래된 캐시를 제거
         while(m_image_cache_max <= m_image_cached_queue.Count())
         {
             const CacheKeys* OldCacheKeys = m_image_cached_queue.Dequeue();
-            ImageMap* OldImageMap = m_image_cached_map.Access(OldCacheKeys->coloring);
-            BOSS_ASSERT("잘못된 시나리오입니다", OldImageMap);
-            id_image* OldImage = OldImageMap->Access(OldCacheKeys->sizing);
-            BOSS_ASSERT("잘못된 시나리오입니다", OldImage);
-            Platform::Graphics::RemoveImage(*OldImage);
-            OldImageMap->Remove(OldCacheKeys->sizing);
-            if(OldImageMap->Count() == 0)
-                m_image_cached_map.Remove(OldCacheKeys->coloring);
+            m_image_cached_map[OldCacheKeys->coloring][OldCacheKeys->sizing].RemoveValue();
             delete OldCacheKeys;
         }
         CacheKeys* NewCacheKeys = new CacheKeys;
@@ -816,7 +801,17 @@ namespace BOSS
         m_image_cached_queue.Enqueue(NewCacheKeys);
 
         // 옵션대로 생성하여 캐시맵에 할당
-        return (m_image_cached_map[coloring.rgba][SizingKey] =
-            Platform::Graphics::CreateImage(m_bitmap, coloring, width, height));
+        PlatformImage* NewImage = m_image_cached_map[coloring.rgba][SizingKey].CreateValue();
+        return (NewImage->mImage = Platform::Graphics::CreateImage(m_bitmap, coloring, width, height));
+    }
+
+    Image::PlatformImage::PlatformImage()
+    {
+        mImage = nullptr;
+    }
+
+    Image::PlatformImage::~PlatformImage()
+    {
+        Platform::Graphics::RemoveImage(mImage);
     }
 }

@@ -80,13 +80,21 @@ namespace BOSS
         id_image_read GetImageCore(const Color& coloring, sint32 width, sint32 height) const;
 
     private:
+        class PlatformImage
+        {
+        public:
+            PlatformImage();
+            ~PlatformImage();
+            id_image mImage;
+        };
+
+    private:
         String m_filepath;
         Format m_fileformat;
         id_bitmap m_bitmap;
         sint32 m_image_cache_max;
-        typedef Map<id_image> ImageMap;
-        mutable Map<ImageMap> m_image_cached_map;
-        typedef struct {uint32 coloring; uint64 sizing;} CacheKeys;
+        mutable Tree<PlatformImage> m_image_cached_map;
+        typedef struct {uint32 coloring; sint64 sizing;} CacheKeys;
         mutable Queue<CacheKeys*> m_image_cached_queue;
         rect128 m_valid_rect;
         Array<ixzone64, datatype_pod_canmemcpy> m_child_ixzone;
