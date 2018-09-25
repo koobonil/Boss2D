@@ -1053,7 +1053,6 @@ namespace BOSS
         BOSS_ASSERT(String::Format("존재하지 않는 뷰(%s)를 생성하려 합니다", viewclass), m_ref_func);
         m_class = m_ref_func->m_alloc();
         m_touch = Buffer::Alloc<Touch>(BOSS_DBG 1);
-        m_event_lock = false;
         m_agreed_quit = false;
     }
 
@@ -1108,23 +1107,16 @@ namespace BOSS
 
     void ZayView::OnCreate()
     {
-        if(m_event_lock) return;
-        m_event_lock = true;
-
         BOSS_ASSERT("브로드캐스트 등록에 실패하였습니다", m_class);
         View::Search(m_viewclass, SC_Create, m_class->m_view);
 
         m_ref_func->m_bind(m_class);
         m_ref_func->m_command(CT_Create, "", nullptr, nullptr);
         m_ref_func->m_bind(nullptr);
-        m_event_lock = false;
     }
 
     bool ZayView::OnCanQuit()
     {
-        if(m_event_lock) return false;
-        m_event_lock = true;
-
         if(!m_agreed_quit)
         {
             m_ref_func->m_bind(m_class);
@@ -1138,32 +1130,23 @@ namespace BOSS
                 bools OutResult((id_cloned_share_read) out);
                 Result = (m_agreed_quit = !!OutResult[0]);
             }
-            m_event_lock = false;
             return Result;
         }
-        m_event_lock = false;
         return m_agreed_quit;
     }
 
     void ZayView::OnDestroy()
     {
-        if(m_event_lock) return;
-        m_event_lock = true;
-
         m_ref_func->m_bind(m_class);
         m_ref_func->m_command(CT_Destroy, "", nullptr, nullptr);
         m_ref_func->m_bind(nullptr);
 
         BOSS_ASSERT("브로드캐스트 해제에 실패하였습니다", m_class);
         View::Search(m_viewclass, SC_Destroy, m_class->m_view);
-        m_event_lock = false;
     }
 
     void ZayView::OnSize(sint32 w, sint32 h)
     {
-        if(m_event_lock) return;
-        m_event_lock = true;
-
         sint32s WH;
         WH.AtAdding() = w;
         WH.AtAdding() = h;
@@ -1171,27 +1154,19 @@ namespace BOSS
         m_ref_func->m_bind(m_class);
         m_ref_func->m_command(CT_Size, "", WH, nullptr);
         m_ref_func->m_bind(nullptr);
-        m_event_lock = false;
     }
 
     void ZayView::OnTick()
     {
-        if(m_event_lock) return;
-        m_event_lock = true;
-
         m_ref_func->m_bind(m_class);
         m_ref_func->m_command(CT_Tick, "", nullptr, nullptr);
         m_ref_func->m_bind(nullptr);
 
         ((ZayController*) m_class)->wakeUpCheck();
-        m_event_lock = false;
     }
 
     void ZayView::OnRender(sint32 width, sint32 height, float l, float t, float r, float b)
     {
-        if(m_event_lock) return;
-        m_event_lock = true;
-
         ZayPanel NewPanel(width, height, m_touch);
         ZAY_LTRB_SCISSOR(NewPanel, l, t, r, b)
         ZAY_XYWH(NewPanel, -l, -t, r, b)
@@ -1206,14 +1181,10 @@ namespace BOSS
         Touch* CurTouch = (Touch*) m_touch;
         if(!CurTouch->ishovered(0)) // 호버ID가 0이 아니라면, 즉 저장된 호버좌표가 있다면
             OnTouch(TT_Render, 0, CurTouch->hoverx(), CurTouch->hovery());
-        m_event_lock = false;
     }
 
     void ZayView::OnTouch(TouchType type, sint32 id, sint32 x, sint32 y)
     {
-        if(m_event_lock) return;
-        m_event_lock = true;
-
         Touch* CurTouch = (Touch*) m_touch;
         const Element& CurElement = CurTouch->get(x, y);
         const Element* PressElement = CurTouch->getpress();
@@ -1287,21 +1258,16 @@ namespace BOSS
 
         if(NeedUpdate)
             m_class->invalidate();
-        m_event_lock = false;
     }
 
     void ZayView::OnKey(sint32 code, chars text, bool pressed)
     {
-        if(m_event_lock) return;
-        m_event_lock = true;
-
         m_ref_func->m_bind(m_class);
         pointers in;
         in.AtAdding() = (void*) &code;
         in.AtAdding() = (void*) text;
         m_ref_func->m_command(CT_Signal, (pressed)? "KeyPress" : "KeyRelease", in, nullptr);
         m_ref_func->m_bind(nullptr);
-        m_event_lock = false;
     }
 
     void ZayView::_gesture(GestureType type, sint32 x, sint32 y)

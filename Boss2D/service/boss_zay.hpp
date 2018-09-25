@@ -630,7 +630,6 @@ namespace BOSS
         const String m_viewclass;
         ZayObject* m_class;
         buffer m_touch;
-        bool m_event_lock;
         bool m_agreed_quit;
     };
 }

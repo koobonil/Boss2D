@@ -288,6 +288,7 @@
         h_view Platform::SetWindowView(chars viewclass)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
+            BOSS_ASSERT("SetWindowView의 재호출시 SetNextViewClass를 이용하세요", !g_data->getMainAPI()->hasViewManager());
             auto NewViewManager = PlatformImpl::Core::g_Creator(viewclass);
             g_data->getMainAPI()->changeViewManagerAndDestroy(NewViewManager);
 
@@ -301,6 +302,7 @@
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
             if(!Platform::Utility::IsFullScreen())
             {
+                // Qt버전에 따라 달라짐
                 //auto TitleBarHeight = QApplication::style()->pixelMetric(QStyle::PM_TitleBarHeight);
                 //auto WindowFrame = QApplication::style()->pixelMetric(QStyle::PM_MdiSubWindowFrameWidth);
                 //g_window->move(x - WindowFrame, y - TitleBarHeight - WindowFrame / 2);
