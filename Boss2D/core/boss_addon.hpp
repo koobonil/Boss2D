@@ -92,9 +92,11 @@ namespace BOSS
         class H264
         {
         public:
-            static id_h264 Create(sint32 width, sint32 height, bool fastmode);
+            static id_h264 CreateEncoder(sint32 width, sint32 height, bool fastmode);
+            static id_h264 CreateDecoder(void);
             static void Release(id_h264 h264);
-            static void EncodeTo(id_h264 h264, const uint32* rgba, id_flash flash, uint64 timems);
+            static void EncodeOnce(id_h264 h264, const uint32* rgba, id_flash flash, uint64 timems);
+            static id_bitmap DecodeOnce(id_h264 h264, id_flash flash);
         };
 
         //! \brief JPG연동

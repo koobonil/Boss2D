@@ -308,7 +308,7 @@ namespace BOSS
                 }
                 // 이미지코덱 초기화
                 if(!CodecS->mImageCodec)
-                    CodecS->mImageCodec = AddOn::H264::Create(Bmp::GetWidth(bitmap), Bmp::GetHeight(bitmap), true);//false);
+                    CodecS->mImageCodec = AddOn::H264::CreateEncoder(Bmp::GetWidth(bitmap), Bmp::GetHeight(bitmap), true);//false);
                 // 사운드코덱 초기화
                 if(!CodecS->mSoundCodec)
                     CodecS->mSoundCodec = AddOn::Aac::Create(DS_BITRATE, DS_CHANNEL, DS_SAMPLERATE);
@@ -388,7 +388,7 @@ namespace BOSS
                         {
                             bytes CurBitmap = &CurBitmapWithTime[sizeof(uint64)];
                             const uint32* CurBitmapBits = (const uint32*) Bmp::GetBits((id_bitmap_read) CurBitmap);
-                            AddOn::H264::EncodeTo(CodecS->mImageCodec, CurBitmapBits, CodecS->mFlash, FlashTimeMsec);
+                            AddOn::H264::EncodeOnce(CodecS->mImageCodec, CurBitmapBits, CodecS->mFlash, FlashTimeMsec);
                         }
                         NewReport->mH264EncodingTimeMsec += (sint32) (Platform::Utility::CurrentTimeMsec() - H264EncodingBegin);
 

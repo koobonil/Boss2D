@@ -17,15 +17,19 @@ bool __LINK_ADDON_H264__() {return true;} // 링크옵션 /OPT:NOREF가 안되�
 // 등록과정
 namespace BOSS
 {
-    BOSS_DECLARE_ADDON_FUNCTION(H264, Create, id_h264, sint32, sint32, bool)
+    BOSS_DECLARE_ADDON_FUNCTION(H264, CreateEncoder, id_h264, sint32, sint32, bool)
+    BOSS_DECLARE_ADDON_FUNCTION(H264, CreateDecoder, id_h264, void)
     BOSS_DECLARE_ADDON_FUNCTION(H264, Release, void, id_h264)
-    BOSS_DECLARE_ADDON_FUNCTION(H264, EncodeTo, void, id_h264, const uint32*, id_flash flash, uint64 timems)
+    BOSS_DECLARE_ADDON_FUNCTION(H264, EncodeOnce, void, id_h264, const uint32*, id_flash, uint64)
+    BOSS_DECLARE_ADDON_FUNCTION(H264, DecodeOnce, id_bitmap, id_h264, id_flash)
 
     static autorun Bind_AddOn_H264()
     {
-        Core_AddOn_H264_Create() = Customized_AddOn_H264_Create;
+        Core_AddOn_H264_CreateEncoder() = Customized_AddOn_H264_CreateEncoder;
+        Core_AddOn_H264_CreateDecoder() = Customized_AddOn_H264_CreateDecoder;
         Core_AddOn_H264_Release() = Customized_AddOn_H264_Release;
-        Core_AddOn_H264_EncodeTo() = Customized_AddOn_H264_EncodeTo;
+        Core_AddOn_H264_EncodeOnce() = Customized_AddOn_H264_EncodeOnce;
+        Core_AddOn_H264_DecodeOnce() = Customized_AddOn_H264_DecodeOnce;
         return true;
     }
     static autorun _ = Bind_AddOn_H264();
@@ -34,10 +38,16 @@ namespace BOSS
 // 구현부
 namespace BOSS
 {
-    id_h264 Customized_AddOn_H264_Create(sint32 width, sint32 height, bool fastmode)
+    id_h264 Customized_AddOn_H264_CreateEncoder(sint32 width, sint32 height, bool fastmode)
     {
         BaseEncoderH264* NewEncoder = new BaseEncoderH264(width, height, fastmode);
         return (id_h264) NewEncoder;
+    }
+
+    id_h264 Customized_AddOn_H264_CreateDecoder(void)
+    {
+        ////////////BaseEncoderH264* NewEncoder = new BaseEncoderH264(width, height, fastmode);
+        return (id_h264) nullptr;
     }
 
     void Customized_AddOn_H264_Release(id_h264 h264)
@@ -46,11 +56,29 @@ namespace BOSS
         delete OldEncoder;
     }
 
-    void Customized_AddOn_H264_EncodeTo(id_h264 h264, const uint32* rgba, id_flash flash, uint64 timems)
+    void Customized_AddOn_H264_EncodeOnce(id_h264 h264, const uint32* rgba, id_flash flash, uint64 timems)
     {
         BaseEncoderH264* CurEncoder = (BaseEncoderH264*) h264;
         if(CurEncoder)
             return CurEncoder->EncodeTo(rgba, flash, timems);
+    }
+
+    id_bitmap Customized_AddOn_H264_DecodeOnce(id_h264 h264, id_flash flash)
+    {
+        BaseEncoderH264* CurEncoder = (BaseEncoderH264*) h264;
+
+        uint08 Type = 0;
+        sint32 ChunkSize = 0;
+        bytes Chunk = nullptr;
+        while(Type != 0x09)
+        {
+            Chunk = Flv::ReadChunk(flash, &Type, &ChunkSize);
+            if(!Chunk) return nullptr;
+        }
+
+        ////////////////////////
+        ////////////////////////
+        return nullptr;
     }
 }
 
@@ -252,7 +280,7 @@ void BaseEncoderH264::EncodeTo(const uint32* rgba, id_flash flash, uint64 timems
             {
                 Memory::Copy(Chunk.AtDumpingAdded(4), GetBE4(BufSize), 4); // NALU Size
                 Memory::Copy(Chunk.AtDumpingAdded(BufSize), CurLayer.pBsBuf, BufSize); // NALU
-                Flv::AddChunk(flash, 0x09, &Chunk[0], Chunk.Count(), timems); // video
+                Flv::WriteChunk(flash, 0x09, &Chunk[0], Chunk.Count(), timems); // video
             }
             else
             {
@@ -274,7 +302,7 @@ void BaseEncoderH264::EncodeTo(const uint32* rgba, id_flash flash, uint64 timems
                 Chunk.AtAdding() = 0x01; // PPS Number
                 Memory::Copy(Chunk.AtDumpingAdded(2), GetBE2(PPSEnd - PPSBegin), 2); // Size
                 Memory::Copy(Chunk.AtDumpingAdded(PPSEnd - PPSBegin), &CurLayer.pBsBuf[PPSBegin], PPSEnd - PPSBegin);
-                Flv::AddChunk(flash, 0x09, &Chunk[0], Chunk.Count(), timems); // video
+                Flv::WriteChunk(flash, 0x09, &Chunk[0], Chunk.Count(), timems); // video
             }
         }
     }

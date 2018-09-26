@@ -172,18 +172,26 @@ namespace BOSS
 
     ////////////////////////////////////////////////////////////////////////////////
     static void H264_Error() {BOSS_ASSERT("H264애드온이 준비되지 않았습니다", false);}
-    BOSS_DEFINE_ADDON_FUNCTION(H264, Create, id_h264, return nullptr, sint32, sint32, bool)
+    BOSS_DEFINE_ADDON_FUNCTION(H264, CreateEncoder, id_h264, return nullptr, sint32, sint32, bool)
+    BOSS_DEFINE_ADDON_FUNCTION(H264, CreateDecoder, id_h264, return nullptr, void)
     BOSS_DEFINE_ADDON_FUNCTION(H264, Release, void, return, id_h264)
-    BOSS_DEFINE_ADDON_FUNCTION(H264, EncodeTo, void, return, id_h264, const uint32*, id_flash, uint64)
+    BOSS_DEFINE_ADDON_FUNCTION(H264, EncodeOnce, void, return, id_h264, const uint32*, id_flash, uint64)
+    BOSS_DEFINE_ADDON_FUNCTION(H264, DecodeOnce, id_bitmap, return nullptr, id_h264, id_flash)
 
-    id_h264 AddOn::H264::Create(sint32 width, sint32 height, bool fastmode)
-    {return Core_AddOn_H264_Create()(width, height, fastmode);}
+    id_h264 AddOn::H264::CreateEncoder(sint32 width, sint32 height, bool fastmode)
+    {return Core_AddOn_H264_CreateEncoder()(width, height, fastmode);}
+
+    id_h264 AddOn::H264::CreateDecoder(void)
+    {return Core_AddOn_H264_CreateDecoder()();}
 
     void AddOn::H264::Release(id_h264 h264)
     {Core_AddOn_H264_Release()(h264);}
 
-    void AddOn::H264::EncodeTo(id_h264 h264, const uint32* rgba, id_flash flash, uint64 timems)
-    {Core_AddOn_H264_EncodeTo()(h264, rgba, flash, timems);}
+    void AddOn::H264::EncodeOnce(id_h264 h264, const uint32* rgba, id_flash flash, uint64 timems)
+    {Core_AddOn_H264_EncodeOnce()(h264, rgba, flash, timems);}
+
+    id_bitmap AddOn::H264::DecodeOnce(id_h264 h264, id_flash flash)
+    {return Core_AddOn_H264_DecodeOnce()(h264, flash);}
 
     ////////////////////////////////////////////////////////////////////////////////
     static void Jpg_Error() {BOSS_ASSERT("Jpg애드온이 준비되지 않았습니다", false);}

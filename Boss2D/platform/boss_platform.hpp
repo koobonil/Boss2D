@@ -1026,7 +1026,7 @@ namespace BOSS
         class File
         {
         public:
-            typedef void (*SearchCB)(chars, payload);
+            typedef void (*SearchCB)(chars itemname, payload data);
 
             /*!
             \brief 파일존재여부 얻기
