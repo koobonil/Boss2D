@@ -39,8 +39,8 @@
 #ifndef WELS_PARSE_MB_SYN_CABAC_H__
 #define WELS_PARSE_MB_SYN_CABAC_H__
 
-#include "decoder_context.h"
-#include "cabac_decoder.h"
+#include BOSS_OPENH264_U_decoder_context_h //original-code:"decoder_context.h"
+#include BOSS_OPENH264_U_cabac_decoder_h //original-code:"cabac_decoder.h"
 namespace WelsDec {
 int32_t ParseEndOfSliceCabac (PWelsDecoderContext pCtx, uint32_t& uiBinVal);
 int32_t ParseSkipFlagCabac (PWelsDecoderContext pCtx, PWelsNeighAvail pNeighAvail, uint32_t& uiSkip);

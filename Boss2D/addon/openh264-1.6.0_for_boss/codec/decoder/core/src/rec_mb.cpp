@@ -39,8 +39,8 @@
  */
 
 
-#include "rec_mb.h"
-#include "decode_slice.h"
+#include BOSS_OPENH264_U_rec_mb_h //original-code:"rec_mb.h"
+#include BOSS_OPENH264_U_decode_slice_h //original-code:"decode_slice.h"
 
 namespace WelsDec {
 

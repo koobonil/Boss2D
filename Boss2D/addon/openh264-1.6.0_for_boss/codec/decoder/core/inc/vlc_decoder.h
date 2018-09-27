@@ -33,8 +33,8 @@
 #ifndef WELS_VLC_DECODER_H__
 #define WELS_VLC_DECODER_H__
 
-#include "bit_stream.h"
-#include "dec_golomb.h"
+#include BOSS_OPENH264_U_bit_stream_h //original-code:"bit_stream.h"
+#include BOSS_OPENH264_U_dec_golomb_h //original-code:"dec_golomb.h"
 
 namespace WelsDec {
 

@@ -40,7 +40,7 @@
  *
  ************************************************************************/
 //#include <assert.h>
-#include "welsDecoderExt.h"
+#include BOSS_OPENH264_U_welsDecoderExt_h //original-code:"welsDecoderExt.h"
 #include BOSS_OPENH264_U_welsCodecTrace_h //original-code:"welsCodecTrace.h"
 #include BOSS_OPENH264_U_codec_def_h //original-code:"codec_def.h"
 #include BOSS_OPENH264_U_typedefs_h //original-code:"typedefs.h"
@@ -49,16 +49,16 @@
 #include BOSS_OPENH264_U_version_h //original-code:"version.h"
 
 //#include BOSS_OPENH264_U_macros_h //original-code:"macros.h"
-#include "decoder.h"
-#include "decoder_core.h"
-#include "error_concealment.h"
+#include BOSS_OPENH264_U_decoder_h //original-code:"decoder.h"
+#include BOSS_OPENH264_U_decoder_core_h //original-code:"decoder_core.h"
+#include BOSS_OPENH264_U_error_concealment_h //original-code:"error_concealment.h"
 
 #include BOSS_OPENH264_U_measure_time_h //original-code:"measure_time.h"
 extern "C" {
-#include "decoder_core.h"
-#include "manage_dec_ref.h"
+#include BOSS_OPENH264_U_decoder_core_h //original-code:"decoder_core.h"
+#include BOSS_OPENH264_U_manage_dec_ref_h //original-code:"manage_dec_ref.h"
 }
-#include "error_code.h"
+#include BOSS_OPENH264_U_error_code_h //original-code:"error_code.h"
 #include BOSS_OPENH264_U_crt_util_safe_x_h //original-code:"crt_util_safe_x.h" // Safe CRT routines like util for cross platforms
 #include <time.h>
 #if defined(_WIN32) /*&& defined(_DEBUG)*/

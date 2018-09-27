@@ -38,19 +38,19 @@
  *************************************************************************************
  */
 #include BOSS_OPENH264_U_codec_def_h //original-code:"codec_def.h"
-#include "decoder.h"
+#include BOSS_OPENH264_U_decoder_h //original-code:"decoder.h"
 #include BOSS_OPENH264_U_cpu_h //original-code:"cpu.h"
-#include "au_parser.h"
+#include BOSS_OPENH264_U_au_parser_h //original-code:"au_parser.h"
 #include BOSS_OPENH264_U_get_intra_predictor_h //original-code:"get_intra_predictor.h"
-#include "rec_mb.h"
+#include BOSS_OPENH264_U_rec_mb_h //original-code:"rec_mb.h"
 #include BOSS_OPENH264_U_mc_h //original-code:"mc.h"
 #include BOSS_OPENH264_U_decode_mb_aux_h //original-code:"decode_mb_aux.h"
-#include "manage_dec_ref.h"
-#include "decoder_core.h"
+#include BOSS_OPENH264_U_manage_dec_ref_h //original-code:"manage_dec_ref.h"
+#include BOSS_OPENH264_U_decoder_core_h //original-code:"decoder_core.h"
 #include BOSS_OPENH264_U_deblocking_h //original-code:"deblocking.h"
 #include BOSS_OPENH264_U_expand_pic_h //original-code:"expand_pic.h"
-#include "decode_slice.h"
-#include "error_concealment.h"
+#include BOSS_OPENH264_U_decode_slice_h //original-code:"decode_slice.h"
+#include BOSS_OPENH264_U_error_concealment_h //original-code:"error_concealment.h"
 #include BOSS_OPENH264_U_memory_align_h //original-code:"memory_align.h"
 
 namespace WelsDec {

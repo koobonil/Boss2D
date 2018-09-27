@@ -44,7 +44,7 @@
 
 #include BOSS_OPENH264_U_codec_api_h //original-code:"codec_api.h"
 #include BOSS_OPENH264_U_codec_app_def_h //original-code:"codec_app_def.h"
-#include "decoder_context.h"
+#include BOSS_OPENH264_U_decoder_context_h //original-code:"decoder_context.h"
 #include BOSS_OPENH264_U_welsCodecTrace_h //original-code:"welsCodecTrace.h"
 #include BOSS_OPENH264_U_cpu_h //original-code:"cpu.h"
 

@@ -37,8 +37,8 @@
  *
  *************************************************************************************
  */
-#include "pic_queue.h"
-#include "decoder_context.h"
+#include BOSS_OPENH264_U_pic_queue_h //original-code:"pic_queue.h"
+#include BOSS_OPENH264_U_decoder_context_h //original-code:"decoder_context.h"
 #include BOSS_OPENH264_U_codec_def_h //original-code:"codec_def.h"
 #include BOSS_OPENH264_U_memory_align_h //original-code:"memory_align.h"
 

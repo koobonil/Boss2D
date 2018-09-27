@@ -34,7 +34,7 @@
 // export date cross various modules (.c)
 #include BOSS_OPENH264_U_wels_common_basis_h //original-code:"wels_common_basis.h"
 #include BOSS_OPENH264_U_mb_cache_h //original-code:"mb_cache.h"
-#include "vlc_decoder.h"
+#include BOSS_OPENH264_U_vlc_decoder_h //original-code:"vlc_decoder.h"
 
 namespace WelsDec {
 

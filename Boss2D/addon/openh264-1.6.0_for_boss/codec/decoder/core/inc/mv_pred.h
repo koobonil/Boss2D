@@ -41,7 +41,7 @@
 #ifndef WELS_MV_PRED_H__
 #define WELS_MV_PRED_H__
 
-#include "dec_frame.h"
+#include BOSS_OPENH264_U_dec_frame_h //original-code:"dec_frame.h"
 
 namespace WelsDec {
 

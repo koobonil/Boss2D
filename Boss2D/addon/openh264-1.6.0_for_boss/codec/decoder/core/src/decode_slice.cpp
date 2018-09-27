@@ -41,11 +41,11 @@
 
 #include BOSS_OPENH264_U_deblocking_h //original-code:"deblocking.h"
 
-#include "decode_slice.h"
+#include BOSS_OPENH264_U_decode_slice_h //original-code:"decode_slice.h"
 
-#include "parse_mb_syn_cavlc.h"
-#include "parse_mb_syn_cabac.h"
-#include "rec_mb.h"
+#include BOSS_OPENH264_U_parse_mb_syn_cavlc_h //original-code:"parse_mb_syn_cavlc.h"
+#include BOSS_OPENH264_U_parse_mb_syn_cabac_h //original-code:"parse_mb_syn_cabac.h"
+#include BOSS_OPENH264_U_rec_mb_h //original-code:"rec_mb.h"
 #include BOSS_OPENH264_U_mv_pred_h //original-code:"mv_pred.h"
 
 #include BOSS_OPENH264_U_cpu_core_h //original-code:"cpu_core.h"

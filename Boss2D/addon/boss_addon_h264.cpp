@@ -40,49 +40,130 @@ namespace BOSS
 {
     id_h264 Customized_AddOn_H264_CreateEncoder(sint32 width, sint32 height, bool fastmode)
     {
-        BaseEncoderH264* NewEncoder = new BaseEncoderH264(width, height, fastmode);
+        auto NewEncoder = new H264EncoderPrivate(width, height, fastmode);
         return (id_h264) NewEncoder;
     }
 
     id_h264 Customized_AddOn_H264_CreateDecoder(void)
     {
-        ////////////BaseEncoderH264* NewEncoder = new BaseEncoderH264(width, height, fastmode);
-        return (id_h264) nullptr;
+        auto NewDecoder = new H264DecoderPrivate();
+        return (id_h264) NewDecoder;
     }
 
     void Customized_AddOn_H264_Release(id_h264 h264)
     {
-        BaseEncoderH264* OldEncoder = (BaseEncoderH264*) h264;
-        delete OldEncoder;
+        delete (H264Private*) h264;
     }
 
     void Customized_AddOn_H264_EncodeOnce(id_h264 h264, const uint32* rgba, id_flash flash, uint64 timems)
     {
-        BaseEncoderH264* CurEncoder = (BaseEncoderH264*) h264;
+        auto CurEncoder = H264EncoderPrivate::Test(h264);
         if(CurEncoder)
-            return CurEncoder->EncodeTo(rgba, flash, timems);
+            return CurEncoder->Encode(rgba, flash, timems);
     }
 
     id_bitmap Customized_AddOn_H264_DecodeOnce(id_h264 h264, id_flash flash)
     {
-        BaseEncoderH264* CurEncoder = (BaseEncoderH264*) h264;
-
-        uint08 Type = 0;
-        sint32 ChunkSize = 0;
-        bytes Chunk = nullptr;
-        while(Type != 0x09)
-        {
-            Chunk = Flv::ReadChunk(flash, &Type, &ChunkSize);
-            if(!Chunk) return nullptr;
-        }
-
-        ////////////////////////
-        ////////////////////////
+        auto CurDecoder = H264DecoderPrivate::Test(h264);
+        if(CurDecoder)
+            return CurDecoder->Decode(flash);
         return nullptr;
     }
 }
 
-BaseEncoderH264::BaseEncoderH264(sint32 width, sint32 height, bool fastmode)
+H264Private::H264Private()
+{
+}
+
+H264Private::~H264Private()
+{
+}
+
+const void* H264Private::GetBE2(sint32 value)
+{
+    mTempBE2  = (value >>  8) & 0x000000FF;
+    mTempBE2 |= (value <<  8) & 0x0000FF00;
+    return &mTempBE2;
+}
+
+const void* H264Private::GetBE3(sint32 value)
+{
+    mTempBE3  = (value >> 16) & 0x000000FF;
+    mTempBE3 |= (value >>  0) & 0x0000FF00;
+    mTempBE3 |= (value << 16) & 0x00FF0000;
+    return &mTempBE3;
+}
+
+const void* H264Private::GetBE4(sint32 value)
+{
+    mTempBE4  = (value >> 24) & 0x000000FF;
+    mTempBE4 |= (value >>  8) & 0x0000FF00;
+    mTempBE4 |= (value <<  8) & 0x00FF0000;
+    mTempBE4 |= (value << 24) & 0xFF000000;
+    return &mTempBE4;
+}
+
+const void* H264Private::GetBE8_Double(double value)
+{
+    const uint64 SrcValue = *((uint64*) &value);
+    mTempBE8_Double  = (SrcValue >> 56) & ox00000000000000FF;
+    mTempBE8_Double |= (SrcValue >> 40) & ox000000000000FF00;
+    mTempBE8_Double |= (SrcValue >> 24) & ox0000000000FF0000;
+    mTempBE8_Double |= (SrcValue >>  8) & ox00000000FF000000;
+    mTempBE8_Double |= (SrcValue <<  8) & ox000000FF00000000;
+    mTempBE8_Double |= (SrcValue << 24) & ox0000FF0000000000;
+    mTempBE8_Double |= (SrcValue << 40) & ox00FF000000000000;
+    mTempBE8_Double |= (SrcValue << 56) & oxFF00000000000000;
+    return &mTempBE8_Double;
+}
+
+void H264Private::WriteTag(uint08s& dst, uint08 type, sint32 timestamp, const uint08s chunk)
+{
+    dst.AtAdding() = type; // type
+    Memory::Copy(dst.AtDumpingAdded(3), GetBE3(chunk.Count()), 3); // datasize
+    Memory::Copy(dst.AtDumpingAdded(3), GetBE3(timestamp & 0x00FFFFFF), 3); // timestamp
+    dst.AtAdding() = (timestamp & 0xFF000000) >> 24; // timestamp extended
+    Memory::Copy(dst.AtDumpingAdded(3), GetBE3(0), 3); // streamid
+    Memory::Copy(dst.AtDumpingAdded(chunk.Count()), &chunk[0], chunk.Count());
+    Memory::Copy(dst.AtDumpingAdded(4), GetBE4(chunk.Count() + 11), 4); // chunk size match
+}
+
+void H264Private::WriteScriptDataImpl(uint08s& dst, chars name)
+{
+    const sint32 Length = boss_strlen(name);
+    Memory::Copy(dst.AtDumpingAdded(2), GetBE2(Length), 2); // stringsize
+    Memory::Copy(dst.AtDumpingAdded(Length), name, Length); // string
+}
+
+void H264Private::WriteScriptDataECMA(uint08s& dst, chars name, sint32 value)
+{
+    WriteScriptDataImpl(dst, name);
+    dst.AtAdding() = 0x08; // type: ecma
+    Memory::Copy(dst.AtDumpingAdded(4), GetBE4(value), 4); // value
+}
+
+void H264Private::WriteScriptDataNumber(uint08s& dst, chars name, double value)
+{
+    WriteScriptDataImpl(dst, name);
+    dst.AtAdding() = 0x00; // type: number
+    Memory::Copy(dst.AtDumpingAdded(8), GetBE8_Double(value), 8); // value
+}
+
+void H264Private::WriteScriptDataBoolean(uint08s& dst, chars name, bool value)
+{
+    WriteScriptDataImpl(dst, name);
+    dst.AtAdding() = 0x01; // type: boolean
+    dst.AtAdding() = value; // value
+}
+
+void H264Private::WriteScriptDataString(uint08s& dst, chars name, chars value)
+{
+    WriteScriptDataImpl(dst, name);
+    dst.AtAdding() = 0x02; // type: string
+    WriteScriptDataImpl(dst, value);
+}
+
+H264EncoderPrivate::H264EncoderPrivate(sint32 width, sint32 height, bool fastmode)
 {
     mEncoder = nullptr;
     int rv = WelsCreateSVCEncoder(&mEncoder);
@@ -141,7 +222,7 @@ BaseEncoderH264::BaseEncoderH264(sint32 width, sint32 height, bool fastmode)
     memset(&mInfo, 0, sizeof(mInfo));
 }
 
-BaseEncoderH264::~BaseEncoderH264()
+H264EncoderPrivate::~H264EncoderPrivate()
 {
     if(mEncoder)
     {
@@ -150,95 +231,7 @@ BaseEncoderH264::~BaseEncoderH264()
     }
 }
 
-static const void* GetBE2(sint32 value)
-{
-    static uint32 Result;
-    Result  = (value >>  8) & 0x000000FF;
-    Result |= (value <<  8) & 0x0000FF00;
-    return &Result;
-}
-
-static const void* GetBE3(sint32 value)
-{
-    static uint32 Result;
-    Result  = (value >> 16) & 0x000000FF;
-    Result |= (value >>  0) & 0x0000FF00;
-    Result |= (value << 16) & 0x00FF0000;
-    return &Result;
-}
-
-static const void* GetBE4(sint32 value)
-{
-    static uint32 Result;
-    Result  = (value >> 24) & 0x000000FF;
-    Result |= (value >>  8) & 0x0000FF00;
-    Result |= (value <<  8) & 0x00FF0000;
-    Result |= (value << 24) & 0xFF000000;
-    return &Result;
-}
-
-static const void* GetBE8_Double(double value)
-{
-    static uint64 Result;
-    uint64 SrcValue = *((uint64*) &value);
-    Result  = (SrcValue >> 56) & ox00000000000000FF;
-    Result |= (SrcValue >> 40) & ox000000000000FF00;
-    Result |= (SrcValue >> 24) & ox0000000000FF0000;
-    Result |= (SrcValue >>  8) & ox00000000FF000000;
-    Result |= (SrcValue <<  8) & ox000000FF00000000;
-    Result |= (SrcValue << 24) & ox0000FF0000000000;
-    Result |= (SrcValue << 40) & ox00FF000000000000;
-    Result |= (SrcValue << 56) & oxFF00000000000000;
-    return &Result;
-}
-
-static void WriteTag(uint08s& dst, uint08 type, sint32 timestamp, const uint08s chunk)
-{
-    dst.AtAdding() = type; // type
-    Memory::Copy(dst.AtDumpingAdded(3), GetBE3(chunk.Count()), 3); // datasize
-    Memory::Copy(dst.AtDumpingAdded(3), GetBE3(timestamp & 0x00FFFFFF), 3); // timestamp
-    dst.AtAdding() = (timestamp & 0xFF000000) >> 24; // timestamp extended
-    Memory::Copy(dst.AtDumpingAdded(3), GetBE3(0), 3); // streamid
-    Memory::Copy(dst.AtDumpingAdded(chunk.Count()), &chunk[0], chunk.Count());
-    Memory::Copy(dst.AtDumpingAdded(4), GetBE4(chunk.Count() + 11), 4); // chunk size match
-}
-
-static void WriteScriptDataImpl(uint08s& dst, chars name)
-{
-    const sint32 Length = boss_strlen(name);
-    Memory::Copy(dst.AtDumpingAdded(2), GetBE2(Length), 2); // stringsize
-    Memory::Copy(dst.AtDumpingAdded(Length), name, Length); // string
-}
-
-static void WriteScriptDataECMA(uint08s& dst, chars name, sint32 value)
-{
-    WriteScriptDataImpl(dst, name);
-    dst.AtAdding() = 0x08; // type: ecma
-    Memory::Copy(dst.AtDumpingAdded(4), GetBE4(value), 4); // value
-}
-
-static void WriteScriptDataNumber(uint08s& dst, chars name, double value)
-{
-    WriteScriptDataImpl(dst, name);
-    dst.AtAdding() = 0x00; // type: number
-    Memory::Copy(dst.AtDumpingAdded(8), GetBE8_Double(value), 8); // value
-}
-
-static void WriteScriptDataBoolean(uint08s& dst, chars name, bool value)
-{
-    WriteScriptDataImpl(dst, name);
-    dst.AtAdding() = 0x01; // type: boolean
-    dst.AtAdding() = value; // value
-}
-
-static void WriteScriptDataString(uint08s& dst, chars name, chars value)
-{
-    WriteScriptDataImpl(dst, name);
-    dst.AtAdding() = 0x02; // type: string
-    WriteScriptDataImpl(dst, value);
-}
-
-void BaseEncoderH264::EncodeTo(const uint32* rgba, id_flash flash, uint64 timems)
+void H264EncoderPrivate::Encode(const uint32* rgba, id_flash flash, uint64 timems)
 {
     uint08* yplane = mPic.pData[0];
     uint08* uplane = mPic.pData[1];
@@ -257,7 +250,6 @@ void BaseEncoderH264::EncodeTo(const uint32* rgba, id_flash flash, uint64 timems
     int rv = mEncoder->EncodeFrame(&mPic, &mInfo);
     BOSS_ASSERT("EncodeFrame이 실패하였습니다", rv == cmResultSuccess);
 
-    static uint08s Chunk;
     if(rv == cmResultSuccess && mInfo.eFrameType != videoFrameTypeSkip)
     {
         for(sint32 i = 0; i < mInfo.iLayerNum; ++i)
@@ -268,19 +260,19 @@ void BaseEncoderH264::EncodeTo(const uint32* rgba, id_flash flash, uint64 timems
                 BufSize += CurLayer.pNalLengthInByte[j];
 
             // Video태그헤더(5)
-            Chunk.SubtractionAll();
+            mTempChunk.SubtractionAll();
             const bool IsInterframe = (CurLayer.eFrameType == videoFrameTypeI);
             const bool IsNALU = (CurLayer.uiLayerType == VIDEO_CODING_LAYER);
-            Chunk.AtAdding() = (IsInterframe)? 0x27 : 0x17; // 1_:keyframe, 2_:interframe, _7:AVC
-            Chunk.AtAdding() = (IsNALU)? 0x01 : 0x00; // AVC NALU, AVC sequence header
-            Memory::Copy(Chunk.AtDumpingAdded(3), GetBE3(0), 3); // CompositionTime
+            mTempChunk.AtAdding() = (IsInterframe)? 0x27 : 0x17; // 1_:keyframe, 2_:interframe, _7:AVC
+            mTempChunk.AtAdding() = (IsNALU)? 0x01 : 0x00; // AVC NALU, AVC sequence header
+            Memory::Copy(mTempChunk.AtDumpingAdded(3), GetBE3(0), 3); // CompositionTime
 
             // 태그데이터
             if(IsNALU)
             {
-                Memory::Copy(Chunk.AtDumpingAdded(4), GetBE4(BufSize), 4); // NALU Size
-                Memory::Copy(Chunk.AtDumpingAdded(BufSize), CurLayer.pBsBuf, BufSize); // NALU
-                Flv::WriteChunk(flash, 0x09, &Chunk[0], Chunk.Count(), timems); // video
+                Memory::Copy(mTempChunk.AtDumpingAdded(4), GetBE4(BufSize), 4); // NALU Size
+                Memory::Copy(mTempChunk.AtDumpingAdded(BufSize), CurLayer.pBsBuf, BufSize); // NALU
+                Flv::WriteChunk(flash, 0x09, &mTempChunk[0], mTempChunk.Count(), timems); // video
             }
             else
             {
@@ -289,23 +281,55 @@ void BaseEncoderH264::EncodeTo(const uint32* rgba, id_flash flash, uint64 timems
                 const sint32 SPSEnd = CurLayer.pNalLengthInByte[0];
                 const sint32 PPSBegin = SPSEnd + 4;
                 const sint32 PPSEnd = SPSEnd + CurLayer.pNalLengthInByte[1];
-                Chunk.AtAdding() = 0x01; // Configuration Version
-                Chunk.AtAdding() = CurLayer.pBsBuf[5]; // AVCProfile-Indication
-                Chunk.AtAdding() = CurLayer.pBsBuf[6]; // AVCProfile-Compatibility
-                Chunk.AtAdding() = CurLayer.pBsBuf[7]; // AVCLevel-Indication
-                Chunk.AtAdding() = 0xFF; // lengthSizeMinusOne
+                mTempChunk.AtAdding() = 0x01; // Configuration Version
+                mTempChunk.AtAdding() = CurLayer.pBsBuf[5]; // AVCProfile-Indication
+                mTempChunk.AtAdding() = CurLayer.pBsBuf[6]; // AVCProfile-Compatibility
+                mTempChunk.AtAdding() = CurLayer.pBsBuf[7]; // AVCLevel-Indication
+                mTempChunk.AtAdding() = 0xFF; // lengthSizeMinusOne
                 // SPS
-                Chunk.AtAdding() = 0xE1; // SPS Number
-                Memory::Copy(Chunk.AtDumpingAdded(2), GetBE2(SPSEnd - SPSBegin), 2); // Size
-                Memory::Copy(Chunk.AtDumpingAdded(SPSEnd - SPSBegin), &CurLayer.pBsBuf[SPSBegin], SPSEnd - SPSBegin);
+                mTempChunk.AtAdding() = 0xE1; // SPS Number
+                Memory::Copy(mTempChunk.AtDumpingAdded(2), GetBE2(SPSEnd - SPSBegin), 2); // Size
+                Memory::Copy(mTempChunk.AtDumpingAdded(SPSEnd - SPSBegin), &CurLayer.pBsBuf[SPSBegin], SPSEnd - SPSBegin);
                 // PPS
-                Chunk.AtAdding() = 0x01; // PPS Number
-                Memory::Copy(Chunk.AtDumpingAdded(2), GetBE2(PPSEnd - PPSBegin), 2); // Size
-                Memory::Copy(Chunk.AtDumpingAdded(PPSEnd - PPSBegin), &CurLayer.pBsBuf[PPSBegin], PPSEnd - PPSBegin);
-                Flv::WriteChunk(flash, 0x09, &Chunk[0], Chunk.Count(), timems); // video
+                mTempChunk.AtAdding() = 0x01; // PPS Number
+                Memory::Copy(mTempChunk.AtDumpingAdded(2), GetBE2(PPSEnd - PPSBegin), 2); // Size
+                Memory::Copy(mTempChunk.AtDumpingAdded(PPSEnd - PPSBegin), &CurLayer.pBsBuf[PPSBegin], PPSEnd - PPSBegin);
+                Flv::WriteChunk(flash, 0x09, &mTempChunk[0], mTempChunk.Count(), timems); // video
             }
         }
     }
+}
+
+H264DecoderPrivate::H264DecoderPrivate()
+{
+    mDecoder = nullptr;
+    int rv = WelsCreateDecoder(&mDecoder);
+    BOSS_ASSERT("WelsCreateSVCDecoder가 실패하였습니다", rv == cmResultSuccess && mDecoder != nullptr);
+}
+
+H264DecoderPrivate::~H264DecoderPrivate()
+{
+    if(mDecoder)
+    {
+        mDecoder->Uninitialize();
+        WelsDestroyDecoder(mDecoder);
+    }
+}
+
+id_bitmap H264DecoderPrivate::Decode(id_flash flash)
+{
+    uint08 Type = 0;
+    sint32 ChunkSize = 0;
+    bytes Chunk = nullptr;
+    while(Type != 0x09)
+    {
+        Chunk = Flv::ReadChunk(flash, &Type, &ChunkSize);
+        if(!Chunk) return nullptr;
+    }
+
+    ////////////////////////
+    ////////////////////////
+    return nullptr;
 }
 
 #endif

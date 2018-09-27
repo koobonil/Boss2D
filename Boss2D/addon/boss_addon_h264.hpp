@@ -6,19 +6,81 @@
 
 #include <boss.hpp>
 
-class BaseEncoderH264
+class H264Private
+{
+public:
+    H264Private();
+    virtual ~H264Private();
+
+private:
+    virtual sint32 typecode() const = 0;
+
+protected:
+    const void* GetBE2(sint32 value);
+    const void* GetBE3(sint32 value);
+    const void* GetBE4(sint32 value);
+    const void* GetBE8_Double(double value);
+    void WriteTag(uint08s& dst, uint08 type, sint32 timestamp, const uint08s chunk);
+    void WriteScriptDataImpl(uint08s& dst, chars name);
+    void WriteScriptDataECMA(uint08s& dst, chars name, sint32 value);
+    void WriteScriptDataNumber(uint08s& dst, chars name, double value);
+    void WriteScriptDataBoolean(uint08s& dst, chars name, bool value);
+    void WriteScriptDataString(uint08s& dst, chars name, chars value);
+
+private:
+    uint32 mTempBE2;
+    uint32 mTempBE3;
+    uint32 mTempBE4;
+    uint64 mTempBE8_Double;
+};
+
+class H264EncoderPrivate : public H264Private
 {
 public:
     typedef void (*EncodeFrameCB)(const SFrameBSInfo& frameInfo);
 
 public:
-    BaseEncoderH264(sint32 width, sint32 height, bool fastmode);
-    ~BaseEncoderH264();
-    void EncodeTo(const uint32* rgba, id_flash flash, uint64 timems);
+    H264EncoderPrivate(sint32 width, sint32 height, bool fastmode);
+    ~H264EncoderPrivate() override;
+
+private:
+    sint32 typecode() const override {return 1;}
+public:
+    static H264EncoderPrivate* Test(id_h264 h264)
+    {
+        auto Encoder = (H264EncoderPrivate*) h264;
+        return (Encoder && Encoder->typecode() == 1)? Encoder : nullptr;
+    }
+
+public:
+    void Encode(const uint32* rgba, id_flash flash, uint64 timems);
 
 private:
     ISVCEncoder* mEncoder;
     uint08s mFrame;
     SSourcePicture mPic;
     SFrameBSInfo mInfo;
+    uint08s mTempChunk;
+};
+
+class H264DecoderPrivate : public H264Private
+{
+public:
+    H264DecoderPrivate();
+    ~H264DecoderPrivate() override;
+
+private:
+    sint32 typecode() const override {return 2;}
+public:
+    static H264DecoderPrivate* Test(id_h264 h264)
+    {
+        auto Decoder = (H264DecoderPrivate*) h264;
+        return (Decoder && Decoder->typecode() == 2)? Decoder : nullptr;
+    }
+
+public:
+    id_bitmap Decode(id_flash flash);
+
+private:
+    ISVCDecoder* mDecoder;
 };

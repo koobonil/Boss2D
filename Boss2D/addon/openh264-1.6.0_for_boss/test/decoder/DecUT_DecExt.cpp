@@ -3,7 +3,7 @@
 #include BOSS_OPENH264_U_codec_def_h //original-code:"codec_def.h"
 #include BOSS_OPENH264_U_codec_app_def_h //original-code:"codec_app_def.h"
 #include BOSS_OPENH264_U_codec_api_h //original-code:"codec_api.h"
-#include "error_code.h"
+#include BOSS_OPENH264_U_error_code_h //original-code:"error_code.h"
 #include BOSS_OPENH264_U_wels_common_basis_h //original-code:"wels_common_basis.h"
 #include BOSS_OPENH264_U_memory_align_h //original-code:"memory_align.h"
 #include BOSS_OPENH264_U_ls_defines_h //original-code:"ls_defines.h"

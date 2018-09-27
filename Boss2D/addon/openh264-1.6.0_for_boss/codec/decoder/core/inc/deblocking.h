@@ -41,7 +41,7 @@
 #ifndef WELS_DEBLOCKING_H__
 #define WELS_DEBLOCKING_H__
 
-#include "decoder_context.h"
+#include BOSS_OPENH264_U_decoder_context_h //original-code:"decoder_context.h"
 #include BOSS_OPENH264_U_deblocking_common_h //original-code:"deblocking_common.h"
 namespace WelsDec {
 

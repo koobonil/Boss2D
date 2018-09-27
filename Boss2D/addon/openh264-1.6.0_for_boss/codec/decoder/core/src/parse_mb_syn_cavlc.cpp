@@ -39,8 +39,8 @@
  */
 
 
-#include "parse_mb_syn_cavlc.h"
-#include "error_code.h"
+#include BOSS_OPENH264_U_parse_mb_syn_cavlc_h //original-code:"parse_mb_syn_cavlc.h"
+#include BOSS_OPENH264_U_error_code_h //original-code:"error_code.h"
 #include BOSS_OPENH264_U_mv_pred_h //original-code:"mv_pred.h"
 
 namespace WelsDec {

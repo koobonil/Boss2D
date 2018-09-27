@@ -41,11 +41,11 @@
 #define WELS_EXPONENTIAL_GOLOMB_ENTROPY_CODING_H__
 
 #include BOSS_OPENH264_U_typedefs_h //original-code:"typedefs.h"
-#include "bit_stream.h"
+#include BOSS_OPENH264_U_bit_stream_h //original-code:"bit_stream.h"
 #include BOSS_OPENH264_U_macros_h //original-code:"macros.h"
 //#include <assert.h>
 #include BOSS_OPENH264_U_ls_defines_h //original-code:"ls_defines.h"
-#include "error_code.h"
+#include BOSS_OPENH264_U_error_code_h //original-code:"error_code.h"
 
 namespace WelsDec {
 

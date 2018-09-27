@@ -237,7 +237,7 @@ namespace BOSS
     const void* Flv::ToBE8_Double(id_flash flash, double value)
     {
         auto& Result = ((FlvPrivate*) flash)->mTempBE8_Double;
-        uint64 SrcValue = *((uint64*) &value);
+        const uint64 SrcValue = *((uint64*) &value);
         Result  = (SrcValue >> 56) & ox00000000000000FF;
         Result |= (SrcValue >> 40) & ox000000000000FF00;
         Result |= (SrcValue >> 24) & ox0000000000FF0000;

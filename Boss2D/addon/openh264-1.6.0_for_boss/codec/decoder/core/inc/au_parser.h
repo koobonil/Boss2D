@@ -40,11 +40,11 @@
 #define WELS_ACCESS_UNIT_PARSER_H__
 #include BOSS_OPENH264_U_typedefs_h //original-code:"typedefs.h"
 #include BOSS_OPENH264_U_wels_common_basis_h //original-code:"wels_common_basis.h"
-#include "nal_prefix.h"
-#include "dec_frame.h"
-#include "bit_stream.h"
+#include BOSS_OPENH264_U_nal_prefix_h //original-code:"nal_prefix.h"
+#include BOSS_OPENH264_U_dec_frame_h //original-code:"dec_frame.h"
+#include BOSS_OPENH264_U_bit_stream_h //original-code:"bit_stream.h"
 #include BOSS_OPENH264_U_parameter_sets_h //original-code:"parameter_sets.h"
-#include "decoder_context.h"
+#include BOSS_OPENH264_U_decoder_context_h //original-code:"decoder_context.h"
 
 namespace WelsDec {
 

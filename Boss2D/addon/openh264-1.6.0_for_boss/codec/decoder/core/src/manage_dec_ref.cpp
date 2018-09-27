@@ -39,9 +39,9 @@
  *
  *****************************************************************************/
 
-#include "manage_dec_ref.h"
-#include "error_concealment.h"
-#include "error_code.h"
+#include BOSS_OPENH264_U_manage_dec_ref_h //original-code:"manage_dec_ref.h"
+#include BOSS_OPENH264_U_error_concealment_h //original-code:"error_concealment.h"
+#include BOSS_OPENH264_U_error_code_h //original-code:"error_code.h"
 
 namespace WelsDec {
 

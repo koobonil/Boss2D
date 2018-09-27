@@ -31,17 +31,17 @@
  *      decoder_core.c: Wels decoder framework core implementation
  */
 
-#include "decoder_core.h"
-#include "error_code.h"
-#include "memmgr_nal_unit.h"
-#include "au_parser.h"
-#include "decode_slice.h"
-#include "manage_dec_ref.h"
+#include BOSS_OPENH264_U_decoder_core_h //original-code:"decoder_core.h"
+#include BOSS_OPENH264_U_error_code_h //original-code:"error_code.h"
+#include BOSS_OPENH264_U_memmgr_nal_unit_h //original-code:"memmgr_nal_unit.h"
+#include BOSS_OPENH264_U_au_parser_h //original-code:"au_parser.h"
+#include BOSS_OPENH264_U_decode_slice_h //original-code:"decode_slice.h"
+#include BOSS_OPENH264_U_manage_dec_ref_h //original-code:"manage_dec_ref.h"
 #include BOSS_OPENH264_U_expand_pic_h //original-code:"expand_pic.h"
-#include "decoder.h"
+#include BOSS_OPENH264_U_decoder_h //original-code:"decoder.h"
 #include BOSS_OPENH264_U_decode_mb_aux_h //original-code:"decode_mb_aux.h"
 #include BOSS_OPENH264_U_memory_align_h //original-code:"memory_align.h"
-#include "error_concealment.h"
+#include BOSS_OPENH264_U_error_concealment_h //original-code:"error_concealment.h"
 
 namespace WelsDec {
 static inline int32_t DecodeFrameConstruction (PWelsDecoderContext pCtx, uint8_t** ppDst, SBufferInfo* pDstInfo) {

@@ -282,7 +282,10 @@
     <ClCompile Include="..\addon\boss_addon_tif.cpp">
       <Filter>Boss2D\addon</Filter>
     </ClCompile>
-    <ClCompile Include="..\addon\boss_integration_tesseract-3.04.01.cpp">
+    <ClCompile Include="..\addon\boss_integration_openh264-1.6.0_for_decoder.cpp">
+      <Filter>Boss2D\addon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\addon\boss_integration_openh264-1.6.0_for_encoder.cpp">
       <Filter>Boss2D\addon</Filter>
     </ClCompile>
   </ItemGroup>
@@ -564,9 +567,6 @@
       <Filter>Boss2D\addon</Filter>
     </ClInclude>
     <ClInclude Include="..\addon\boss_addon_tif.hpp">
-      <Filter>Boss2D\addon</Filter>
-    </ClInclude>
-    <ClInclude Include="..\addon\boss_integration_tesseract-3.04.01.h">
       <Filter>Boss2D\addon</Filter>
     </ClInclude>
   </ItemGroup>

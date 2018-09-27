@@ -147,9 +147,6 @@
     <ClCompile Include="..\addon\boss_integration_opencv-3.1.0_3rdparty_libjpeg.c">
       <Filter>Boss2D\addon</Filter>
     </ClCompile>
-    <ClCompile Include="..\addon\boss_integration_openh264-1.6.0.cpp">
-      <Filter>Boss2D\addon</Filter>
-    </ClCompile>
     <ClCompile Include="..\addon\boss_integration_openssl-1.1.0c.c">
       <Filter>Boss2D\addon</Filter>
     </ClCompile>
@@ -303,6 +300,15 @@
     <ClCompile Include="..\addon\boss_addon_tif.cpp">
       <Filter>Boss2D\addon</Filter>
     </ClCompile>
+    <ClCompile Include="..\addon\boss_integration_openh264-1.6.0.cpp">
+      <Filter>Boss2D\addon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\addon\boss_integration_openh264-1.6.0_for_decoder.cpp">
+      <Filter>Boss2D\addon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\addon\boss_integration_openh264-1.6.0_for_encoder.cpp">
+      <Filter>Boss2D\addon</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\element\boss_clip.hpp">
@@ -411,9 +417,6 @@
       <Filter>Boss2D\addon</Filter>
     </ClInclude>
     <ClInclude Include="..\addon\boss_integration_opencv-3.1.0_3rdparty_libjpeg.h">
-      <Filter>Boss2D\addon</Filter>
-    </ClInclude>
-    <ClInclude Include="..\addon\boss_integration_openh264-1.6.0.h">
       <Filter>Boss2D\addon</Filter>
     </ClInclude>
     <ClInclude Include="..\addon\boss_integration_openssl-1.1.0c.h">
@@ -579,6 +582,9 @@
       <Filter>Boss2D\addon</Filter>
     </ClInclude>
     <ClInclude Include="..\addon\boss_addon_tif.hpp">
+      <Filter>Boss2D\addon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\addon\boss_integration_openh264-1.6.0.h">
       <Filter>Boss2D\addon</Filter>
     </ClInclude>
   </ItemGroup>

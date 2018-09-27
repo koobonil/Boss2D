@@ -30,9 +30,9 @@
  *
  *      parse_mb_syn_cabac.cpp: cabac parse for syntax elements
  */
-#include "parse_mb_syn_cabac.h"
+#include BOSS_OPENH264_U_parse_mb_syn_cabac_h //original-code:"parse_mb_syn_cabac.h"
 #include BOSS_OPENH264_U_mv_pred_h //original-code:"mv_pred.h"
-#include "error_code.h"
+#include BOSS_OPENH264_U_error_code_h //original-code:"error_code.h"
 namespace WelsDec {
 #define IDX_UNUSED -1
 

@@ -37,8 +37,8 @@
  *
  *************************************************************************************
  */
-#include "bit_stream.h"
-#include "error_code.h"
+#include BOSS_OPENH264_U_bit_stream_h //original-code:"bit_stream.h"
+#include BOSS_OPENH264_U_error_code_h //original-code:"error_code.h"
 
 namespace WelsDec {
 

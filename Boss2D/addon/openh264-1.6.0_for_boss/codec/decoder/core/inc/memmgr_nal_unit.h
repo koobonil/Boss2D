@@ -43,7 +43,7 @@
 
 #include BOSS_OPENH264_U_typedefs_h //original-code:"typedefs.h"
 #include BOSS_OPENH264_U_wels_common_basis_h //original-code:"wels_common_basis.h"
-#include "nalu.h"
+#include BOSS_OPENH264_U_nalu_h //original-code:"nalu.h"
 #include BOSS_OPENH264_U_memory_align_h //original-code:"memory_align.h"
 
 namespace WelsDec {

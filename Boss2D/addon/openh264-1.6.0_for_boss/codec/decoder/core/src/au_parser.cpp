@@ -38,12 +38,12 @@
  *************************************************************************************
  */
 #include BOSS_OPENH264_U_codec_def_h //original-code:"codec_def.h"
-#include "au_parser.h"
-#include "decoder.h"
-#include "error_code.h"
-#include "memmgr_nal_unit.h"
-#include "decoder_core.h"
-#include "bit_stream.h"
+#include BOSS_OPENH264_U_au_parser_h //original-code:"au_parser.h"
+#include BOSS_OPENH264_U_decoder_h //original-code:"decoder.h"
+#include BOSS_OPENH264_U_error_code_h //original-code:"error_code.h"
+#include BOSS_OPENH264_U_memmgr_nal_unit_h //original-code:"memmgr_nal_unit.h"
+#include BOSS_OPENH264_U_decoder_core_h //original-code:"decoder_core.h"
+#include BOSS_OPENH264_U_bit_stream_h //original-code:"bit_stream.h"
 #include BOSS_OPENH264_U_memory_align_h //original-code:"memory_align.h"
 
 namespace WelsDec {

@@ -38,9 +38,9 @@
  *************************************************************************************
  */
 
-#include "fmo.h"
+#include BOSS_OPENH264_U_fmo_h //original-code:"fmo.h"
 #include BOSS_OPENH264_U_memory_align_h //original-code:"memory_align.h"
-#include "error_code.h"
+#include BOSS_OPENH264_U_error_code_h //original-code:"error_code.h"
 
 namespace WelsDec {
 

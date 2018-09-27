@@ -43,9 +43,9 @@
 
 #include BOSS_OPENH264_U_typedefs_h //original-code:"typedefs.h"
 #include BOSS_OPENH264_U_wels_common_basis_h //original-code:"wels_common_basis.h"
-#include "error_code.h"
+#include BOSS_OPENH264_U_error_code_h //original-code:"error_code.h"
 
-#include "decoder_context.h"
+#include BOSS_OPENH264_U_decoder_context_h //original-code:"decoder_context.h"
 
 namespace WelsDec {
 typedef struct TagMCRefMember {

@@ -38,11 +38,11 @@
 #include BOSS_OPENH264_U_wels_const_h //original-code:"wels_const.h"
 #include BOSS_OPENH264_U_wels_common_basis_h //original-code:"wels_common_basis.h"
 #include BOSS_OPENH264_U_parameter_sets_h //original-code:"parameter_sets.h"
-#include "nal_prefix.h"
+#include BOSS_OPENH264_U_nal_prefix_h //original-code:"nal_prefix.h"
 #include BOSS_OPENH264_U_slice_h //original-code:"slice.h"
 #include BOSS_OPENH264_U_picture_h //original-code:"picture.h"
-#include "bit_stream.h"
-#include "fmo.h"
+#include BOSS_OPENH264_U_bit_stream_h //original-code:"bit_stream.h"
+#include BOSS_OPENH264_U_fmo_h //original-code:"fmo.h"
 
 namespace WelsDec {
 

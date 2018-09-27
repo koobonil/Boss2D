@@ -39,8 +39,8 @@
 #ifndef WELS_ERROR_CONCEALMENT_H__
 #define WELS_ERROR_CONCEALMENT_H__
 #include BOSS_OPENH264_U_typedefs_h //original-code:"typedefs.h"
-#include "rec_mb.h"
-#include "decoder_context.h"
+#include BOSS_OPENH264_U_rec_mb_h //original-code:"rec_mb.h"
+#include BOSS_OPENH264_U_decoder_context_h //original-code:"decoder_context.h"
 
 namespace WelsDec {
 //Initialize error concealment

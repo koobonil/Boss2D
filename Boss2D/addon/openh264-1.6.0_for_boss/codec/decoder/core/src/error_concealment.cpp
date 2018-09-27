@@ -31,11 +31,11 @@
  *      error_concealment.cpp:  Wels decoder error concealment implementation
  */
 
-#include "error_code.h"
+#include BOSS_OPENH264_U_error_code_h //original-code:"error_code.h"
 #include BOSS_OPENH264_U_expand_pic_h //original-code:"expand_pic.h"
-#include "manage_dec_ref.h"
+#include BOSS_OPENH264_U_manage_dec_ref_h //original-code:"manage_dec_ref.h"
 #include BOSS_OPENH264_U_copy_mb_h //original-code:"copy_mb.h"
-#include "error_concealment.h"
+#include BOSS_OPENH264_U_error_concealment_h //original-code:"error_concealment.h"
 #include BOSS_OPENH264_U_cpu_core_h //original-code:"cpu_core.h"
 
 namespace WelsDec {

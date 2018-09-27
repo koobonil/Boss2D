@@ -41,7 +41,7 @@
 #define WELS_DECODER_SYSTEM_ARCHITECTURE_H__
 
 #include BOSS_OPENH264_U_typedefs_h //original-code:"typedefs.h"
-#include "decoder_context.h"
+#include BOSS_OPENH264_U_decoder_context_h //original-code:"decoder_context.h"
 
 namespace WelsDec {
 

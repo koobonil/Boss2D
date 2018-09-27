@@ -39,8 +39,8 @@
 #ifndef WELS_CABAC_DECODER_H__
 #define WELS_CABAC_DECODER_H__
 
-#include "decoder_context.h"
-#include "error_code.h"
+#include BOSS_OPENH264_U_decoder_context_h //original-code:"decoder_context.h"
+#include BOSS_OPENH264_U_error_code_h //original-code:"error_code.h"
 #include BOSS_OPENH264_U_wels_common_defs_h //original-code:"wels_common_defs.h"
 namespace WelsDec {
 static const uint8_t g_kRenormTable256[256] = {
