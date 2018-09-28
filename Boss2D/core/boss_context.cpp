@@ -586,6 +586,13 @@ namespace BOSS
             dst += (lastchild)? "\"" : "\",";
             dst += "\r\n";
         }
+        else if(!HasChild)
+        {
+            for(sint32 i = 0; i < tab; ++i)
+                dst += '\t';
+            dst += (lastchild)? "{}" : "{},";
+            dst += "\r\n";
+        }
 
         if(HasNamableChild)
         {

@@ -517,7 +517,8 @@
                 event->ignore();
                 return;
             }
-            key(event->key(), event->text().toUtf8().constData(), true);
+            if(!event->isAutoRepeat())
+                key(event->key(), event->text().toUtf8().constData(), true);
         }
 
         void keyReleaseEvent(QKeyEvent* event)
@@ -527,7 +528,8 @@
                 event->ignore();
                 return;
             }
-            key(event->key(), event->text().toUtf8().constData(), false);
+            if(!event->isAutoRepeat())
+                key(event->key(), event->text().toUtf8().constData(), false);
         }
 
     private:
