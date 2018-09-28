@@ -2090,6 +2090,183 @@
         }
     };
 
+    class PipePrivate : public QObject
+    {
+        Q_OBJECT
+
+    public:
+        PipePrivate() {mStatus = CS_Connecting; mTempContext = nullptr;}
+        virtual ~PipePrivate() {delete mTempContext;}
+
+    public:
+        inline ConnectStatus Status() const {return mStatus;}
+        inline sint32 RecvAvailable() const {return mData.Count();}
+        sint32 Recv(uint08* data, sint32 size)
+        {
+            const sint32 MinSize = Math::Min(size, mData.Count());
+            Memory::Copy(data, &mData[0], MinSize);
+            if(MinSize == mData.Count()) mData.SubtractionAll();
+            else mData.SubtractionSection(0, MinSize);
+            return MinSize;
+        }
+        bool Send(bytes data, sint32 size)
+        {
+            bool Result = SendCore(data, size);
+            FlushCore();
+            return Result;
+        }
+
+    public:
+        virtual bool SendCore(bytes data, sint32 size) = 0;
+        virtual void FlushCore() = 0;
+
+    public:
+        const Context* RecvJson()
+        {
+            static const String JsonBegin("#json begin");
+            static const String JsonEnd("#json end");
+            delete mTempContext;
+            mTempContext = nullptr;
+
+            if(JsonEnd.Length() < mData.Count())
+            {
+                String Message(mData);
+                sint32 BeginPos = 0, EndPos = 0;
+                if((EndPos = Message.Find(0, JsonEnd)) != -1)
+                {
+                    if((BeginPos = Message.Find(0, JsonBegin)) != -1)
+                    {
+                        const sint32 JsonPos = BeginPos + JsonBegin.Length();
+                        const sint32 JsonSize = EndPos - JsonPos;
+                        mTempContext = new Context(ST_Json, SO_NeedCopy, &mData[JsonPos], JsonSize);
+                    }
+                    mData.SubtractionSection(0, EndPos + JsonEnd.Length());
+                }
+            }
+            return mTempContext;
+        }
+        bool SendJson(const String& json)
+        {
+            bool Result = true;
+            Result &= SendCore((bytes) "#json begin", 11);
+            Result &= SendCore((bytes) (chars) json, json.Length());
+            Result &= SendCore((bytes) "#json end", 9);
+            FlushCore();
+            return Result;
+        }
+
+    protected:
+        ConnectStatus mStatus;
+        chararray mData;
+        Context* mTempContext;
+    };
+
+    class PipeServerPrivate : public PipePrivate
+    {
+        Q_OBJECT
+
+    public:
+        PipeServerPrivate(QLocalServer* server, QSharedMemory* semaphore)
+        {
+            mServer = server;
+            mSemaphore = semaphore;
+            mLastClient = nullptr;
+            connect(server, &QLocalServer::newConnection, this, &PipeServerPrivate::OnNewConnection);
+        }
+        ~PipeServerPrivate() override
+        {
+            delete mServer;
+            delete mSemaphore;
+        }
+
+    private:
+        bool SendCore(bytes data, sint32 size) override
+        {
+            if(mLastClient)
+                return (mLastClient->write((chars) data, size) == size);
+            return false;
+        }
+        void FlushCore() override
+        {
+            if(mLastClient)
+                mLastClient->flush();
+        }
+
+    private slots:
+        void OnNewConnection()
+        {
+            mLastClient = mServer->nextPendingConnection();
+            connect(mLastClient, &QLocalSocket::disconnected, this, &PipeServerPrivate::OnDisconnected);
+
+            if(mStatus == CS_Connecting)
+            {
+                mStatus = CS_Connected;
+                connect(mLastClient, &QLocalSocket::readyRead, this, &PipeServerPrivate::OnReadyRead);
+            }
+            else mLastClient->disconnectFromServer();
+        }
+        void OnDisconnected()
+        {
+            mStatus = CS_Connecting;
+            mLastClient = nullptr;
+        }
+        void OnReadyRead()
+        {
+            mLastClient = (QLocalSocket*) sender();
+            if(sint64 PacketSize = mLastClient->bytesAvailable())
+                mLastClient->read((char*) mData.AtDumpingAdded(PacketSize), PacketSize);
+        }
+
+    private:
+        QLocalServer* mServer;
+        QSharedMemory* mSemaphore;
+        QLocalSocket* mLastClient;
+    };
+
+    class PipeClientPrivate : public PipePrivate
+    {
+        Q_OBJECT
+
+    public:
+        PipeClientPrivate(QLocalSocket* client)
+        {
+            mClient = client;
+            connect(client, &QLocalSocket::disconnected, this, &PipeClientPrivate::OnDisconnected);
+            connect(client, &QLocalSocket::readyRead, this, &PipeClientPrivate::OnReadyRead);
+        }
+        ~PipeClientPrivate() override
+        {
+            delete mClient;
+        }
+
+    private:
+        bool SendCore(bytes data, sint32 size) override
+        {
+            return (mClient->write((chars) data, size) == size);
+        }
+        void FlushCore() override
+        {
+            mClient->flush();
+        }
+
+    private slots:
+        void OnDisconnected()
+        {
+            mStatus = CS_Disconnected;
+            delete mClient;
+            mClient = nullptr;
+        }
+        void OnReadyRead()
+        {
+            mStatus = CS_Connected;
+            if(sint64 PacketSize = mClient->bytesAvailable())
+                mClient->read((char*) mData.AtDumpingAdded(PacketSize), PacketSize);
+        }
+
+    private:
+        QLocalSocket* mClient;
+    };
+
     class WebEngineViewForExtraDesktop : public QObject
     {
         Q_OBJECT
@@ -4124,6 +4301,9 @@
     class ListTracker : public QListWidget {Q_OBJECT};
     class ThreadClass : public QThread {Q_OBJECT};
     class TCPAgent : public QTcpServer {Q_OBJECT};
+    class PipePrivate : public QObject {Q_OBJECT};
+    class PipeServerPrivate : public PipePrivate {Q_OBJECT};
+    class PipeClientPrivate : public PipePrivate {Q_OBJECT};
     class WebEngineViewForExtraDesktop : public QObject {Q_OBJECT};
     class WebViewPrivate : public WebEngineViewClass {Q_OBJECT};
     class PurchasePrivate : public QInAppStore {Q_OBJECT};

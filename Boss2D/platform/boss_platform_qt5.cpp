@@ -134,6 +134,7 @@
         int main(int argc, char* argv[])
         {
             int result = 0;
+            Platform::Option::SetFlag("AssertPopup", true);
             {
                 QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
                 QApplication app(argc, argv);
@@ -142,7 +143,6 @@
                 g_argc = argc;
                 g_argv = argv;
 
-                Platform::Option::SetFlag("AssertPopup", true);
                 if(PlatformInit())
                 {
                     mainWindow.SetInitedPlatform();
@@ -157,10 +157,9 @@
                     result = app.exec();
                     PlatformQuit();
                 }
-                Platform::Option::SetFlag("AssertPopup", false);
-
                 g_window = nullptr;
             }
+            Platform::Option::SetFlag("AssertPopup", false);
 
             // 스토리지(TLS) 영구제거
             Storage::ClearAll(SCL_SystemAndUser);
@@ -262,16 +261,19 @@
         ////////////////////////////////////////////////////////////////////////////////
         // PLATFORM
         ////////////////////////////////////////////////////////////////////////////////
+        static bool gSavedFrameless = false;
         void Platform::InitForGL(bool frameless, bool topmost)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data);
             g_data->initForGL(frameless, topmost);
+            gSavedFrameless = frameless;
         }
 
         void Platform::InitForMDI(bool frameless, bool topmost)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data);
             g_data->initForMDI(frameless, topmost);
+            gSavedFrameless = frameless;
         }
 
         void Platform::SetViewCreator(View::CreatorCB creator)
@@ -302,11 +304,14 @@
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
             if(!Platform::Utility::IsFullScreen())
             {
-                // Qt버전에 따라 달라짐
-                //auto TitleBarHeight = QApplication::style()->pixelMetric(QStyle::PM_TitleBarHeight);
-                //auto WindowFrame = QApplication::style()->pixelMetric(QStyle::PM_MdiSubWindowFrameWidth);
-                //g_window->move(x - WindowFrame, y - TitleBarHeight - WindowFrame / 2);
-                g_window->move(x, y);
+                if(gSavedFrameless)
+                    g_window->move(x, y);
+                else
+                {
+                    auto TitleBarHeight = QApplication::style()->pixelMetric(QStyle::PM_TitleBarHeight);
+                    auto WindowFrame = QApplication::style()->pixelMetric(QStyle::PM_MdiSubWindowFrameWidth);
+                    g_window->move(x - WindowFrame, y - TitleBarHeight - WindowFrame / 2);
+                }
             }
         }
 
@@ -2981,37 +2986,70 @@
         ////////////////////////////////////////////////////////////////////////////////
         id_pipe Platform::Pipe::Open(chars name)
         {
-            BOSS_ASSERT("Further development is needed.", false);
-            return nullptr;
+            QSharedMemory* Semaphore = new QSharedMemory(name);
+            if(!Semaphore->attach() && Semaphore->create(1))
+            {
+                // 서버
+                QLocalServer* Server = new QLocalServer();
+                if(Server->listen(name))
+                    return (id_pipe) new PipeServerPrivate(Server, Semaphore);
+                delete Server;
+            }
+            delete Semaphore;
+
+            // 클라이언트
+            QLocalSocket* Client = new QLocalSocket();
+            Client->abort();
+            Client->connectToServer(name);
+            return (id_pipe) new PipeClientPrivate(Client);
         }
 
         void Platform::Pipe::Close(id_pipe pipe)
         {
-            BOSS_ASSERT("Further development is needed.", false);
+            auto OldPipe = (PipePrivate*) pipe;
+            delete OldPipe;
         }
 
-        bool Platform::Pipe::Connected(id_pipe pipe)
+        ConnectStatus Platform::Pipe::Status(id_pipe pipe)
         {
-            BOSS_ASSERT("Further development is needed.", false);
-            return false;
+            auto CurPipe = (PipePrivate*) pipe;
+            if(!CurPipe) return CS_Disconnected;
+            return CurPipe->Status();
         }
 
         sint32 Platform::Pipe::RecvAvailable(id_pipe pipe)
         {
-            BOSS_ASSERT("Further development is needed.", false);
-            return 0;
+            auto CurPipe = (PipePrivate*) pipe;
+            if(!CurPipe) return 0;
+            return CurPipe->RecvAvailable();
         }
 
         sint32 Platform::Pipe::Recv(id_pipe pipe, uint08* data, sint32 size)
         {
-            BOSS_ASSERT("Further development is needed.", false);
-            return 0;
+            auto CurPipe = (PipePrivate*) pipe;
+            if(!CurPipe) return 0;
+            return CurPipe->Recv(data, size);
+        }
+
+        const Context* Platform::Pipe::RecvJson(id_pipe pipe)
+        {
+            auto CurPipe = (PipePrivate*) pipe;
+            if(!CurPipe) return nullptr;
+            return CurPipe->RecvJson();
         }
 
         bool Platform::Pipe::Send(id_pipe pipe, bytes data, sint32 size)
         {
-            BOSS_ASSERT("Further development is needed.", false);
-            return false;
+            auto CurPipe = (PipePrivate*) pipe;
+            if(!CurPipe) return false;
+            return CurPipe->Send(data, size);
+        }
+
+        bool Platform::Pipe::SendJson(id_pipe pipe, const String& json)
+        {
+            auto CurPipe = (PipePrivate*) pipe;
+            if(!CurPipe) return false;
+            return CurPipe->SendJson(json);
         }
 
         ////////////////////////////////////////////////////////////////////////////////

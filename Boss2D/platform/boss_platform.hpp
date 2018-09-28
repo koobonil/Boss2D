@@ -29,6 +29,7 @@ namespace BOSS
         MR_SrcIn, MR_DstIn, MR_SrcOut, MR_DstOut,
         MR_SrcAtop, MR_DstAtop, MR_Xor, MR_Default = MR_SrcOver};
     enum DialogButtonType {DBT_YesNo, DBT_Ok, DBT_OKCancel, DBT_OkCancelIgnore};
+    enum ConnectStatus {CS_Connecting, CS_Connected, CS_Disconnected};
     enum PurchaseType {PT_Consumable, PT_Unlockable};
     class ViewClass;
     class ViewManager;
@@ -421,7 +422,7 @@ namespace BOSS
             \brief 프로그램에 들어온 인수를 확인
             \param i : 인수인덱스
             \param getcount : 수량정보
-            \return i번째에 해당하는 인수스트링(없으면 nullptr)
+            \return i번째에 해당하는 인수스트링(없으면 "")
             */
             static chars GetArgument(sint32 i, sint32* getcount = nullptr);
 
@@ -1668,17 +1669,17 @@ namespace BOSS
             static void Close(id_pipe pipe);
 
             /*!
-            \brief 연결되었는지의 여부
+            \brief 연결상태 조사
             \param pipe : 파이프ID
-            \return 연결여부
+            \return 연결상태
             \see Open, Close
             */
-            static bool Connected(id_pipe pipe);
+            static ConnectStatus Status(id_pipe pipe);
 
             /*!
-            \brief 수신가능성 조사
+            \brief 수신된 사이즈 조사
             \param pipe : 파이프ID
-            \return 수신가능한 사이즈(0~N)
+            \return 수신된 사이즈(0~N)
             \see Recv
             */
             static sint32 RecvAvailable(id_pipe pipe);
@@ -1694,6 +1695,14 @@ namespace BOSS
             static sint32 Recv(id_pipe pipe, uint08* data, sint32 size);
 
             /*!
+            \brief Json수신
+            \param pipe : 파이프ID
+            \return Json객체(없으면 nullptr)
+            \see SendJson
+            */
+            static const Context* RecvJson(id_pipe pipe);
+
+            /*!
             \brief 데이터송신
             \param pipe : 파이프ID
             \param data : 송신할 데이터
@@ -1702,6 +1711,15 @@ namespace BOSS
             \see Recv
             */
             static bool Send(id_pipe pipe, bytes data, sint32 size);
+
+            /*!
+            \brief Json송신
+            \param pipe : 파이프ID
+            \param json : 송신할 Json객체
+            \return 송신성공여부
+            \see RecvJson
+            */
+            static bool SendJson(id_pipe pipe, const String& json);
         };
 
         ////////////////////////////////////////////////////////////////////////////////

@@ -1724,10 +1724,10 @@
             BOSS_ASSERT("Further development is needed.", false);
         }
 
-        bool Platform::Pipe::Connected(id_pipe pipe)
+        ConnectStatus Platform::Pipe::Status(id_pipe pipe)
         {
             BOSS_ASSERT("Further development is needed.", false);
-            return false;
+            return CS_Disconnected;
         }
 
         sint32 Platform::Pipe::RecvAvailable(id_pipe pipe)
@@ -1742,7 +1742,19 @@
             return 0;
         }
 
+        const Context* Platform::Pipe::RecvJson(id_pipe pipe)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return nullptr;
+        }
+
         bool Platform::Pipe::Send(id_pipe pipe, bytes data, sint32 size)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return false;
+        }
+
+        bool Platform::Pipe::SendJson(id_pipe pipe, const String& json)
         {
             BOSS_ASSERT("Further development is needed.", false);
             return false;

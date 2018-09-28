@@ -222,7 +222,7 @@ namespace BOSS
             const sint32* KeyMap = key.GetFindMap();
             chars FindBegin = &m_words[0];
             chars FindFocus = FindBegin + index + KeyLength - 1;
-            chars FindEnd = FindBegin + Length();
+            chars FindEnd = FindBegin + m_words.Count();
             while(FindFocus < FindEnd)
             {
                 if(*FindFocus == KeyTail && !Memory::Compare(&FindFocus[1 - KeyLength], KeyString, KeyLength))
