@@ -163,14 +163,23 @@ void H264Private::WriteScriptDataString(uint08s& dst, chars name, chars value)
     WriteScriptDataImpl(dst, value);
 }
 
+static void TraceCallback(void* ctx, int level, const char* string)
+{
+    if(level == LEVEL_1_0)
+        BOSS_ASSERT(string, false);
+    else BOSS_TRACE(string);
+}
+
 H264EncoderPrivate::H264EncoderPrivate(sint32 width, sint32 height, bool fastmode)
 {
     mEncoder = nullptr;
     int rv = WelsCreateSVCEncoder(&mEncoder);
     BOSS_ASSERT("WelsCreateSVCEncoder가 실패하였습니다", rv == cmResultSuccess && mEncoder != nullptr);
 
-    unsigned int uiTraceLevel = WELS_LOG_ERROR;
+    unsigned int uiTraceLevel = WELS_LOG_DETAIL;
     mEncoder->SetOption(ENCODER_OPTION_TRACE_LEVEL, &uiTraceLevel);
+    WelsTraceCallback cbTraceCallback = TraceCallback;
+    mEncoder->SetOption(ENCODER_OPTION_TRACE_CALLBACK, &cbTraceCallback);
 
     SEncParamExt param;
     mEncoder->GetDefaultParams(&param);
@@ -287,13 +296,13 @@ void H264EncoderPrivate::Encode(const uint32* rgba, id_flash flash, uint64 timem
                 mTempChunk.AtAdding() = CurLayer.pBsBuf[7]; // AVCLevel-Indication
                 mTempChunk.AtAdding() = 0xFF; // lengthSizeMinusOne
                 // SPS
-                mTempChunk.AtAdding() = 0xE1; // SPS Number
-                Memory::Copy(mTempChunk.AtDumpingAdded(2), GetBE2(SPSEnd - SPSBegin), 2); // Size
-                Memory::Copy(mTempChunk.AtDumpingAdded(SPSEnd - SPSBegin), &CurLayer.pBsBuf[SPSBegin], SPSEnd - SPSBegin);
+                mTempChunk.AtAdding() = 0x01; // NumberOfSPS
+                Memory::Copy(mTempChunk.AtDumpingAdded(2), GetBE2(SPSEnd - SPSBegin), 2); // SPS-Length
+                Memory::Copy(mTempChunk.AtDumpingAdded(SPSEnd - SPSBegin), &CurLayer.pBsBuf[SPSBegin], SPSEnd - SPSBegin); // SPS-NALU
                 // PPS
-                mTempChunk.AtAdding() = 0x01; // PPS Number
-                Memory::Copy(mTempChunk.AtDumpingAdded(2), GetBE2(PPSEnd - PPSBegin), 2); // Size
-                Memory::Copy(mTempChunk.AtDumpingAdded(PPSEnd - PPSBegin), &CurLayer.pBsBuf[PPSBegin], PPSEnd - PPSBegin);
+                mTempChunk.AtAdding() = 0x01; // NumberOfPPS
+                Memory::Copy(mTempChunk.AtDumpingAdded(2), GetBE2(PPSEnd - PPSBegin), 2); // PPS-Length
+                Memory::Copy(mTempChunk.AtDumpingAdded(PPSEnd - PPSBegin), &CurLayer.pBsBuf[PPSBegin], PPSEnd - PPSBegin); // PPS-NALU
                 Flv::WriteChunk(flash, 0x09, &mTempChunk[0], mTempChunk.Count(), timems); // video
             }
         }
@@ -305,6 +314,19 @@ H264DecoderPrivate::H264DecoderPrivate()
     mDecoder = nullptr;
     int rv = WelsCreateDecoder(&mDecoder);
     BOSS_ASSERT("WelsCreateSVCDecoder가 실패하였습니다", rv == cmResultSuccess && mDecoder != nullptr);
+
+    unsigned int uiTraceLevel = WELS_LOG_DETAIL;
+    mDecoder->SetOption(DECODER_OPTION_TRACE_LEVEL, &uiTraceLevel);
+    WelsTraceCallback cbTraceCallback = TraceCallback;
+    mDecoder->SetOption(DECODER_OPTION_TRACE_CALLBACK, &cbTraceCallback);
+
+    SDecodingParam param;
+    memset (&param, 0, sizeof(SDecodingParam));
+    param.uiTargetDqLayer = UCHAR_MAX;
+    param.eEcActiveIdc = ERROR_CON_SLICE_COPY;
+    param.sVideoProperty.eVideoBsType = VIDEO_BITSTREAM_DEFAULT;
+    rv = mDecoder->Initialize(&param);
+    BOSS_ASSERT("Initialize가 실패하였습니다", rv == cmResultSuccess);
 }
 
 H264DecoderPrivate::~H264DecoderPrivate()
@@ -327,9 +349,128 @@ id_bitmap H264DecoderPrivate::Decode(id_flash flash)
         if(!Chunk) return nullptr;
     }
 
-    ////////////////////////
-    ////////////////////////
-    return nullptr;
+    const bool IsKeyFrame = !!(Chunk[0] & 0x10);
+    const bool IsNALU = !!(Chunk[1] & 0x01);
+    sint32 BsSize = 0;
+    bytes BsBuf = nullptr;
+    bytes ChunkFocus = &Chunk[5];
+    bytes ChunkEnd = &Chunk[ChunkSize];
+    typedef Array<uint08, datatype_pod_canmemcpy, 256> CollectorType;
+    CollectorType* PsCollector = nullptr;
+    if(IsNALU)
+    {
+        BsSize  = (*(ChunkFocus++) & 0xFF) << 24;
+        BsSize |= (*(ChunkFocus++) & 0xFF) << 16;
+        BsSize |= (*(ChunkFocus++) & 0xFF) <<  8;
+        BsSize |= (*(ChunkFocus++) & 0xFF) <<  0;
+        BsBuf = ChunkFocus;
+    }
+    else
+    {
+        while((*(ChunkFocus++) & 0xFC) != 0xFC) // 1111:1100
+            if(ChunkEnd < ChunkFocus)
+                return nullptr;
+        PsCollector = new CollectorType();
+        for(sint32 i = 0; i < 2; ++i) // SPS와 PPS
+        {
+            sint32 Count = *(ChunkFocus++);
+            for(sint32 j = 0; j < Count; ++j)
+            {
+                uint32 PsSize = 0;
+                PsSize  = (*(ChunkFocus++) & 0xFF) << 8;
+                PsSize |= (*(ChunkFocus++) & 0xFF) << 0;
+                Memory::Copy(PsCollector->AtDumpingAdded(4), GetBE4(1), 4);
+                Memory::Copy(PsCollector->AtDumpingAdded(PsSize), ChunkFocus, PsSize);
+                if(ChunkEnd < (ChunkFocus += PsSize))
+                {
+                    delete PsCollector;
+                    return nullptr;
+                }
+            }
+        }
+        BsSize = PsCollector->Count();
+        BsBuf = &(*PsCollector)[0];
+    }
+
+    id_bitmap Result = nullptr;
+    DecodeFrame(BsBuf, BsSize,
+        [](payload data, const Frame& frame)->void
+        {
+            id_bitmap& Result = *((id_bitmap*) data);
+            const sint32 Width = frame.mY.mWidth;
+            const sint32 Height = frame.mY.mHeight;
+            Result = Bmp::Create(4, Width, Height);
+            auto Bits = (Bmp::bitmappixel*) Bmp::GetBits(Result);
+            for(sint32 y = 0; y < Height; ++y)
+            {
+                auto DstBits = &Bits[Width * (Height - 1 - y)];
+                auto SrcY = &frame.mY.mData[frame.mY.mStride * y];
+                auto SrcU = &frame.mU.mData[frame.mU.mStride * (y >> 1)];
+                auto SrcV = &frame.mV.mData[frame.mV.mStride * (y >> 1)];
+                for(sint32 x = 0; x < Width; ++x)
+                {
+                    const sint32 CurY = *SrcY & 0xFF;
+                    const sint32 CurU = (*SrcU & 0xFF) - 128;
+                    const sint32 CurV = (*SrcV & 0xFF) - 128;
+                    const sint32 BaseColor = (sint32)(1.164f * (CurY - 16));
+                    const sint32 RValue = (sint32)(1.596f * CurV);
+                    const sint32 GValue = (sint32)(0.391f * CurU + 0.813f * CurV);
+                    const sint32 BValue = (sint32)(2.018f * CurU);
+                    DstBits->a = 0xFF;
+                    DstBits->r = Math::Clamp(BaseColor + RValue, 0, 255);
+                    DstBits->g = Math::Clamp(BaseColor - GValue, 0, 255);
+                    DstBits->b = Math::Clamp(BaseColor + BValue, 0, 255);
+                    DstBits++;
+                    SrcY++;
+                    SrcU += (x & 1);
+                    SrcV += (x & 1);
+                }
+            }
+        }, &Result);
+    delete PsCollector;
+
+    if(!Result)
+        return Decode(flash);
+    return Result;
+}
+
+void H264DecoderPrivate::DecodeFrame(bytes src, sint32 sliceSize, OnDecodeFrame cb, payload data)
+{
+    uint08* bufdata[3];
+    SBufferInfo bufInfo;
+    memset(bufdata, 0, sizeof(bufdata));
+    memset(&bufInfo, 0, sizeof(SBufferInfo));
+    DECODING_STATE rv = mDecoder->DecodeFrame2(src, sliceSize, bufdata, &bufInfo);
+    BOSS_ASSERT("DecodeFrameNoDelay가 실패하였습니다", rv == dsErrorFree);
+
+    if(bufInfo.iBufferStatus == 1)
+    {
+        const Frame frame =
+        {
+            {
+                // y plane
+                bufdata[0],
+                bufInfo.UsrData.sSystemBuffer.iWidth,
+                bufInfo.UsrData.sSystemBuffer.iHeight,
+                bufInfo.UsrData.sSystemBuffer.iStride[0]
+            },
+            {
+                // u plane
+                bufdata[1],
+                bufInfo.UsrData.sSystemBuffer.iWidth / 2,
+                bufInfo.UsrData.sSystemBuffer.iHeight / 2,
+                bufInfo.UsrData.sSystemBuffer.iStride[1]
+            },
+            {
+                // v plane
+                bufdata[2],
+                bufInfo.UsrData.sSystemBuffer.iWidth / 2,
+                bufInfo.UsrData.sSystemBuffer.iHeight / 2,
+                bufInfo.UsrData.sSystemBuffer.iStride[1]
+            }
+        };
+        cb(data, frame);
+    }
 }
 
 #endif

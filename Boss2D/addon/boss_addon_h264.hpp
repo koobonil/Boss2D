@@ -82,5 +82,22 @@ public:
     id_bitmap Decode(id_flash flash);
 
 private:
+    struct Plane
+    {
+        bytes mData;
+        sint32 mWidth;
+        sint32 mHeight;
+        sint32 mStride;
+    };
+    struct Frame
+    {
+        Plane mY;
+        Plane mU;
+        Plane mV;
+    };
+    typedef void (*OnDecodeFrame)(payload data, const Frame& frame);
+    void DecodeFrame(bytes src, sint32 sliceSize, OnDecodeFrame cb, payload data);
+
+private:
     ISVCDecoder* mDecoder;
 };
