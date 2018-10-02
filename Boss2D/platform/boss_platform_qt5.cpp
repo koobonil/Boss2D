@@ -354,6 +354,26 @@
             }
         }
 
+        bool Platform::SetWindowMask(id_image_read image)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
+            bool IsFramelessStyle = !!(g_window->windowFlags() & Qt::FramelessWindowHint);
+            BOSS_ASSERT("SetWindowMask는 Frameless스타일에서만 동작합니다", IsFramelessStyle);
+            if(IsFramelessStyle)
+            {
+                if(image) // 윈도우가 보여지기 전에 setMask를 호출하면 그 이후에 계속 프레임이
+                    g_window->setMask(((QPixmap*) image)->mask()); // 현저히 떨어지는(33f/s → 10f/s) 이유를 알아낼 것
+                else g_window->clearMask();
+            }
+            return IsFramelessStyle;
+        }
+
+        void Platform::SetWindowOpacity(float value)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
+            g_window->setWindowOpacity(value);
+        }
+
         void Platform::AddWindowProcedure(WindowEvent event, ProcedureCB cb, payload data)
         {
             PlatformImpl::Wrap::AddWindowProcedure(event, cb, data);

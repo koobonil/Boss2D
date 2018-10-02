@@ -226,6 +226,21 @@
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
         }
 
+        bool Platform::SetWindowMask(id_image_read image)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
+
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+            return false;
+        }
+
+        void Platform::SetWindowOpacity(float value)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
+
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+        }
+
         void Platform::AddWindowProcedure(WindowEvent event, ProcedureCB cb, payload data)
         {
             PlatformImpl::Wrap::AddWindowProcedure(event, cb, data);

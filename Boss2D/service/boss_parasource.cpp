@@ -8,44 +8,31 @@ namespace BOSS
     class ContactPool
     {
     private:
-        typedef Map<ContactPool> ContactPoolMap;
-        typedef Map<ContactPoolMap> ContactPoolMapMap;
-        typedef Map<ContactPoolMapMap> ContactPoolMapMapMap;
+        typedef Tree<ContactPool> ContactPoolTree;
         class STClass
         {
         public:
-            STClass() {m_mutex = Mutex::Open();}
-            ~STClass() {Mutex::Close(m_mutex);}
+            STClass() {}
+            ~STClass() {}
         public:
-            ContactPoolMapMapMap m_mapmapmap;
-            id_mutex m_mutex;
+            ContactPoolTree m_tree;
         };
-        static inline STClass& ST() {static STClass _; return _;}
+        static inline STClass& ST() {return *BOSS_STORAGE_SYS(STClass);}
 
     public:
         static ContactPool& GetContact(chars domain, uint16 port)
         {
-            Mutex::Lock(ST().m_mutex);
-            const uint64 ThreadID = Platform::Utility::CurrentThreadID();
-            ContactPool* Ptr = &ST().m_mapmapmap[ThreadID](domain)[port];
-            Mutex::Unlock(ST().m_mutex);
-            return *Ptr;
+            ContactPool* Ptr = ST().m_tree(domain)[port].Value();
+            return (Ptr)? *Ptr : *ST().m_tree(domain)[port].CreateValue();
         }
         static bool RemoveContact(chars domain, uint16 port)
         {
-            bool Result = false;
-            Mutex::Lock(ST().m_mutex);
-            const uint64 ThreadID = Platform::Utility::CurrentThreadID();
-            if(auto Thread = ST().m_mapmapmap.Access(ThreadID))
-            if(auto Domain = Thread->Access(domain))
-            if(Domain->Remove(port))
+            if(ST().m_tree(domain)[port].Value())
             {
-                Result = true;
-                if(Domain->Count() == 0)
-                    ST().m_mapmapmap.Remove(domain);
+                ST().m_tree(domain).Remove(port);
+                return true;
             }
-            Mutex::Unlock(ST().m_mutex);
-            return Result;
+            return false;
         }
 
     public:

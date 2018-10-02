@@ -102,6 +102,19 @@ namespace BOSS
         static void SetWindowVisible(bool visible);
 
         /*!
+        \brief 윈도우마스크 설정
+        \param image : 마스킹할 이미지(nullptr이면 마스킹옵션이 제거됨)
+        \return 성공여부(윈도우가 frameless스타일이어야 성공)
+        */
+        static bool SetWindowMask(id_image_read image = nullptr);
+
+        /*!
+        \brief 윈도우투명도 설정
+        \param value : 0~1사이의 불투명도값
+        */
+        static void SetWindowOpacity(float value);
+
+        /*!
         \brief 윈도우프로시저 추가
         \param event : 호출시점
         \param cb : 콜백함수
