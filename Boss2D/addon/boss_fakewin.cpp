@@ -239,6 +239,8 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     #undef _fprintf
     #undef _fclose
     #undef _feof
+    #undef _ftime_s
+    #undef _localtime_s
     #undef _wopen
     #undef _close
     #undef _read
@@ -301,9 +303,13 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     #undef strerror
     #undef strerror_s    
     #undef strcpy_s
+    #undef strncpy_s
     #undef wcscpy_s
+    #undef wcsncpy_s
     #undef strcpy
+    #undef strncpy
     #undef wcscpy
+    #undef wcsncpy
     #undef _strdup
     #undef _wcsdup
     #undef strpbrk
@@ -327,6 +333,8 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     #undef fprintf
     #undef fclose
     #undef feof
+    #undef ftime_s
+    #undef localtime_s
     #undef lseek
     #undef lseeki64
     #undef chsize_s
@@ -1693,6 +1701,18 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         return boss_feof((boss_file) stream);
     }
 
+    extern "C" errno_t boss_fakewin_ftime_s(boss_fakewin_struct_timeb*)
+    {
+        BOSS_ASSERT("########## _ftime_s준비중", false);
+        return 0;
+    }
+
+    extern "C" errno_t boss_fakewin_localtime_s(struct tm*, const time_t*)
+    {
+        BOSS_ASSERT("########## _localtime_s준비중", false);
+        return 0;
+    }
+
     extern "C" int boss_fakewin_wopen(const wchar_t* filename, int oflag, int pmode)
     {
         int TotalOFlags = O_RDONLY | O_WRONLY | O_RDWR | O_APPEND | O_CREAT |
@@ -2354,28 +2374,38 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     extern "C" errno_t boss_fakewin_strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource)
     {
         BOSS_ASSERT("########## strcpy_s준비중", false);
-        //for (size_t i = 0; i < numberOfElements; ++i)
-        //    dest[i] = sour[i];
-        return 0;    
+        return 0;
+    }
+    extern "C" errno_t boss_fakewin_strncpy_s(char* strDestination, size_t numberOfElements, const char* strSource, size_t count)
+    {
+        BOSS_ASSERT("########## strncpy_s준비중", false);
+        return 0;
     }
     extern "C" errno_t boss_fakewin_wcscpy_s(wchar_t *strDestination, size_t numberOfElements, const wchar_t *strSource)
     {
         BOSS_ASSERT("########## wcscpy_s준비중", false);
-        //for (size_t i = 0; i < numberOfElements; ++i)
-        //    dest[i] = sour[i];
-        return 0;    
-    }    
+        return 0;
+    }
+    extern "C" errno_t boss_fakewin_wcsncpy_s(wchar_t *strDestination, size_t numberOfElements, const wchar_t *strSource, size_t count)
+    {
+        BOSS_ASSERT("########## wcsncpy_s준비중", false);
+        return 0;
+    }
     extern "C" char* boss_fakewin_strcpy(char *strDestination, const char *strSource)
     {
-        char* temp = strDestination;
-        while (*(temp++) = *(strSource++));
-        return strDestination;
+        return boss_strcpy(strDestination, strSource);
+    }
+    extern "C" char* boss_fakewin_strncpy(char* strDestination, const char* strSource, size_t count)
+    {
+        return boss_strncpy(strDestination, strSource, count);
     }
     extern "C" wchar_t* boss_fakewin_wcscpy(wchar_t *strDestination, const wchar_t *strSource)
     {
-        wchar_t* temp = strDestination;
-        while (*(temp++) = *(strSource++));
-        return strDestination;
+        return boss_wcscpy(strDestination, strSource);
+    }
+    extern "C" wchar_t* boss_fakewin_wcsncpy(wchar_t *strDestination, const wchar_t *strSource, size_t count)
+    {
+        return boss_wcsncpy(strDestination, strSource, count);
     }
     extern "C" char* boss_fakewin_strdup(const char *strSource)
     {

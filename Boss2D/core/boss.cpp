@@ -56,6 +56,11 @@ extern "C"
         extern double atof(const char*);
     #endif
 
+    extern char* strcpy(char*, const char*);
+    extern char* strncpy(char*, const char*, size_t);
+    extern wchar_t* wcscpy(wchar_t*, const wchar_t*);
+    extern wchar_t* wcsncpy(wchar_t*, const wchar_t*, size_t);
+
     extern size_t strlen(const char*);
     extern size_t wcslen(const wchar_t*);
 
@@ -197,6 +202,26 @@ extern "C" double boss_atof(const char* str)
     #else
         return atof(str);
     #endif
+}
+
+extern "C" char* boss_strcpy(char* dest, const char* src)
+{
+    return strcpy(dest, src);
+}
+
+extern "C" char* boss_strncpy(char* dest, const char* src, size_t n)
+{
+    return strncpy(dest, src, n);
+}
+
+extern "C" wchar_t* boss_wcscpy(wchar_t* dest, const wchar_t* src)
+{
+    return wcscpy(dest, src);
+}
+
+extern "C" wchar_t* boss_wcsncpy(wchar_t* dest, const wchar_t* src, size_t n)
+{
+    return wcsncpy(dest, src, n);
 }
 
 extern "C" size_t boss_strlen(const char* str)

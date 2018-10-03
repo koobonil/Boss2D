@@ -43,6 +43,9 @@
     #include <QAudioDeviceInfo>
     #include <QDesktopServices>
 
+    #include <QLocalSocket>
+    #include <QLocalServer>
+
     #if QT_HAVE_WEBENGINEWIDGETS
         #include <QtWebEngine>
         #include <QWebEngineView>

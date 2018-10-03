@@ -230,6 +230,10 @@
     int boss_isdigit(int c);
     int boss_isalnum(int c);
     double boss_atof(const char* str);
+    char* boss_strcpy(char* dest, const char* src);
+    char* boss_strncpy(char* dest, const char* src, size_t n);
+    wchar_t* boss_wcscpy(wchar_t* dest, const wchar_t* src);
+    wchar_t* boss_wcsncpy(wchar_t* dest, const wchar_t* src, size_t n);
     size_t boss_strlen(const char* str);
     size_t boss_wcslen(const wchar_t* str);
     int boss_snprintf(char* str, size_t n, const char* format, ...);

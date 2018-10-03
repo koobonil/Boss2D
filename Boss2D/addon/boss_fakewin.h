@@ -182,10 +182,7 @@
     typedef int (*FARPROC)();
     typedef BYTE  BOOLEAN;
     typedef BOOLEAN *PBOOLEAN;
-
-    //#define LPOVERLAPPED void*
-    #define LPSECURITY_ATTRIBUTES void*
-    #define LPTHREAD_START_ROUTINE void*
+    typedef DWORD (*LPTHREAD_START_ROUTINE) (LPVOID);
 
     #define __int8 char
     #define __int16 short
@@ -200,6 +197,7 @@
     typedef unsigned int _dev_t;
     typedef unsigned short _ino_t;
     typedef long _off_t;
+    typedef long __time32_t;
     typedef __int64 __time64_t;
     typedef unsigned __int32 uid_t;
     typedef unsigned __int32 gid_t;
@@ -232,7 +230,6 @@
         #include <direct.h>
         #include <io.h>
         #include <conio.h>
-        #include <sys/timeb.h>
     #else
         #include <unistd.h>
     #endif
@@ -481,6 +478,8 @@
     #define _fprintf boss_fakewin_fprintf
     #define _fclose boss_fakewin_fclose
     #define _feof boss_fakewin_feof
+    #define _ftime_s boss_fakewin_ftime_s
+    #define _localtime_s boss_fakewin_localtime_s
     #define _wopen boss_fakewin_wopen
     #define _close boss_fakewin_close
     #define _read boss_fakewin_read
@@ -520,6 +519,7 @@
     #define _mbsicmp boss_fakewin_mbsicmp
     #define _wcsicmp boss_fakewin_wcsicmp
     #define _vscprintf boss_fakewin_vscprintf
+    #define vsnprintf_s boss_fakewin_vsnprintf_s
     #define _vsnprintf_s boss_fakewin_vsnprintf_s
     #define _vsnprintf boss_fakewin_vsnprintf
     #define _vsnwprintf boss_fakewin_vsnwprintf
@@ -542,9 +542,13 @@
     #define strerror boss_fakewin_strerror
     #define strerror_s boss_fakewin_strerror_s
     #define strcpy_s boss_fakewin_strcpy_s
+    #define strncpy_s boss_fakewin_strncpy_s
     #define wcscpy_s boss_fakewin_wcscpy_s
+    #define wcsncpy_s boss_fakewin_wcsncpy_s
     #define strcpy boss_fakewin_strcpy
+    #define strncpy boss_fakewin_strncpy
     #define wcscpy boss_fakewin_wcscpy
+    #define wcsncpy boss_fakewin_wcsncpy
     #define _strdup boss_fakewin_strdup
     #define _wcsdup boss_fakewin_wcsdup
     #define strpbrk boss_fakewin_strpbrk
@@ -568,6 +572,8 @@
     #define fprintf _fprintf
     #define fclose _fclose
     #define feof _feof
+    #define ftime_s _ftime_s
+    #define localtime_s _localtime_s
     #define lseek _lseek
     #define lseeki64 _lseeki64
     #define chsize_s _chsize_s
@@ -582,6 +588,16 @@
     #endif
 
     #define fd_set boss_fd_set
+
+    struct boss_fakewin_struct_timeb {
+        //long  time;
+        //short millitm;
+        //short timezone;
+        //short dstflag;
+        time_t time;
+        unsigned short millitm;
+    };
+    #define _timeb boss_fakewin_struct_timeb
 
     #undef st_atime
     #undef st_mtime
@@ -637,6 +653,8 @@
     int boss_fakewin_fprintf(FILE*,const char*, ...);
     int boss_fakewin_fclose(FILE*);
     int boss_fakewin_feof(FILE*);
+    errno_t boss_fakewin_ftime_s(boss_fakewin_struct_timeb*);
+    errno_t boss_fakewin_localtime_s(struct tm*, const time_t*);
     int boss_fakewin_wopen(const wchar_t*,int,int);
     int boss_fakewin_close(int);
     long boss_fakewin_read(int, void*, unsigned int);
@@ -691,18 +709,22 @@
     unsigned short boss_fakewin_byteswap_ushort(unsigned short);
     unsigned long boss_fakewin_byteswap_ulong(unsigned long);
     unsigned __int64 boss_fakewin_byteswap_uint64(unsigned __int64);
-    size_t boss_fakewin_strlen(const char *str);
-    size_t boss_fakewin_wcslen(const wchar_t *str);
+    size_t boss_fakewin_strlen(const char* str);
+    size_t boss_fakewin_wcslen(const wchar_t* str);
     char* boss_fakewin_strerror(int errnum);
-    errno_t boss_fakewin_strerror_s(char *buf, rsize_t bufsz, errno_t errnum);
-    errno_t boss_fakewin_strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource);
-    errno_t boss_fakewin_wcscpy_s(wchar_t *strDestination, size_t numberOfElements, const wchar_t *strSource);
-    char* boss_fakewin_strcpy(char *strDestination, const char *strSource);
-    wchar_t* boss_fakewin_wcscpy(wchar_t *strDestination, const wchar_t *strSource);
-    char* boss_fakewin_strdup(const char *strSource);
-    wchar_t* boss_fakewin_wcsdup(const wchar_t *strSource);
-    char* boss_fakewin_strpbrk(const char *str, const char *strCharSet);
-    wchar_t* boss_fakewin_wcspbrk(const wchar_t *str, const wchar_t *strCharSet);
+    errno_t boss_fakewin_strerror_s(char* buf, rsize_t bufsz, errno_t errnum);
+    errno_t boss_fakewin_strcpy_s(char* strDestination, size_t numberOfElements, const char* strSource);
+    errno_t boss_fakewin_strncpy_s(char* strDestination, size_t numberOfElements, const char* strSource, size_t count);
+    errno_t boss_fakewin_wcscpy_s(wchar_t* strDestination, size_t numberOfElements, const wchar_t* strSource);
+    errno_t boss_fakewin_wcsncpy_s(wchar_t* strDestination, size_t numberOfElements, const wchar_t* strSource, size_t count);
+    char* boss_fakewin_strcpy(char* strDestination, const char* strSource);
+    char* boss_fakewin_strncpy(char* strDestination, const char* strSource, size_t count);
+    wchar_t* boss_fakewin_wcscpy(wchar_t* strDestination, const wchar_t* strSource);
+    wchar_t* boss_fakewin_wcsncpy(wchar_t* strDestination, const wchar_t* strSource, size_t count);
+    char* boss_fakewin_strdup(const char* strSource);
+    wchar_t* boss_fakewin_wcsdup(const wchar_t* strSource);
+    char* boss_fakewin_strpbrk(const char* str, const char* strCharSet);
+    wchar_t* boss_fakewin_wcspbrk(const wchar_t* str, const wchar_t* strCharSet);
     #ifdef __cplusplus
         }
     #endif
@@ -1537,6 +1559,12 @@
       WORD wSecond;
       WORD wMilliseconds;
     } SYSTEMTIME, *PSYSTEMTIME, *LPSYSTEMTIME;
+
+    typedef struct _SECURITY_ATTRIBUTES {
+        DWORD nLength;
+        LPVOID lpSecurityDescriptor;
+        BOOL bInheritHandle;
+    } SECURITY_ATTRIBUTES, *PSECURITY_ATTRIBUTES, *LPSECURITY_ATTRIBUTES;
 
     typedef union _LARGE_INTEGER {
       struct {
