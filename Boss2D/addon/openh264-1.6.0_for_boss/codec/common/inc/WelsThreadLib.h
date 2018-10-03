@@ -49,7 +49,7 @@ extern "C" {
 
 #if defined(_WIN32)
 
-#include <windows.h>
+#include BOSS_FAKEWIN_V_windows_h //original-code:<windows.h>
 
 typedef    HANDLE                    WELS_THREAD_HANDLE;
 typedef    LPTHREAD_START_ROUTINE    LPWELS_THREAD_ROUTINE;

@@ -1,3 +1,5 @@
+// author BOSS
+
 /*!
  * \copy
  *     Copyright (c)  2009-2013, Cisco Systems
@@ -67,7 +69,7 @@
     _tp (*_nm)[(_cy)] = (_tp (*)[(_cy)])_nm ## _tEmP_al;
 
 
-#if defined(_MSC_VER)
+#if BOSS_WINDOWS // modified by BOSS, original-code: #if defined(_MSC_VER)
 
 #if(_MSC_VER < 1700)
 #define inline __inline

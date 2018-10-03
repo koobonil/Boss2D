@@ -45,7 +45,7 @@
 #ifndef  _MSC_VER
 
 #define __STDC_FORMAT_MACROS
-#include <stdint.h>
+#include BOSS_FAKEWIN_V_stdint_h //original-code:<stdint.h>
 #include <inttypes.h>
 
 #ifdef __LP64__

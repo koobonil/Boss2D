@@ -64,7 +64,7 @@ int     g_iEncodedFrame  = 0;
 #include BOSS_OPENH264_U_typedefs_h //original-code:"typedefs.h"
 
 #ifdef _MSC_VER
-#include <io.h>     /* _setmode() */
+#include BOSS_FAKEWIN_V_io_h //original-code:<io.h>     /* _setmode() */
 #include <fcntl.h>  /* _O_BINARY */
 #endif//_MSC_VER
 

@@ -33,8 +33,8 @@
 
 #if defined (_WIN32)
 #define _CRT_SECURE_NO_WARNINGS
-#include <windows.h>
-#include <tchar.h>
+#include BOSS_FAKEWIN_V_windows_h //original-code:<windows.h>
+#include BOSS_FAKEWIN_V_tchar_h //original-code:<tchar.h>
 #else
 #include <string.h>
 #endif

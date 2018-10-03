@@ -3,7 +3,7 @@
 
 #ifndef _MSC_VER
 
-#include <stdint.h>
+#include BOSS_FAKEWIN_V_stdint_h //original-code:<stdint.h>
 
 #else
 

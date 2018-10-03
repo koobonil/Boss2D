@@ -74,6 +74,7 @@ namespace BOSS
 
     private:
         void ResetBitmap();
+        void ResetCache();
         void ResetData();
         void MakeData(sint32 l, sint32 t, sint32 r, sint32 b);
         void RecalcData();

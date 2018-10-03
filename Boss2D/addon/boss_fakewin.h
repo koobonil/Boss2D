@@ -55,6 +55,7 @@
     #define BOSS_FAKEWIN_V_intrin_h                        <intrin.h>
     #define BOSS_FAKEWIN_V_winldap_h                       <winldap.h>
     #define BOSS_FAKEWIN_V_winber_h                        <winber.h>
+    #define BOSS_FAKEWIN_V_sys__timeb_h                    <sys/timeb.h>
 
     // 선행참조효과
     #undef UNICODE
@@ -106,6 +107,7 @@
     #define BOSS_FAKEWIN_V_intrin_h                        <addon/boss_fakewin.h>
     #define BOSS_FAKEWIN_V_winldap_h                       <addon/boss_fakewin.h>
     #define BOSS_FAKEWIN_V_winber_h                        <addon/boss_fakewin.h>
+    #define BOSS_FAKEWIN_V_sys__timeb_h                    <addon/boss_fakewin.h>
 
     #define DECLARE_HANDLE(name) struct name##__{int unused;}; typedef struct name##__ *name
     DECLARE_HANDLE(HWINSTA);
@@ -216,6 +218,7 @@
     #include <errno.h>
     #include <sys/stat.h>
     #include <wchar.h>
+    #include <float.h>
     #if !BOSS_MAC_OSX & !BOSS_IPHONE & !BOSS_ANDROID
         #include <malloc.h>
     #endif
@@ -229,6 +232,7 @@
         #include <direct.h>
         #include <io.h>
         #include <conio.h>
+        #include <sys/timeb.h>
     #else
         #include <unistd.h>
     #endif
@@ -302,6 +306,7 @@
     #define FormatMessageA boss_fakewin_FormatMessageA
     #define FormatMessageW boss_fakewin_FormatMessageW
     #define GetCurrentProcess boss_fakewin_GetCurrentProcess
+    #define GetCurrentThread boss_fakewin_GetCurrentThread
     #define GetCurrentThreadId boss_fakewin_GetCurrentThreadId
     #define GetExitCodeThread boss_fakewin_GetExitCodeThread
     #define GetFileAttributes boss_fakewin_GetFileAttributes
@@ -1978,6 +1983,7 @@
         DWORD boss_fakewin_FormatMessageA(DWORD,LPCVOID,DWORD,DWORD,LPSTR,DWORD,va_list*);
         DWORD boss_fakewin_FormatMessageW(DWORD,LPCVOID,DWORD,DWORD,LPWSTR,DWORD,va_list*);
         HANDLE boss_fakewin_GetCurrentProcess();
+        HANDLE boss_fakewin_GetCurrentThread();
         DWORD boss_fakewin_GetCurrentThreadId();
         BOOL boss_fakewin_GetExitCodeThread(HANDLE,LPDWORD);
         DWORD boss_fakewin_GetFileAttributes(LPCSTR);

@@ -46,7 +46,7 @@
 #include BOSS_OPENH264_V_measure_time_h //original-code:<measure_time.h>
 #if defined(_WIN32) /*&& defined(_DEBUG)*/
 
-#include <windows.h>
+#include BOSS_FAKEWIN_V_windows_h //original-code:<windows.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <sys/types.h>

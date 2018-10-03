@@ -515,12 +515,18 @@ namespace BOSS
     void Image::ChangeToMagentaAlpha()
     {
         if(!m_bitmap) return;
+        // 캐시만 초기화
+        ResetCache();
+
         Bmp::ChangeColor(m_bitmap, 0x00000000, 0x00FF00FF);
     }
 
     void Image::RestoreFromMagentaAlpha()
     {
         if(!m_bitmap) return;
+        // 캐시만 초기화
+        ResetCache();
+
         Bmp::ChangeColor(m_bitmap, 0x00FF00FF, 0x00000000);
     }
 
@@ -528,6 +534,8 @@ namespace BOSS
     {
         BOSS_ASSERT("src가 없거나 32비트 비트맵이 아닙니다", src && Bmp::GetBitCount(src) == 32);
         if(!m_bitmap || Bmp::GetBitCount(m_bitmap) != 32) return;
+        // 캐시만 초기화
+        ResetCache();
 
         const sint32 DstWidth = Bmp::GetWidth(m_bitmap);
         const sint32 DstHeight = Bmp::GetHeight(m_bitmap);
@@ -700,6 +708,12 @@ namespace BOSS
     {
         Bmp::Remove(m_bitmap);
         m_bitmap = nullptr;
+        ResetCache();
+    }
+
+    void Image::ResetCache()
+    {
+        m_image_cached_map.RemoveAll();
         while(m_image_cached_queue.Count())
             delete m_image_cached_queue.Dequeue();
     }

@@ -30,7 +30,7 @@
  *
  */
 
-#include <windows.h>
+#include BOSS_FAKEWIN_V_windows_h //original-code:<windows.h>
 
 /////////////////////////////////////////////////////////////////////////////
 // DLL Entry Point

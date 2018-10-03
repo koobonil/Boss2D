@@ -43,9 +43,9 @@
 #include <math.h>
 #include <time.h>
 #if defined(_WIN32)
-#include <windows.h>
+#include BOSS_FAKEWIN_V_windows_h //original-code:<windows.h>
 #include <sys/types.h>
-#include <sys/timeb.h>
+//#include BOSS_FAKEWIN_V_sys__timeb_h //original-code:<sys/timeb.h>
 #ifndef _MSC_VER
 #include <sys/time.h>
 #endif //!_MSC_VER

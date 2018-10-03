@@ -17,7 +17,7 @@
 #ifndef __RefCount_h__
 #define __RefCount_h__
 
-#include <stdint.h>
+#include BOSS_FAKEWIN_V_stdint_h //original-code:<stdint.h>
 #include <assert.h>
 
 extern GMPPlatformAPI* g_platform_api;

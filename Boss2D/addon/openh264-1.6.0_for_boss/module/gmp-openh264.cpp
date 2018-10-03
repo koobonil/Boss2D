@@ -32,7 +32,7 @@
  *************************************************************************************
  */
 
-#include <stdint.h>
+#include BOSS_FAKEWIN_V_stdint_h //original-code:<stdint.h>
 #include <time.h>
 #include <cmath>
 #include <cstdio>

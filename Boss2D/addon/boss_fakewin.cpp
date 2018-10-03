@@ -77,6 +77,7 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     #undef FormatMessageW
     #undef GetCurrentDirectoryW
     #undef GetCurrentProcess
+    #undef GetCurrentThread
     #undef GetCurrentThreadId
     #undef GetExitCodeThread
     #undef GetFileAttributes
@@ -1000,6 +1001,8 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     }
 
     extern "C" HANDLE boss_fakewin_GetCurrentProcess() {BOSS_ASSERT("########## GetCurrentProcess준비중", false); return 0;}
+
+    extern "C" HANDLE boss_fakewin_GetCurrentThread() {BOSS_ASSERT("########## GetCurrentThread준비중", false); return 0;}
 
     extern "C" DWORD boss_fakewin_GetCurrentThreadId()
     {

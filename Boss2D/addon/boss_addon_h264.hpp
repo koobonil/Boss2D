@@ -96,7 +96,7 @@ private:
         Plane mV;
     };
     typedef void (*OnDecodeFrame)(payload data, const Frame& frame);
-    void DecodeFrame(bytes src, sint32 sliceSize, OnDecodeFrame cb, payload data);
+    void DecodeFrame(bytes src, sint32 sliceSize, sint32 msec, OnDecodeFrame cb, payload data);
 
 private:
     ISVCDecoder* mDecoder;

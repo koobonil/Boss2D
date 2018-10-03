@@ -274,7 +274,7 @@ void H264EncoderPrivate::Encode(const uint32* rgba, id_flash flash, uint64 timem
             const bool IsNALU = (CurLayer.uiLayerType == VIDEO_CODING_LAYER);
             mTempChunk.AtAdding() = (IsInterframe)? 0x27 : 0x17; // 1_:keyframe, 2_:interframe, _7:AVC
             mTempChunk.AtAdding() = (IsNALU)? 0x01 : 0x00; // AVC NALU, AVC sequence header
-            Memory::Copy(mTempChunk.AtDumpingAdded(3), GetBE3(0), 3); // CompositionTime
+            Memory::Copy(mTempChunk.AtDumpingAdded(3), GetBE3(timems & 0x00FFFFFF), 3); // CompositionTime
 
             // 태그데이터
             if(IsNALU)
@@ -341,11 +341,12 @@ H264DecoderPrivate::~H264DecoderPrivate()
 id_bitmap H264DecoderPrivate::Decode(id_flash flash)
 {
     uint08 Type = 0;
-    sint32 ChunkSize = 0;
     bytes Chunk = nullptr;
+    sint32 ChunkSize = 0;
+    sint32 ChunkMsec = 0;
     while(Type != 0x09)
     {
-        Chunk = Flv::ReadChunk(flash, &Type, &ChunkSize);
+        Chunk = Flv::ReadChunk(flash, &Type, &ChunkSize, &ChunkMsec);
         if(!Chunk) return nullptr;
     }
 
@@ -393,7 +394,7 @@ id_bitmap H264DecoderPrivate::Decode(id_flash flash)
     }
 
     id_bitmap Result = nullptr;
-    DecodeFrame(BsBuf, BsSize,
+    DecodeFrame(BsBuf, BsSize, ChunkMsec,
         [](payload data, const Frame& frame)->void
         {
             id_bitmap& Result = *((id_bitmap*) data);
@@ -434,14 +435,15 @@ id_bitmap H264DecoderPrivate::Decode(id_flash flash)
     return Result;
 }
 
-void H264DecoderPrivate::DecodeFrame(bytes src, sint32 sliceSize, OnDecodeFrame cb, payload data)
+void H264DecoderPrivate::DecodeFrame(bytes src, sint32 sliceSize, sint32 msec, OnDecodeFrame cb, payload data)
 {
     uint08* bufdata[3];
     SBufferInfo bufInfo;
     memset(bufdata, 0, sizeof(bufdata));
     memset(&bufInfo, 0, sizeof(SBufferInfo));
+    bufInfo.uiInBsTimeStamp = msec;
     DECODING_STATE rv = mDecoder->DecodeFrame2(src, sliceSize, bufdata, &bufInfo);
-    BOSS_ASSERT("DecodeFrameNoDelay가 실패하였습니다", rv == dsErrorFree);
+    BOSS_ASSERT("DecodeFrame2가 실패하였습니다", rv == dsErrorFree);
 
     if(bufInfo.iBufferStatus == 1)
     {

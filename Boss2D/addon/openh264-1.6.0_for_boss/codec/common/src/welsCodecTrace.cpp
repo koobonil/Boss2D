@@ -31,8 +31,8 @@
  */
 
 #ifdef _WIN32
-#include <windows.h>
-#include <tchar.h>
+#include BOSS_FAKEWIN_V_windows_h //original-code:<windows.h>
+#include BOSS_FAKEWIN_V_tchar_h //original-code:<tchar.h>
 #endif
 
 #include <stdio.h>

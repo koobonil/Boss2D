@@ -1,5 +1,5 @@
 ﻿// Codec_UT_RTComponent.cpp
-#include <windows.h>
+#include BOSS_FAKEWIN_V_windows_h //original-code:<windows.h>
 #include <iostream>
 #include "Codec_UT_RTComponent.h"
 
