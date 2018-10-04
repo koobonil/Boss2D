@@ -145,6 +145,9 @@
 #define size_t boss_size_t
 #define ssize_t boss_ssize_t
 
+// About user config
+#include <boss_config.h>
+
 // About assert
 #if !BOSS_NDEBUG
     #define BOSS_DBG __FILE__,__LINE__,__FUNCTION__,
@@ -186,6 +189,22 @@
     #else
         #define BOSS_DBG_BREAK do{} while(0)
     #endif
+#elif BOSS_NEED_RELEASE_TRACE
+    #define BOSS_DBG
+    #define BOSS_DBG_PRM
+    #define BOSS_DBG_VAL
+    #define BOSS_DBG_INT
+    #define BOSS_DBG_ARG
+    #define BOSS_DBG_FILE ""
+    #define BOSS_DBG_LINE -1
+    #define BOSS_DBG_FUNC ""
+    #define BOSS_ASSERT(TEXT, QUERY) do{ \
+        if((QUERY) == 0) \
+            boss_platform_trace("[BOSS_ASSERT] %s [%s] %s(%dLn, %s())", \
+                (chars) TEXT, #QUERY, __FILE__, __LINE__, __FUNCTION__); \
+        } while(0)
+    #define BOSS_ASSERT_PRM(TEXT, QUERY)
+    #define BOSS_ASSERT_ARG(TEXT, QUERY, ...)
 #else
     #define BOSS_DBG
     #define BOSS_DBG_PRM
@@ -199,9 +218,6 @@
     #define BOSS_ASSERT_PRM(TEXT, QUERY)
     #define BOSS_ASSERT_ARG(TEXT, QUERY, ...)
 #endif
-
-// About user config
-#include <boss_config.h>
 
 // About trace
 #if !BOSS_NDEBUG | BOSS_NEED_RELEASE_TRACE

@@ -14,7 +14,9 @@ namespace BOSS
 {
     void* Memory::Alloc(const sint32 size)
     {
-        return malloc(size);
+        void* Result = malloc(size);
+        BOSS_ASSERT("메모리가 부족합니다", Result);
+        return Result;
     }
 
     void Memory::Free(void* ptr)
