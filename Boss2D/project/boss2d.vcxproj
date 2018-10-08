@@ -105,6 +105,7 @@
     <ClCompile Include="..\service\boss_tryworld.cpp" />
     <ClCompile Include="..\service\boss_typolar.cpp" />
     <ClCompile Include="..\service\boss_zay.cpp" />
+    <ClCompile Include="..\service\boss_zayson.cpp" />
     <ClCompile Include="GeneratedFiles\Debug\moc_boss_platform_qt5.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -206,6 +207,7 @@
     <ClInclude Include="..\service\boss_tryworld.hpp" />
     <ClInclude Include="..\service\boss_typolar.hpp" />
     <ClInclude Include="..\service\boss_zay.hpp" />
+    <ClInclude Include="..\service\boss_zayson.hpp" />
     <CustomBuild Include="..\platform\boss_platform_qt5.hpp">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing boss_platform_qt5.hpp...</Message>

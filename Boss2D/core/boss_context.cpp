@@ -496,7 +496,7 @@ namespace BOSS
                 LastObject->SetValue(LastOffset, LastLength);
                 LastLength = 0;
             }
-            else if(String::Compare(EtcString, "null"))
+            else if(0 < EtcString.Length() && !!String::Compare(EtcString, "null"))
             {
                 Context* LastObject = CurStack[-1].Object;
                 LastObject->Set(EtcString, EtcString.Length());
