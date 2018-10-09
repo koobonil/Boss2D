@@ -79,7 +79,7 @@ public:
     }
 
 public:
-    id_bitmap Decode(id_flash flash);
+    id_bitmap Decode(id_flash flash, uint64* timems);
 
 private:
     struct Plane
@@ -96,7 +96,7 @@ private:
         Plane mV;
     };
     typedef void (*OnDecodeFrame)(payload data, const Frame& frame);
-    void DecodeFrame(bytes src, sint32 sliceSize, sint32 msec, OnDecodeFrame cb, payload data);
+    uint64 DecodeFrame(bytes src, sint32 sliceSize, sint32 msec, OnDecodeFrame cb, payload data);
 
 private:
     ISVCDecoder* mDecoder;

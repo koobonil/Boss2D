@@ -75,6 +75,9 @@ namespace BOSS
         Memory::Copy(Dst.AtDumpingAdded(4), ToBE4((id_flash) NewFlash, 9), 4); // DataOffset
         Memory::Copy(Dst.AtDumpingAdded(4), ToBE4((id_flash) NewFlash, 0), 4); // PreviousTagSize0
 
+        // ReadFocus가 flv header를 스킵함
+        NewFlash->mReadFocus += 3 + 1 + 1 + 4 + 4;
+
         // metaData
         FlvPrivate::FlvBits NewBits;
         NewBits.AtAdding() = 0x02; // 스트링데이터ID

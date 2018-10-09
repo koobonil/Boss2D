@@ -21,7 +21,7 @@ namespace BOSS
     BOSS_DECLARE_ADDON_FUNCTION(H264, CreateDecoder, id_h264, void)
     BOSS_DECLARE_ADDON_FUNCTION(H264, Release, void, id_h264)
     BOSS_DECLARE_ADDON_FUNCTION(H264, EncodeOnce, void, id_h264, const uint32*, id_flash, uint64)
-    BOSS_DECLARE_ADDON_FUNCTION(H264, DecodeOnce, id_bitmap, id_h264, id_flash)
+    BOSS_DECLARE_ADDON_FUNCTION(H264, DecodeOnce, id_bitmap, id_h264, id_flash, uint64*)
 
     static autorun Bind_AddOn_H264()
     {
@@ -62,11 +62,11 @@ namespace BOSS
             return CurEncoder->Encode(rgba, flash, timems);
     }
 
-    id_bitmap Customized_AddOn_H264_DecodeOnce(id_h264 h264, id_flash flash)
+    id_bitmap Customized_AddOn_H264_DecodeOnce(id_h264 h264, id_flash flash, uint64* timems)
     {
         auto CurDecoder = H264DecoderPrivate::Test(h264);
         if(CurDecoder)
-            return CurDecoder->Decode(flash);
+            return CurDecoder->Decode(flash, timems);
         return nullptr;
     }
 }
@@ -338,7 +338,7 @@ H264DecoderPrivate::~H264DecoderPrivate()
     }
 }
 
-id_bitmap H264DecoderPrivate::Decode(id_flash flash)
+id_bitmap H264DecoderPrivate::Decode(id_flash flash, uint64* timems)
 {
     uint08 Type = 0;
     bytes Chunk = nullptr;
@@ -394,7 +394,7 @@ id_bitmap H264DecoderPrivate::Decode(id_flash flash)
     }
 
     id_bitmap Result = nullptr;
-    DecodeFrame(BsBuf, BsSize, ChunkMsec,
+    uint64 ResultMsec = DecodeFrame(BsBuf, BsSize, ChunkMsec,
         [](payload data, const Frame& frame)->void
         {
             id_bitmap& Result = *((id_bitmap*) data);
@@ -431,13 +431,14 @@ id_bitmap H264DecoderPrivate::Decode(id_flash flash)
     delete PsCollector;
 
     if(!Result)
-        return Decode(flash);
+        return Decode(flash, timems);
+    if(timems) *timems = ResultMsec;
     return Result;
 }
 
-void H264DecoderPrivate::DecodeFrame(bytes src, sint32 sliceSize, sint32 msec, OnDecodeFrame cb, payload data)
+uint64 H264DecoderPrivate::DecodeFrame(bytes src, sint32 sliceSize, sint32 msec, OnDecodeFrame cb, payload data)
 {
-    uint08* bufdata[3];
+    uint08* bufdata[3] = {};
     SBufferInfo bufInfo;
     memset(bufdata, 0, sizeof(bufdata));
     memset(&bufInfo, 0, sizeof(SBufferInfo));
@@ -473,6 +474,7 @@ void H264DecoderPrivate::DecodeFrame(bytes src, sint32 sliceSize, sint32 msec, O
         };
         cb(data, frame);
     }
+    return bufInfo.uiOutYuvTimeStamp;
 }
 
 #endif

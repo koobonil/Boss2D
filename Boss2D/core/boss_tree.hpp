@@ -8,7 +8,7 @@ namespace BOSS
     class Tree
     {
     public:
-        typedef void (*DeleteCB)(void*); 
+        typedef void (*DeleteCB)(TYPE*); 
 
     public:
         /*!
@@ -114,7 +114,7 @@ namespace BOSS
         \param cb : 인스턴스의 파괴자
         \return 생성된 인스턴스
         */
-        TYPE* CreateValue(TYPE* value = new TYPE, DeleteCB cb = [](void* ptr){delete ptr;})
+        TYPE* CreateValue(TYPE* value = new TYPE, DeleteCB cb = [](TYPE* ptr){delete ptr;})
         {
             RemoveValue();
             mValue = value;

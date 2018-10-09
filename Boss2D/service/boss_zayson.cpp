@@ -33,12 +33,12 @@ namespace BOSS
 
     const ZayExtend::ZayParam ZayExtend::operator()() const
     {
-        //////////////////////// 여기서부터!!
+        return ZayParam(mCB);
     }
 
     const ZayExtend::ZayParam ZayExtend::operator()(sint32 value) const
     {
-        //////////////////////// 여기서부터!!
+        return ZayParam(mCB);
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -252,7 +252,7 @@ namespace BOSS
         void Render(ZayPanel& panel, const ZaySon& zayson) const override
         {
             if(auto CurFunction = zayson.FindFunction(mFuncName))
-            ZAY_EXTEND((*CurFunction)(10)(20)(50)(50) >> panel)
+            //ZAY_EXTEND((*CurFunction)(10)(20)(50)(50) >> panel)
             for(sint32 i = 0, iend = mChildren.Count(); i < iend; ++i)
             {
                 if(mChildren[i]->mType == ZayUIElement::Type::Renderer)
