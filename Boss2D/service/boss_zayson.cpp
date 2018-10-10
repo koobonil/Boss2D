@@ -105,10 +105,6 @@ namespace BOSS
         virtual void Render(ZayPanel& panel, const ZaySon& zayson, sint32& compmax) const 
         {
         }
-        virtual sint32 GetRenderCount() const
-        {
-            return 0;
-        }
 
     public:
         Type mType;
@@ -124,7 +120,7 @@ namespace BOSS
     class ZayConditionElement : public ZayUIElement
     {
     public:
-        enum class ConditionType {Unknown, If, Elif, Else};
+        enum class ConditionType {Unknown, If, Elif, Else, Endif};
 
     public:
         ZayConditionElement() : ZayUIElement(Type::Condition)
@@ -138,12 +134,14 @@ namespace BOSS
 
             const String ConditionText = context.GetString();
             branch;
-            jump(!ConditionText.Compare("if"))
+            jump(!String::Compare("if", ConditionText, 2))
                 mConditionType = ConditionType::If;
-            jump(!ConditionText.Compare("elif"))
+            jump(!String::Compare("elif", ConditionText, 4))
                 mConditionType = ConditionType::Elif;
-            jump(!ConditionText.Compare("else"))
+            jump(!String::Compare("else", ConditionText, 4))
                 mConditionType = ConditionType::Else;
+            jump(!String::Compare("endif", ConditionText, 5))
+                mConditionType = ConditionType::Endif;
 
             if(sint32 PosB = ConditionText.Find(0, "(") + 1)
             {
@@ -323,40 +321,78 @@ namespace BOSS
 
                 if(auto CurComponent = zayson.FindComponent(mCompName))
                 {
-                    // 마지막 밸류를 수집
-                    const ZayParamElement* Param = nullptr;
-                    for(sint32 i = 0, iend = mCompValues.Count(); i < iend; ++i)
-                        if(mCompValues[i].ConstValue().mType == ZayUIElement::Type::Param)
-                            Param = (const ZayParamElement*) mCompValues[i].ConstPtr();
+                    if(mCompValues.Count() == 0)
+                    {
+                        ZAY_EXTEND((*CurComponent)() >> panel)
+                        for(sint32 i = 0, iend = mChildren.Count(); i < iend; ++i)
+                            if(mChildren[i]->mType == ZayUIElement::Type::Renderer)
+                                mChildren[i]->Render(panel, zayson, compmax);
+                    }
+                    else // CompValue항목이 존재할 경우
+                    {
+                        // 조건문처리로 유효한 CompValue를 수집
+                        sint32s CompValueCollector;
+                        bool HasCondition = false;
+                        for(sint32 i = 0, iend = mCompValues.Count(); i < iend; ++i)
+                        {
+                            if(mCompValues[i].ConstValue().mType == ZayUIElement::Type::Condition)
+                            {
+                                HasCondition = true;
+                                auto CurCondition = (const ZayConditionElement*) mCompValues[i].ConstPtr();
+                                bool IsTrue = true;
+                                if(CurCondition->mConditionType == ZayConditionElement::ConditionType::If ||
+                                    CurCondition->mConditionType == ZayConditionElement::ConditionType::Elif)
+                                    IsTrue = (ZayUIElement::GetResult(CurCondition->mConditionSolver) != 0);
+                                if(IsTrue)
+                                {
+                                    while(i + 1 < iend && mCompValues[i + 1].ConstValue().mType == ZayUIElement::Type::Param)
+                                        CompValueCollector.AtAdding() = ++i;
+                                    // 다음 조건문으로 포커싱이동
+                                    while(i + 1 < iend)
+                                    {
+                                        if(mCompValues[++i].ConstValue().mType == ZayUIElement::Type::Condition)
+                                        {
+                                            CurCondition = (const ZayConditionElement*) mCompValues[i].ConstPtr();
+                                            if(CurCondition->mConditionType == ZayConditionElement::ConditionType::If)
+                                            {
+                                                i--;
+                                                break;
+                                            }
+                                            if(CurCondition->mConditionType == ZayConditionElement::ConditionType::Endif)
+                                                break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
 
-                    // 패널정보
-                    Solvers LocalSolvers;
-                    ZayUIElement::SetSolver(LocalSolvers.AtAdding(), "p.width", String::FromFloat(panel.w()));
-                    ZayUIElement::SetSolver(LocalSolvers.AtAdding(), "p.height", String::FromFloat(panel.h()));
+                        // 조건문이 없으면 모두 유효한 CompValue로 인정
+                        if(!HasCondition)
+                        for(sint32 i = 0, iend = mCompValues.Count(); i < iend; ++i)
+                            CompValueCollector.AtAdding() = i;
 
-                    // 컴포넌트 호출을 위한 파라미터수집
-                    ZayExtend::Params& ParamCollector = (*CurComponent)();
-                    for(sint32 i = 0, iend = (Param)? Param->mParamFormulas.Count() : 0; i < iend; ++i)
-                        ParamCollector(ZayUIElement::GetResult(Param->mParamFormulas[i]));
-
-                    ZAY_EXTEND(ParamCollector >> panel)
-                    for(sint32 i = 0, iend = mChildren.Count(); i < iend; ++i)
-                        if(mChildren[i]->mType == ZayUIElement::Type::Renderer)
-                            mChildren[i]->Render(panel, zayson, compmax);
-
-                    // 패널정보 PULL
-                    /////////////////////////////////////////
-                    // 여기서부터~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!!!
-                    /////////////////////////////////////////
+                        // 유효한 CompValue를 모두 실행
+                        for(sint32 i = 0, iend = CompValueCollector.Count(); i < iend; ++i)
+                        {
+                            auto CurCompValue = (const ZayParamElement*) mCompValues[CompValueCollector[i]].ConstPtr();
+                            // 컴포넌트호출을 위한 파라미터계산 및 수집
+                            ZayExtend::Params& ParamCollector = (*CurComponent)();
+                            if(CurCompValue && 0 < CurCompValue->mParamFormulas.Count())
+                            {
+                                Solvers LocalSolvers; // 파라미터계산용 패널정보 사전입력
+                                ZayUIElement::SetSolver(LocalSolvers.AtAdding(), "p.width", String::FromFloat(panel.w()));
+                                ZayUIElement::SetSolver(LocalSolvers.AtAdding(), "p.height", String::FromFloat(panel.h()));
+                                for(sint32 i = 0, iend = CurCompValue->mParamFormulas.Count(); i < iend; ++i)
+                                    ParamCollector(ZayUIElement::GetResult(CurCompValue->mParamFormulas[i]));
+                            }
+                            ZAY_EXTEND(ParamCollector >> panel)
+                            for(sint32 i = 0, iend = mChildren.Count(); i < iend; ++i)
+                                if(mChildren[i]->mType == ZayUIElement::Type::Renderer)
+                                    mChildren[i]->Render(panel, zayson, compmax);
+                        }
+                    }
                 }
             }
-        }
-        sint32 GetRenderCount() const override
-        {
-            sint32 Result = 1;
-            for(sint32 i = 0, iend = mChildren.Count(); i < iend; ++i)
-                Result += mChildren[i]->GetRenderCount();
-            return Result;
         }
 
     public:
@@ -417,13 +453,6 @@ namespace BOSS
                 if(mChildren[i]->mType == ZayUIElement::Type::Renderer)
                     mChildren[i]->Render(panel, zayson, compmax);
         }
-        sint32 GetRenderCount() const override
-        {
-            sint32 Result = 0;
-            for(sint32 i = 0, iend = mChildren.Count(); i < iend; ++i)
-                Result += mChildren[i]->GetRenderCount();
-            return Result;
-        }
 
     public:
         ZayUIs mAssets;
@@ -466,8 +495,9 @@ namespace BOSS
         if(mView)
         {
             mDebugCompName = "(null)";
+            const sint32 OldCompMax = compmax;
             mView->Render(panel, *this, compmax);
-            return mView->GetRenderCount();
+            return OldCompMax - compmax;
         }
         return 0;
     }

@@ -6,7 +6,10 @@ namespace BOSS
     class Solver;
     #define SolverFloat double
     enum class OperandType {Unknown, Literal, Variable, Formula};
-    enum class OperatorType {Unknown, Addition, Subtract, Multiply, Divide, Remainder, Min, Max};
+    enum class OperatorType {Unknown,
+        Addition, Subtract, Multiply, Divide, Remainder, // +, -, *, /, %
+        Greater, GreaterOrEqual, Less, LessOrEqual, Equal, Different, // <, <=, >, >=, ==, !=
+        Min, Max}; // [min], [max]
 
     // 업데이트체인
     class SolverChainPair

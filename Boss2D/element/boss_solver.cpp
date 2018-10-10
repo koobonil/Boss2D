@@ -111,13 +111,19 @@ namespace BOSS
             PrintOperand(mOperandL, collector);
             switch(mOperatorType)
             {
-            case OperatorType::Addition:  collector += " + "; break;
-            case OperatorType::Subtract:  collector += " - "; break;
-            case OperatorType::Multiply:  collector += " * "; break;
-            case OperatorType::Divide:    collector += " / "; break;
-            case OperatorType::Remainder: collector += " % "; break;
-            case OperatorType::Min: collector += " [min] "; break;
-            case OperatorType::Max: collector += " [max] "; break;
+            case OperatorType::Addition:       collector += " + "; break;
+            case OperatorType::Subtract:       collector += " - "; break;
+            case OperatorType::Multiply:       collector += " * "; break;
+            case OperatorType::Divide:         collector += " / "; break;
+            case OperatorType::Remainder:      collector += " % "; break;
+            case OperatorType::Greater:        collector += " < "; break;
+            case OperatorType::GreaterOrEqual: collector += " <= "; break;
+            case OperatorType::Less:           collector += " > "; break;
+            case OperatorType::LessOrEqual:    collector += " >= "; break;
+            case OperatorType::Equal:          collector += " == "; break;
+            case OperatorType::Different:      collector += " != "; break;
+            case OperatorType::Min:            collector += " [min] "; break;
+            case OperatorType::Max:            collector += " [max] "; break;
             }
             PrintOperand(mOperandR, collector);
         }
@@ -137,13 +143,19 @@ namespace BOSS
             if(0 < reliable())
             switch(mOperatorType)
             {
-            case OperatorType::Addition:  return mOperandL->result(0) + mOperandR->result(0);
-            case OperatorType::Subtract:  return mOperandL->result(0) - mOperandR->result(0);
-            case OperatorType::Multiply:  return mOperandL->result(0) * mOperandR->result(1);
-            case OperatorType::Divide:    return mOperandL->result(0) / mOperandR->result(1);
-            case OperatorType::Remainder: return Math::Mod(mOperandL->result(0), mOperandR->result(1));
-            case OperatorType::Min:       return Math::MinF(mOperandL->result(0), mOperandR->result(1));
-            case OperatorType::Max:       return Math::MaxF(mOperandL->result(0), mOperandR->result(1));
+            case OperatorType::Addition:       return mOperandL->result(0) + mOperandR->result(0);
+            case OperatorType::Subtract:       return mOperandL->result(0) - mOperandR->result(0);
+            case OperatorType::Multiply:       return mOperandL->result(0) * mOperandR->result(1);
+            case OperatorType::Divide:         return mOperandL->result(0) / mOperandR->result(1);
+            case OperatorType::Remainder:      return Math::Mod(mOperandL->result(0), mOperandR->result(1));
+            case OperatorType::Greater:        return mOperandL->result(0) < mOperandR->result(0);
+            case OperatorType::GreaterOrEqual: return mOperandL->result(0) <= mOperandR->result(0);
+            case OperatorType::Less:           return mOperandL->result(0) > mOperandR->result(0);
+            case OperatorType::LessOrEqual:    return mOperandL->result(0) >= mOperandR->result(0);
+            case OperatorType::Equal:          return mOperandL->result(0) == mOperandR->result(0);
+            case OperatorType::Different:      return mOperandL->result(0) != mOperandR->result(0);
+            case OperatorType::Min:            return Math::MinF(mOperandL->result(0), mOperandR->result(1));
+            case OperatorType::Max:            return Math::MaxF(mOperandL->result(0), mOperandR->result(1));
             }
             return zero;
         }
@@ -336,6 +348,34 @@ namespace BOSS
                 else if(*formula == '*') AddOperator(OperandFocus, OperatorType::Multiply, deep);
                 else if(*formula == '/') AddOperator(OperandFocus, OperatorType::Divide, deep);
                 else if(*formula == '%') AddOperator(OperandFocus, OperatorType::Remainder, deep);
+                else if(*formula == '<')
+                {
+                    if(formula[1] == '=')
+                    {
+                        AddOperator(OperandFocus, OperatorType::GreaterOrEqual, deep);
+                        formula += 1;
+                    }
+                    else AddOperator(OperandFocus, OperatorType::Greater, deep);
+                }
+                else if(*formula == '>')
+                {
+                    if(formula[1] == '=')
+                    {
+                        AddOperator(OperandFocus, OperatorType::LessOrEqual, deep);
+                        formula += 1;
+                    }
+                    else AddOperator(OperandFocus, OperatorType::Less, deep);
+                }
+                else if(formula[0] == '=' && formula[1] == '=')
+                {
+                    AddOperator(OperandFocus, OperatorType::Equal, deep);
+                    formula += 1;
+                }
+                else if(formula[0] == '!' && formula[1] == '=')
+                {
+                    AddOperator(OperandFocus, OperatorType::Different, deep);
+                    formula += 1;
+                }
                 else if(*formula == '[')
                 {
                     if(!String::Compare("[min]", formula, 5))
