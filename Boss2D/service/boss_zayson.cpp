@@ -3,43 +3,68 @@
 
 namespace BOSS
 {
-    ZayExtend::ZayExtend(CallBack cb)
+    ZayExtend::ZayExtend(Component com)
     {
-        mCB = cb;
+        mCom = com;
     }
 
     ZayExtend::~ZayExtend()
     {
     }
 
-    void ZayExtend::Reset(CallBack cb)
+    void ZayExtend::Reset(Component com)
     {
-        mCB = cb;
+        mCom = com;
     }
 
-    ZayExtend::ZayParam::ZayParam(CallBack cb)
+    ZayExtend::Params::Params(Component com, id_cloned_share param)
     {
-        mCB = cb;
+        mCom = com;
+        if(param) AddParam(param);
     }
 
-    ZayExtend::ZayParam::~ZayParam()
+    ZayExtend::Params::~Params()
     {
     }
 
-    ZayPanel::StackBinder ZayExtend::ZayParam::operator>>(ZayPanel& panel) const
-    {
-        return mCB(panel);
-    }
+    ZayExtend::Params& ZayExtend::Params::operator()(sint32 value)
+    {AddParam(Remote::IntParam((sint64) value)); return *this;}
 
-    const ZayExtend::ZayParam ZayExtend::operator()() const
-    {
-        return ZayParam(mCB);
-    }
+    ZayExtend::Params& ZayExtend::Params::operator()(sint64 value)
+    {AddParam(Remote::IntParam(value)); return *this;}
 
-    const ZayExtend::ZayParam ZayExtend::operator()(sint32 value) const
-    {
-        return ZayParam(mCB);
-    }
+    ZayExtend::Params& ZayExtend::Params::operator()(float value)
+    {AddParam(Remote::DecParam((double) value)); return *this;}
+
+    ZayExtend::Params& ZayExtend::Params::operator()(double value)
+    {AddParam(Remote::DecParam(value)); return *this;}
+
+    ZayPanel::StackBinder ZayExtend::Params::operator>>(ZayPanel& panel) const
+    {return mCom(panel, *this);}
+
+    sint32 ZayExtend::Params::Count() const
+    {return mParams.Count();}
+
+    id_cloned_share ZayExtend::Params::Take(sint32 i) const
+    {return mParams[i].Drain();}
+
+    void ZayExtend::Params::AddParam(id_cloned_share param)
+    {mParams.AtAdding().Store(param);}
+
+    ZayExtend::Params ZayExtend::operator()() const
+    {return ZayExtend::Params(mCom);}
+
+    ZayExtend::Params ZayExtend::operator()(sint32 value) const
+    {return ZayExtend::Params(mCom, Remote::IntParam((sint64) value));}
+
+    ZayExtend::Params ZayExtend::operator()(sint64 value) const
+    {return ZayExtend::Params(mCom, Remote::IntParam(value));}
+
+    ZayExtend::Params ZayExtend::operator()(float value) const
+    {return ZayExtend::Params(mCom, Remote::DecParam((double) value));}
+
+    ZayExtend::Params ZayExtend::operator()(double value) const
+    {return ZayExtend::Params(mCom, Remote::DecParam(value));}
 
     ////////////////////////////////////////////////////////////////////////////////
     // ZayUIElement
@@ -53,21 +78,41 @@ namespace BOSS
         enum class Type {Unknown, Condition, Data, Value, Param, Renderer, View};
 
     public:
-        ZayUIElement(Type type = Type::Unknown) : mType(type) {}
+        ZayUIElement(Type type = Type::Unknown) : mType(type) {mRefRoot = nullptr;}
         virtual ~ZayUIElement() {}
 
     public:
-        virtual void Load(const Context& context)
+        static void SetSolver(Solver& solver, chars variable, chars formula)
         {
+            solver.Link("chain", variable, false);
+            solver.Parse(formula);
+            solver.Execute();
+        }
+        static double GetResult(chars formula)
+        {
+            Solver NewSolver;
+            SetSolver(NewSolver, "_", formula);
+            return NewSolver.result();
+        }
+
+    public:
+        virtual void Load(const ZaySon& root, const Context& context)
+        {
+            mRefRoot = &root;
             hook(context("comment"))
                 mComment = fish.GetString();
         }
-        virtual void Render(ZayPanel& panel, const ZaySon& zayson) const 
+        virtual void Render(ZayPanel& panel, const ZaySon& zayson, sint32& compmax) const 
         {
+        }
+        virtual sint32 GetRenderCount() const
+        {
+            return 0;
         }
 
     public:
         Type mType;
+        const ZaySon* mRefRoot;
         String mComment;
     };
     typedef Object<ZayUIElement> ZayUI;
@@ -87,15 +132,17 @@ namespace BOSS
         ~ZayConditionElement() override {}
 
     private:
-        void Load(const Context& context) override
+        void Load(const ZaySon& root, const Context& context) override
         {
+            ZayUIElement::Load(root, context);
+
             const String ConditionText = context.GetString();
             branch;
             jump(!ConditionText.Compare("if"))
                 mConditionType = ConditionType::If;
-            jump(!ConditionText.Compare("Elif"))
+            jump(!ConditionText.Compare("elif"))
                 mConditionType = ConditionType::Elif;
-            jump(!ConditionText.Compare("Else"))
+            jump(!ConditionText.Compare("else"))
                 mConditionType = ConditionType::Else;
 
             if(sint32 PosB = ConditionText.Find(0, "(") + 1)
@@ -107,12 +154,12 @@ namespace BOSS
         }
 
     public:
-        static bool Test(ZayUIs& dest, const Context& src)
+        static bool Test(const ZaySon& root, ZayUIs& dest, const Context& src)
         {
             if(src.GetString(nullptr))
             {
                 Object<ZayConditionElement> NewCondition(ObjectAllocType::Now);
-                ((ZayUIElement*) NewCondition.Ptr())->Load(src);
+                ((ZayUIElement*) NewCondition.Ptr())->Load(root, src);
                 dest.AtAdding() = (id_share) NewCondition;
                 return true;
             }
@@ -138,9 +185,9 @@ namespace BOSS
         ~ZayResourceElement() override {}
 
     private:
-        void Load(const Context& context) override
+        void Load(const ZaySon& root, const Context& context) override
         {
-            ZayUIElement::Load(context);
+            ZayUIElement::Load(root, context);
 
             mDataName = context("dataname").GetString();
             const String Type = context("datatype").GetString();
@@ -169,17 +216,28 @@ namespace BOSS
         ~ZayVariableElement() override {}
 
     private:
-        void Load(const Context& context) override
+        void Load(const ZaySon& root, const Context& context) override
         {
+            ZayUIElement::Load(root, context);
+
             chararray GetName;
             const auto& GetValue = context(0, &GetName);
             mValueName = &GetName[0];
-            mValueSolver = GetValue.GetString();
+            mValueFormula = GetValue.GetString();
+        }
+
+    public:
+        void Bind()
+        {
+            mSolver.Link("chain", mValueName, false);
+            mSolver.Parse(String::FromFloat(ZayUIElement::GetResult(mValueFormula)));
+            mSolver.Execute();
         }
 
     public:
         String mValueName;
-        String mValueSolver;
+        String mValueFormula;
+        Solver mSolver;
     };
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -192,14 +250,16 @@ namespace BOSS
         ~ZayParamElement() override {}
 
     private:
-        void Load(const Context& context) override
+        void Load(const ZaySon& root, const Context& context) override
         {
+            ZayUIElement::Load(root, context);
+
             for(sint32 i = 0, iend = context.LengthOfIndexable(); i < iend; ++i)
-                mParamSolvers.AtAdding() = context[i].GetString();
+                mParamFormulas.AtAdding() = context[i].GetString();
         }
 
     public:
-        Strings mParamSolvers;
+        Strings mParamFormulas;
     };
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -212,59 +272,96 @@ namespace BOSS
         ~ZayRendererElement() override {}
 
     private:
-        void Load(const Context& context) override
+        void Load(const ZaySon& root, const Context& context) override
         {
-            ZayUIElement::Load(context);
+            ZayUIElement::Load(root, context);
 
-            hook(context("funcname"))
-                mFuncName = fish.GetString();
+            hook(context("compname"))
+                mCompName = fish.GetString();
 
-            hook(context("funcvalues"))
+            hook(context("compvalues"))
             for(sint32 i = 0, iend = fish.LengthOfIndexable(); i < iend; ++i)
             {
-                if(ZayConditionElement::Test(mFuncValues, fish[i]))
+                if(ZayConditionElement::Test(root, mCompValues, fish[i]))
                     continue;
                 Object<ZayParamElement> NewParam(ObjectAllocType::Now);
-                ((ZayUIElement*) NewParam.Ptr())->Load(fish[i]);
-                mFuncValues.AtAdding() = (id_share) NewParam;
+                ((ZayUIElement*) NewParam.Ptr())->Load(root, fish[i]);
+                mCompValues.AtAdding() = (id_share) NewParam;
             }
 
             hook(context("onclick"))
             for(sint32 i = 0, iend = fish.LengthOfIndexable(); i < iend; ++i)
             {
-                if(ZayConditionElement::Test(mClickCodes, fish[i]))
+                if(ZayConditionElement::Test(root, mClickCodes, fish[i]))
                     continue;
                 Object<ZayVariableElement> NewVariable(ObjectAllocType::Now);
-                ((ZayUIElement*) NewVariable.Ptr())->Load(fish[i]);
+                ((ZayUIElement*) NewVariable.Ptr())->Load(root, fish[i]);
                 mClickCodes.AtAdding() = (id_share) NewVariable;
             }
 
             hook(context("ui"))
             for(sint32 i = 0, iend = fish.LengthOfIndexable(); i < iend; ++i)
             {
-                if(ZayConditionElement::Test(mChildren, fish[i]))
+                if(ZayConditionElement::Test(root, mChildren, fish[i]))
                     continue;
                 Object<ZayRendererElement> NewRenderer(ObjectAllocType::Now);
-                ((ZayUIElement*) NewRenderer.Ptr())->Load(fish[i]);
+                ((ZayUIElement*) NewRenderer.Ptr())->Load(root, fish[i]);
                 mChildren.AtAdding() = (id_share) NewRenderer;
             }
         }
-        void Render(ZayPanel& panel, const ZaySon& zayson) const override
+        void Render(ZayPanel& panel, const ZaySon& zayson, sint32& compmax) const override
         {
-            if(auto CurFunction = zayson.FindFunction(mFuncName))
-            //ZAY_EXTEND((*CurFunction)(10)(20)(50)(50) >> panel)
-            for(sint32 i = 0, iend = mChildren.Count(); i < iend; ++i)
+            if(0 < compmax)
             {
-                if(mChildren[i]->mType == ZayUIElement::Type::Renderer)
+                if(--compmax == 0)
                 {
-                    mChildren[i]->Render(panel, zayson);
+                    // Debug정보구성
+                    mRefRoot->mDebugCompName = mCompName;
+                    if(0 < mComment.Length())
+                        mRefRoot->mDebugCompName += '(' + mComment + ')';
+                }
+
+                if(auto CurComponent = zayson.FindComponent(mCompName))
+                {
+                    // 마지막 밸류를 수집
+                    const ZayParamElement* Param = nullptr;
+                    for(sint32 i = 0, iend = mCompValues.Count(); i < iend; ++i)
+                        if(mCompValues[i].ConstValue().mType == ZayUIElement::Type::Param)
+                            Param = (const ZayParamElement*) mCompValues[i].ConstPtr();
+
+                    // 패널정보
+                    Solvers LocalSolvers;
+                    ZayUIElement::SetSolver(LocalSolvers.AtAdding(), "p.width", String::FromFloat(panel.w()));
+                    ZayUIElement::SetSolver(LocalSolvers.AtAdding(), "p.height", String::FromFloat(panel.h()));
+
+                    // 컴포넌트 호출을 위한 파라미터수집
+                    ZayExtend::Params& ParamCollector = (*CurComponent)();
+                    for(sint32 i = 0, iend = (Param)? Param->mParamFormulas.Count() : 0; i < iend; ++i)
+                        ParamCollector(ZayUIElement::GetResult(Param->mParamFormulas[i]));
+
+                    ZAY_EXTEND(ParamCollector >> panel)
+                    for(sint32 i = 0, iend = mChildren.Count(); i < iend; ++i)
+                        if(mChildren[i]->mType == ZayUIElement::Type::Renderer)
+                            mChildren[i]->Render(panel, zayson, compmax);
+
+                    // 패널정보 PULL
+                    /////////////////////////////////////////
+                    // 여기서부터~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!!!
+                    /////////////////////////////////////////
                 }
             }
         }
+        sint32 GetRenderCount() const override
+        {
+            sint32 Result = 1;
+            for(sint32 i = 0, iend = mChildren.Count(); i < iend; ++i)
+                Result += mChildren[i]->GetRenderCount();
+            return Result;
+        }
 
     public:
-        String mFuncName;
-        ZayUIs mFuncValues;
+        String mCompName;
+        ZayUIs mCompValues;
         ZayUIs mClickCodes;
         ZayUIs mChildren;
     };
@@ -279,49 +376,53 @@ namespace BOSS
         ~ZayViewElement() override {}
 
     private:
-        void Load(const Context& context) override
+        void Load(const ZaySon& root, const Context& context) override
         {
-            ZayUIElement::Load(context);
+            ZayUIElement::Load(root, context);
 
             hook(context("asset"))
             for(sint32 i = 0, iend = fish.LengthOfIndexable(); i < iend; ++i)
             {
-                if(ZayConditionElement::Test(mAssets, fish[i]))
+                if(ZayConditionElement::Test(root, mAssets, fish[i]))
                     continue;
                 Object<ZayResourceElement> NewResource(ObjectAllocType::Now);
-                ((ZayUIElement*) NewResource.Ptr())->Load(fish[i]);
+                ((ZayUIElement*) NewResource.Ptr())->Load(root, fish[i]);
                 mAssets.AtAdding() = (id_share) NewResource;
             }
 
             hook(context("oncreate"))
             for(sint32 i = 0, iend = fish.LengthOfIndexable(); i < iend; ++i)
             {
-                if(ZayConditionElement::Test(mCreateCodes, fish[i]))
+                if(ZayConditionElement::Test(root, mCreateCodes, fish[i]))
                     continue;
                 Object<ZayVariableElement> NewVariable(ObjectAllocType::Now);
-                ((ZayUIElement*) NewVariable.Ptr())->Load(fish[i]);
+                ((ZayUIElement*) NewVariable.Ptr())->Load(root, fish[i]);
+                NewVariable->Bind();
                 mCreateCodes.AtAdding() = (id_share) NewVariable;
             }
 
             hook(context("ui"))
             for(sint32 i = 0, iend = fish.LengthOfIndexable(); i < iend; ++i)
             {
-                if(ZayConditionElement::Test(mChildren, fish[i]))
+                if(ZayConditionElement::Test(root, mChildren, fish[i]))
                     continue;
                 Object<ZayRendererElement> NewLayer(ObjectAllocType::Now);
-                ((ZayUIElement*) NewLayer.Ptr())->Load(fish[i]);
+                ((ZayUIElement*) NewLayer.Ptr())->Load(root, fish[i]);
                 mChildren.AtAdding() = (id_share) NewLayer;
             }
         }
-        void Render(ZayPanel& panel, const ZaySon& zayson) const override
+        void Render(ZayPanel& panel, const ZaySon& zayson, sint32& compmax) const override
         {
             for(sint32 i = 0, iend = mChildren.Count(); i < iend; ++i)
-            {
                 if(mChildren[i]->mType == ZayUIElement::Type::Renderer)
-                {
-                    mChildren[i]->Render(panel, zayson);
-                }
-            }
+                    mChildren[i]->Render(panel, zayson, compmax);
+        }
+        sint32 GetRenderCount() const override
+        {
+            sint32 Result = 0;
+            for(sint32 i = 0, iend = mChildren.Count(); i < iend; ++i)
+                Result += mChildren[i]->GetRenderCount();
+            return Result;
         }
 
     public:
@@ -344,25 +445,30 @@ namespace BOSS
     {
         delete mView;
         mView = new ZayViewElement();
-        mView->Load(context);
+        mView->Load(*this, context);
     }
 
-    void ZaySon::AddFunction(chars name, ZayExtend::CallBack cb)
+    void ZaySon::AddComponent(chars name, ZayExtend::Component com)
     {
-        auto& NewFunction = mFunctionMap(name);
-        NewFunction.Reset(cb);
+        auto& NewFunction = mComponentMap(name);
+        NewFunction.Reset(com);
     }
 
-    const ZayExtend* ZaySon::FindFunction(chars name) const
+    const ZayExtend* ZaySon::FindComponent(chars name) const
     {
-        if(auto FindedFunc = mFunctionMap.Access(name))
+        if(auto FindedFunc = mComponentMap.Access(name))
             return FindedFunc;
         return nullptr;
     }
 
-    void ZaySon::Render(ZayPanel& panel)
+    sint32 ZaySon::Render(ZayPanel& panel, sint32 compmax)
     {
         if(mView)
-            mView->Render(panel, *this);
+        {
+            mDebugCompName = "(null)";
+            mView->Render(panel, *this, compmax);
+            return mView->GetRenderCount();
+        }
+        return 0;
     }
 }

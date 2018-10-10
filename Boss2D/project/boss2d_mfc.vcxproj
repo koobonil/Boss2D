@@ -109,6 +109,7 @@
     <ClCompile Include="..\service\boss_tryworld.cpp" />
     <ClCompile Include="..\service\boss_typolar.cpp" />
     <ClCompile Include="..\service\boss_zay.cpp" />
+    <ClCompile Include="..\service\boss_zayson.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\addon\boss_addon_aac.hpp" />
@@ -204,6 +205,7 @@
     <ClInclude Include="..\service\boss_tryworld.hpp" />
     <ClInclude Include="..\service\boss_typolar.hpp" />
     <ClInclude Include="..\service\boss_zay.hpp" />
+    <ClInclude Include="..\service\boss_zayson.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
