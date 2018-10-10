@@ -293,6 +293,8 @@ namespace BOSS
         uint32 fboid() const;
 
     public:
+        inline const Color color() const
+        {return m_stack_color[-1];}
         inline const float zoom() const
         {return m_stack_zoom[-1];}
         inline const float w() const

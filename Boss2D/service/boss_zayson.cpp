@@ -12,11 +12,6 @@ namespace BOSS
     {
     }
 
-    void ZayExtend::Reset(Component com)
-    {
-        mCom = com;
-    }
-
     ZayExtend::Params::Params(Component com, id_cloned_share param)
     {
         mCom = com;
@@ -51,7 +46,7 @@ namespace BOSS
     void ZayExtend::Params::AddParam(id_cloned_share param)
     {mParams.AtAdding().Store(param);}
 
-    ZayExtend::Params ZayExtend::operator()() const
+    const ZayExtend::Params ZayExtend::operator()() const
     {return ZayExtend::Params(mCom);}
 
     ZayExtend::Params ZayExtend::operator()(sint32 value) const
@@ -65,6 +60,16 @@ namespace BOSS
 
     ZayExtend::Params ZayExtend::operator()(double value) const
     {return ZayExtend::Params(mCom, Remote::DecParam(value));}
+
+    void ZayExtend::Reset(Component com)
+    {
+        mCom = com;
+    }
+
+    ZayExtend::Params ZayExtend::MakeParams() const
+    {
+        return ZayExtend::Params(mCom);
+    }
 
     ////////////////////////////////////////////////////////////////////////////////
     // ZayUIElement
@@ -376,7 +381,7 @@ namespace BOSS
                         {
                             auto CurCompValue = (const ZayParamElement*) mCompValues[CompValueCollector[i]].ConstPtr();
                             // 컴포넌트호출을 위한 파라미터계산 및 수집
-                            ZayExtend::Params& ParamCollector = (*CurComponent)();
+                            ZayExtend::Params ParamCollector = CurComponent->MakeParams();
                             if(CurCompValue && 0 < CurCompValue->mParamFormulas.Count())
                             {
                                 Solvers LocalSolvers; // 파라미터계산용 패널정보 사전입력

@@ -70,6 +70,8 @@
         extern JNIEnv* GetAndroidJNIEnv();
     #endif
 
+    #define USER_FRAMECOUNT (60)
+
     class MainData;
     class QMainWindow;
     extern MainData* g_data;
@@ -309,7 +311,7 @@
                 g_view = getWidget();
                 m_view_manager->OnCreate();
             }
-            m_tick_timer.start(15);
+            m_tick_timer.start(1000 / USER_FRAMECOUNT);
         }
 
         inline bool canQuit()
@@ -1202,7 +1204,7 @@
             setUnifiedTitleAndToolBarOnMac(true);
             g_data = new MainData(this);
             connect(&m_tick_timer, &QTimer::timeout, this, &MainWindow::tick_timeout);
-            m_tick_timer.start(15);
+            m_tick_timer.start(1000 / USER_FRAMECOUNT);
             m_inited_platform = false;
             m_first_visible = true;
         }

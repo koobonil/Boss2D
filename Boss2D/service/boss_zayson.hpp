@@ -11,20 +11,18 @@ namespace BOSS
     //! \brief 뷰의 확장스타일
     class ZayExtend
     {
+        BOSS_DECLARE_STANDARD_CLASS(ZayExtend)
     public:
         class Params;
         typedef ZayPanel::StackBinder (*Component)(ZayPanel& panel, const Params& params);
-
     public:
         ZayExtend(Component com = nullptr);
         ~ZayExtend();
 
-    public:
-        void Reset(Component com);
-
     public: // 파라미터와 함께 함수호출
         class Params
         {
+            BOSS_DECLARE_NONCOPYABLE_CLASS(Params)
         public:
             Params(Component com, id_cloned_share param = nullptr);
             ~Params();
@@ -47,11 +45,15 @@ namespace BOSS
             Component mCom;
             Remote::Params mParams;
         };
-        Params operator()() const;
+        const Params operator()() const;
         Params operator()(sint32 value) const;
         Params operator()(sint64 value) const;
         Params operator()(float value) const;
         Params operator()(double value) const;
+
+    public:
+        void Reset(Component com);
+        Params MakeParams() const;
 
     private:
         Component mCom;
@@ -60,6 +62,7 @@ namespace BOSS
     //! \brief 뷰의 스크립트운영
     class ZaySon
     {
+        BOSS_DECLARE_NONCOPYABLE_CLASS(ZaySon)
     public:
         ZaySon();
         ~ZaySon();
