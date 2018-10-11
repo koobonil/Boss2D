@@ -148,12 +148,12 @@ namespace BOSS
             case OperatorType::Multiply:       return mOperandL->result(0) * mOperandR->result(1);
             case OperatorType::Divide:         return mOperandL->result(0) / mOperandR->result(1);
             case OperatorType::Remainder:      return Math::Mod(mOperandL->result(0), mOperandR->result(1));
-            case OperatorType::Greater:        return mOperandL->result(0) < mOperandR->result(0);
-            case OperatorType::GreaterOrEqual: return mOperandL->result(0) <= mOperandR->result(0);
-            case OperatorType::Less:           return mOperandL->result(0) > mOperandR->result(0);
-            case OperatorType::LessOrEqual:    return mOperandL->result(0) >= mOperandR->result(0);
-            case OperatorType::Equal:          return mOperandL->result(0) == mOperandR->result(0);
-            case OperatorType::Different:      return mOperandL->result(0) != mOperandR->result(0);
+            case OperatorType::Greater:        return (mOperandL->result(0) < mOperandR->result(0));
+            case OperatorType::GreaterOrEqual: return (mOperandL->result(0) <= mOperandR->result(0));
+            case OperatorType::Less:           return (mOperandL->result(0) > mOperandR->result(0));
+            case OperatorType::LessOrEqual:    return (mOperandL->result(0) >= mOperandR->result(0));
+            case OperatorType::Equal:          return (mOperandL->result(0) == mOperandR->result(0));
+            case OperatorType::Different:      return (mOperandL->result(0) != mOperandR->result(0));
             case OperatorType::Min:            return Math::MinF(mOperandL->result(0), mOperandR->result(1));
             case OperatorType::Max:            return Math::MaxF(mOperandL->result(0), mOperandR->result(1));
             }
@@ -291,6 +291,13 @@ namespace BOSS
             mLinkedChain = nullptr;
             mLinkedVariable = "";
         }
+    }
+
+    Solver* Solver::Find(chars chain, chars variable)
+    {
+        if(auto FindedChain = &gSolverChains(chain))
+            return (*FindedChain)(variable).dest();
+        return nullptr;
     }
 
     void Solver::Parse(chars formula)

@@ -3,74 +3,6 @@
 
 namespace BOSS
 {
-    ZayExtend::ZayExtend(Component com)
-    {
-        mCom = com;
-    }
-
-    ZayExtend::~ZayExtend()
-    {
-    }
-
-    ZayExtend::Params::Params(Component com, id_cloned_share param)
-    {
-        mCom = com;
-        if(param) AddParam(param);
-    }
-
-    ZayExtend::Params::~Params()
-    {
-    }
-
-    ZayExtend::Params& ZayExtend::Params::operator()(sint32 value)
-    {AddParam(Remote::IntParam((sint64) value)); return *this;}
-
-    ZayExtend::Params& ZayExtend::Params::operator()(sint64 value)
-    {AddParam(Remote::IntParam(value)); return *this;}
-
-    ZayExtend::Params& ZayExtend::Params::operator()(float value)
-    {AddParam(Remote::DecParam((double) value)); return *this;}
-
-    ZayExtend::Params& ZayExtend::Params::operator()(double value)
-    {AddParam(Remote::DecParam(value)); return *this;}
-
-    ZayPanel::StackBinder ZayExtend::Params::operator>>(ZayPanel& panel) const
-    {return mCom(panel, *this);}
-
-    sint32 ZayExtend::Params::Count() const
-    {return mParams.Count();}
-
-    id_cloned_share ZayExtend::Params::Take(sint32 i) const
-    {return mParams[i].Drain();}
-
-    void ZayExtend::Params::AddParam(id_cloned_share param)
-    {mParams.AtAdding().Store(param);}
-
-    const ZayExtend::Params ZayExtend::operator()() const
-    {return ZayExtend::Params(mCom);}
-
-    ZayExtend::Params ZayExtend::operator()(sint32 value) const
-    {return ZayExtend::Params(mCom, Remote::IntParam((sint64) value));}
-
-    ZayExtend::Params ZayExtend::operator()(sint64 value) const
-    {return ZayExtend::Params(mCom, Remote::IntParam(value));}
-
-    ZayExtend::Params ZayExtend::operator()(float value) const
-    {return ZayExtend::Params(mCom, Remote::DecParam((double) value));}
-
-    ZayExtend::Params ZayExtend::operator()(double value) const
-    {return ZayExtend::Params(mCom, Remote::DecParam(value));}
-
-    void ZayExtend::Reset(Component com)
-    {
-        mCom = com;
-    }
-
-    ZayExtend::Params ZayExtend::MakeParams() const
-    {
-        return ZayExtend::Params(mCom);
-    }
-
     ////////////////////////////////////////////////////////////////////////////////
     // ZayUIElement
     ////////////////////////////////////////////////////////////////////////////////
@@ -80,7 +12,7 @@ namespace BOSS
         BOSS_DECLARE_STANDARD_CLASS(ZayUIElement)
 
     public:
-        enum class Type {Unknown, Condition, Data, Value, Param, Renderer, View};
+        enum class Type {Unknown, Condition, Asset, Value, Param, Component, View};
 
     public:
         ZayUIElement(Type type = Type::Unknown) : mType(type) {mRefRoot = nullptr;}
@@ -107,8 +39,17 @@ namespace BOSS
             hook(context("comment"))
                 mComment = fish.GetString();
         }
-        virtual void Render(ZayPanel& panel, const ZaySon& zayson, sint32& compmax) const 
+        virtual void Render(ZayPanel& panel, const ZaySon& zayson, const String& uiname, sint32& compmax) const 
         {
+        }
+        virtual void OnTouch()
+        {
+        }
+
+    public:
+        static void TouchCore(const ZayUIElement* payload)
+        {
+            ((ZayUIElement*) payload)->OnTouch();
         }
 
     public:
@@ -168,6 +109,50 @@ namespace BOSS
             }
             return false;
         };
+        static sint32s Collect(const ZayUIs& uis)
+        {
+            sint32s Collector;
+            // 조건문처리로 유효한 CompValue를 수집
+            bool HasCondition = false;
+            for(sint32 i = 0, iend = uis.Count(); i < iend; ++i)
+            {
+                if(uis[i].ConstValue().mType == ZayUIElement::Type::Condition)
+                {
+                    HasCondition = true;
+                    auto CurCondition = (const ZayConditionElement*) uis[i].ConstPtr();
+                    bool IsTrue = true;
+                    if(CurCondition->mConditionType == ZayConditionElement::ConditionType::If ||
+                        CurCondition->mConditionType == ZayConditionElement::ConditionType::Elif)
+                        IsTrue = (ZayUIElement::GetResult(CurCondition->mConditionSolver) != 0);
+                    if(IsTrue)
+                    {
+                        while(i + 1 < iend && uis[i + 1].ConstValue().mType != ZayUIElement::Type::Condition)
+                            Collector.AtAdding() = ++i;
+                        // 다음 조건문으로 포커싱이동
+                        while(i + 1 < iend)
+                        {
+                            if(uis[++i].ConstValue().mType == ZayUIElement::Type::Condition)
+                            {
+                                CurCondition = (const ZayConditionElement*) uis[i].ConstPtr();
+                                if(CurCondition->mConditionType == ZayConditionElement::ConditionType::If)
+                                {
+                                    i--;
+                                    break;
+                                }
+                                if(CurCondition->mConditionType == ZayConditionElement::ConditionType::Endif)
+                                    break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 조건문이 없으면 모두 유효한 CompValue로 인정
+            if(!HasCondition)
+            for(sint32 i = 0, iend = uis.Count(); i < iend; ++i)
+                Collector.AtAdding() = i;
+            return Collector;
+        }
 
     public:
         ConditionType mConditionType;
@@ -175,17 +160,17 @@ namespace BOSS
     };
 
     ////////////////////////////////////////////////////////////////////////////////
-    // ZayResourceElement
+    // ZayAssetElement
     ////////////////////////////////////////////////////////////////////////////////
-    class ZayResourceElement : public ZayUIElement
+    class ZayAssetElement : public ZayUIElement
     {
     public:
         enum class DataType {Unknown, ViewScript, ImageMap};
 
     public:
-        ZayResourceElement() : ZayUIElement(Type::Data)
+        ZayAssetElement() : ZayUIElement(Type::Asset)
         {mDataType = DataType::Unknown;}
-        ~ZayResourceElement() override {}
+        ~ZayAssetElement() override {}
 
     private:
         void Load(const ZaySon& root, const Context& context) override
@@ -198,14 +183,14 @@ namespace BOSS
                 mDataType = DataType::ViewScript;
             else if(!Type.Compare("imagemap"))
                 mDataType = DataType::ImageMap;
-            mResource = context("resource").GetString();
+            mFilePath = context("filepath").GetString();
             mUrl = context("url").GetString();
         }
 
     public:
         String mDataName;
         DataType mDataType;
-        String mResource;
+        String mFilePath;
         String mUrl;
     };
 
@@ -235,6 +220,14 @@ namespace BOSS
             mSolver.Link("chain", mValueName, false);
             mSolver.Parse(String::FromFloat(ZayUIElement::GetResult(mValueFormula)));
             mSolver.Execute();
+        }
+        void Transform()
+        {
+            if(auto FindedSolver = Solver::Find("chain", mValueName))
+            {
+                FindedSolver->Parse(String::FromFloat(ZayUIElement::GetResult(mValueFormula)));
+                FindedSolver->Execute();
+            }
         }
 
     public:
@@ -266,13 +259,13 @@ namespace BOSS
     };
 
     ////////////////////////////////////////////////////////////////////////////////
-    // ZayRendererElement
+    // ZayComponentElement
     ////////////////////////////////////////////////////////////////////////////////
-    class ZayRendererElement : public ZayUIElement
+    class ZayComponentElement : public ZayUIElement
     {
     public:
-        ZayRendererElement() : ZayUIElement(Type::Renderer) {}
-        ~ZayRendererElement() override {}
+        ZayComponentElement() : ZayUIElement(Type::Component) {}
+        ~ZayComponentElement() override {}
 
     private:
         void Load(const ZaySon& root, const Context& context) override
@@ -307,12 +300,12 @@ namespace BOSS
             {
                 if(ZayConditionElement::Test(root, mChildren, fish[i]))
                     continue;
-                Object<ZayRendererElement> NewRenderer(ObjectAllocType::Now);
+                Object<ZayComponentElement> NewRenderer(ObjectAllocType::Now);
                 ((ZayUIElement*) NewRenderer.Ptr())->Load(root, fish[i]);
                 mChildren.AtAdding() = (id_share) NewRenderer;
             }
         }
-        void Render(ZayPanel& panel, const ZaySon& zayson, sint32& compmax) const override
+        void Render(ZayPanel& panel, const ZaySon& zayson, const String& uiname, sint32& compmax) const override
         {
             if(0 < compmax)
             {
@@ -328,74 +321,50 @@ namespace BOSS
                 {
                     if(mCompValues.Count() == 0)
                     {
-                        ZAY_EXTEND((*CurComponent)() >> panel)
+                        chars UIName = (0 < mClickCodes.Count())? (chars) uiname : nullptr;
+                        ZayComponent::Payload ParamCollector = CurComponent->MakePayload(UIName, this);
+                        ZAY_EXTEND(ParamCollector >> panel)
                         for(sint32 i = 0, iend = mChildren.Count(); i < iend; ++i)
-                            if(mChildren[i]->mType == ZayUIElement::Type::Renderer)
-                                mChildren[i]->Render(panel, zayson, compmax);
+                            if(mChildren[i]->mType == ZayUIElement::Type::Component)
+                                mChildren[i]->Render(panel, zayson, uiname + String::FromInteger(-1 - i), compmax);
                     }
                     else // CompValue항목이 존재할 경우
                     {
-                        // 조건문처리로 유효한 CompValue를 수집
-                        sint32s CompValueCollector;
-                        bool HasCondition = false;
-                        for(sint32 i = 0, iend = mCompValues.Count(); i < iend; ++i)
-                        {
-                            if(mCompValues[i].ConstValue().mType == ZayUIElement::Type::Condition)
-                            {
-                                HasCondition = true;
-                                auto CurCondition = (const ZayConditionElement*) mCompValues[i].ConstPtr();
-                                bool IsTrue = true;
-                                if(CurCondition->mConditionType == ZayConditionElement::ConditionType::If ||
-                                    CurCondition->mConditionType == ZayConditionElement::ConditionType::Elif)
-                                    IsTrue = (ZayUIElement::GetResult(CurCondition->mConditionSolver) != 0);
-                                if(IsTrue)
-                                {
-                                    while(i + 1 < iend && mCompValues[i + 1].ConstValue().mType == ZayUIElement::Type::Param)
-                                        CompValueCollector.AtAdding() = ++i;
-                                    // 다음 조건문으로 포커싱이동
-                                    while(i + 1 < iend)
-                                    {
-                                        if(mCompValues[++i].ConstValue().mType == ZayUIElement::Type::Condition)
-                                        {
-                                            CurCondition = (const ZayConditionElement*) mCompValues[i].ConstPtr();
-                                            if(CurCondition->mConditionType == ZayConditionElement::ConditionType::If)
-                                            {
-                                                i--;
-                                                break;
-                                            }
-                                            if(CurCondition->mConditionType == ZayConditionElement::ConditionType::Endif)
-                                                break;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        // 조건문이 없으면 모두 유효한 CompValue로 인정
-                        if(!HasCondition)
-                        for(sint32 i = 0, iend = mCompValues.Count(); i < iend; ++i)
-                            CompValueCollector.AtAdding() = i;
-
                         // 유효한 CompValue를 모두 실행
-                        for(sint32 i = 0, iend = CompValueCollector.Count(); i < iend; ++i)
+                        sint32s CollectedCompValues = ZayConditionElement::Collect(mCompValues);
+                        for(sint32 i = 0, iend = CollectedCompValues.Count(); i < iend; ++i)
                         {
-                            auto CurCompValue = (const ZayParamElement*) mCompValues[CompValueCollector[i]].ConstPtr();
+                            auto CurCompValue = (const ZayParamElement*) mCompValues[CollectedCompValues[i]].ConstPtr();
                             // 컴포넌트호출을 위한 파라미터계산 및 수집
-                            ZayExtend::Params ParamCollector = CurComponent->MakeParams();
+                            const String UINameSub = String::Format("%s-V%d", (chars) uiname, CollectedCompValues[i]);
+                            chars UIName = (0 < mClickCodes.Count())? (chars) UINameSub : nullptr;
+                            ZayComponent::Payload ParamCollector = CurComponent->MakePayload(UIName, this);
                             if(CurCompValue && 0 < CurCompValue->mParamFormulas.Count())
                             {
                                 Solvers LocalSolvers; // 파라미터계산용 패널정보 사전입력
                                 ZayUIElement::SetSolver(LocalSolvers.AtAdding(), "p.width", String::FromFloat(panel.w()));
                                 ZayUIElement::SetSolver(LocalSolvers.AtAdding(), "p.height", String::FromFloat(panel.h()));
-                                for(sint32 i = 0, iend = CurCompValue->mParamFormulas.Count(); i < iend; ++i)
-                                    ParamCollector(ZayUIElement::GetResult(CurCompValue->mParamFormulas[i]));
+                                for(sint32 j = 0, jend = CurCompValue->mParamFormulas.Count(); j < jend; ++j)
+                                    ParamCollector(ZayUIElement::GetResult(CurCompValue->mParamFormulas[j]));
                             }
                             ZAY_EXTEND(ParamCollector >> panel)
-                            for(sint32 i = 0, iend = mChildren.Count(); i < iend; ++i)
-                                if(mChildren[i]->mType == ZayUIElement::Type::Renderer)
-                                    mChildren[i]->Render(panel, zayson, compmax);
+                            for(sint32 j = 0, jend = mChildren.Count(); j < jend; ++j)
+                                if(mChildren[j]->mType == ZayUIElement::Type::Component)
+                                    mChildren[j]->Render(panel, zayson, UINameSub + String::FromInteger(-1 - j), compmax);
                         }
                     }
+                }
+            }
+        }
+        void OnTouch() override
+        {
+            if(0 < mClickCodes.Count())
+            {
+                sint32s CollectedClickCodes = ZayConditionElement::Collect(mClickCodes);
+                for(sint32 i = 0, iend = CollectedClickCodes.Count(); i < iend; ++i)
+                {
+                    auto CurClickCode = (ZayVariableElement*) mClickCodes.At(CollectedClickCodes[i]).Ptr();
+                    CurClickCode->Transform();
                 }
             }
         }
@@ -426,7 +395,7 @@ namespace BOSS
             {
                 if(ZayConditionElement::Test(root, mAssets, fish[i]))
                     continue;
-                Object<ZayResourceElement> NewResource(ObjectAllocType::Now);
+                Object<ZayAssetElement> NewResource(ObjectAllocType::Now);
                 ((ZayUIElement*) NewResource.Ptr())->Load(root, fish[i]);
                 mAssets.AtAdding() = (id_share) NewResource;
             }
@@ -447,16 +416,16 @@ namespace BOSS
             {
                 if(ZayConditionElement::Test(root, mChildren, fish[i]))
                     continue;
-                Object<ZayRendererElement> NewLayer(ObjectAllocType::Now);
+                Object<ZayComponentElement> NewLayer(ObjectAllocType::Now);
                 ((ZayUIElement*) NewLayer.Ptr())->Load(root, fish[i]);
                 mChildren.AtAdding() = (id_share) NewLayer;
             }
         }
-        void Render(ZayPanel& panel, const ZaySon& zayson, sint32& compmax) const override
+        void Render(ZayPanel& panel, const ZaySon& zayson, const String& uiname, sint32& compmax) const override
         {
             for(sint32 i = 0, iend = mChildren.Count(); i < iend; ++i)
-                if(mChildren[i]->mType == ZayUIElement::Type::Renderer)
-                    mChildren[i]->Render(panel, zayson, compmax);
+                if(mChildren[i]->mType == ZayUIElement::Type::Component)
+                    mChildren[i]->Render(panel, zayson, uiname + String::FromInteger(-1 - i), compmax);
         }
 
     public:
@@ -465,6 +434,95 @@ namespace BOSS
         ZayUIs mChildren;
     };
 
+    ////////////////////////////////////////////////////////////////////////////////
+    // ZayComponent
+    ////////////////////////////////////////////////////////////////////////////////
+    ZayComponent::ZayComponent(CallBack cb)
+    {
+        mCB = cb;
+    }
+
+    ZayComponent::~ZayComponent()
+    {
+    }
+
+    ZayComponent::Payload::Payload(CallBack cb, chars uiname, const ZayUIElement* uielement, id_cloned_share param)
+    {
+        mCB = cb;
+        mUIName = uiname;
+        mUIElement = uielement;
+        if(param) AddParam(param);
+    }
+
+    ZayComponent::Payload::~Payload()
+    {
+    }
+
+    ZayComponent::Payload& ZayComponent::Payload::operator()(sint32 value)
+    {AddParam(Remote::IntParam((sint64) value)); return *this;}
+
+    ZayComponent::Payload& ZayComponent::Payload::operator()(sint64 value)
+    {AddParam(Remote::IntParam(value)); return *this;}
+
+    ZayComponent::Payload& ZayComponent::Payload::operator()(float value)
+    {AddParam(Remote::DecParam((double) value)); return *this;}
+
+    ZayComponent::Payload& ZayComponent::Payload::operator()(double value)
+    {AddParam(Remote::DecParam(value)); return *this;}
+
+    ZayPanel::StackBinder ZayComponent::Payload::operator>>(ZayPanel& panel) const
+    {return mCB(panel, *this);}
+
+    chars ZayComponent::Payload::UIName() const
+    {return mUIName;}
+
+    ZayPanel::SubGestureCB ZayComponent::Payload::MakeGesture() const
+    {
+        auto UIElement = mUIElement;
+        return ZAY_GESTURE_T(t, UIElement)
+            {
+                if(t == GT_InReleased)
+                    ZayUIElement::TouchCore(UIElement);
+            };
+    }
+
+    sint32 ZayComponent::Payload::ParamCount() const
+    {return mParams.Count();}
+
+    id_cloned_share ZayComponent::Payload::TakeParam(sint32 i) const
+    {return mParams[i].Drain();}
+
+    void ZayComponent::Payload::AddParam(id_cloned_share param)
+    {mParams.AtAdding().Store(param);}
+
+    const ZayComponent::Payload ZayComponent::operator()() const
+    {return ZayComponent::Payload(mCB);}
+
+    ZayComponent::Payload ZayComponent::operator()(sint32 value) const
+    {return ZayComponent::Payload(mCB, nullptr, nullptr, Remote::IntParam((sint64) value));}
+
+    ZayComponent::Payload ZayComponent::operator()(sint64 value) const
+    {return ZayComponent::Payload(mCB, nullptr, nullptr, Remote::IntParam(value));}
+
+    ZayComponent::Payload ZayComponent::operator()(float value) const
+    {return ZayComponent::Payload(mCB, nullptr, nullptr, Remote::DecParam((double) value));}
+
+    ZayComponent::Payload ZayComponent::operator()(double value) const
+    {return ZayComponent::Payload(mCB, nullptr, nullptr, Remote::DecParam(value));}
+
+    void ZayComponent::Reset(CallBack cb)
+    {
+        mCB = cb;
+    }
+
+    ZayComponent::Payload ZayComponent::MakePayload(chars uiname, const ZayUIElement* uielement) const
+    {
+        return ZayComponent::Payload(mCB, uiname, uielement);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // ZaySon
+    ////////////////////////////////////////////////////////////////////////////////
     ZaySon::ZaySon()
     {
         mView = nullptr;
@@ -482,13 +540,13 @@ namespace BOSS
         mView->Load(*this, context);
     }
 
-    void ZaySon::AddComponent(chars name, ZayExtend::Component com)
+    void ZaySon::AddComponent(chars name, ZayComponent::CallBack cb)
     {
         auto& NewFunction = mComponentMap(name);
-        NewFunction.Reset(com);
+        NewFunction.Reset(cb);
     }
 
-    const ZayExtend* ZaySon::FindComponent(chars name) const
+    const ZayComponent* ZaySon::FindComponent(chars name) const
     {
         if(auto FindedFunc = mComponentMap.Access(name))
             return FindedFunc;
@@ -501,7 +559,7 @@ namespace BOSS
         {
             mDebugCompName = "(null)";
             const sint32 OldCompMax = compmax;
-            mView->Render(panel, *this, compmax);
+            mView->Render(panel, *this, "View", compmax);
             return OldCompMax - compmax;
         }
         return 0;

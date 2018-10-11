@@ -8,55 +8,59 @@ namespace BOSS
 {
     class ZayUIElement;
 
-    //! \brief 뷰의 확장스타일
-    class ZayExtend
+    //! \brief 뷰의 UI콤포넌트
+    class ZayComponent
     {
-        BOSS_DECLARE_STANDARD_CLASS(ZayExtend)
+        BOSS_DECLARE_STANDARD_CLASS(ZayComponent)
     public:
-        class Params;
-        typedef ZayPanel::StackBinder (*Component)(ZayPanel& panel, const Params& params);
+        class Payload;
+        typedef ZayPanel::StackBinder (*CallBack)(ZayPanel& panel, const Payload& params);
     public:
-        ZayExtend(Component com = nullptr);
-        ~ZayExtend();
+        ZayComponent(CallBack cb = nullptr);
+        ~ZayComponent();
 
     public: // 파라미터와 함께 함수호출
-        class Params
+        class Payload
         {
-            BOSS_DECLARE_NONCOPYABLE_CLASS(Params)
+            BOSS_DECLARE_NONCOPYABLE_CLASS(Payload)
         public:
-            Params(Component com, id_cloned_share param = nullptr);
-            ~Params();
+            Payload(CallBack cb, chars uiname = nullptr, const ZayUIElement* uielement = nullptr, id_cloned_share param = nullptr);
+            ~Payload();
 
         public:
-            Params& operator()(sint32 value);
-            Params& operator()(sint64 value);
-            Params& operator()(float value);
-            Params& operator()(double value);
+            Payload& operator()(sint32 value);
+            Payload& operator()(sint64 value);
+            Payload& operator()(float value);
+            Payload& operator()(double value);
             ZayPanel::StackBinder operator>>(ZayPanel& panel) const;
 
         public:
-            sint32 Count() const;
-            id_cloned_share Take(sint32 i) const;
+            chars UIName() const;
+            ZayPanel::SubGestureCB MakeGesture() const;
+            sint32 ParamCount() const;
+            id_cloned_share TakeParam(sint32 i) const;
 
         private:
             void AddParam(id_cloned_share param);
 
         private:
-            Component mCom;
+            CallBack mCB;
+            chars mUIName;
+            const ZayUIElement* mUIElement;
             Remote::Params mParams;
         };
-        const Params operator()() const;
-        Params operator()(sint32 value) const;
-        Params operator()(sint64 value) const;
-        Params operator()(float value) const;
-        Params operator()(double value) const;
+        const Payload operator()() const;
+        Payload operator()(sint32 value) const;
+        Payload operator()(sint64 value) const;
+        Payload operator()(float value) const;
+        Payload operator()(double value) const;
 
     public:
-        void Reset(Component com);
-        Params MakeParams() const;
+        void Reset(CallBack cb);
+        Payload MakePayload(chars uiname = nullptr, const ZayUIElement* uielement = nullptr) const;
 
     private:
-        Component mCom;
+        CallBack mCB;
     };
 
     //! \brief 뷰의 스크립트운영
@@ -69,13 +73,13 @@ namespace BOSS
 
     public:
         void Load(const Context& context);
-        void AddComponent(chars name, ZayExtend::Component com);
-        const ZayExtend* FindComponent(chars name) const;
+        void AddComponent(chars name, ZayComponent::CallBack cb);
+        const ZayComponent* FindComponent(chars name) const;
         sint32 Render(ZayPanel& panel, sint32 compmax = 0x7FFFFFFF);
 
     private:
         ZayUIElement* mView;
-        Map<ZayExtend> mComponentMap;
+        Map<ZayComponent> mComponentMap;
 
     public:
         mutable String mDebugCompName;

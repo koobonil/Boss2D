@@ -23,6 +23,7 @@ namespace BOSS
         public: void AddObserver(Solver* solver);
         public: bool SubObserver(Solver* solver);
         public: void RenualAllObservers();
+        public: Solver* dest() {return mDest;}
         public: const Solver* dest() const {return mDest;}
 
         // 멤버
@@ -72,6 +73,7 @@ namespace BOSS
         // 인터페이스
         public: void Link(chars chain, chars variable, bool needupdate);
         public: void Unlink();
+        public: static Solver* Find(chars chain, chars variable);
         public: void Parse(chars formula);
         public: void Execute();
         public: inline const String& linked_variable() const {return mLinkedVariable;}
