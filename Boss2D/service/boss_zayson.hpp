@@ -14,7 +14,7 @@ namespace BOSS
         BOSS_DECLARE_STANDARD_CLASS(ZayComponent)
     public:
         class Payload;
-        typedef ZayPanel::StackBinder (*CallBack)(ZayPanel& panel, const Payload& params);
+        typedef std::function<ZayPanel::StackBinder(ZayPanel& panel, const Payload& params)> CallBack;
     public:
         ZayComponent(CallBack cb = nullptr);
         ~ZayComponent();
@@ -24,36 +24,35 @@ namespace BOSS
         {
             BOSS_DECLARE_NONCOPYABLE_CLASS(Payload)
         public:
-            Payload(CallBack cb, chars uiname = nullptr, const ZayUIElement* uielement = nullptr, id_cloned_share param = nullptr);
+            Payload(CallBack cb, chars uiname = nullptr, const ZayUIElement* uielement = nullptr, const SolverValue* param = nullptr);
             ~Payload();
 
         public:
-            Payload& operator()(sint32 value);
-            Payload& operator()(sint64 value);
-            Payload& operator()(float value);
-            Payload& operator()(double value);
+            Payload& operator()(const SolverValue& value);
             ZayPanel::StackBinder operator>>(ZayPanel& panel) const;
 
         public:
             chars UIName() const;
             ZayPanel::SubGestureCB MakeGesture() const;
             sint32 ParamCount() const;
-            id_cloned_share TakeParam(sint32 i) const;
+            const SolverValue& Param(sint32 i) const;
+            bool ParamToBool(sint32 i) const;
+            UIAlign ParamToUIAlign(sint32 i) const;
+            UIStretchForm ParamToUIStretchForm(sint32 i) const;
+            UIFontAlign ParamToUIFontAlign(sint32 i) const;
+            UIFontElide ParamToUIFontElide(sint32 i) const;
 
         private:
-            void AddParam(id_cloned_share param);
+            void AddParam(const SolverValue& value);
 
         private:
             CallBack mCB;
             chars mUIName;
             const ZayUIElement* mUIElement;
-            Remote::Params mParams;
+            SolverValues mParams;
         };
         const Payload operator()() const;
-        Payload operator()(sint32 value) const;
-        Payload operator()(sint64 value) const;
-        Payload operator()(float value) const;
-        Payload operator()(double value) const;
+        Payload operator()(const SolverValue& value) const;
 
     public:
         void Reset(CallBack cb);

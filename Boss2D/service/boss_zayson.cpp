@@ -8,9 +8,7 @@ namespace BOSS
     ////////////////////////////////////////////////////////////////////////////////
     class ZayUIElement
     {
-    public:
         BOSS_DECLARE_STANDARD_CLASS(ZayUIElement)
-
     public:
         enum class Type {Unknown, Condition, Asset, Value, Param, Component, View};
 
@@ -25,7 +23,7 @@ namespace BOSS
             solver.Parse(formula);
             solver.Execute();
         }
-        static double GetResult(chars formula)
+        static SolverValue GetResult(chars formula)
         {
             Solver NewSolver;
             SetSolver(NewSolver, "_", formula);
@@ -123,7 +121,7 @@ namespace BOSS
                     bool IsTrue = true;
                     if(CurCondition->mConditionType == ZayConditionElement::ConditionType::If ||
                         CurCondition->mConditionType == ZayConditionElement::ConditionType::Elif)
-                        IsTrue = (ZayUIElement::GetResult(CurCondition->mConditionSolver) != 0);
+                        IsTrue = (ZayUIElement::GetResult(CurCondition->mConditionSolver).ToInteger() != 0);
                     if(IsTrue)
                     {
                         while(i + 1 < iend && uis[i + 1].ConstValue().mType != ZayUIElement::Type::Condition)
@@ -218,14 +216,14 @@ namespace BOSS
         void Bind()
         {
             mSolver.Link("chain", mValueName, false);
-            mSolver.Parse(String::FromFloat(ZayUIElement::GetResult(mValueFormula)));
+            mSolver.Parse(ZayUIElement::GetResult(mValueFormula).ToText());
             mSolver.Execute();
         }
         void Transform()
         {
             if(auto FindedSolver = Solver::Find("chain", mValueName))
             {
-                FindedSolver->Parse(String::FromFloat(ZayUIElement::GetResult(mValueFormula)));
+                FindedSolver->Parse(ZayUIElement::GetResult(mValueFormula).ToText());
                 FindedSolver->Execute();
             }
         }
@@ -446,29 +444,20 @@ namespace BOSS
     {
     }
 
-    ZayComponent::Payload::Payload(CallBack cb, chars uiname, const ZayUIElement* uielement, id_cloned_share param)
+    ZayComponent::Payload::Payload(CallBack cb, chars uiname, const ZayUIElement* uielement, const SolverValue* param)
     {
         mCB = cb;
         mUIName = uiname;
         mUIElement = uielement;
-        if(param) AddParam(param);
+        if(param) AddParam(*param);
     }
 
     ZayComponent::Payload::~Payload()
     {
     }
 
-    ZayComponent::Payload& ZayComponent::Payload::operator()(sint32 value)
-    {AddParam(Remote::IntParam((sint64) value)); return *this;}
-
-    ZayComponent::Payload& ZayComponent::Payload::operator()(sint64 value)
-    {AddParam(Remote::IntParam(value)); return *this;}
-
-    ZayComponent::Payload& ZayComponent::Payload::operator()(float value)
-    {AddParam(Remote::DecParam((double) value)); return *this;}
-
-    ZayComponent::Payload& ZayComponent::Payload::operator()(double value)
-    {AddParam(Remote::DecParam(value)); return *this;}
+    ZayComponent::Payload& ZayComponent::Payload::operator()(const SolverValue& value)
+    {AddParam(value); return *this;}
 
     ZayPanel::StackBinder ZayComponent::Payload::operator>>(ZayPanel& panel) const
     {return mCB(panel, *this);}
@@ -489,26 +478,96 @@ namespace BOSS
     sint32 ZayComponent::Payload::ParamCount() const
     {return mParams.Count();}
 
-    id_cloned_share ZayComponent::Payload::TakeParam(sint32 i) const
-    {return mParams[i].Drain();}
+    const SolverValue& ZayComponent::Payload::Param(sint32 i) const
+    {return mParams[i];}
 
-    void ZayComponent::Payload::AddParam(id_cloned_share param)
-    {mParams.AtAdding().Store(param);}
+    bool ZayComponent::Payload::ParamToBool(sint32 i) const
+    {
+        if(mParams[i].GetType() == SolverValueType::Text)
+        {
+            if(!mParams[i].ToText().CompareNoCase("true"))
+                return true;
+            if(!mParams[i].ToText().CompareNoCase("false"))
+                return false;
+            BOSS_ASSERT("알 수 없는 Bool입니다", false);
+        }
+        return !!mParams[i].ToInteger();
+    }
+
+    UIAlign ZayComponent::Payload::ParamToUIAlign(sint32 i) const
+    {
+        const String Result = mParams[i].ToText();
+        branch;
+        jump(!Result.Compare("UIA_LeftTop")) return UIA_LeftTop;
+        jump(!Result.Compare("UIA_CenterTop")) return UIA_CenterTop;
+        jump(!Result.Compare("UIA_RightTop")) return UIA_RightTop;
+        jump(!Result.Compare("UIA_LeftMiddle")) return UIA_LeftMiddle;
+        jump(!Result.Compare("UIA_CenterMiddle")) return UIA_CenterMiddle;
+        jump(!Result.Compare("UIA_RightMiddle")) return UIA_RightMiddle;
+        jump(!Result.Compare("UIA_LeftBottom")) return UIA_LeftBottom;
+        jump(!Result.Compare("UIA_CenterBottom")) return UIA_CenterBottom;
+        jump(!Result.Compare("UIA_RightBottom")) return UIA_RightBottom;
+        BOSS_ASSERT("알 수 없는 UIAlign입니다", false);
+        return UIA_LeftTop;
+    }
+
+    UIStretchForm ZayComponent::Payload::ParamToUIStretchForm(sint32 i) const
+    {
+        const String Result = mParams[i].ToText();
+        branch;
+        jump(!Result.Compare("UISF_Strong")) return UISF_Strong;
+        jump(!Result.Compare("UISF_Inner")) return UISF_Inner;
+        jump(!Result.Compare("UISF_Outer")) return UISF_Outer;
+        jump(!Result.Compare("UISF_Width")) return UISF_Width;
+        jump(!Result.Compare("UISF_Height")) return UISF_Height;
+        BOSS_ASSERT("알 수 없는 UIStretchForm입니다", false);
+        return UISF_Strong;
+    }
+
+    UIFontAlign ZayComponent::Payload::ParamToUIFontAlign(sint32 i) const
+    {
+        const String Result = mParams[i].ToText();
+        branch;
+        jump(!Result.Compare("UIFA_LeftTop")) return UIFA_LeftTop;
+        jump(!Result.Compare("UIFA_CenterTop")) return UIFA_CenterTop;
+        jump(!Result.Compare("UIFA_RightTop")) return UIFA_RightTop;
+        jump(!Result.Compare("UIFA_JustifyTop")) return UIFA_JustifyTop;
+        jump(!Result.Compare("UIFA_LeftMiddle")) return UIFA_LeftMiddle;
+        jump(!Result.Compare("UIFA_CenterMiddle")) return UIFA_CenterMiddle;
+        jump(!Result.Compare("UIFA_RightMiddle")) return UIFA_RightMiddle;
+        jump(!Result.Compare("UIFA_JustifyMiddle")) return UIFA_JustifyMiddle;
+        jump(!Result.Compare("UIFA_LeftAscent")) return UIFA_LeftAscent;
+        jump(!Result.Compare("UIFA_CenterAscent")) return UIFA_CenterAscent;
+        jump(!Result.Compare("UIFA_RightAscent")) return UIFA_RightAscent;
+        jump(!Result.Compare("UIFA_JustifyAscent")) return UIFA_JustifyAscent;
+        jump(!Result.Compare("UIFA_LeftBottom")) return UIFA_LeftBottom;
+        jump(!Result.Compare("UIFA_CenterBottom")) return UIFA_CenterBottom;
+        jump(!Result.Compare("UIFA_RightBottom")) return UIFA_RightBottom;
+        jump(!Result.Compare("UIFA_JustifyBottom")) return UIFA_JustifyBottom;
+        BOSS_ASSERT("알 수 없는 UIFontAlign입니다", false);
+        return UIFA_LeftTop;
+    }
+
+    UIFontElide ZayComponent::Payload::ParamToUIFontElide(sint32 i) const
+    {
+        const String Result = mParams[i].ToText();
+        branch;
+        jump(!Result.Compare("UIFE_None")) return UIFE_None;
+        jump(!Result.Compare("UIFE_Left")) return UIFE_Left;
+        jump(!Result.Compare("UIFE_Center")) return UIFE_Center;
+        jump(!Result.Compare("UIFE_Right")) return UIFE_Right;
+        BOSS_ASSERT("알 수 없는 UIFontElide입니다", false);
+        return UIFE_None;
+    }
+
+    void ZayComponent::Payload::AddParam(const SolverValue& value)
+    {mParams.AtAdding() = value;}
 
     const ZayComponent::Payload ZayComponent::operator()() const
     {return ZayComponent::Payload(mCB);}
 
-    ZayComponent::Payload ZayComponent::operator()(sint32 value) const
-    {return ZayComponent::Payload(mCB, nullptr, nullptr, Remote::IntParam((sint64) value));}
-
-    ZayComponent::Payload ZayComponent::operator()(sint64 value) const
-    {return ZayComponent::Payload(mCB, nullptr, nullptr, Remote::IntParam(value));}
-
-    ZayComponent::Payload ZayComponent::operator()(float value) const
-    {return ZayComponent::Payload(mCB, nullptr, nullptr, Remote::DecParam((double) value));}
-
-    ZayComponent::Payload ZayComponent::operator()(double value) const
-    {return ZayComponent::Payload(mCB, nullptr, nullptr, Remote::DecParam(value));}
+    ZayComponent::Payload ZayComponent::operator()(const SolverValue& value) const
+    {return ZayComponent::Payload(mCB, nullptr, nullptr, &value);}
 
     void ZayComponent::Reset(CallBack cb)
     {

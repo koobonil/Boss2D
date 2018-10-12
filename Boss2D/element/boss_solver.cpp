@@ -4,36 +4,36 @@
 namespace BOSS
 {
     // 상수항
-    class Literal : public Operand
+    class SolverLiteral : public SolverOperand
     {
-        BOSS_DECLARE_NONCOPYABLE_INITIALIZED_CLASS(Literal, mValue(rhs.mValue))
-        public: Literal(SolverFloat value = 0) : Operand(OperandType::Literal), mValue(value) {}
-        public: ~Literal() {}
+        BOSS_DECLARE_NONCOPYABLE_INITIALIZED_CLASS(SolverLiteral, mValue(rhs.mValue))
+        public: SolverLiteral(SolverValue value = SolverValue()) : SolverOperand(SolverOperandType::Literal), mValue(value) {}
+        public: ~SolverLiteral() {}
 
         // 가상 인터페이스
         public: void PrintString(String& collector) const override
-        {collector += String::FromFloat(mValue);}
+        {collector += mValue.ToText();}
         public: void UpdateChain(Solver* solver, SolverChain* chain) override {}
         public: float reliable() const override {return 1;}
-        public: SolverFloat result(SolverFloat zero) const override {return mValue;}
+        public: SolverValue result(SolverValue zero) const override {return mValue;}
         public: buffer clone() const override
         {
-            buffer NewBuffer = Buffer::AllocNoConstructorOnce<Literal>(BOSS_DBG 1);
-            BOSS_CONSTRUCTOR(NewBuffer, 0, Literal, mValue);
+            buffer NewBuffer = Buffer::AllocNoConstructorOnce<SolverLiteral>(BOSS_DBG 1);
+            BOSS_CONSTRUCTOR(NewBuffer, 0, SolverLiteral, mValue);
             return NewBuffer;
         }
 
         // 멤버
-        public: const SolverFloat mValue; // 값
+        public: const SolverValue mValue; // 값
     };
 
     // 변수항
-    class Variable : public Operand
+    class SolverVariable : public SolverOperand
     {
-        BOSS_DECLARE_NONCOPYABLE_INITIALIZED_CLASS(Variable, mName(rhs.mName))
-        public: Variable(chars name = "") : Operand(OperandType::Variable), mName(name)
+        BOSS_DECLARE_NONCOPYABLE_INITIALIZED_CLASS(SolverVariable, mName(rhs.mName))
+        public: SolverVariable(chars name = "") : SolverOperand(SolverOperandType::Variable), mName(name)
         {mSolver = nullptr; mChain = nullptr;}
-        public: ~Variable() {RemoveCurrentChain();}
+        public: ~SolverVariable() {RemoveCurrentChain();}
 
         // 비공개부
         private: void RemoveCurrentChain()
@@ -66,21 +66,24 @@ namespace BOSS
             if(auto CurChainPair = mChain->Access(mName))
             if(auto CurSolver = CurChainPair->dest())
                 return CurSolver->reliable();
-            return 0;
+            return 1; // 해당 Solver를 찾지 못하면 텍스트타입이라 오히려 신뢰도가 100%
         }
-        public: SolverFloat result(SolverFloat zero) const override
+        public: SolverValue result(SolverValue zero) const override
         {
             if(0 < reliable())
-            if(auto CurChainPair = mChain->Access(mName))
-            if(auto CurSolver = CurChainPair->dest())
-                return CurSolver->result();
+            {
+                if(auto CurChainPair = mChain->Access(mName))
+                if(auto CurSolver = CurChainPair->dest())
+                    return CurSolver->result();
+                return SolverValue::MakeByText(mName); // 해당 Solver를 찾지 못하면 텍스트타입
+            }
             return zero;
         }
         public: buffer clone() const override
         {
-            buffer NewBuffer = Buffer::AllocNoConstructorOnce<Variable>(BOSS_DBG 1);
-            BOSS_CONSTRUCTOR(NewBuffer, 0, Variable, mName);
-            ((Variable*) NewBuffer)->UpdateChain(mSolver, mChain);
+            buffer NewBuffer = Buffer::AllocNoConstructorOnce<SolverVariable>(BOSS_DBG 1);
+            BOSS_CONSTRUCTOR(NewBuffer, 0, SolverVariable, mName);
+            ((SolverVariable*) NewBuffer)->UpdateChain(mSolver, mChain);
             return NewBuffer;
         }
 
@@ -91,39 +94,39 @@ namespace BOSS
     };
 
     // 계산항
-    class Formula : public Operand
+    class SolverFormula : public SolverOperand
     {
-        BOSS_DECLARE_NONCOPYABLE_INITIALIZED_CLASS(Formula, mOperatorType(OperatorType::Unknown), mOperatorPriority(0))
-        public: Formula(OperatorType type = OperatorType::Unknown, sint32 priority = 0)
-            : Operand(OperandType::Formula), mOperatorType(type), mOperatorPriority(priority) {mOperandP = nullptr;}
-        public: ~Formula() {}
+        BOSS_DECLARE_NONCOPYABLE_INITIALIZED_CLASS(SolverFormula, mOperatorType(SolverOperatorType::Unknown), mOperatorPriority(0))
+        public: SolverFormula(SolverOperatorType type = SolverOperatorType::Unknown, sint32 priority = 0)
+            : SolverOperand(SolverOperandType::Formula), mOperatorType(type), mOperatorPriority(priority) {mOperandP = nullptr;}
+        public: ~SolverFormula() {}
 
         // 가상 인터페이스
         public: void PrintString(String& collector) const override
         {
-            auto PrintOperand = [](const OperandObject& operand, String& collector)->void
+            auto PrintOperand = [](const SolverOperandObject& operand, String& collector)->void
             {
-                if(operand->type() == OperandType::Formula) collector += "(";
+                if(operand->type() == SolverOperandType::Formula) collector += "(";
                 operand->PrintString(collector);
-                if(operand->type() == OperandType::Formula) collector += ")";
+                if(operand->type() == SolverOperandType::Formula) collector += ")";
             };
 
             PrintOperand(mOperandL, collector);
             switch(mOperatorType)
             {
-            case OperatorType::Addition:       collector += " + "; break;
-            case OperatorType::Subtract:       collector += " - "; break;
-            case OperatorType::Multiply:       collector += " * "; break;
-            case OperatorType::Divide:         collector += " / "; break;
-            case OperatorType::Remainder:      collector += " % "; break;
-            case OperatorType::Greater:        collector += " < "; break;
-            case OperatorType::GreaterOrEqual: collector += " <= "; break;
-            case OperatorType::Less:           collector += " > "; break;
-            case OperatorType::LessOrEqual:    collector += " >= "; break;
-            case OperatorType::Equal:          collector += " == "; break;
-            case OperatorType::Different:      collector += " != "; break;
-            case OperatorType::Min:            collector += " [min] "; break;
-            case OperatorType::Max:            collector += " [max] "; break;
+            case SolverOperatorType::Addition:       collector += " + "; break;
+            case SolverOperatorType::Subtract:       collector += " - "; break;
+            case SolverOperatorType::Multiply:       collector += " * "; break;
+            case SolverOperatorType::Divide:         collector += " / "; break;
+            case SolverOperatorType::Remainder:      collector += " % "; break;
+            case SolverOperatorType::Greater:        collector += " < "; break;
+            case SolverOperatorType::GreaterOrEqual: collector += " <= "; break;
+            case SolverOperatorType::Less:           collector += " > "; break;
+            case SolverOperatorType::LessOrEqual:    collector += " >= "; break;
+            case SolverOperatorType::Equal:          collector += " == "; break;
+            case SolverOperatorType::Different:      collector += " != "; break;
+            case SolverOperatorType::Function_Min:   collector += " [min] "; break;
+            case SolverOperatorType::Function_Max:   collector += " [max] "; break;
             }
             PrintOperand(mOperandR, collector);
         }
@@ -134,47 +137,49 @@ namespace BOSS
         }
         public: virtual float reliable() const override
         {
-            if(mOperatorType == OperatorType::Addition || mOperatorType == OperatorType::Subtract)
+            if(mOperatorType == SolverOperatorType::Addition || mOperatorType == SolverOperatorType::Subtract)
                 return (mOperandL->reliable() + mOperandR->reliable()) / 2;
             return mOperandL->reliable() * mOperandR->reliable();
         }
-        public: virtual SolverFloat result(SolverFloat zero) const override
+        public: virtual SolverValue result(SolverValue zero) const override
         {
+            const SolverValue& Zero = SolverValue::MakeByInteger(0);
+            const SolverValue& One = SolverValue::MakeByInteger(1);
             if(0 < reliable())
             switch(mOperatorType)
             {
-            case OperatorType::Addition:       return mOperandL->result(0) + mOperandR->result(0);
-            case OperatorType::Subtract:       return mOperandL->result(0) - mOperandR->result(0);
-            case OperatorType::Multiply:       return mOperandL->result(0) * mOperandR->result(1);
-            case OperatorType::Divide:         return mOperandL->result(0) / mOperandR->result(1);
-            case OperatorType::Remainder:      return Math::Mod(mOperandL->result(0), mOperandR->result(1));
-            case OperatorType::Greater:        return (mOperandL->result(0) < mOperandR->result(0));
-            case OperatorType::GreaterOrEqual: return (mOperandL->result(0) <= mOperandR->result(0));
-            case OperatorType::Less:           return (mOperandL->result(0) > mOperandR->result(0));
-            case OperatorType::LessOrEqual:    return (mOperandL->result(0) >= mOperandR->result(0));
-            case OperatorType::Equal:          return (mOperandL->result(0) == mOperandR->result(0));
-            case OperatorType::Different:      return (mOperandL->result(0) != mOperandR->result(0));
-            case OperatorType::Min:            return Math::MinF(mOperandL->result(0), mOperandR->result(1));
-            case OperatorType::Max:            return Math::MaxF(mOperandL->result(0), mOperandR->result(1));
+            case SolverOperatorType::Addition:       return mOperandL->result(Zero).Addition(mOperandR->result(Zero));
+            case SolverOperatorType::Subtract:       return mOperandL->result(Zero).Subtract(mOperandR->result(Zero));
+            case SolverOperatorType::Multiply:       return mOperandL->result(Zero).Multiply(mOperandR->result(One));
+            case SolverOperatorType::Divide:         return mOperandL->result(Zero).Divide(mOperandR->result(One));
+            case SolverOperatorType::Remainder:      return mOperandL->result(Zero).Remainder(mOperandR->result(One));
+            case SolverOperatorType::Greater:        return mOperandL->result(Zero).Greater(mOperandR->result(Zero));
+            case SolverOperatorType::GreaterOrEqual: return mOperandL->result(Zero).GreaterOrEqual(mOperandR->result(Zero));
+            case SolverOperatorType::Less:           return mOperandL->result(Zero).Less(mOperandR->result(Zero));
+            case SolverOperatorType::LessOrEqual:    return mOperandL->result(Zero).LessOrEqual(mOperandR->result(Zero));
+            case SolverOperatorType::Equal:          return mOperandL->result(Zero).Equal(mOperandR->result(Zero));
+            case SolverOperatorType::Different:      return mOperandL->result(Zero).Different(mOperandR->result(Zero));
+            case SolverOperatorType::Function_Min:   return mOperandL->result(Zero).Function_Min(mOperandR->result(One));
+            case SolverOperatorType::Function_Max:   return mOperandL->result(Zero).Function_Max(mOperandR->result(One));
             }
             return zero;
         }
         public: buffer clone() const override
         {
-            buffer NewBuffer = Buffer::AllocNoConstructorOnce<Formula>(BOSS_DBG 1);
-            BOSS_CONSTRUCTOR(NewBuffer, 0, Formula, mOperatorType, mOperatorPriority);
-            ((Formula*) NewBuffer)->mOperandL = mOperandL;
-            ((Formula*) NewBuffer)->mOperandR = mOperandR;
-            ((Formula*) NewBuffer)->mOperandP = mOperandP;
+            buffer NewBuffer = Buffer::AllocNoConstructorOnce<SolverFormula>(BOSS_DBG 1);
+            BOSS_CONSTRUCTOR(NewBuffer, 0, SolverFormula, mOperatorType, mOperatorPriority);
+            ((SolverFormula*) NewBuffer)->mOperandL = mOperandL;
+            ((SolverFormula*) NewBuffer)->mOperandR = mOperandR;
+            ((SolverFormula*) NewBuffer)->mOperandP = mOperandP;
             return NewBuffer;
         }
 
         // 멤버
-        public: const OperatorType mOperatorType; // 연산기호
+        public: const SolverOperatorType mOperatorType; // 연산기호
         public: const sint32 mOperatorPriority; // 연산순위
-        public: OperandObject mOperandL; // L항
-        public: OperandObject mOperandR; // R항
-        public: OperandObject* mOperandP; // 부모항
+        public: SolverOperandObject mOperandL; // L항
+        public: SolverOperandObject mOperandR; // R항
+        public: SolverOperandObject* mOperandP; // 부모항
     };
 
     static uint32 gSolverUpdateId = 1;
@@ -235,11 +240,251 @@ namespace BOSS
             }
     }
 
+    SolverValue::SolverValue(SolverValueType type)
+    {
+        mType = type;
+        mInteger = 0;
+        mFloat = 0;
+    }
+
+    SolverValue::SolverValue(const SolverValue& rhs)
+    {
+        operator=(rhs);
+    }
+
+    SolverValue::SolverValue(SolverValue&& rhs)
+    {
+        operator=(ToReference(rhs));
+    }
+
+    SolverValue::~SolverValue()
+    {
+    }
+
+    SolverValue& SolverValue::operator=(const SolverValue& rhs)
+    {
+        mType = rhs.mType;
+        mInteger = rhs.mInteger;
+        mFloat = rhs.mFloat;
+        mText = rhs.mText;
+        return *this;
+    }
+
+    SolverValue& SolverValue::operator=(SolverValue&& rhs)
+    {
+        mType = ToReference(rhs.mType);
+        mInteger = ToReference(rhs.mInteger);
+        mFloat = ToReference(rhs.mFloat);
+        mText = ToReference(rhs.mText);
+        return *this;
+    }
+
+    SolverValueType SolverValue::GetType() const
+    {
+        return mType;
+    }
+
+    SolverValue SolverValue::MakeByInteger(Integer value)
+    {
+        SolverValue Result(SolverValueType::Integer);
+        Result.mInteger = value;
+        return Result;
+    }
+
+    SolverValue SolverValue::MakeByFloat(Float value)
+    {
+        SolverValue Result(SolverValueType::Float);
+        Result.mFloat = value;
+        return Result;
+    }
+
+    SolverValue SolverValue::MakeByText(Text value)
+    {
+        SolverValue Result(SolverValueType::Text);
+        Result.mText = value;
+        return Result;
+    }
+
+    SolverValue::Integer SolverValue::ToInteger() const
+    {
+        if(mType == SolverValueType::Integer)
+            return mInteger;
+        if(mType == SolverValueType::Float)
+            return (Integer) mFloat;
+        return Parser::GetInt<Integer>(mText);
+    }
+
+    SolverValue::Float SolverValue::ToFloat() const
+    {
+        if(mType == SolverValueType::Integer)
+            return (Float) mInteger;
+        if(mType == SolverValueType::Float)
+            return mFloat;
+        return Parser::GetFloat<Float>(mText);
+    }
+
+    SolverValue::Text SolverValue::ToText() const
+    {
+        if(mType == SolverValueType::Integer)
+            return String::FromInteger(mInteger);
+        if(mType == SolverValueType::Float)
+            return String::FromFloat(mFloat);
+        return mText;
+    }
+
+    SolverValueType SolverValue::GetMergedType(const SolverValue& rhs) const
+    {
+        return (SolverValueType) Math::Max((sint32) mType, (sint32) rhs.mType);
+    }
+
+    SolverValue SolverValue::Addition(const SolverValue& rhs) const
+    {
+        switch(GetMergedType(rhs))
+        {
+        case SolverValueType::Integer: return MakeByInteger(ToInteger() + rhs.ToInteger());
+        case SolverValueType::Float: return MakeByFloat(ToFloat() + rhs.ToFloat());
+        case SolverValueType::Text: return MakeByText(ToText() + rhs.ToText());
+        }
+        return SolverValue();
+    }
+
+    SolverValue SolverValue::Subtract(const SolverValue& rhs) const
+    {
+        switch(GetMergedType(rhs))
+        {
+        case SolverValueType::Integer: return MakeByInteger(ToInteger() - rhs.ToInteger());
+        case SolverValueType::Float: return MakeByFloat(ToFloat() - rhs.ToFloat());
+        case SolverValueType::Text: return MakeByText(String(ToText()).Replace(rhs.ToText(), ""));
+        }
+        return SolverValue();
+    }
+
+    SolverValue SolverValue::Multiply(const SolverValue& rhs) const
+    {
+        switch(GetMergedType(rhs))
+        {
+        case SolverValueType::Integer: return MakeByInteger(ToInteger() * rhs.ToInteger());
+        case SolverValueType::Float: return MakeByFloat(ToFloat() * rhs.ToFloat());
+        case SolverValueType::Text: return MakeByText(ToText() + "*" + rhs.ToText());
+        }
+        return SolverValue();
+    }
+
+    SolverValue SolverValue::Divide(const SolverValue& rhs) const
+    {
+        switch(GetMergedType(rhs))
+        {
+        case SolverValueType::Integer: return MakeByInteger(ToInteger() / rhs.ToInteger());
+        case SolverValueType::Float: return MakeByFloat(ToFloat() / rhs.ToFloat());
+        case SolverValueType::Text: return MakeByText(ToText() + "/" + rhs.ToText());
+        }
+        return SolverValue();
+    }
+
+    SolverValue SolverValue::Remainder(const SolverValue& rhs) const
+    {
+        switch(GetMergedType(rhs))
+        {
+        case SolverValueType::Integer: return MakeByInteger(ToInteger() % rhs.ToInteger());
+        case SolverValueType::Float: return MakeByFloat(Math::Mod(ToFloat(), rhs.ToFloat()));
+        case SolverValueType::Text: return MakeByText(ToText() + "%" + rhs.ToText());
+        }
+        return SolverValue();
+    }
+
+    SolverValue SolverValue::Greater(const SolverValue& rhs) const
+    {
+        switch(GetMergedType(rhs))
+        {
+        case SolverValueType::Integer: return MakeByInteger(ToInteger() < rhs.ToInteger());
+        case SolverValueType::Float: return MakeByInteger(ToFloat() < rhs.ToFloat());
+        case SolverValueType::Text: return MakeByInteger(ToText().Compare(rhs.ToText()) < 0);
+        }
+        return SolverValue();
+    }
+
+    SolverValue SolverValue::GreaterOrEqual(const SolverValue& rhs) const
+    {
+        switch(GetMergedType(rhs))
+        {
+        case SolverValueType::Integer: return MakeByInteger(ToInteger() <= rhs.ToInteger());
+        case SolverValueType::Float: return MakeByInteger(ToFloat() <= rhs.ToFloat());
+        case SolverValueType::Text: return MakeByInteger(ToText().Compare(rhs.ToText()) <= 0);
+        }
+        return SolverValue();
+    }
+
+    SolverValue SolverValue::Less(const SolverValue& rhs) const
+    {
+        switch(GetMergedType(rhs))
+        {
+        case SolverValueType::Integer: return MakeByInteger(ToInteger() > rhs.ToInteger());
+        case SolverValueType::Float: return MakeByInteger(ToFloat() > rhs.ToFloat());
+        case SolverValueType::Text: return MakeByInteger(ToText().Compare(rhs.ToText()) > 0);
+        }
+        return SolverValue();
+    }
+
+    SolverValue SolverValue::LessOrEqual(const SolverValue& rhs) const
+    {
+        switch(GetMergedType(rhs))
+        {
+        case SolverValueType::Integer: return MakeByInteger(ToInteger() >= rhs.ToInteger());
+        case SolverValueType::Float: return MakeByInteger(ToFloat() >= rhs.ToFloat());
+        case SolverValueType::Text: return MakeByInteger(ToText().Compare(rhs.ToText()) >= 0);
+        }
+        return SolverValue();
+    }
+
+    SolverValue SolverValue::Equal(const SolverValue& rhs) const
+    {
+        switch(GetMergedType(rhs))
+        {
+        case SolverValueType::Integer: return MakeByInteger(ToInteger() == rhs.ToInteger());
+        case SolverValueType::Float: return MakeByInteger(ToFloat() == rhs.ToFloat());
+        case SolverValueType::Text: return MakeByInteger(ToText().Compare(rhs.ToText()) == 0);
+        }
+        return SolverValue();
+    }
+
+    SolverValue SolverValue::Different(const SolverValue& rhs) const
+    {
+        switch(GetMergedType(rhs))
+        {
+        case SolverValueType::Integer: return MakeByInteger(ToInteger() != rhs.ToInteger());
+        case SolverValueType::Float: return MakeByInteger(ToFloat() != rhs.ToFloat());
+        case SolverValueType::Text: return MakeByInteger(ToText().Compare(rhs.ToText()) != 0);
+        }
+        return SolverValue();
+    }
+
+    SolverValue SolverValue::Function_Min(const SolverValue& rhs) const
+    {
+        switch(GetMergedType(rhs))
+        {
+        case SolverValueType::Integer: return MakeByInteger(Math::Min(ToInteger(), rhs.ToInteger()));
+        case SolverValueType::Float: return MakeByFloat(Math::MinF(ToFloat(), rhs.ToFloat()));
+        case SolverValueType::Text: return MakeByText((ToText().Compare(rhs.ToText()) < 0)? ToText() : rhs.ToText());
+        }
+        return SolverValue();
+    }
+
+    SolverValue SolverValue::Function_Max(const SolverValue& rhs) const
+    {
+        switch(GetMergedType(rhs))
+        {
+        case SolverValueType::Integer: return MakeByInteger(Math::Max(ToInteger(), rhs.ToInteger()));
+        case SolverValueType::Float: return MakeByFloat(Math::MaxF(ToFloat(), rhs.ToFloat()));
+        case SolverValueType::Text: return MakeByText((ToText().Compare(rhs.ToText()) > 0)? ToText() : rhs.ToText());
+        }
+        return SolverValue();
+    }
+
     Solver::Solver()
     {
         mLinkedChain = nullptr;
         mReliable = 0;
-        mResult = 0;
+        mResult = SolverValue::MakeByInteger(0);
         mResultUpdateId = 0;
     }
 
@@ -261,7 +506,7 @@ namespace BOSS
 
         // 강제적 권리이양
         ((Solver*) &rhs)->Unlink();
-        ((Solver*) &rhs)->mOperandTop = OperandObject();
+        ((Solver*) &rhs)->mOperandTop = SolverOperandObject();
         if(mLinkedChain)
         {
             (*mLinkedChain)(mLinkedVariable).ResetDest(this, false);
@@ -302,22 +547,22 @@ namespace BOSS
 
     void Solver::Parse(chars formula)
     {
-        auto AddOperator = [](OperandObject*& focus, OperatorType type, sint32 deep)->void
+        auto AddOperator = [](SolverOperandObject*& focus, SolverOperatorType type, sint32 deep)->void
         {
             BOSS_ASSERT("잘못된 시나리오입니다", focus);
-            const sint32 NewPriority = deep * 2 + (OperatorType::Multiply <= type);
+            const sint32 NewPriority = deep * 2 + (SolverOperatorType::Multiply <= type);
 
-            Formula NewFormula(type, NewPriority);
-            if(focus->ConstPtr()->type() != OperandType::Formula) // 최초의 계산항이거나
+            SolverFormula NewFormula(type, NewPriority);
+            if(focus->ConstPtr()->type() != SolverOperandType::Formula) // 최초의 계산항이거나
             {
                 NewFormula.mOperandL = *focus;
                 *focus = NewFormula.clone();
             }
             else
             {
-                Formula* CurFormula = (Formula*) focus->Ptr(); // 대상지 추적
-                while(CurFormula->mOperandP && NewPriority <= ((const Formula*) CurFormula->mOperandP->ConstPtr())->mOperatorPriority)
-                    CurFormula = (Formula*) (focus = CurFormula->mOperandP)->Ptr();
+                auto CurFormula = (SolverFormula*) focus->Ptr(); // 대상지 추적
+                while(CurFormula->mOperandP && NewPriority <= ((const SolverFormula*) CurFormula->mOperandP->ConstPtr())->mOperatorPriority)
+                    CurFormula = (SolverFormula*) (focus = CurFormula->mOperandP)->Ptr();
 
                 if(CurFormula->mOperatorPriority < NewPriority) // 이전 연산기호보다 더 우선시되면
                 {
@@ -335,78 +580,98 @@ namespace BOSS
         };
 
         // 탑항을 초기화
-        mOperandTop = OperandObject();
-        OperandObject* OperandFocus = nullptr;
+        mOperandTop = SolverOperandObject();
+        SolverOperandObject* OperandFocus = nullptr;
         bool OperatorTurn = false;
         for(sint32 deep = 0; *formula; ++formula)
         {
             // 공백과 괄호
-            if(*formula == ' ');
-            else if(*formula == '\t');
-            else if(*formula == '\r');
-            else if(*formula == '\n');
-            else if(*formula == '(') deep++;
-            else if(*formula == ')') deep--;
-            else if(OperatorTurn) // 연산기호턴
+            branch;
+            jump(*formula == ' ');
+            jump(*formula == '\t');
+            jump(*formula == '\r');
+            jump(*formula == '\n');
+            jump(*formula == '(') deep++;
+            jump(*formula == ')') deep--;
+            jump(OperatorTurn) // 연산기호턴
             {
                 // 계산항 밀어넣기
-                if(*formula == '+') AddOperator(OperandFocus, OperatorType::Addition, deep);
-                else if(*formula == '-') AddOperator(OperandFocus, OperatorType::Subtract, deep);
-                else if(*formula == '*') AddOperator(OperandFocus, OperatorType::Multiply, deep);
-                else if(*formula == '/') AddOperator(OperandFocus, OperatorType::Divide, deep);
-                else if(*formula == '%') AddOperator(OperandFocus, OperatorType::Remainder, deep);
-                else if(*formula == '<')
+                branch;
+                jump(*formula == '+') AddOperator(OperandFocus, SolverOperatorType::Addition, deep);
+                jump(*formula == '-') AddOperator(OperandFocus, SolverOperatorType::Subtract, deep);
+                jump(*formula == '*') AddOperator(OperandFocus, SolverOperatorType::Multiply, deep);
+                jump(*formula == '/') AddOperator(OperandFocus, SolverOperatorType::Divide, deep);
+                jump(*formula == '%') AddOperator(OperandFocus, SolverOperatorType::Remainder, deep);
+                jump(*formula == '<')
                 {
                     if(formula[1] == '=')
                     {
-                        AddOperator(OperandFocus, OperatorType::GreaterOrEqual, deep);
+                        AddOperator(OperandFocus, SolverOperatorType::GreaterOrEqual, deep);
                         formula += 1;
                     }
-                    else AddOperator(OperandFocus, OperatorType::Greater, deep);
+                    else AddOperator(OperandFocus, SolverOperatorType::Greater, deep);
                 }
-                else if(*formula == '>')
+                jump(*formula == '>')
                 {
                     if(formula[1] == '=')
                     {
-                        AddOperator(OperandFocus, OperatorType::LessOrEqual, deep);
+                        AddOperator(OperandFocus, SolverOperatorType::LessOrEqual, deep);
                         formula += 1;
                     }
-                    else AddOperator(OperandFocus, OperatorType::Less, deep);
+                    else AddOperator(OperandFocus, SolverOperatorType::Less, deep);
                 }
-                else if(formula[0] == '=' && formula[1] == '=')
+                jump(formula[0] == '=' && formula[1] == '=')
                 {
-                    AddOperator(OperandFocus, OperatorType::Equal, deep);
+                    AddOperator(OperandFocus, SolverOperatorType::Equal, deep);
                     formula += 1;
                 }
-                else if(formula[0] == '!' && formula[1] == '=')
+                jump(formula[0] == '!' && formula[1] == '=')
                 {
-                    AddOperator(OperandFocus, OperatorType::Different, deep);
+                    AddOperator(OperandFocus, SolverOperatorType::Different, deep);
                     formula += 1;
                 }
-                else if(*formula == '[')
+                jump(*formula == '[')
                 {
                     if(!String::Compare("[min]", formula, 5))
                     {
-                        AddOperator(OperandFocus, OperatorType::Min, deep);
+                        AddOperator(OperandFocus, SolverOperatorType::Function_Min, deep);
                         formula += 4;
                     }
                     else if(!String::Compare("[max]", formula, 5))
                     {
-                        AddOperator(OperandFocus, OperatorType::Max, deep);
+                        AddOperator(OperandFocus, SolverOperatorType::Function_Max, deep);
                         formula += 4;
                     }
-                    else continue;
+                    else
+                    {
+                        BOSS_ASSERT(String::Format("알 수 없는 함수기호입니다([%c%c...)", formula[1], formula[2]), false);
+                        continue;
+                    }
                 }
-                else continue;
+                else
+                {
+                    BOSS_ASSERT(String::Format("알 수 없는 연산기호입니다(%c)", *formula), false);
+                    continue;
+                }
                 OperatorTurn = false;
             }
             else // 피연산항턴
             {
                 // 상수와 변수
-                sint32 WordSize = 0;
                 buffer NewOperand = nullptr;
                 if(('0' <= *formula && *formula <= '9') || *formula == '+' || *formula == '-')
-                    NewOperand = Literal(Parser::GetFloat<SolverFloat>(formula, -1, &WordSize)).clone();
+                {
+                    sint32 WordSize = 0;
+                    NewOperand = SolverLiteral(SolverValue::MakeByFloat(Parser::GetFloat<SolverValue::Float>(formula, -1, &WordSize))).clone();
+                    formula += WordSize - 1;
+                }
+                else if(*formula == '\'' || *formula == '\"')
+                {
+                    chars End = formula;
+                    while(*(++End)) if(*End == *formula) break;
+                    NewOperand = SolverVariable(String(formula + 1, End - formula - 1)).clone();
+                    formula += (End - formula - 1 + 2) - 1;
+                }
                 else
                 {
                     chars End = formula;
@@ -420,16 +685,16 @@ namespace BOSS
                         }
                         break;
                     }
-                    NewOperand = Variable(String(formula, WordSize = End - formula)).clone();
+                    NewOperand = SolverVariable(String(formula, End - formula)).clone();
+                    formula += (End - formula) - 1;
                 }
-                formula += WordSize - 1;
                 OperatorTurn = true;
 
                 // 피연산항 밀어넣기
                 if(OperandFocus)
                 {
-                    Formula* CurFormula = (Formula*) OperandFocus->Ptr();
-                    BOSS_ASSERT("잘못된 시나리오입니다", CurFormula->type() == OperandType::Formula);
+                    auto CurFormula = (SolverFormula*) OperandFocus->Ptr();
+                    BOSS_ASSERT("잘못된 시나리오입니다", CurFormula->type() == SolverOperandType::Formula);
                     CurFormula->mOperandR = NewOperand;
                 }
                 else OperandFocus = &(mOperandTop = NewOperand);
@@ -447,13 +712,13 @@ namespace BOSS
     {
         gSolverUpdateId++; // UpdateId증가
         const float OldReliable = mReliable;
-        const SolverFloat OldResult = mResult;
+        const SolverValue OldResult = mResult;
         mReliable = mOperandTop->reliable();
-        mResult = mOperandTop->result(0);
+        mResult = mOperandTop->result(SolverValue::MakeByInteger(0));
 
         // 현재 결과에 종속된 계산식들을 리뉴얼
         if(mLinkedChain)
-        if(OldReliable != mReliable || OldResult != mResult)
+        if(OldReliable != mReliable || OldResult.Different(mResult).ToInteger() != 0)
         {
             mResultUpdateId = gSolverUpdateId;
             (*mLinkedChain)(mLinkedVariable).RenualAllObservers();

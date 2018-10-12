@@ -29,14 +29,14 @@
 #define ZAY_XYWH_UI_SCISSOR(PANEL, X, Y, W, H, ...) \
     if(auto _ = (PANEL)._push_clip_ui(X, Y, (X) + (W), (Y) + (H), true, __VA_ARGS__))
 
-#define ZAY_XYRR(PANEL, X, Y, RW, RH) \
-    if(auto _ = (PANEL)._push_clip((X) - (RW), (Y) - (RH), (X) + (RW), (Y) + (RH), false))
-#define ZAY_XYRR_UI(PANEL, X, Y, RW, RH, ...) \
-    if(auto _ = (PANEL)._push_clip_ui((X) - (RW), (Y) - (RH), (X) + (RW), (Y) + (RH), false, __VA_ARGS__))
-#define ZAY_XYRR_SCISSOR(PANEL, X, Y, RW, RH) \
-    if(auto _ = (PANEL)._push_clip((X) - (RW), (Y) - (RH), (X) + (RW), (Y) + (RH), true))
-#define ZAY_XYRR_UI_SCISSOR(PANEL, X, Y, RW, RH, ...) \
-    if(auto _ = (PANEL)._push_clip_ui((X) - (RW), (Y) - (RH), (X) + (RW), (Y) + (RH), true, __VA_ARGS__))
+#define ZAY_XYRR(PANEL, X, Y, RX, RY) \
+    if(auto _ = (PANEL)._push_clip((X) - (RX), (Y) - (RY), (X) + (RX), (Y) + (RY), false))
+#define ZAY_XYRR_UI(PANEL, X, Y, RX, RY, ...) \
+    if(auto _ = (PANEL)._push_clip_ui((X) - (RX), (Y) - (RY), (X) + (RX), (Y) + (RY), false, __VA_ARGS__))
+#define ZAY_XYRR_SCISSOR(PANEL, X, Y, RX, RY) \
+    if(auto _ = (PANEL)._push_clip((X) - (RX), (Y) - (RY), (X) + (RX), (Y) + (RY), true))
+#define ZAY_XYRR_UI_SCISSOR(PANEL, X, Y, RX, RY, ...) \
+    if(auto _ = (PANEL)._push_clip_ui((X) - (RX), (Y) - (RY), (X) + (RX), (Y) + (RY), true, __VA_ARGS__))
 
 #define ZAY_RECT(PANEL, R) \
     if(auto _ = (PANEL)._push_clip_by_rect(R, false))
