@@ -3779,6 +3779,7 @@
         bool mUpdateForImage;
         bool mUpdateForBitmap;
         uint64 mUpdateTimeMsec;
+        float mUpdateAvgMsec;
         sint32 mPictureShotCount;
         sint32 mPreviewShotCount;
 
@@ -3823,7 +3824,9 @@
                     mCaptureOrder = CaptureOrder_NeedStop;
                 mUpdateForImage = true;
                 mUpdateForBitmap = true;
-                mUpdateTimeMsec = Platform::Utility::CurrentTimeMsec();
+                const uint64 NewTimeMsec = Platform::Utility::CurrentTimeMsec();
+                mUpdateAvgMsec = (mUpdateAvgMsec * 19 + Math::Max(1, NewTimeMsec - mUpdateTimeMsec)) / 20;
+                mUpdateTimeMsec = NewTimeMsec;
             }
             Mutex::Unlock(mMutex);
         }
@@ -3841,7 +3844,7 @@
             }
             Mutex::Unlock(mMutex);
         }
-        void GetCapturedImage(QPixmap& pixmap, sint32 maxwidth, sint32 maxheight)
+        void GetCapturedImage(QPixmap& pixmap, sint32 maxwidth, sint32 maxheight, sint32 rotate)
         {
             Mutex::Lock(mMutex);
             {
@@ -3859,20 +3862,31 @@
                     mUpdateForImage = false;
                     if(mUpdateForBitmap) DecodeImage(mDecodedWidth, mDecodedHeight, mDecodedBits);
                     QImage NewImage(&mDecodedBits[0], mDecodedWidth, mDecodedHeight, QImage::Format_ARGB32);
+
                     if(maxwidth == -1 && maxheight == -1)
                     {maxwidth = mDecodedWidth; maxheight = mDecodedHeight;}
                     else if(maxwidth == -1) maxwidth = mDecodedWidth * maxheight / mDecodedHeight;
                     else if(maxheight == -1) maxheight = mDecodedHeight * maxwidth / mDecodedWidth;
+
+                    // 스케일링
                     if(maxwidth < mDecodedWidth || maxheight < mDecodedHeight)
-                        pixmap.convertFromImage(NewImage.scaled(
-                            Math::Min(maxwidth, mDecodedWidth), Math::Min(maxheight, mDecodedHeight)));
-                    else pixmap.convertFromImage(NewImage);
+                        NewImage = NewImage.scaled(Math::Min(maxwidth, mDecodedWidth), Math::Min(maxheight, mDecodedHeight));
+
+                    // 회전
+                    if(0 < rotate)
+                    {
+                        QMatrix NewMatrix;
+                        NewMatrix.translate(mDecodedWidth / 2, mDecodedHeight / 2);
+                        NewMatrix.rotate(rotate);
+                        NewImage = NewImage.transformed(NewMatrix);
+                    }
+                    pixmap.convertFromImage(NewImage);
                     //단편화방지차원: if(!mUpdateForBitmap) mDecodedBits.Clear();
                 }
             }
             Mutex::Unlock(mMutex);
         }
-        void GetCapturedBitmap(Image& image, bool vflip)
+        void GetCapturedBitmap(id_bitmap& bitmap, bool vflip)
         {
             Mutex::Lock(mMutex);
             {
@@ -3889,7 +3903,8 @@
                 {
                     mUpdateForBitmap = false;
                     if(mUpdateForImage) DecodeImage(mDecodedWidth, mDecodedHeight, mDecodedBits);
-                    image.LoadBitmapFromBits(&mDecodedBits[0], mDecodedWidth, mDecodedHeight, 32, vflip);
+                    Bmp::Remove(bitmap);
+                    bitmap = Bmp::CloneFromBits(&mDecodedBits[0], mDecodedWidth, mDecodedHeight, 32, vflip);
                     //단편화방지차원: if(!mUpdateForImage) mDecodedBits.Clear();
                 }
             }
@@ -3906,12 +3921,13 @@
             Mutex::Unlock(mMutex);
             return Result;
         }
-        uint64 GetCapturedTimeMS() const
+        uint64 GetCapturedTimeMsec(sint32* avgmsec) const
         {
             uint64 Result = 0;
             Mutex::Lock(mMutex);
             {
                 Result = mUpdateTimeMsec;
+                if(avgmsec) *avgmsec = Math::Max(1, (sint32) mUpdateAvgMsec);
             }
             Mutex::Unlock(mMutex);
             return Result;
@@ -3933,7 +3949,7 @@
         QCameraInfo mCameraInfo;
         CameraService* mCameraService;
         QPixmap mLastPixmap;
-        Image mLastImage;
+        id_bitmap mLastBitmap;
 
     public:
         static Strings GetList(String* spec)
@@ -3966,6 +3982,7 @@
         {
             mRefCount = 1;
             mCameraService = nullptr;
+            mLastBitmap = nullptr;
             const QList<QCameraInfo>& AllCameraInfos = QCameraInfo::availableCameras();
             foreach(const auto& CurCameraInfo, AllCameraInfos)
             {
@@ -4021,8 +4038,8 @@
                         {
                             SavedWidth = CurWidth;
                             SavedHeight = CurHeight;
-                            SavedMinFR = SavedMinFR;
-                            SavedMaxFR = SavedMaxFR;
+                            SavedMinFR = CurMinFR;
+                            SavedMaxFR = CurMaxFR;
                         }
                     }
 
@@ -4041,6 +4058,7 @@
         ~CameraClass()
         {
             delete mCameraService;
+            Bmp::Remove(mLastBitmap);
         }
 
     public:
@@ -4062,11 +4080,11 @@
             if(mCameraService)
                 mCameraService->Capture(preview, needstop);
         }
-        id_image_read LastCapturedImage(sint32 maxwidth, sint32 maxheight)
+        id_image_read LastCapturedImage(sint32 maxwidth, sint32 maxheight, sint32 rotate)
         {
             if(mCameraService)
             {
-                mCameraService->GetCapturedImage(mLastPixmap, maxwidth, maxheight);
+                mCameraService->GetCapturedImage(mLastPixmap, maxwidth, maxheight, rotate);
                 return (id_image_read) &mLastPixmap;
             }
             return nullptr;
@@ -4075,8 +4093,8 @@
         {
             if(mCameraService)
             {
-                mCameraService->GetCapturedBitmap(mLastImage, vflip);
-                return mLastImage.GetBitmap();
+                mCameraService->GetCapturedBitmap(mLastBitmap, vflip);
+                return mLastBitmap;
             }
             return nullptr;
         }
@@ -4086,10 +4104,10 @@
                 return mCameraService->GetCapturedSize();
             return {0, 0};
         }
-        uint64 LastCapturedTimeMS() const
+        uint64 LastCapturedTimeMsec(sint32* avgmsec) const
         {
             if(mCameraService)
-                return mCameraService->GetCapturedTimeMS();
+                return mCameraService->GetCapturedTimeMsec(avgmsec);
             return 0;
         }
         sint32 TotalPictureShotCount() const

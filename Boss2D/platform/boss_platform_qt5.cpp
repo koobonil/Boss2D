@@ -3350,11 +3350,11 @@
             CurCamera->Capture(preview, needstop);
         }
 
-        id_image_read Platform::Camera::LastCapturedImage(id_camera camera, sint32 maxwidth, sint32 maxheight)
+        id_image_read Platform::Camera::LastCapturedImage(id_camera camera, sint32 maxwidth, sint32 maxheight, sint32 rotate)
         {
             if(!camera) return nullptr;
             CameraClass* CurCamera = (CameraClass*) camera;
-            return CurCamera->LastCapturedImage(maxwidth, maxheight);
+            return CurCamera->LastCapturedImage(maxwidth, maxheight, rotate);
         }
 
         id_bitmap_read Platform::Camera::LastCapturedBitmap(id_camera camera, bool vflip)
@@ -3371,11 +3371,11 @@
             return CurCamera->LastCapturedSize();
         }
 
-        uint64 Platform::Camera::LastCapturedTimeMS(id_camera camera)
+        uint64 Platform::Camera::LastCapturedTimeMsec(id_camera camera, sint32* avgmsec)
         {
             if(!camera) return 0;
             CameraClass* CurCamera = (CameraClass*) camera;
-            return CurCamera->LastCapturedTimeMS();
+            return CurCamera->LastCapturedTimeMsec(avgmsec);
         }
 
         sint32 Platform::Camera::TotalPictureShotCount(id_camera camera)

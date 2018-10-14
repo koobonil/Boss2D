@@ -2079,9 +2079,10 @@ namespace BOSS
             \param camera : 카메라ID
             \param maxwidth : 가로길이 최대값
             \param maxheight : 세로길이 최대값
+            \param rotate : 회전각도
             \return 촬영한 이미지(nullptr은 실패)
             */
-            static id_image_read LastCapturedImage(id_camera camera, sint32 maxwidth = -1, sint32 maxheight = -1);
+            static id_image_read LastCapturedImage(id_camera camera, sint32 maxwidth = -1, sint32 maxheight = -1, sint32 rotate = 0);
 
             /*!
             \brief 마지막 촬영한 비트맵 얻기
@@ -2101,9 +2102,10 @@ namespace BOSS
             /*!
             \brief 마지막 촬영한 시간 얻기
             \param camera : 카메라ID
+            \param avgmsec : 평균촬영간격
             \return 촬영한 시간
             */
-            static uint64 LastCapturedTimeMS(id_camera camera);
+            static uint64 LastCapturedTimeMsec(id_camera camera, sint32* avgmsec = nullptr);
 
             /*!
             \brief 픽쳐방식으로 얻어온 총 촬영횟수

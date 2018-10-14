@@ -1907,7 +1907,7 @@
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
         }
 
-        id_image_read Platform::Camera::LastCapturedImage(id_camera camera, sint32 maxwidth, sint32 maxheight)
+        id_image_read Platform::Camera::LastCapturedImage(id_camera camera, sint32 maxwidth, sint32 maxheight, sint32 rotate)
         {
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
             return nullptr;
@@ -1925,7 +1925,7 @@
             return {0, 0};
         }
 
-        uint64 Platform::Camera::LastCapturedTimeMS(id_camera camera)
+        uint64 Platform::Camera::LastCapturedTimeMsec(id_camera camera, sint32* avgmsec)
         {
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
             return 0;
