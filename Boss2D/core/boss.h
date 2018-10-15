@@ -201,7 +201,7 @@
     #define BOSS_ASSERT(TEXT, QUERY) do{ \
         if((QUERY) == 0) \
             boss_platform_trace("[BOSS_ASSERT] %s [%s] %s(%dLn, %s())", \
-                (chars) TEXT, #QUERY, __FILE__, __LINE__, __FUNCTION__); \
+                (const char*) TEXT, #QUERY, __FILE__, __LINE__, __FUNCTION__); \
         } while(0)
     #define BOSS_ASSERT_PRM(TEXT, QUERY)
     #define BOSS_ASSERT_ARG(TEXT, QUERY, ...)
