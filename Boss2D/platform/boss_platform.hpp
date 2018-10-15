@@ -489,10 +489,10 @@ namespace BOSS
             /*!
             \brief 이미지로부터 비트맵 얻기
             \param image : 이미지
-            \param vflip : 상하반전여부(일반적인 비트맵파일은 true)
+            \param ori : 90도기준 회전상태와 상하반전여부(디폴트는 상하반전)
             \return 비트맵(nullptr은 실패)
             */
-            static id_bitmap ImageToBitmap(id_image_read image, bool vflip = true);
+            static id_bitmap ImageToBitmap(id_image_read image, orientationtype ori = orientationtype_fliped0);
 
             /*!
             \brief 커서위치 얻기
@@ -1028,10 +1028,10 @@ namespace BOSS
             /*!
             \brief 서피스에서 비트맵 얻기
             \param surface : 해당 서피스
-            \param vflip : 상하반전여부(일반적인 비트맵파일은 true)
+            \param ori : 90도기준 회전상태와 상하반전여부(디폴트는 상하반전)
             \return 서피스 비트맵(nullptr은 실패)
             */
-            static id_bitmap_read GetBitmapFromSurface(id_surface_read surface, bool vflip = true);
+            static id_bitmap_read GetBitmapFromSurface(id_surface_read surface, orientationtype ori = orientationtype_fliped0);
         };
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -1807,10 +1807,10 @@ namespace BOSS
             /*!
             \brief 웹페이지 스크린샷 비트맵 얻기
             \param web : 해당 웹핸들
-            \param vflip : 상하반전여부(일반적인 비트맵파일은 true)
+            \param ori : 90도기준 회전상태와 상하반전여부(디폴트는 상하반전)
             \return 스크린샷 비트맵(nullptr은 실패)
             */
-            static id_bitmap_read GetScreenshotBitmap(h_web web, bool vflip = true);
+            static id_bitmap_read GetScreenshotBitmap(h_web web, orientationtype ori = orientationtype_fliped0);
 
             /*!
             \brief 네이티브형 웹핸들 할당
@@ -2087,10 +2087,10 @@ namespace BOSS
             /*!
             \brief 마지막 촬영한 비트맵 얻기
             \param camera : 카메라ID
-            \param vflip : 상하반전여부(일반적인 비트맵파일은 true)
+            \param ori : 90도기준 회전상태와 상하반전여부(디폴트는 상하반전)
             \return 촬영한 비트맵(nullptr은 실패)
             */
-            static id_bitmap_read LastCapturedBitmap(id_camera camera, bool vflip = true);
+            static id_bitmap_read LastCapturedBitmap(id_camera camera, orientationtype ori = orientationtype_fliped0);
 
             /*!
             \brief 마지막 촬영한 이미지크기 얻기

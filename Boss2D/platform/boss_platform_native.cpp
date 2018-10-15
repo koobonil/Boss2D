@@ -620,7 +620,7 @@
             return nullptr;
         }
 
-        id_bitmap Platform::Utility::ImageToBitmap(id_image_read image, bool vflip)
+        id_bitmap Platform::Utility::ImageToBitmap(id_image_read image, orientationtype ori)
         {
             BOSS_ASSERT("Further development is needed.", false);
             return nullptr;
@@ -1078,7 +1078,7 @@
             return nullptr;
         }
 
-        id_bitmap_read Platform::Graphics::GetBitmapFromSurface(id_surface_read surface, bool vflip)
+        id_bitmap_read Platform::Graphics::GetBitmapFromSurface(id_surface_read surface, orientationtype ori)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
 
@@ -1816,7 +1816,7 @@
             return nullptr;
         }
 
-        id_bitmap_read Platform::Web::GetScreenshotBitmap(h_web web, bool vflip)
+        id_bitmap_read Platform::Web::GetScreenshotBitmap(h_web web, orientationtype ori)
         {
             BOSS_ASSERT("Further development is needed.", false);
             return nullptr;
@@ -2004,7 +2004,7 @@
             return nullptr;
         }
 
-        id_bitmap_read Platform::Camera::LastCapturedBitmap(id_camera camera, bool vflip)
+        id_bitmap_read Platform::Camera::LastCapturedBitmap(id_camera camera, orientationtype ori)
         {
             BOSS_ASSERT("Further development is needed.", false);
             return nullptr;

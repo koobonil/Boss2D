@@ -21,7 +21,7 @@ namespace BOSS
         bool Save(chars pathname = "") const;
         bool Load(id_assetpath_read assetpath = nullptr);
         bool LoadBitmap(id_bitmap_read bitmap);
-        bool LoadBitmapFromBits(bytes bits, sint32 width, sint32 height, sint32 bitcount, bool flip);
+        bool LoadBitmapFromBits(bytes bits, sint32 width, sint32 height, sint32 bitcount, orientationtype ori);
         bool LoadUIBitmap(id_bitmap_read bitmap);
         id_bitmap ChangeBitmap(id_bitmap bitmap);
         void Crear();

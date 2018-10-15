@@ -90,7 +90,7 @@ namespace BOSS
         const sint32 BmpWidth = Bmp::GetWidth(bmp);
         const sint32 BmpHeight = Bmp::GetHeight(bmp);
         const sint32 BmpBitCount = Bmp::GetBitCount(bmp);
-        if(id_bitmap NewBitmap = Bmp::CloneFromBits(BmpBits, BmpWidth, BmpHeight, BmpBitCount, true))
+        if(id_bitmap NewBitmap = Bmp::CloneFromBits(BmpBits, BmpWidth, BmpHeight, BmpBitCount, orientationtype_fliped0))
         {
             cv::Mat OneImage(BmpHeight, BmpWidth, CV_8UC4, (void*) Bmp::GetBits(NewBitmap));
 

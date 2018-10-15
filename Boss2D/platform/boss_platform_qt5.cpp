@@ -945,14 +945,14 @@
             return (id_image_read) &ScreenshotPixmap;
         }
 
-        id_bitmap Platform::Utility::ImageToBitmap(id_image_read image, bool vflip)
+        id_bitmap Platform::Utility::ImageToBitmap(id_image_read image, orientationtype ori)
         {
             if(!image) return nullptr;
             QImage CurImage = ((QPixmap*) image)->toImage();
             if(!CurImage.constBits()) return nullptr;
             CurImage = CurImage.convertToFormat(QImage::Format::Format_ARGB32);
             id_bitmap Result = Bmp::CloneFromBits(CurImage.constBits(),
-                CurImage.width(), CurImage.height(), CurImage.bitPlaneCount(), vflip);
+                CurImage.width(), CurImage.height(), CurImage.bitPlaneCount(), ori);
             return Result;
         }
 
@@ -1780,14 +1780,14 @@
             return (id_image_read) &SurfacePixmap;
         }
 
-        id_bitmap_read Platform::Graphics::GetBitmapFromSurface(id_surface_read surface, bool vflip)
+        id_bitmap_read Platform::Graphics::GetBitmapFromSurface(id_surface_read surface, orientationtype ori)
         {
             Image& SurfaceImage = *BOSS_STORAGE_SYS(Image);
             if(!surface) return nullptr;
 
             QImage CurImage = ((const SurfaceClass*) surface)->mLastImage.convertToFormat(QImage::Format::Format_ARGB32);
             SurfaceImage.LoadBitmapFromBits(CurImage.constBits(), CurImage.width(), CurImage.height(),
-                CurImage.bitPlaneCount(), vflip);
+                CurImage.bitPlaneCount(), ori);
             return SurfaceImage.GetBitmap();
         }
 
@@ -3129,14 +3129,14 @@
             return nullptr;
         }
 
-        id_bitmap_read Platform::Web::GetScreenshotBitmap(h_web web, bool vflip)
+        id_bitmap_read Platform::Web::GetScreenshotBitmap(h_web web, orientationtype ori)
         {
             if(WebPrivate* CurWeb = (WebPrivate*) web.get())
             {
                 Image& ScreenshotImage = *BOSS_STORAGE_SYS(Image);
                 const QImage& CurImage = CurWeb->GetImage();
                 ScreenshotImage.LoadBitmapFromBits(CurImage.constBits(), CurImage.width(), CurImage.height(),
-                    CurImage.bitPlaneCount(), vflip);
+                    CurImage.bitPlaneCount(), ori);
                 return ScreenshotImage.GetBitmap();
             }
             return nullptr;
@@ -3357,11 +3357,11 @@
             return CurCamera->LastCapturedImage(maxwidth, maxheight, rotate);
         }
 
-        id_bitmap_read Platform::Camera::LastCapturedBitmap(id_camera camera, bool vflip)
+        id_bitmap_read Platform::Camera::LastCapturedBitmap(id_camera camera, orientationtype ori)
         {
             if(!camera) return nullptr;
             CameraClass* CurCamera = (CameraClass*) camera;
-            return CurCamera->LastCapturedBitmap(vflip);
+            return CurCamera->LastCapturedBitmap(ori);
         }
 
         size64 Platform::Camera::LastCapturedSize(id_camera camera)

@@ -3886,7 +3886,7 @@
             }
             Mutex::Unlock(mMutex);
         }
-        void GetCapturedBitmap(id_bitmap& bitmap, bool vflip)
+        void GetCapturedBitmap(id_bitmap& bitmap, orientationtype ori)
         {
             Mutex::Lock(mMutex);
             {
@@ -3904,7 +3904,7 @@
                     mUpdateForBitmap = false;
                     if(mUpdateForImage) DecodeImage(mDecodedWidth, mDecodedHeight, mDecodedBits);
                     Bmp::Remove(bitmap);
-                    bitmap = Bmp::CloneFromBits(&mDecodedBits[0], mDecodedWidth, mDecodedHeight, 32, vflip);
+                    bitmap = Bmp::CloneFromBits(&mDecodedBits[0], mDecodedWidth, mDecodedHeight, 32, ori);
                     //단편화방지차원: if(!mUpdateForImage) mDecodedBits.Clear();
                 }
             }
@@ -4089,11 +4089,11 @@
             }
             return nullptr;
         }
-        id_bitmap_read LastCapturedBitmap(bool vflip)
+        id_bitmap_read LastCapturedBitmap(orientationtype ori)
         {
             if(mCameraService)
             {
-                mCameraService->GetCapturedBitmap(mLastBitmap, vflip);
+                mCameraService->GetCapturedBitmap(mLastBitmap, ori);
                 return mLastBitmap;
             }
             return nullptr;

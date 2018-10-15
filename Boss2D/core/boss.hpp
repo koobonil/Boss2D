@@ -110,6 +110,9 @@ namespace BOSS
         roottype_assets_syspath2, roottype_assetsrem_syspath2};
     enum packettype:uint08 {packettype_null = 0,
         packettype_entrance, packettype_message, packettype_leaved, packettype_kicked};
+    enum orientationtype:uint08 {
+        orientationtype_normal0, orientationtype_normal90, orientationtype_normal180, orientationtype_normal270,
+        orientationtype_fliped0, orientationtype_fliped90, orientationtype_fliped180, orientationtype_fliped270};
     enum jumper:sint32   {jumper_null = 0};
     enum jumper16:sint16 {jumper16_null = 0};
     template<sint32 ENUM> struct EnumToType {};

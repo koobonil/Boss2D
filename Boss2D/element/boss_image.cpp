@@ -250,14 +250,14 @@ namespace BOSS
         return true;
     }
 
-    bool Image::LoadBitmapFromBits(bytes bits, sint32 width, sint32 height, sint32 bitcount, bool flip)
+    bool Image::LoadBitmapFromBits(bytes bits, sint32 width, sint32 height, sint32 bitcount, orientationtype ori)
     {
         // 초기화
         ResetBitmap();
         ResetData();
 
         // 복제
-        m_bitmap = Bmp::CloneFromBits(bits, width, height, bitcount, flip);
+        m_bitmap = Bmp::CloneFromBits(bits, width, height, bitcount, ori);
 
         // 데이터화
         MakeData(0, 0, width, height);
