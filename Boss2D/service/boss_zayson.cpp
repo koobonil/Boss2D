@@ -111,12 +111,10 @@ namespace BOSS
         {
             sint32s Collector;
             // 조건문처리로 유효한 CompValue를 수집
-            bool HasCondition = false;
             for(sint32 i = 0, iend = uis.Count(); i < iend; ++i)
             {
                 if(uis[i].ConstValue().mType == ZayUIElement::Type::Condition)
                 {
-                    HasCondition = true;
                     auto CurCondition = (const ZayConditionElement*) uis[i].ConstPtr();
                     bool IsTrue = true;
                     if(CurCondition->mConditionType == ZayConditionElement::ConditionType::If ||
@@ -126,29 +124,39 @@ namespace BOSS
                     {
                         while(i + 1 < iend && uis[i + 1].ConstValue().mType != ZayUIElement::Type::Condition)
                             Collector.AtAdding() = ++i;
-                        // 다음 조건문으로 포커싱이동
+                        // 선진입
                         while(i + 1 < iend)
                         {
                             if(uis[++i].ConstValue().mType == ZayUIElement::Type::Condition)
                             {
                                 CurCondition = (const ZayConditionElement*) uis[i].ConstPtr();
-                                if(CurCondition->mConditionType == ZayConditionElement::ConditionType::If)
+                                if(CurCondition->mConditionType == ZayConditionElement::ConditionType::Endif) // endif는 조건그룹을 빠져나오게 하고
+                                    break;
+                                else if(CurCondition->mConditionType == ZayConditionElement::ConditionType::If) // 새로운 조건그룹을 만나면 처리
                                 {
                                     i--;
                                     break;
                                 }
-                                if(CurCondition->mConditionType == ZayConditionElement::ConditionType::Endif)
-                                    break;
+                            }
+                        }
+                    }
+                    else while(i + 1 < iend)
+                    {
+                        if(uis[++i].ConstValue().mType == ZayUIElement::Type::Condition)
+                        {
+                            CurCondition = (const ZayConditionElement*) uis[i].ConstPtr();
+                            if(CurCondition->mConditionType == ZayConditionElement::ConditionType::Endif) // Endif는 조건그룹을 빠져나오게 하고
+                                break;
+                            else // 다른 모든 조건은 처리
+                            {
+                                i--;
+                                break;
                             }
                         }
                     }
                 }
+                else Collector.AtAdding() = i;
             }
-
-            // 조건문이 없으면 모두 유효한 CompValue로 인정
-            if(!HasCondition)
-            for(sint32 i = 0, iend = uis.Count(); i < iend; ++i)
-                Collector.AtAdding() = i;
             return Collector;
         }
 
@@ -322,9 +330,7 @@ namespace BOSS
                         chars UIName = (0 < mClickCodes.Count())? (chars) uiname : nullptr;
                         ZayComponent::Payload ParamCollector = CurComponent->MakePayload(UIName, this);
                         ZAY_EXTEND(ParamCollector >> panel)
-                        for(sint32 i = 0, iend = mChildren.Count(); i < iend; ++i)
-                            if(mChildren[i]->mType == ZayUIElement::Type::Component)
-                                mChildren[i]->Render(panel, zayson, uiname + String::FromInteger(-1 - i), compmax);
+                            RenderChildren(panel, zayson, uiname, compmax);
                     }
                     else // CompValue항목이 존재할 경우
                     {
@@ -346,11 +352,21 @@ namespace BOSS
                                     ParamCollector(ZayUIElement::GetResult(CurCompValue->mParamFormulas[j]));
                             }
                             ZAY_EXTEND(ParamCollector >> panel)
-                            for(sint32 j = 0, jend = mChildren.Count(); j < jend; ++j)
-                                if(mChildren[j]->mType == ZayUIElement::Type::Component)
-                                    mChildren[j]->Render(panel, zayson, UINameSub + String::FromInteger(-1 - j), compmax);
+                                RenderChildren(panel, zayson, UINameSub, compmax);
                         }
                     }
+                }
+            }
+        }
+        void RenderChildren(ZayPanel& panel, const ZaySon& zayson, const String& uiname, sint32& compmax) const
+        {
+            if(0 < mChildren.Count())
+            {
+                sint32s CollectedChildren = ZayConditionElement::Collect(mChildren);
+                for(sint32 i = 0, iend = CollectedChildren.Count(); i < iend; ++i)
+                {
+                    auto CurChildren = (const ZayUIElement*) mChildren[CollectedChildren[i]].ConstPtr();
+                    CurChildren->Render(panel, zayson, uiname + String::FromInteger(-1 - i), compmax);
                 }
             }
         }
