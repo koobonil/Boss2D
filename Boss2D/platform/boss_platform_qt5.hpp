@@ -3794,6 +3794,7 @@
             mUpdateForImage = false;
             mUpdateForBitmap = false;
             mUpdateTimeMsec = 0;
+            mUpdateAvgMsec = 0;
             mPictureShotCount = 0;
             mPreviewShotCount = 0;
         }

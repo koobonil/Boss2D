@@ -17,7 +17,7 @@ namespace BOSS
         typedef std::function<ZayPanel::StackBinder(ZayPanel& panel, const Payload& params)> ComponentCB;
         typedef std::function<void(const Payload& params)> GlueCB;
     public:
-        ZayExtend();
+        ZayExtend(ComponentCB ccb = nullptr, GlueCB gcb = nullptr);
         ~ZayExtend();
 
     public: // 파라미터와 함께 함수호출

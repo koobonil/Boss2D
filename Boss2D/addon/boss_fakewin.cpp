@@ -1701,7 +1701,7 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         return boss_feof((boss_file) stream);
     }
 
-    extern "C" errno_t boss_fakewin_ftime_s(boss_fakewin_struct_timeb*)
+    extern "C" errno_t boss_fakewin_ftime_s(struct boss_fakewin_struct_timeb*)
     {
         BOSS_ASSERT("########## _ftime_s준비중", false);
         return 0;

@@ -539,8 +539,10 @@ namespace BOSS
     ////////////////////////////////////////////////////////////////////////////////
     // ZayExtend
     ////////////////////////////////////////////////////////////////////////////////
-    ZayExtend::ZayExtend()
+    ZayExtend::ZayExtend(ComponentCB ccb, GlueCB gcb)
     {
+        mComponentCB = ccb;
+        mGlueCB = gcb;
     }
 
     ZayExtend::~ZayExtend()
@@ -706,12 +708,10 @@ namespace BOSS
     void ZayExtend::ResetForComponent(ComponentCB cb)
     {
         mComponentCB = cb;
-        mGlueCB = nullptr;
     }
 
     void ZayExtend::ResetForGlue(GlueCB cb)
     {
-        mComponentCB = nullptr;
         mGlueCB = cb;
     }
 

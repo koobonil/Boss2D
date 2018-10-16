@@ -653,7 +653,7 @@
     int boss_fakewin_fprintf(FILE*,const char*, ...);
     int boss_fakewin_fclose(FILE*);
     int boss_fakewin_feof(FILE*);
-    errno_t boss_fakewin_ftime_s(boss_fakewin_struct_timeb*);
+    errno_t boss_fakewin_ftime_s(struct boss_fakewin_struct_timeb*);
     errno_t boss_fakewin_localtime_s(struct tm*, const time_t*);
     int boss_fakewin_wopen(const wchar_t*,int,int);
     int boss_fakewin_close(int);
