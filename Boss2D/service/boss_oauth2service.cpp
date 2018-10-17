@@ -447,7 +447,7 @@ namespace BOSS
     {
         Share::Remove(mShare);
         if(rhs.mShare) mShare = rhs.mShare->Clone();
-        Memory::CopyVPTR(this, &rhs);
+        Memory::ReplaceVPTR(this, &rhs);
         return *this;
     }
 

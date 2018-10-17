@@ -119,8 +119,15 @@ namespace BOSS
         \param event : 호출시점
         \param cb : 콜백함수
         \param data : 콜백함수에 전달할 데이터
+        \return 생성된 윈도우프로시저의 ID
         */
-        static void AddWindowProcedure(WindowEvent event, ProcedureCB cb, payload data = nullptr);
+        static sint32 AddWindowProcedure(WindowEvent event, ProcedureCB cb, payload data = nullptr);
+
+        /*!
+        \brief 윈도우프로시저 제거
+        \param id : 제거할 윈도우프로시저의 ID
+        */
+        static void SubWindowProcedure(sint32 id);
 
         /*!
         \brief 상태창 설정
@@ -1769,6 +1776,14 @@ namespace BOSS
             \param url : 로드할 웹주소
             */
             static void Reload(h_web web, chars url);
+
+            /*!
+            \brief 현재 로딩상황
+            \param web : 해당 웹핸들
+            \param rate : 로딩진척도(0.0 ~ 1.0)
+            \return 로딩중인지의 여부
+            */
+            static bool NowLoading(h_web web, float* rate = nullptr);
 
             /*!
             \brief 웹페이지 리사이징

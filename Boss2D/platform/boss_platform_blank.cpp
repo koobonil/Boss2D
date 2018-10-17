@@ -241,9 +241,14 @@
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
         }
 
-        void Platform::AddWindowProcedure(WindowEvent event, ProcedureCB cb, payload data)
+        sint32 Platform::AddWindowProcedure(WindowEvent event, ProcedureCB cb, payload data)
         {
-            PlatformImpl::Wrap::AddWindowProcedure(event, cb, data);
+            return PlatformImpl::Wrap::AddWindowProcedure(event, cb, data);
+        }
+
+        void Platform::SubWindowProcedure(sint32 id)
+        {
+            PlatformImpl::Wrap::SubWindowProcedure(id);
         }
 
         void Platform::SetStatusText(chars text, UIStack stack)
@@ -1701,6 +1706,12 @@
         void Platform::Web::Reload(h_web web, chars url)
         {
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+        }
+
+        bool Platform::Web::NowLoading(h_web web, float* rate)
+        {
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+            return false;
         }
 
         bool Platform::Web::Resize(h_web web, sint32 width, sint32 height)

@@ -1236,8 +1236,10 @@
     private:
         void tick_timeout()
         {
+            PlatformImpl::Core::LockProcedure();
             for(sint32 i = 0, iend = PlatformImpl::Core::GetProcedureCount(); i < iend; ++i)
                 PlatformImpl::Core::GetProcedureCB(i)(PlatformImpl::Core::GetProcedureData(i));
+            PlatformImpl::Core::UnlockProcedure();
         }
 
     private:
@@ -2302,8 +2304,15 @@
         {
             mCb = nullptr;
             mData = nullptr;
+            mNowLoading = false;
+            mLoadingProgress = 100;
+            mLoadingRate = 1;
+
             setMouseTracking(true);
             connect(this, SIGNAL(urlChanged(QUrl)), SLOT(onUrlChanged(QUrl)));
+            connect(this, SIGNAL(loadStarted()), SLOT(onLoadStarted()));
+            connect(this, SIGNAL(loadProgress(int)), SLOT(onLoadProgress(int)));
+            connect(this, SIGNAL(loadFinished(bool)), SLOT(onLoadFinished(bool)));
         }
         virtual ~WebViewPrivate()
         {
@@ -2327,11 +2336,31 @@
             if(mCb)
                 mCb(mData, "UrlChanged", url.url().toUtf8().constData());
         }
+        void onLoadStarted()
+        {
+            mNowLoading = true;
+            mLoadingProgress = 0;
+            mLoadingRate = 0;
+        }
+        void onLoadProgress(int progress)
+        {
+            mNowLoading = true;
+            mLoadingProgress = progress;
+        }
+        void onLoadFinished(bool)
+        {
+            mNowLoading = false;
+            mLoadingProgress = 100;
+            mLoadingRate = 1;
+        }
 
     public:
         h_web mHandle;
         Platform::Web::EventCB mCb;
         payload mData;
+        bool mNowLoading;
+        int mLoadingProgress;
+        float mLoadingRate;
     };
 
     #if QT_HAVE_WEBENGINEWIDGETS
@@ -2369,6 +2398,15 @@
             void Reload(chars url)
             {
                 mView.load(QUrl(QString(url)));
+            }
+            bool NowLoading(float* rate)
+            {
+                if(rate)
+                {
+                    mView.mLoadingRate = mView.mLoadingRate * 0.9f + mView.mLoadingProgress / 100.0f * 0.1f;
+                    *rate = mView.mLoadingRate;
+                }
+                return mView.mNowLoading && (mView.mLoadingProgress < 100); // LoadingProgress만 100%가 되어도 로딩이 끝난것으로 간주
             }
             bool Resize(sint32 width, sint32 height)
             {

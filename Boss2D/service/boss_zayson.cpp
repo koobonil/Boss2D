@@ -69,7 +69,7 @@ namespace BOSS
     class ZayConditionElement : public ZayUIElement
     {
     public:
-        enum class ConditionType {Unknown, If, IfFocused, IfPressed, Elif, Else, Endif};
+        enum class ConditionType {Unknown, If, IfFocused, IfHovered, IfPressed, Elif, Else, Endif};
 
     public:
         ZayConditionElement() : ZayUIElement(Type::Condition)
@@ -85,7 +85,9 @@ namespace BOSS
             branch;
             jump(!String::Compare("iffocused", ConditionText, 9)) // 문자열길이 순서상 먼저
                 mConditionType = ConditionType::IfFocused;
-            jump(!String::Compare("ifpressed", ConditionText, 9)) // 문자열길이 순서상 먼저
+            jump(!String::Compare("ifhovered", ConditionText, 9))
+                mConditionType = ConditionType::IfHovered;
+            jump(!String::Compare("ifpressed", ConditionText, 9))
                 mConditionType = ConditionType::IfPressed;
             jump(!String::Compare("if", ConditionText, 2))
                 mConditionType = ConditionType::If;
@@ -139,6 +141,15 @@ namespace BOSS
                             IsTrue = !!(panel->state(UIName) & PS_Focused);
                         }
                     }
+                    // 호버확인
+                    else if(CurCondition->mConditionType == ZayConditionElement::ConditionType::IfHovered)
+                    {
+                        if(panel)
+                        {
+                            const String UIName = ZayUIElement::GetResult(CurCondition->mConditionSolver).ToText();
+                            IsTrue = !!(panel->state(UIName) & PS_Hovered);
+                        }
+                    }
                     // 프레스확인
                     else if(CurCondition->mConditionType == ZayConditionElement::ConditionType::IfPressed)
                     {
@@ -163,6 +174,7 @@ namespace BOSS
                                     break;
                                 else if(CurCondition->mConditionType == ZayConditionElement::ConditionType::If || // 새로운 조건그룹을 만나면 수락
                                     CurCondition->mConditionType == ZayConditionElement::ConditionType::IfFocused ||
+                                    CurCondition->mConditionType == ZayConditionElement::ConditionType::IfHovered ||
                                     CurCondition->mConditionType == ZayConditionElement::ConditionType::IfPressed)
                                 {
                                     i--;
@@ -750,9 +762,9 @@ namespace BOSS
 
     void ZaySon::Load(const Context& context)
     {
+        delete mUIElement;
         auto NewView = new ZayViewElement();
         NewView->Load(*this, context);
-        delete mUIElement;
         mUIElement = NewView;
     }
 

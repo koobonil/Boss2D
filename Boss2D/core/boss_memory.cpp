@@ -34,7 +34,19 @@ namespace BOSS
         memcpy(dst, src, size);
     }
 
-    void Memory::CopyVPTR(void* dst, const void* src)
+    void Memory::Fill(void* dst, const sint32 dstsize, const void* src, sint32 srcsize)
+    {
+        memcpy(dst, src, Math::Min(dstsize, srcsize));
+        // 번짐효과
+        while(srcsize < dstsize)
+        {
+            memcpy((void*) (((bytes) dst) + srcsize), dst,
+                Math::Min(dstsize, srcsize + srcsize) - srcsize);
+            srcsize *= 2;
+        }
+    }
+
+    void Memory::ReplaceVPTR(void* dst, const void* src)
     {
         BOSS_ASSERT("모든 컴파일러에 대한 검증이 안된 코드입니다.", false);
         switch(sizeof(void*))

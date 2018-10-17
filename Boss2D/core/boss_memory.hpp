@@ -38,11 +38,20 @@ namespace BOSS
         static void Copy(void* dst, const void* src, const sint32 size);
 
         /*!
-        \brief 가상함수테이블포인터 복사
-        \param dst : 복사받을 객체의 시작주소
+        \brief 채우기
+        \param dst : 채워넣을 시작주소
+        \param dstsize : 채워넣을 길이(byte)
+        \param src : 복사할 단위의 시작주소
+        \param srcsize : 복사할 단위의 길이(byte)
+        */
+        static void Fill(void* dst, const sint32 dstsize, const void* src, sint32 srcsize);
+
+        /*!
+        \brief 가상함수테이블포인터 교체
+        \param dst : 교체당할 객체의 시작주소
         \param src : 복사할 객체의 시작주소
         */
-        static void CopyVPTR(void* dst, const void* src);
+        static void ReplaceVPTR(void* dst, const void* src);
 
         /*!
         \brief 비교

@@ -374,9 +374,14 @@
             g_window->setWindowOpacity(value);
         }
 
-        void Platform::AddWindowProcedure(WindowEvent event, ProcedureCB cb, payload data)
+        sint32 Platform::AddWindowProcedure(WindowEvent event, ProcedureCB cb, payload data)
         {
-            PlatformImpl::Wrap::AddWindowProcedure(event, cb, data);
+            return PlatformImpl::Wrap::AddWindowProcedure(event, cb, data);
+        }
+
+        void Platform::SubWindowProcedure(sint32 id)
+        {
+            PlatformImpl::Wrap::SubWindowProcedure(id);
         }
 
         void Platform::SetStatusText(chars text, UIStack stack)
@@ -3097,6 +3102,13 @@
         {
             if(WebPrivate* CurWeb = (WebPrivate*) web.get())
                 CurWeb->Reload(url);
+        }
+
+        bool Platform::Web::NowLoading(h_web web, float* rate)
+        {
+            if(WebPrivate* CurWeb = (WebPrivate*) web.get())
+                return CurWeb->NowLoading(rate);
+            return false;
         }
 
         bool Platform::Web::Resize(h_web web, sint32 width, sint32 height)

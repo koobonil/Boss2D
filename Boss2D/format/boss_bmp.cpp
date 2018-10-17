@@ -251,6 +251,15 @@ namespace BOSS
         return NewBitmap;
     }
 
+    void Bmp::FillColor(id_bitmap bitmap, argb32 color)
+    {
+        BOSS_ASSERT("본 함수는 32비트 비트맵만 지원합니다", GetBitCount(bitmap) == 32);
+        const sint32 CurWidth = GetWidth(bitmap);
+        const sint32 CurHeight = GetHeight(bitmap);
+        bitmappixel* CurBits = (bitmappixel*) GetBits(bitmap);
+        Memory::Fill(CurBits, 4 * CurWidth * CurHeight, &color, 4);
+    }
+
     void Bmp::ChangeColor(id_bitmap bitmap, argb32 from, argb32 to)
     {
         BOSS_ASSERT("본 함수는 32비트 비트맵만 지원합니다", GetBitCount(bitmap) == 32);

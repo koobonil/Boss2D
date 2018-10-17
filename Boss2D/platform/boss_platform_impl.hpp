@@ -8,6 +8,8 @@ namespace BOSS
         // 일반함수와 전역인스턴스
         namespace Core
         {
+            void LockProcedure();
+            void UnlockProcedure();
             sint32 GetProcedureCount();
             ProcedureCB GetProcedureCB(sint32 i);
             payload GetProcedureData(sint32 i);
@@ -22,7 +24,8 @@ namespace BOSS
         // 래핑함수
         namespace Wrap
         {
-            void AddWindowProcedure(WindowEvent event, ProcedureCB cb, payload data);
+            sint32 AddWindowProcedure(WindowEvent event, ProcedureCB cb, payload data);
+            void SubWindowProcedure(sint32 id);
 
             chars Utility_GetOSName();
             sint64 Utility_CurrentAvailableMemory(sint64* totalbytes);

@@ -18,6 +18,7 @@ namespace BOSS
         static id_bitmap Clone(id_bitmap_read bitmap);
         static id_bitmap CloneFromBits(bytes bits, sint32 width, sint32 height, sint32 bitcount, orientationtype ori);
         static id_bitmap Copy(id_bitmap_read bitmap, sint32 l, sint32 t, sint32 r, sint32 b);
+        static void FillColor(id_bitmap bitmap, argb32 color);
         static void ChangeColor(id_bitmap bitmap, argb32 from, argb32 to);
         static void Flatten(id_bitmap bitmap, uint08 r, uint08 g, uint08 b);
         static void Remove(id_bitmap bitmap);

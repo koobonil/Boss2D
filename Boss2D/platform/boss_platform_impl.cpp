@@ -32,6 +32,26 @@ namespace BOSS
         ////////////////////////////////////////////////////////////////////////////////
         namespace Core
         {
+            class ProcedureLockClass
+            {
+            public:
+                ProcedureLockClass() {mMutex = Mutex::Open();}
+                ~ProcedureLockClass() {Mutex::Close(mMutex);}
+            public:
+                id_mutex mMutex;
+            };
+            ProcedureLockClass g_ProcedureLock;
+
+            void LockProcedure()
+            {
+                Mutex::Lock(g_ProcedureLock.mMutex);
+            }
+
+            void UnlockProcedure()
+            {
+                Mutex::Unlock(g_ProcedureLock.mMutex);
+            }
+
             class ProcedureClass
             {
                 BOSS_DECLARE_NONCOPYABLE_CLASS(ProcedureClass)
@@ -42,7 +62,8 @@ namespace BOSS
                 ProcedureCB mCb;
                 payload mData;
             };
-            Array<ProcedureClass, datatype_pod_canmemcpy> g_AllProcedures;
+            Map<ProcedureClass> g_AllProcedures;
+            sint32 g_LastProcedureID = 0;
 
             sint32 GetProcedureCount()
             {
@@ -51,12 +72,14 @@ namespace BOSS
 
             ProcedureCB GetProcedureCB(sint32 i)
             {
-                return g_AllProcedures[i].mCb;
+                auto CurProcedure = g_AllProcedures.AccessByOrder(i);
+                return CurProcedure->mCb;
             }
 
             payload GetProcedureData(sint32 i)
             {
-                return g_AllProcedures[i].mData;
+                auto CurProcedure = g_AllProcedures.AccessByOrder(i);
+                return CurProcedure->mData;
             }
 
             String NormalPath(chars itemname, bool QCodeTest)
@@ -111,11 +134,22 @@ namespace BOSS
         ////////////////////////////////////////////////////////////////////////////////
         namespace Wrap
         {
-            void AddWindowProcedure(WindowEvent event, ProcedureCB cb, payload data)
+            sint32 AddWindowProcedure(WindowEvent event, ProcedureCB cb, payload data)
             {
-                auto& NewProcedure = Core::g_AllProcedures.AtAdding();
+                Core::LockProcedure();
+                sint32 Result = ++Core::g_LastProcedureID;
+                auto& NewProcedure = Core::g_AllProcedures[Result];
                 NewProcedure.mCb = cb;
                 NewProcedure.mData = data;
+                Core::UnlockProcedure();
+                return Result;
+            }
+
+            void SubWindowProcedure(sint32 id)
+            {
+                Core::LockProcedure();
+                Core::g_AllProcedures.Remove(id);
+                Core::UnlockProcedure();
             }
 
             chars Utility_GetOSName()
