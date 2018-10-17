@@ -80,6 +80,7 @@ public:
 
 public:
     id_bitmap Decode(id_flash flash, uint64* timems);
+    void Seek(id_flash flash, uint64 timems);
 
 private:
     struct Plane
@@ -96,7 +97,10 @@ private:
         Plane mV;
     };
     typedef void (*OnDecodeFrame)(payload data, const Frame& frame);
-    uint64 DecodeFrame(bytes src, sint32 sliceSize, sint32 msec, OnDecodeFrame cb, payload data);
+    uint64 DecodeFrame(bytes src, sint32 sliceSize, sint32 msec, OnDecodeFrame cb = nullptr, payload data = nullptr);
+
+    typedef Array<uint08, datatype_pod_canmemcpy, 256> CollectorType;
+    bytes GetBsBuf(bool nalu, bytes chunk, sint32 chunksize, sint32& bssize, CollectorType*& collector);
 
 private:
     ISVCDecoder* mDecoder;

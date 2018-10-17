@@ -22,6 +22,7 @@ namespace BOSS
     BOSS_DECLARE_ADDON_FUNCTION(H264, Release, void, id_h264)
     BOSS_DECLARE_ADDON_FUNCTION(H264, EncodeOnce, void, id_h264, const uint32*, id_flash, uint64)
     BOSS_DECLARE_ADDON_FUNCTION(H264, DecodeOnce, id_bitmap, id_h264, id_flash, uint64*)
+    BOSS_DECLARE_ADDON_FUNCTION(H264, DecodeSeek, void, id_h264, id_flash, uint64)
 
     static autorun Bind_AddOn_H264()
     {
@@ -30,6 +31,7 @@ namespace BOSS
         Core_AddOn_H264_Release() = Customized_AddOn_H264_Release;
         Core_AddOn_H264_EncodeOnce() = Customized_AddOn_H264_EncodeOnce;
         Core_AddOn_H264_DecodeOnce() = Customized_AddOn_H264_DecodeOnce;
+        Core_AddOn_H264_DecodeSeek() = Customized_AddOn_H264_DecodeSeek;
         return true;
     }
     static autorun _ = Bind_AddOn_H264();
@@ -59,7 +61,7 @@ namespace BOSS
     {
         auto CurEncoder = H264EncoderPrivate::Test(h264);
         if(CurEncoder)
-            return CurEncoder->Encode(rgba, flash, timems);
+            CurEncoder->Encode(rgba, flash, timems);
     }
 
     id_bitmap Customized_AddOn_H264_DecodeOnce(id_h264 h264, id_flash flash, uint64* timems)
@@ -68,6 +70,13 @@ namespace BOSS
         if(CurDecoder)
             return CurDecoder->Decode(flash, timems);
         return nullptr;
+    }
+
+    void Customized_AddOn_H264_DecodeSeek(id_h264 h264, id_flash flash, uint64 timems)
+    {
+        auto CurDecoder = H264DecoderPrivate::Test(h264);
+        if(CurDecoder)
+            CurDecoder->Seek(flash, timems);
     }
 }
 
@@ -353,45 +362,8 @@ id_bitmap H264DecoderPrivate::Decode(id_flash flash, uint64* timems)
     const bool IsKeyFrame = !!(Chunk[0] & 0x10);
     const bool IsNALU = !!(Chunk[1] & 0x01);
     sint32 BsSize = 0;
-    bytes BsBuf = nullptr;
-    bytes ChunkFocus = &Chunk[5];
-    bytes ChunkEnd = &Chunk[ChunkSize];
-    typedef Array<uint08, datatype_pod_canmemcpy, 256> CollectorType;
-    CollectorType* PsCollector = nullptr;
-    if(IsNALU)
-    {
-        BsSize  = (*(ChunkFocus++) & 0xFF) << 24;
-        BsSize |= (*(ChunkFocus++) & 0xFF) << 16;
-        BsSize |= (*(ChunkFocus++) & 0xFF) <<  8;
-        BsSize |= (*(ChunkFocus++) & 0xFF) <<  0;
-        BsBuf = ChunkFocus;
-    }
-    else
-    {
-        while((*(ChunkFocus++) & 0xFC) != 0xFC) // 1111:1100
-            if(ChunkEnd < ChunkFocus)
-                return nullptr;
-        PsCollector = new CollectorType();
-        for(sint32 i = 0; i < 2; ++i) // SPS와 PPS
-        {
-            sint32 Count = *(ChunkFocus++);
-            for(sint32 j = 0; j < Count; ++j)
-            {
-                uint32 PsSize = 0;
-                PsSize  = (*(ChunkFocus++) & 0xFF) << 8;
-                PsSize |= (*(ChunkFocus++) & 0xFF) << 0;
-                Memory::Copy(PsCollector->AtDumpingAdded(4), GetBE4(1), 4);
-                Memory::Copy(PsCollector->AtDumpingAdded(PsSize), ChunkFocus, PsSize);
-                if(ChunkEnd < (ChunkFocus += PsSize))
-                {
-                    delete PsCollector;
-                    return nullptr;
-                }
-            }
-        }
-        BsSize = PsCollector->Count();
-        BsBuf = &(*PsCollector)[0];
-    }
+    CollectorType* Collector = nullptr;
+    bytes BsBuf = GetBsBuf(IsNALU, Chunk, ChunkSize, BsSize, Collector);
 
     id_bitmap Result = nullptr;
     uint64 ResultMsec = DecodeFrame(BsBuf, BsSize, ChunkMsec,
@@ -428,12 +400,40 @@ id_bitmap H264DecoderPrivate::Decode(id_flash flash, uint64* timems)
                 }
             }
         }, &Result);
-    delete PsCollector;
+
+    delete Collector;
 
     if(!Result)
         return Decode(flash, timems);
     if(timems) *timems = ResultMsec;
     return Result;
+}
+
+void H264DecoderPrivate::Seek(id_flash flash, uint64 timems)
+{
+    sint32 CurChunkMsec = 0;
+    while(CurChunkMsec < timems)
+    {
+        uint08 Type = 0;
+        bytes Chunk = nullptr;
+        sint32 ChunkSize = 0;
+        while(Type != 0x09)
+        {
+            Chunk = Flv::ReadChunk(flash, &Type, &ChunkSize, &CurChunkMsec);
+            if(!Chunk) return;
+        }
+
+        const bool IsKeyFrame = !!(Chunk[0] & 0x10);
+        const bool IsNALU = !!(Chunk[1] & 0x01);
+        sint32 BsSize = 0;
+        CollectorType* Collector = nullptr;
+        bytes BsBuf = GetBsBuf(IsNALU, Chunk, ChunkSize, BsSize, Collector);
+
+        if(IsKeyFrame || !IsNALU)
+            CurChunkMsec = (sint32) DecodeFrame(BsBuf, BsSize, CurChunkMsec);
+
+        delete Collector;
+    }
 }
 
 uint64 H264DecoderPrivate::DecodeFrame(bytes src, sint32 sliceSize, sint32 msec, OnDecodeFrame cb, payload data)
@@ -446,7 +446,7 @@ uint64 H264DecoderPrivate::DecodeFrame(bytes src, sint32 sliceSize, sint32 msec,
     DECODING_STATE rv = mDecoder->DecodeFrame2(src, sliceSize, bufdata, &bufInfo);
     BOSS_ASSERT("DecodeFrame2가 실패하였습니다", rv == dsErrorFree);
 
-    if(bufInfo.iBufferStatus == 1)
+    if(cb && bufInfo.iBufferStatus == 1)
     {
         const Frame frame =
         {
@@ -475,6 +475,51 @@ uint64 H264DecoderPrivate::DecodeFrame(bytes src, sint32 sliceSize, sint32 msec,
         cb(data, frame);
     }
     return bufInfo.uiOutYuvTimeStamp;
+}
+
+bytes H264DecoderPrivate::GetBsBuf(bool nalu, bytes chunk, sint32 chunksize, sint32& bssize, CollectorType*& collector)
+{
+    sint32 BsSize = 0;
+    bytes BsBuf = nullptr;
+    bytes ChunkFocus = &chunk[5];
+    bytes ChunkEnd = &chunk[chunksize];
+    collector = nullptr;
+    if(nalu)
+    {
+        BsSize  = (*(ChunkFocus++) & 0xFF) << 24;
+        BsSize |= (*(ChunkFocus++) & 0xFF) << 16;
+        BsSize |= (*(ChunkFocus++) & 0xFF) <<  8;
+        BsSize |= (*(ChunkFocus++) & 0xFF) <<  0;
+        BsBuf = ChunkFocus;
+    }
+    else
+    {
+        while((*(ChunkFocus++) & 0xFC) != 0xFC) // 1111:1100
+            if(ChunkEnd < ChunkFocus)
+                return nullptr;
+        collector = new CollectorType();
+        for(sint32 i = 0; i < 2; ++i) // SPS와 PPS
+        {
+            sint32 Count = *(ChunkFocus++);
+            for(sint32 j = 0; j < Count; ++j)
+            {
+                uint32 PsSize = 0;
+                PsSize  = (*(ChunkFocus++) & 0xFF) << 8;
+                PsSize |= (*(ChunkFocus++) & 0xFF) << 0;
+                Memory::Copy(collector->AtDumpingAdded(4), GetBE4(1), 4);
+                Memory::Copy(collector->AtDumpingAdded(PsSize), ChunkFocus, PsSize);
+                if(ChunkEnd < (ChunkFocus += PsSize))
+                {
+                    delete collector;
+                    return nullptr;
+                }
+            }
+        }
+        BsSize = collector->Count();
+        BsBuf = &(*collector)[0];
+    }
+    bssize = BsSize;
+    return BsBuf;
 }
 
 #endif

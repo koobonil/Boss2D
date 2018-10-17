@@ -117,14 +117,21 @@ namespace BOSS
         if(id_file_read FlvFile = Platform::File::OpenForRead(filename))
         {
             const sint32 FlvSize = Platform::File::Size(FlvFile);
-            Platform::File::Read(FlvFile, Dst.AtDumpingAdded(FlvSize), FlvSize);
-            Platform::File::Close(FlvFile);
+            if(0 < FlvSize)
+            {
+                Platform::File::Read(FlvFile, Dst.AtDumpingAdded(FlvSize), FlvSize);
+                Platform::File::Close(FlvFile);
 
-            // ReadFocus가 flv header를 스킵함
-            if(Dst[0] == 'F' && Dst[1] == 'L' && Dst[2] == 'V')
-                NewFlash->mReadFocus += 3 + 1 + 1 + 4 + 4;
+                // ReadFocus가 flv header를 스킵함
+                if(Dst[0] == 'F' && Dst[1] == 'L' && Dst[2] == 'V')
+                {
+                    NewFlash->mReadFocus += 3 + 1 + 1 + 4 + 4;
+                    return (id_flash) NewFlash;
+                }
+            }
         }
-        return (id_flash) NewFlash;
+        Buffer::Free((buffer) NewFlash);
+        return nullptr;
     }
 
     void Flv::Remove(id_flash flash)

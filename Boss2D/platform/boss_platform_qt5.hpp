@@ -2494,6 +2494,11 @@
             void Reload(chars url)
             {
             }
+            bool NowLoading(float* rate)
+            {
+                if(rate) *rate = 1;
+                return false;
+            }
             bool Resize(sint32 width, sint32 height)
             {
                 if(width != mLastImage.width() || height != mLastImage.height())

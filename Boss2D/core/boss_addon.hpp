@@ -97,6 +97,7 @@ namespace BOSS
             static void Release(id_h264 h264);
             static void EncodeOnce(id_h264 h264, const uint32* rgba, id_flash flash, uint64 timems);
             static id_bitmap DecodeOnce(id_h264 h264, id_flash flash, uint64* timems = nullptr);
+            static void DecodeSeek(id_h264 h264, id_flash flash, uint64 timems);
         };
 
         //! \brief JPG연동

@@ -177,6 +177,7 @@ namespace BOSS
     BOSS_DEFINE_ADDON_FUNCTION(H264, Release, void, return, id_h264)
     BOSS_DEFINE_ADDON_FUNCTION(H264, EncodeOnce, void, return, id_h264, const uint32*, id_flash, uint64)
     BOSS_DEFINE_ADDON_FUNCTION(H264, DecodeOnce, id_bitmap, return nullptr, id_h264, id_flash, uint64*)
+    BOSS_DEFINE_ADDON_FUNCTION(H264, DecodeSeek, void, return, id_h264, id_flash, uint64)
 
     id_h264 AddOn::H264::CreateEncoder(sint32 width, sint32 height, bool fastmode)
     {return Core_AddOn_H264_CreateEncoder()(width, height, fastmode);}
@@ -192,6 +193,9 @@ namespace BOSS
 
     id_bitmap AddOn::H264::DecodeOnce(id_h264 h264, id_flash flash, uint64* timems)
     {return Core_AddOn_H264_DecodeOnce()(h264, flash, timems);}
+
+    void AddOn::H264::DecodeSeek(id_h264 h264, id_flash flash, uint64 timems)
+    {Core_AddOn_H264_DecodeSeek()(h264, flash, timems);}
 
     ////////////////////////////////////////////////////////////////////////////////
     static void Jpg_Error() {BOSS_ASSERT("Jpg애드온이 준비되지 않았습니다", false);}
