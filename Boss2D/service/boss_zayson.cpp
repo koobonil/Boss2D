@@ -97,6 +97,7 @@ namespace BOSS
                 mConditionType = ConditionType::Else;
             jump(!String::Compare("endif", ConditionText, 5))
                 mConditionType = ConditionType::Endif;
+            else mRefRoot->AddDebugError(String::Format("알 수 없는 조건문입니다(%s, Load)", (chars) ConditionText));
 
             if(sint32 PosB = ConditionText.Find(0, "(") + 1)
             {
@@ -299,8 +300,10 @@ namespace BOSS
                 {
                     const String FunctionName = String(((chars) mRequestName) + PosB, PosE - PosB);
                     mRequestType = RequestType::Function;
-                    mGlueForFunction = root.FindGlue(FunctionName);
+                    mGlueForFunction = mRefRoot->FindGlue(FunctionName);
                     mParamForFunction.Load(root, GetValue);
+                    if(mGlueForFunction == nullptr)
+                        mRefRoot->AddDebugError(String::Format("글루함수를 찾을 수 없습니다(%s, Load)", (chars) FunctionName));
                 }
             }
 
@@ -332,6 +335,7 @@ namespace BOSS
                             ParamCollector(ZayUIElement::GetResult(mParamForFunction.mParamFormulas[i]));
                     // ParamCollector가 소멸되면서 Glue함수가 호출됨
                 }
+                else mRefRoot->AddDebugError(String::Format("글루함수를 실행하는데 실패하였습니다(%s, Transaction)", (chars) mRequestName));
             }
             else if(mRequestType == RequestType::Variable)
             {
@@ -340,6 +344,7 @@ namespace BOSS
                     FindedSolver->Parse(ZayUIElement::GetResult(mFormulaForVariable).ToText());
                     FindedSolver->Execute();
                 }
+                else mRefRoot->AddDebugError(String::Format("변수를 업데이트하는데 실패하였습니다(%s, Transaction)", (chars) mRequestName));
             }
         }
 
@@ -407,13 +412,9 @@ namespace BOSS
         {
             if(0 < compmax)
             {
+                // Debug정보구성
                 if(--compmax == 0)
-                {
-                    // Debug정보구성
-                    mRefRoot->mDebugCompName = mCompName;
-                    if(0 < mComment.Length())
-                        mRefRoot->mDebugCompName += '(' + mComment + ')';
-                }
+                    mRefRoot->SetDebugCompName(mCompName, mComment);
 
                 if(auto CurComponent = zayson.FindComponent(mCompName))
                 {
@@ -454,7 +455,9 @@ namespace BOSS
                         }
                     }
                 }
+                else mRefRoot->AddDebugError(String::Format("컴포넌트함수를 찾을 수 없습니다(%s, Render)", (chars) mCompName));
             }
+            else mRefRoot->AddDebugError("Debug모드의 컴포넌트 수량제한으로 부분출력중(→키를 눌러 해소)");
         }
         void RenderChildren(ZayPanel& panel, const ZaySon& zayson, const String& uiname, sint32& compmax) const
         {
@@ -738,6 +741,10 @@ namespace BOSS
     ZaySon::ZaySon()
     {
         mUIElement = nullptr;
+        // 디버그정보
+        mDebugErrorFocus = 0;
+        for(sint32 i = 0; i < mDebugErrorCountMax; ++i)
+            mDebugErrorShowCount[i] = 0;
     }
 
     ZaySon::~ZaySon()
@@ -757,6 +764,12 @@ namespace BOSS
         rhs.mUIElement = nullptr;
         mExtendMap = ToReference(rhs.mExtendMap);
         mDebugCompName = ToReference(rhs.mDebugCompName);
+        mDebugErrorFocus = ToReference(rhs.mDebugErrorFocus);
+        for(sint32 i = 0; i < mDebugErrorCountMax; ++i)
+        {
+            mDebugErrorName[i] = ToReference(rhs.mDebugErrorName[i]);
+            mDebugErrorShowCount[i] = ToReference(rhs.mDebugErrorShowCount[i]);
+        }
         return *this;
     }
 
@@ -768,16 +781,18 @@ namespace BOSS
         mUIElement = NewView;
     }
 
-    void ZaySon::AddComponent(chars name, ZayExtend::ComponentCB cb)
+    ZaySon& ZaySon::AddComponent(chars name, ZayExtend::ComponentCB cb)
     {
         auto& NewFunction = mExtendMap(name);
         NewFunction.ResetForComponent(cb);
+        return *this;
     }
 
-    void ZaySon::AddGlue(chars name, ZayExtend::GlueCB cb)
+    ZaySon& ZaySon::AddGlue(chars name, ZayExtend::GlueCB cb)
     {
         auto& NewFunction = mExtendMap(name);
         NewFunction.ResetForGlue(cb);
+        return *this;
     }
 
     const ZayExtend* ZaySon::FindComponent(chars name) const
@@ -814,5 +829,52 @@ namespace BOSS
             return OldCompMax - compmax;
         }
         return 0;
+    }
+
+    void ZaySon::SetDebugCompName(chars name, chars comment) const
+    {
+        mDebugCompName = name;
+        if(comment[0] != '\0')
+            mDebugCompName = mDebugCompName + '(' + comment + ')';
+    }
+
+    void ZaySon::AddDebugError(chars name) const
+    {
+        // 같은 메시지는 새로 추가하지 않고 강조만 함
+        for(sint32 i = 0; i < mDebugErrorCountMax; ++i)
+        {
+            if(0 < mDebugErrorShowCount[i] && !mDebugErrorName[i].Compare(name))
+            {
+                mDebugErrorShowCount[i] = mDebugErrorShowMax;
+                return;
+            }
+        }
+        mDebugErrorFocus = (mDebugErrorFocus + mDebugErrorCountMax - 1) % mDebugErrorCountMax;
+        mDebugErrorName[mDebugErrorFocus] = name;
+        mDebugErrorShowCount[mDebugErrorFocus] = mDebugErrorShowMax;
+    }
+
+    chars ZaySon::debugCompName() const
+    {
+        return mDebugCompName;
+    }
+
+    sint32 ZaySon::debugErrorCountMax() const
+    {
+        return mDebugErrorCountMax;
+    }
+
+    chars ZaySon::debugErrorName(sint32 i) const
+    {
+        return mDebugErrorName[(mDebugErrorFocus + i) % mDebugErrorCountMax];
+    }
+
+    float ZaySon::debugErrorShowRate(sint32 i, bool countdown) const
+    {
+        sint32& ShowCount = mDebugErrorShowCount[(mDebugErrorFocus + i) % mDebugErrorCountMax];
+        const float Result = ShowCount / (float) mDebugErrorShowMax;
+        if(countdown && 0 < ShowCount)
+            ShowCount--;
+        return Result;
     }
 }

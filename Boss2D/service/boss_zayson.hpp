@@ -79,8 +79,8 @@ namespace BOSS
 
     public:
         void Load(const Context& context);
-        void AddComponent(chars name, ZayExtend::ComponentCB cb);
-        void AddGlue(chars name, ZayExtend::GlueCB cb);
+        ZaySon& AddComponent(chars name, ZayExtend::ComponentCB cb);
+        ZaySon& AddGlue(chars name, ZayExtend::GlueCB cb);
         const ZayExtend* FindComponent(chars name) const;
         const ZayExtend* FindGlue(chars name) const;
         sint32 Render(ZayPanel& panel, sint32 compmax = 0x7FFFFFFF);
@@ -90,6 +90,19 @@ namespace BOSS
         Map<ZayExtend> mExtendMap;
 
     public:
+        void SetDebugCompName(chars name, chars comment) const;
+        void AddDebugError(chars name) const;
+        chars debugCompName() const;
+        sint32 debugErrorCountMax() const;
+        chars debugErrorName(sint32 i) const;
+        float debugErrorShowRate(sint32 i, bool countdown) const;
+
+    private:
         mutable String mDebugCompName;
+        static const sint32 mDebugErrorCountMax = 10;
+        static const sint32 mDebugErrorShowMax = 150;
+        mutable sint32 mDebugErrorFocus;
+        mutable String mDebugErrorName[mDebugErrorCountMax];
+        mutable sint32 mDebugErrorShowCount[mDebugErrorCountMax];
     };
 }
