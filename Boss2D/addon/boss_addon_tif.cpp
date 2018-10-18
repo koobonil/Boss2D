@@ -68,6 +68,8 @@ static uint16 TinyTIFFReader_getSampleFormat(TinyTIFFReaderFile* tiff);
 // 구현부
 namespace BOSS
 {
+    chars TempTifName = nullptr;//////////////////////////////////
+
     id_tif Customized_AddOn_Tif_Create(id_bitmap_read bmp)
     {
         const sint32 Width = Bmp::GetWidth(bmp);
@@ -78,8 +80,7 @@ namespace BOSS
         for(sint32 x = 0; x < Width; ++x)
             NewBits[x + y * Width] = SrcBits[x + (Height - 1 - y) * Width].r;
 
-        TinyTIFFFile* tiff = TinyTIFFWriter_open(
-            Platform::File::RootForAssetsRem() + "ocr/build/kor2019.basefont.exp0.tif", 8, Width, Height);
+        TinyTIFFFile* tiff = TinyTIFFWriter_open(TempTifName, 8, Width, Height);
         TinyTIFFWriter_writeImage(tiff, (uint08*) NewBits);
         //TinyTIFFWriter_close(tiff, "THIS IS MY OWN TIFF COMMET");
         TinyTIFFWriter_close(tiff);
