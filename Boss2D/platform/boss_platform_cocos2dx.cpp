@@ -1896,7 +1896,7 @@
         ////////////////////////////////////////////////////////////////////////////////
         // PIPE
         ////////////////////////////////////////////////////////////////////////////////
-        id_pipe Platform::Pipe::Open(chars name)
+        id_pipe Platform::Pipe::Open(chars name, bool* isserver)
         {
             BOSS_ASSERT("Further development is needed.", false);
             return nullptr;

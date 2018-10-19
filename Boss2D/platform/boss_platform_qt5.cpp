@@ -3009,7 +3009,7 @@
         ////////////////////////////////////////////////////////////////////////////////
         // PIPE
         ////////////////////////////////////////////////////////////////////////////////
-        id_pipe Platform::Pipe::Open(chars name)
+        id_pipe Platform::Pipe::Open(chars name, bool* isserver)
         {
             QSharedMemory* Semaphore = new QSharedMemory(name);
             if(!Semaphore->attach() && Semaphore->create(1))
@@ -3017,7 +3017,10 @@
                 // 서버
                 QLocalServer* Server = new QLocalServer();
                 if(Server->listen(name))
+                {
+                    if(isserver) *isserver = true;
                     return (id_pipe) new PipeServerPrivate(Server, Semaphore);
+                }
                 delete Server;
             }
             delete Semaphore;
@@ -3026,6 +3029,8 @@
             QLocalSocket* Client = new QLocalSocket();
             Client->abort();
             Client->connectToServer(name);
+
+            if(isserver) *isserver = false;
             return (id_pipe) new PipeClientPrivate(Client);
         }
 

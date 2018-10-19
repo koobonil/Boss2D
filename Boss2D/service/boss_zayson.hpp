@@ -78,6 +78,8 @@ namespace BOSS
         ZaySon& operator=(ZaySon&& rhs);
 
     public:
+        void SetUIName(chars uiname);
+        inline const String& UIName() const {return mUIName;}
         void Load(const Context& context);
         ZaySon& AddComponent(chars name, ZayExtend::ComponentCB cb);
         ZaySon& AddGlue(chars name, ZayExtend::GlueCB cb);
@@ -86,6 +88,7 @@ namespace BOSS
         sint32 Render(ZayPanel& panel, sint32 compmax = 0x7FFFFFFF);
 
     private:
+        String mUIName;
         ZayUIElement* mUIElement;
         Map<ZayExtend> mExtendMap;
 

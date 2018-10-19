@@ -1676,10 +1676,11 @@ namespace BOSS
             /*!
             \brief 파이프 열기
             \param name : 파이프명칭
+            \param isserver : 내가 서버인지의 여부
             \return 파이프ID(nullptr은 실패)
             \see Close
             */
-            static id_pipe Open(chars name);
+            static id_pipe Open(chars name, bool* isserver = nullptr);
 
             /*!
             \brief 파이프 닫기

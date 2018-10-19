@@ -41,7 +41,7 @@ namespace BOSS
         }
 
     public:
-        virtual void Render(ZayPanel& panel, const ZaySon& zayson, const String& uiname, sint32& compmax) const 
+        virtual void Render(ZayPanel& panel, const String& uiname, sint32& compmax) const 
         {
         }
         virtual void OnTouch()
@@ -119,7 +119,7 @@ namespace BOSS
             }
             return false;
         };
-        static sint32s Collect(const ZayUIs& uis, const ZayPanel* panel = nullptr)
+        static sint32s Collect(const ZayUIElement* self, const ZayUIs& uis, const ZayPanel* panel = nullptr)
         {
             sint32s Collector;
             // 조건문처리로 유효한 CompValue를 수집
@@ -139,7 +139,7 @@ namespace BOSS
                         if(panel)
                         {
                             const String UIName = ZayUIElement::GetResult(CurCondition->mConditionSolver).ToText();
-                            IsTrue = !!(panel->state(UIName) & PS_Focused);
+                            IsTrue = !!(panel->state(self->mRefRoot->UIName() + '.' + UIName) & PS_Focused);
                         }
                     }
                     // 호버확인
@@ -148,7 +148,7 @@ namespace BOSS
                         if(panel)
                         {
                             const String UIName = ZayUIElement::GetResult(CurCondition->mConditionSolver).ToText();
-                            IsTrue = !!(panel->state(UIName) & PS_Hovered);
+                            IsTrue = !!(panel->state(self->mRefRoot->UIName() + '.' + UIName) & PS_Hovered);
                         }
                     }
                     // 프레스확인
@@ -157,7 +157,7 @@ namespace BOSS
                         if(panel)
                         {
                             const String UIName = ZayUIElement::GetResult(CurCondition->mConditionSolver).ToText();
-                            IsTrue = !!(panel->state(UIName) & PS_Dragging);
+                            IsTrue = !!(panel->state(self->mRefRoot->UIName() + '.' + UIName) & PS_Dragging);
                         }
                     }
 
@@ -408,7 +408,7 @@ namespace BOSS
         }
 
     private:
-        void Render(ZayPanel& panel, const ZaySon& zayson, const String& uiname, sint32& compmax) const override
+        void Render(ZayPanel& panel, const String& uiname, sint32& compmax) const override
         {
             if(0 < compmax)
             {
@@ -416,27 +416,29 @@ namespace BOSS
                 if(--compmax == 0)
                     mRefRoot->SetDebugCompName(mCompName, mComment);
 
-                if(auto CurComponent = zayson.FindComponent(mCompName))
+                if(auto CurComponent = mRefRoot->FindComponent(mCompName))
                 {
                     if(mCompValues.Count() == 0)
                     {
+                        String UINameTemp;
                         chars ComponentName = nullptr;
-                        if(0 < mUIName.Length()) ComponentName = mUIName;
+                        if(0 < mUIName.Length()) ComponentName = UINameTemp = mRefRoot->UIName() + '.' + mUIName;
                         else if(0 < mClickCodes.Count()) ComponentName = uiname;
                         ZayExtend::Payload ParamCollector = CurComponent->MakePayload(ComponentName, this);
 
                         ZAY_EXTEND(ParamCollector >> panel)
-                            RenderChildren(panel, zayson, uiname, compmax);
+                            RenderChildren(panel, uiname, compmax);
                     }
                     else // CompValue항목이 존재할 경우
                     {
                         // 유효한 CompValue를 모두 실행
-                        sint32s CollectedCompValues = ZayConditionElement::Collect(mCompValues, &panel);
+                        sint32s CollectedCompValues = ZayConditionElement::Collect(this, mCompValues, &panel);
                         for(sint32 i = 0, iend = CollectedCompValues.Count(); i < iend; ++i)
                         {
-                            const String UINameSub = String::Format("%s-V%d", (chars) uiname, CollectedCompValues[i]);
+                            const String UINameSub = uiname + String::Format(".v%d", CollectedCompValues[i]);
+                            String UINameTemp;
                             chars ComponentName = nullptr;
-                            if(0 < mUIName.Length()) ComponentName = mUIName;
+                            if(0 < mUIName.Length()) ComponentName = UINameTemp = mRefRoot->UIName() + '.' + mUIName;
                             else if(0 < mClickCodes.Count()) ComponentName = UINameSub;
                             ZayExtend::Payload ParamCollector = CurComponent->MakePayload(ComponentName, this);
 
@@ -451,7 +453,7 @@ namespace BOSS
                                     ParamCollector(ZayUIElement::GetResult(CurCompValue->mParamFormulas[j]));
                             }
                             ZAY_EXTEND(ParamCollector >> panel)
-                                RenderChildren(panel, zayson, UINameSub, compmax);
+                                RenderChildren(panel, UINameSub, compmax);
                         }
                     }
                 }
@@ -459,15 +461,15 @@ namespace BOSS
             }
             else mRefRoot->AddDebugError("Debug모드의 컴포넌트 수량제한으로 부분출력중(→키를 눌러 해소)");
         }
-        void RenderChildren(ZayPanel& panel, const ZaySon& zayson, const String& uiname, sint32& compmax) const
+        void RenderChildren(ZayPanel& panel, const String& uiname, sint32& compmax) const
         {
             if(0 < mChildren.Count())
             {
-                sint32s CollectedChildren = ZayConditionElement::Collect(mChildren, &panel);
+                sint32s CollectedChildren = ZayConditionElement::Collect(this, mChildren, &panel);
                 for(sint32 i = 0, iend = CollectedChildren.Count(); i < iend; ++i)
                 {
                     auto CurChildren = (const ZayUIElement*) mChildren[CollectedChildren[i]].ConstPtr();
-                    CurChildren->Render(panel, zayson, uiname + String::FromInteger(-1 - i), compmax);
+                    CurChildren->Render(panel, uiname + String::Format(".%d", i), compmax);
                 }
             }
         }
@@ -475,7 +477,7 @@ namespace BOSS
         {
             if(0 < mClickCodes.Count())
             {
-                sint32s CollectedClickCodes = ZayConditionElement::Collect(mClickCodes);
+                sint32s CollectedClickCodes = ZayConditionElement::Collect(this, mClickCodes);
                 for(sint32 i = 0, iend = CollectedClickCodes.Count(); i < iend; ++i)
                 {
                     auto CurClickCode = (ZayRequestElement*) mClickCodes.At(CollectedClickCodes[i]).Ptr();
@@ -538,11 +540,11 @@ namespace BOSS
         }
 
     private:
-        void Render(ZayPanel& panel, const ZaySon& zayson, const String& uiname, sint32& compmax) const override
+        void Render(ZayPanel& panel, const String& uiname, sint32& compmax) const override
         {
             for(sint32 i = 0, iend = mChildren.Count(); i < iend; ++i)
                 if(mChildren[i]->mType == ZayUIElement::Type::Component)
-                    mChildren[i]->Render(panel, zayson, uiname + String::FromInteger(-1 - i), compmax);
+                    mChildren[i]->Render(panel, uiname + String::Format(".%d", i), compmax);
         }
 
     public:
@@ -759,6 +761,7 @@ namespace BOSS
 
     ZaySon& ZaySon::operator=(ZaySon&& rhs)
     {
+        mUIName = ToReference(rhs.mUIName);
         delete mUIElement;
         mUIElement = rhs.mUIElement;
         rhs.mUIElement = nullptr;
@@ -771,6 +774,11 @@ namespace BOSS
             mDebugErrorShowCount[i] = ToReference(rhs.mDebugErrorShowCount[i]);
         }
         return *this;
+    }
+
+    void ZaySon::SetUIName(chars uiname)
+    {
+        mUIName = uiname;
     }
 
     void ZaySon::Load(const Context& context)
@@ -825,7 +833,7 @@ namespace BOSS
         {
             mDebugCompName = "(null)";
             const sint32 OldCompMax = compmax;
-            mUIElement->Render(panel, *this, "View", compmax);
+            mUIElement->Render(panel, UIName(), compmax);
             return OldCompMax - compmax;
         }
         return 0;

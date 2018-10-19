@@ -1642,7 +1642,7 @@
         ////////////////////////////////////////////////////////////////////////////////
         // PIPE
         ////////////////////////////////////////////////////////////////////////////////
-        id_pipe Platform::Pipe::Open(chars name)
+        id_pipe Platform::Pipe::Open(chars name, bool* isserver)
         {
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
             return nullptr;
