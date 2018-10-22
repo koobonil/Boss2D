@@ -209,6 +209,8 @@ namespace BOSS
             {
                 if('0' <= Text[i] && Text[i] <= '9')
                     ChildText[Focus] += Text[i];
+                else if(Text[i] == 'I') // 학습효과를 늘리기 위해 '1'과 'I"를 분리하여 OCR제작
+                    ChildText[Focus] += '1';
                 else if(Text[i] == '~')
                     ChildText[Focus] += '~';
                 else if(Focus < 1 && 0 < ChildText[Focus].Length())

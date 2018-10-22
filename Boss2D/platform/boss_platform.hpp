@@ -866,7 +866,7 @@ namespace BOSS
             \return 생성된 이미지
             */
             static id_image CreateImage(id_bitmap_read bitmap,
-                const Color& coloring = Color(Color::ColoringDefault), sint32 resizing_width = -1, sint32 resizing_height = -1);
+                const Color coloring = Color::ColoringDefault, sint32 resizing_width = -1, sint32 resizing_height = -1);
 
             /*!
             \brief 이미지 가로길이 얻기

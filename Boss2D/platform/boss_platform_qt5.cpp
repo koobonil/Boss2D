@@ -1365,7 +1365,7 @@
             CanvasClass::get()->painter().drawPath(NewPath);
         }
 
-        id_image Platform::Graphics::CreateImage(id_bitmap_read bitmap, const Color& coloring, sint32 resizing_width, sint32 resizing_height)
+        id_image Platform::Graphics::CreateImage(id_bitmap_read bitmap, const Color coloring, sint32 resizing_width, sint32 resizing_height)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
 

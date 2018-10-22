@@ -16,7 +16,8 @@ namespace BOSS
     public:
         static id_bitmap Create(sint32 bytesperpixel, sint32 width, sint32 height, sint16 param1 = 0, sint16 param2 = 0);
         static id_bitmap Clone(id_bitmap_read bitmap);
-        static id_bitmap CloneFromBits(bytes bits, sint32 width, sint32 height, sint32 bitcount, orientationtype ori);
+        // 안드로이드 일부폰에는 자주 큰 메모리를 잡고 해제하면 프레임이 현저하게 나빠지니 oldbitmap을 활용할 것!
+        static id_bitmap CloneFromBits(bytes bits, sint32 width, sint32 height, sint32 bitcount, orientationtype ori, id_bitmap oldbitmap = nullptr);
         static id_bitmap Copy(id_bitmap_read bitmap, sint32 l, sint32 t, sint32 r, sint32 b);
         static void FillColor(id_bitmap bitmap, argb32 color);
         static void ChangeColor(id_bitmap bitmap, argb32 from, argb32 to);

@@ -221,6 +221,7 @@
 
             sendCreate();
             sendSizeWhenValid();
+            m_tick_timer.start(1000 / USER_FRAMECOUNT);
         }
 
         h_view changeViewManagerAndDestroy(View* manager)
@@ -311,7 +312,6 @@
                 g_view = getWidget();
                 m_view_manager->OnCreate();
             }
-            m_tick_timer.start(1000 / USER_FRAMECOUNT);
         }
 
         inline bool canQuit()
@@ -407,7 +407,7 @@
             else if(m_paintcount < count)
             {
                 if(m_paintcount == 0)
-                    m_update_timer.start(17);
+                    m_update_timer.start(1000 / USER_FRAMECOUNT);
                 m_paintcount = count;
             }
         }
@@ -3664,7 +3664,7 @@
                     {
                     case codeid("NV21"):
                         {
-                            BOSS_TRACE("DecodeImage(RAW8) - Mid-A");
+                            BOSS_TRACE("DecodeImage(RAW8) - Mid-A (%llu)", Platform::Utility::CurrentTimeMsec());
                             width = *((sint32*) &mLastImage[4]);
                             height = *((sint32*) &mLastImage[8]);
                             bits.SubtractionAll();
@@ -3699,7 +3699,7 @@
                                     Dst++;
                                 }
                             }
-                            BOSS_TRACE("DecodeImage(RAW8) - Mid-B");
+                            BOSS_TRACE("DecodeImage(RAW8) - Mid-B (%llu)", Platform::Utility::CurrentTimeMsec());
                         }
                         break;
                     case codeid("JPEG"):
@@ -3747,7 +3747,7 @@
             }
             static void OnPictureTaken(JNIEnv* env, jobject thiz, jbyteArray data, jint length)
             {
-                BOSS_TRACE("OnPictureTaken Begin");
+                BOSS_TRACE("OnPictureTaken Begin(%llu)", Platform::Utility::CurrentTimeMsec());
                 bytes paramData = (bytes) env->GetByteArrayElements(data, nullptr);
                 CameraSurfaceForAndroid* Me = SavedMe();
                 BOSS_TRACE("OnPictureTaken - paramData: %08X, length: %d, Me: %08X", paramData, length, Me);
@@ -3771,11 +3771,11 @@
                     }
                 }
                 env->ReleaseByteArrayElements(data, (jbyte*) paramData, JNI_ABORT);
-                BOSS_TRACE("OnPictureTaken End");
+                BOSS_TRACE("OnPictureTaken End(%llu)", Platform::Utility::CurrentTimeMsec());
             }
             static void OnPreviewTaken(JNIEnv* env, jobject thiz, jbyteArray data, jint length, jint width, jint height)
             {
-                BOSS_TRACE("OnPreviewTaken Begin");
+                BOSS_TRACE("OnPreviewTaken Begin(%llu)", Platform::Utility::CurrentTimeMsec());
                 bytes paramData = (bytes) env->GetByteArrayElements(data, nullptr);
                 CameraSurfaceForAndroid* Me = SavedMe();
                 BOSS_TRACE("OnPreviewTaken - paramData: %08X, length: %d, Me: %08X", paramData, length, Me);
@@ -3801,7 +3801,7 @@
                     }
                 }
                 env->ReleaseByteArrayElements(data, (jbyte*) paramData, JNI_ABORT);
-                BOSS_TRACE("OnPreviewTaken End");
+                BOSS_TRACE("OnPreviewTaken End(%llu)", Platform::Utility::CurrentTimeMsec());
             }
         };
         typedef CameraSurfaceForAndroid CameraSurfaceClass;
@@ -3836,7 +3836,7 @@
             mDecodedHeight = 0;
             mUpdateForImage = false;
             mUpdateForBitmap = false;
-            mUpdateTimeMsec = 0;
+            mUpdateTimeMsec = Platform::Utility::CurrentTimeMsec();
             mUpdateAvgMsec = 0;
             mPictureShotCount = 0;
             mPreviewShotCount = 0;
@@ -3947,8 +3947,12 @@
                 {
                     mUpdateForBitmap = false;
                     if(mUpdateForImage) DecodeImage(mDecodedWidth, mDecodedHeight, mDecodedBits);
-                    Bmp::Remove(bitmap);
-                    bitmap = Bmp::CloneFromBits(&mDecodedBits[0], mDecodedWidth, mDecodedHeight, 32, ori);
+                    auto NewBitmap = Bmp::CloneFromBits(&mDecodedBits[0], mDecodedWidth, mDecodedHeight, 32, ori, bitmap);
+                    if(bitmap != NewBitmap)
+                    {
+                        Bmp::Remove(bitmap);
+                        bitmap = NewBitmap;
+                    }
                     //단편화방지차원: if(!mUpdateForImage) mDecodedBits.Clear();
                 }
             }

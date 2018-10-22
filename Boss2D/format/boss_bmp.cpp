@@ -129,13 +129,27 @@ namespace BOSS
         return nullptr;
     }
 
-    id_bitmap Bmp::CloneFromBits(bytes bits, sint32 width, sint32 height, sint32 bitcount, orientationtype ori)
+    id_bitmap Bmp::CloneFromBits(bytes bits, sint32 width, sint32 height, sint32 bitcount, orientationtype ori, id_bitmap oldbitmap)
     {
         id_bitmap NewBitmap;
+        sint32 NewBitmapWidth;
+        sint32 NewBitmapHeight;
         if(ori == orientationtype_normal90 || ori == orientationtype_normal270 ||
             ori == orientationtype_fliped90 || ori == orientationtype_fliped270)
-            NewBitmap = Create(4, height, width);
-        else NewBitmap = Create(4, width, height);
+        {
+            NewBitmapWidth = height;
+            NewBitmapHeight = width;
+        }
+        else
+        {
+            NewBitmapWidth = width;
+            NewBitmapHeight = height;
+        }
+
+        if(!oldbitmap || Bmp::GetBitCount(oldbitmap) != 32 ||
+            Bmp::GetWidth(oldbitmap) != NewBitmapWidth || Bmp::GetHeight(oldbitmap) != NewBitmapHeight)
+            NewBitmap = Create(4, NewBitmapWidth, NewBitmapHeight);
+        else NewBitmap = oldbitmap;
 
         const sint32 SrcXRow = (bitcount / 8);
         const sint32 SrcYRow = (bitcount / 8 * width + 3) & ~3;
