@@ -1690,9 +1690,12 @@
             return CanvasClass::get()->painter().fontMetrics().ascent();
         }
 
+        static bool g_isBeginGL = false;
         void Platform::Graphics::BeginGL()
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
+
+            g_isBeginGL = true;
             SurfaceClass::LockForGL();
             CanvasClass::get()->painter().beginNativePainting();
         }
@@ -1700,6 +1703,8 @@
         void Platform::Graphics::EndGL()
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
+
+            g_isBeginGL = false;
             CanvasClass::get()->painter().endNativePainting();
             SurfaceClass::UnlockForGL();
         }
@@ -1725,10 +1730,10 @@
             return (id_surface) NewSurface;
         }
 
-        uint32 Platform::Graphics::GetSurfaceId(id_surface_read surface)
+        uint32 Platform::Graphics::GetSurfaceFBO(id_surface_read surface)
         {
             if(!surface) return 0;
-            return ((const SurfaceClass*) surface)->id();
+            return ((const SurfaceClass*) surface)->fbo();
         }
 
         sint32 Platform::Graphics::GetSurfaceWidth(id_surface_read surface)
@@ -1770,10 +1775,20 @@
             CanvasClass::get()->painter().setCompositionMode(CanvasClass::get()->mask());
             if(w == sw && h == sh)
                 CanvasClass::get()->painter().drawImage(QPoint((sint32) x, (sint32) y),
-                    ((const SurfaceClass*) surface)->mLastImage, QRect((sint32) sx, (sint32) sy, (sint32) sw, (sint32) sh));
+                    ((const SurfaceClass*) surface)->GetLastImage(), QRect((sint32) sx, (sint32) sy, (sint32) sw, (sint32) sh));
             else CanvasClass::get()->painter().drawImage(QRect((sint32) x, (sint32) y, (sint32) w, (sint32) h),
-                ((const SurfaceClass*) surface)->mLastImage, QRect((sint32) sx, (sint32) sy, (sint32) sw, (sint32) sh));
+                ((const SurfaceClass*) surface)->GetLastImage(), QRect((sint32) sx, (sint32) sy, (sint32) sw, (sint32) sh));
             CanvasClass::get()->painter().setOpacity(OldOpacity);
+        }
+
+        void Platform::Graphics::DrawSurfaceToFBO(id_surface_read surface, float sx, float sy, float sw, float sh, float x, float y, float w, float h, uint32 fbo)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
+            BOSS_ASSERT("본 함수를 호출하기 전에 BeginGL()을 호출하여야 안전합니다", g_isBeginGL);
+            if(!surface) return;
+
+            OpenGLPrivate::ST().DrawTexture(fbo, Rect(x, y, x + w, y + h),
+                ((const SurfaceClass*) surface)->texture(), Rect(sx, sy, sx + sw, sy + sh));
         }
 
         id_image_read Platform::Graphics::GetImageFromSurface(id_surface_read surface)
@@ -1781,7 +1796,7 @@
             QPixmap& SurfacePixmap = *BOSS_STORAGE_SYS(QPixmap);
             if(!surface) return nullptr;
 
-            SurfacePixmap = QPixmap::fromImage(((const SurfaceClass*) surface)->mLastImage);
+            SurfacePixmap = QPixmap::fromImage(((const SurfaceClass*) surface)->GetLastImage());
             return (id_image_read) &SurfacePixmap;
         }
 
@@ -1790,9 +1805,8 @@
             Image& SurfaceImage = *BOSS_STORAGE_SYS(Image);
             if(!surface) return nullptr;
 
-            QImage CurImage = ((const SurfaceClass*) surface)->mLastImage.convertToFormat(QImage::Format::Format_ARGB32);
-            SurfaceImage.LoadBitmapFromBits(CurImage.constBits(), CurImage.width(), CurImage.height(),
-                CurImage.bitPlaneCount(), ori);
+            QImage CurImage = ((const SurfaceClass*) surface)->GetLastImage().convertToFormat(QImage::Format::Format_ARGB32);
+            SurfaceImage.LoadBitmapFromBits(CurImage.constBits(), CurImage.width(), CurImage.height(), CurImage.bitPlaneCount(), ori);
             return SurfaceImage.GetBitmap();
         }
 

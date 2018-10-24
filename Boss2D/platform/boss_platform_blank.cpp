@@ -869,7 +869,7 @@
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
         }
 
-        id_image Platform::Graphics::CreateImage(id_bitmap_read bitmap, const Color& coloring, sint32 resizing_width, sint32 resizing_height)
+        id_image Platform::Graphics::CreateImage(id_bitmap_read bitmap, const Color coloring, sint32 resizing_width, sint32 resizing_height)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
 
@@ -975,7 +975,7 @@
             return nullptr;
         }
 
-        uint32 Platform::Graphics::GetSurfaceId(id_surface_read surface)
+        uint32 Platform::Graphics::GetSurfaceFBO(id_surface_read surface)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
 
@@ -1021,6 +1021,13 @@
         }
 
         void Platform::Graphics::DrawSurface(id_surface_read surface, float sx, float sy, float sw, float sh, float x, float y, float w, float h)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
+
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+        }
+
+        void Platform::Graphics::DrawSurfaceToFBO(id_surface_read surface, float sx, float sy, float sw, float sh, float x, float y, float w, float h, uint32 fbo)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
 

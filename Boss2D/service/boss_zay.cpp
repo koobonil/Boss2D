@@ -758,11 +758,11 @@ namespace BOSS
         }
     }
 
-    uint32 ZayPanel::fboid() const
+    uint32 ZayPanel::fbo() const
     {
         if(m_ref_surface)
-            return Platform::Graphics::GetSurfaceId(m_ref_surface);
-        return -1;
+            return Platform::Graphics::GetSurfaceFBO(m_ref_surface);
+        return 0;
     }
 
     ZayPanel::StackBinder ZayPanel::_push_clip(float l, float t, float r, float b, bool doScissor)

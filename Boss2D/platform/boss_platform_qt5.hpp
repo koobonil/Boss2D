@@ -1538,6 +1538,402 @@
         QPoint m_parentpos;
     };
 
+    class OpenGLPrivate
+    {
+    private:
+        OpenGLPrivate()
+        {
+            mVShader = 0;
+            mFShader = 0;
+            mProgram = 0;
+            switch(GetVersion())
+            {
+            case 0x20: InitShaderGLES20(); break;
+            case 0x30: InitShaderGLES30(); break;
+            default: InitShaderGL(); break;
+            }
+        }
+        ~OpenGLPrivate()
+        {
+            TermShader();
+        }
+
+    public:
+        static OpenGLPrivate& ST()
+        {static OpenGLPrivate _; return _;}
+
+    public:
+        void FillRect(uint32 fbo, const BOSS::Rect& rect, const BOSS::Color& color)
+        {
+            QOpenGLContext* ctx = QOpenGLContext::currentContext();
+            QOpenGLFunctions* f = ctx->functions();
+
+            f->glBindFramebuffer(GL_FRAMEBUFFER, fbo); TestGL(BOSS_DBG 0);
+            GLint ViewPortValues[4] = {0};
+            f->glGetIntegerv(GL_VIEWPORT, ViewPortValues);
+            const GLint Width = ViewPortValues[2];
+            const GLint Height = ViewPortValues[3];
+            BOSS::Rect NewRect;
+            NewRect.l = (rect.l / Width - 0.5) * 2;
+            NewRect.t = (0.5 - rect.t / Height) * 2;
+            NewRect.r = (rect.r / Width - 0.5) * 2;
+            NewRect.b = (0.5 - rect.b / Height) * 2;
+
+            f->glUseProgram(mProgram); TestGL(BOSS_DBG 0);
+            f->glBindBuffer(GL_ARRAY_BUFFER, 0); TestGL(BOSS_DBG 0);
+            f->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); TestGL(BOSS_DBG 0);
+            f->glEnableVertexAttribArray(VerticeID); TestGL(BOSS_DBG 0);
+            f->glEnableVertexAttribArray(ColorID); TestGL(BOSS_DBG 0);
+            f->glEnableVertexAttribArray(TexCoordsID); TestGL(BOSS_DBG 0);
+            f->glVertexAttribPointer(VerticeID, 2, GL_FLOAT, GL_FALSE, sizeof(Attrib), &mAttrib[0].vertices[0]); TestGL(BOSS_DBG 0);
+            f->glVertexAttribPointer(ColorID, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Attrib), &mAttrib[0].colors[0]); TestGL(BOSS_DBG 0);
+            f->glVertexAttribPointer(TexCoordsID, 2, GL_FLOAT, GL_FALSE, sizeof(Attrib), &mAttrib[0].texcoords[0]); TestGL(BOSS_DBG 0);
+            f->glUniformMatrix4fv(mMatrix, 1, GL_FALSE, (const GLfloat*) &mM[0][0]); TestGL(BOSS_DBG 0);
+
+            f->glDisable(GL_CULL_FACE); TestGL(BOSS_DBG 0);
+            f->glDisable(GL_DEPTH_TEST); TestGL(BOSS_DBG 0);
+            f->glDisable(GL_SCISSOR_TEST); TestGL(BOSS_DBG 0);
+            f->glEnable(GL_BLEND); TestGL(BOSS_DBG 0);
+            f->glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA); TestGL(BOSS_DBG 0);
+
+            mAttrib[0].vertices[0] = NewRect.l;
+            mAttrib[0].vertices[1] = NewRect.t;
+            mAttrib[0].color32 = color.rgba;
+            mAttrib[0].texcoords[0] = 0;
+            mAttrib[0].texcoords[1] = 0;
+
+            mAttrib[1].vertices[0] = NewRect.r;
+            mAttrib[1].vertices[1] = NewRect.t;
+            mAttrib[1].color32 = color.rgba;
+            mAttrib[1].texcoords[0] = 1;
+            mAttrib[1].texcoords[1] = 0;
+
+            mAttrib[2].vertices[0] = NewRect.l;
+            mAttrib[2].vertices[1] = NewRect.b;
+            mAttrib[2].color32 = color.rgba;
+            mAttrib[2].texcoords[0] = 0;
+            mAttrib[2].texcoords[1] = 1;
+
+            mAttrib[3].vertices[0] = NewRect.r;
+            mAttrib[3].vertices[1] = NewRect.b;
+            mAttrib[3].color32 = color.rgba;
+            mAttrib[3].texcoords[0] = 1;
+            mAttrib[3].texcoords[1] = 1;
+            f->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); TestGL(BOSS_DBG 0);
+        }
+        void DrawTexture(uint32 fbo, const BOSS::Rect& rect, uint32 tex, const BOSS::Rect& texrect)
+        {
+            QOpenGLContext* ctx = QOpenGLContext::currentContext();
+            QOpenGLFunctions* f = ctx->functions();
+
+            f->glBindFramebuffer(GL_FRAMEBUFFER, fbo); TestGL(BOSS_DBG 0);
+            GLint ViewPortValues[4] = {0};
+            f->glGetIntegerv(GL_VIEWPORT, ViewPortValues);
+            const GLint Width = ViewPortValues[2];
+            const GLint Height = ViewPortValues[3];
+            BOSS::Rect NewRect;
+            NewRect.l = (rect.l / Width - 0.5) * 2;
+            NewRect.t = (0.5 - rect.t / Height) * 2;
+            NewRect.r = (rect.r / Width - 0.5) * 2;
+            NewRect.b = (0.5 - rect.b / Height) * 2;
+
+            f->glActiveTexture(GL_TEXTURE0);
+            f->glBindTexture(GL_TEXTURE_2D, tex);
+            f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+            f->glUseProgram(mProgram); TestGL(BOSS_DBG 0);
+            f->glBindBuffer(GL_ARRAY_BUFFER, 0); TestGL(BOSS_DBG 0);
+            f->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); TestGL(BOSS_DBG 0);
+            f->glEnableVertexAttribArray(VerticeID); TestGL(BOSS_DBG 0);
+            f->glEnableVertexAttribArray(ColorID); TestGL(BOSS_DBG 0);
+            f->glEnableVertexAttribArray(TexCoordsID); TestGL(BOSS_DBG 0);
+            f->glVertexAttribPointer(VerticeID, 2, GL_FLOAT, GL_FALSE, sizeof(Attrib), &mAttrib[0].vertices[0]); TestGL(BOSS_DBG 0);
+            f->glVertexAttribPointer(ColorID, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Attrib), &mAttrib[0].colors[0]); TestGL(BOSS_DBG 0);
+            f->glVertexAttribPointer(TexCoordsID, 2, GL_FLOAT, GL_FALSE, sizeof(Attrib), &mAttrib[0].texcoords[0]); TestGL(BOSS_DBG 0);
+            f->glUniformMatrix4fv(mMatrix, 1, GL_FALSE, (const GLfloat*) &mM[0][0]); TestGL(BOSS_DBG 0);
+
+            f->glDisable(GL_CULL_FACE); TestGL(BOSS_DBG 0);
+            f->glDisable(GL_DEPTH_TEST); TestGL(BOSS_DBG 0);
+            f->glDisable(GL_SCISSOR_TEST); TestGL(BOSS_DBG 0);
+            f->glEnable(GL_BLEND); TestGL(BOSS_DBG 0);
+            f->glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA); TestGL(BOSS_DBG 0);
+
+            mAttrib[0].vertices[0] = NewRect.l;
+            mAttrib[0].vertices[1] = NewRect.t;
+            mAttrib[0].color32 = 0xFFFFFFFF;
+            mAttrib[0].texcoords[0] = 0;
+            mAttrib[0].texcoords[1] = 0;
+
+            mAttrib[1].vertices[0] = NewRect.r;
+            mAttrib[1].vertices[1] = NewRect.t;
+            mAttrib[1].color32 = 0xFFFFFFFF;
+            mAttrib[1].texcoords[0] = 1;
+            mAttrib[1].texcoords[1] = 0;
+
+            mAttrib[2].vertices[0] = NewRect.l;
+            mAttrib[2].vertices[1] = NewRect.b;
+            mAttrib[2].color32 = 0xFFFFFFFF;
+            mAttrib[2].texcoords[0] = 0;
+            mAttrib[2].texcoords[1] = 1;
+
+            mAttrib[3].vertices[0] = NewRect.r;
+            mAttrib[3].vertices[1] = NewRect.b;
+            mAttrib[3].color32 = 0xFFFFFFFF;
+            mAttrib[3].texcoords[0] = 1;
+            mAttrib[3].texcoords[1] = 1;
+            f->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); TestGL(BOSS_DBG 0);
+        }
+
+    private:
+        void InitShader(chars vsource, chars fsource)
+        {
+            QOpenGLContext* ctx = QOpenGLContext::currentContext();
+            QOpenGLFunctions* f = ctx->functions();
+
+            chars VertexShaderSourceCodePtr = vsource;
+            chars FragmentShaderSourceCodePtr = fsource;
+
+            mVShader = f->glCreateShader(GL_VERTEX_SHADER); TestGL(BOSS_DBG 0);
+            f->glShaderSource(mVShader, 1, &VertexShaderSourceCodePtr, NULL); TestGL(BOSS_DBG 0);
+            f->glCompileShader(mVShader); TestShader(BOSS_DBG mVShader);
+
+            mFShader = f->glCreateShader(GL_FRAGMENT_SHADER); TestGL(BOSS_DBG 0);
+            f->glShaderSource(mFShader, 1, &FragmentShaderSourceCodePtr, NULL); TestGL(BOSS_DBG 0);
+            f->glCompileShader(mFShader); TestShader(BOSS_DBG mFShader);
+
+            mProgram = f->glCreateProgram(); TestGL(BOSS_DBG 0);
+            f->glAttachShader(mProgram, mVShader); TestShader(BOSS_DBG mVShader);
+            f->glAttachShader(mProgram, mFShader); TestShader(BOSS_DBG mFShader);
+
+            f->glEnableVertexAttribArray(VerticeID); TestGL(BOSS_DBG 0);
+            f->glEnableVertexAttribArray(ColorID); TestGL(BOSS_DBG 0);
+            f->glBindAttribLocation(mProgram, VerticeID, "a_position"); TestGL(BOSS_DBG 0);
+            f->glBindAttribLocation(mProgram, ColorID, "a_color"); TestGL(BOSS_DBG 0);
+            f->glVertexAttribPointer(VerticeID, 2, GL_FLOAT, GL_FALSE, sizeof(Attrib), &mAttrib[0].vertices[0]); TestGL(BOSS_DBG 0);
+            f->glVertexAttribPointer(ColorID, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Attrib), &mAttrib[0].colors[0]); TestGL(BOSS_DBG 0);
+
+            f->glLinkProgram(mProgram); TestProgram(BOSS_DBG mProgram);
+            f->glValidateProgram(mProgram); TestProgram(BOSS_DBG mProgram);
+
+            LoadIdentity();
+            f->glUseProgram(mProgram); TestProgram(BOSS_DBG mProgram);
+            mMatrix = f->glGetUniformLocation(mProgram, "u_matrix"); TestGL(BOSS_DBG 0);
+            f->glUniformMatrix4fv(mMatrix, 1, GL_FALSE, (const GLfloat*) &mM[0][0]); TestGL(BOSS_DBG 0);
+        }
+        void InitShaderGLES20()
+        {
+            InitShader(
+                "attribute highp vec2 a_position;\n"
+                "attribute highp vec4 a_color;\n"
+                "uniform highp mat4 u_matrix;\n"
+                "varying mediump vec4 v_fragmentColor;\n"
+                "\n"
+                "void main()\n"
+                "{\n"
+                "    gl_Position = u_matrix * vec4(a_position.x, a_position.y, 0.0, 1.0);\n"
+                "    v_fragmentColor = a_color;\n"
+                "}",
+                "uniform highp mat4 u_matrix;\n"
+                "varying mediump vec4 v_fragmentColor;\n"
+                "\n"
+                "void main()\n"
+                "{\n"
+                "    gl_FragColor = v_fragmentColor;\n"
+                "}");
+        }
+        void InitShaderGLES30()
+        {
+            InitShader(String::Format(
+                "#version 300 es\n"
+                "layout (location = %d) in highp vec2 a_position;\n"
+                "layout (location = %d) in highp vec4 a_color;\n"
+                "uniform highp mat4 u_matrix;\n"
+                "out mediump vec4 v_fragmentColor;\n"
+                "\n"
+                "void main()\n"
+                "{\n"
+                "    gl_Position = u_matrix * vec4(a_position.x, a_position.y, 0.0, 1.0);\n"
+                "    v_fragmentColor = a_color;\n"
+                "}", VerticeID, ColorID),
+                "#version 300 es\n"
+                "layout (location = 0) out highp vec4 oColour;\n"
+                "uniform highp mat4 u_matrix;\n"
+                "in mediump vec4 v_fragmentColor;\n"
+                "\n"
+                "void main()\n"
+                "{\n"
+                "    oColour = v_fragmentColor;\n"
+                "}");
+        }
+        void InitShaderGL()
+        {
+            InitShader(String::Format(
+                "#version 330 core\n"
+                "layout (location = %d) in highp vec2 a_position;\n"
+                "layout (location = %d) in highp vec4 a_color;\n"
+                "layout (location = %d) in highp vec2 a_texcoord;\n"
+                "uniform highp mat4 u_matrix;\n"
+                "out mediump vec4 v_fragmentColor;\n"
+                "out mediump vec2 v_texCoord;\n"
+                "\n"
+                "void main()\n"
+                "{\n"
+                "    gl_Position = u_matrix * vec4(a_position.x, a_position.y, 0.0, 1.0);\n"
+                "    v_fragmentColor = a_color;\n"
+                "    v_texCoord = a_texcoord;\n"
+                "}", VerticeID, ColorID, TexCoordsID),
+                "#version  330 core\n"
+                "layout (location = 0) out highp vec4 oColour;\n"
+                "uniform highp mat4 u_matrix;\n"
+                "uniform highp sampler2D u_texture;\n"
+                "in mediump vec4 v_fragmentColor;\n"
+                "in mediump vec2 v_texCoord;\n"
+                "\n"
+                "void main()\n"
+                "{\n"
+                "    oColour = v_fragmentColor * texture2D(u_texture, v_texCoord);\n"
+                "}");
+        }
+        void TermShader()
+        {
+            if(QOpenGLContext* ctx = QOpenGLContext::currentContext())
+            {
+                QOpenGLFunctions* f = ctx->functions();
+
+                f->glDeleteProgram(mProgram); TestGL(BOSS_DBG 0);
+                mProgram = 0;
+                f->glDeleteShader(mProgram); TestGL(BOSS_DBG 0);
+                mVShader = 0;
+                f->glDeleteShader(mProgram); TestGL(BOSS_DBG 0);
+                mFShader = 0;
+            }
+        }
+
+    private:
+        uint08 GetVersion()
+        {
+            static uint08 Version = 0x00;
+            if(Version != 0x00) return Version;
+
+            chars VendorString = (chars) glGetString(GL_VENDOR);
+            chars RendererString = (chars) glGetString(GL_RENDERER);
+            chars VersionString = (chars) glGetString(GL_VERSION);
+            // 예시1: OpenGL ES 2.0 IMGSGX543-124.1
+            // 예시2: OpenGL ES 3.0 APPLE-12.0.38
+            // 예시3: 2.1 ATI-1.51.8
+            // 예시4: 4.0.0 - Build 10.18.10.4303
+
+            if(!boss_strncmp(VersionString, "OpenGL ES ", 10))
+            {
+                const uint32 VersionMajor = VersionString[10] - '0';
+                const uint32 VersionMinor = VersionString[12] - '0';
+                Version = ((VersionMajor & 0xF) << 4) | (VersionMinor & 0xF);
+            }
+            else if(!boss_strncmp(VersionString, "2.", 2)) Version = 0x20 | ((VersionString[2] - '0') & 0xF);
+            else if(!boss_strncmp(VersionString, "4.", 2)) Version = 0x40 | ((VersionString[2] - '0') & 0xF);
+            else BOSS_ASSERT(String::Format("알 수 없는 버전정보(%s | %s | %s)입니다",
+                VendorString, RendererString, VersionString), false);
+            return Version;
+        }
+        void TestGL(BOSS_DBG_PRM sint32 nouse)
+        {
+            if(auto errorCode = glGetError())
+                BOSS_ASSERT_PRM(String::Format("TestGL(error:%d) is failed", errorCode), false);
+        }
+        void TestShader(BOSS_DBG_PRM GLuint shader)
+        {
+            QOpenGLContext* ctx = QOpenGLContext::currentContext();
+            QOpenGLFunctions* f = ctx->functions();
+
+            GLint status;
+            f->glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+            if(status == GL_FALSE)
+            {
+                GLchar log[4096];
+                GLsizei s;
+                f->glGetShaderInfoLog(shader, 4096, &s, log);
+                BOSS_ASSERT_PRM(String::Format("TestShader(%s) is failed", log), false);
+            }
+            else if(auto errorCode = glGetError())
+                BOSS_ASSERT_PRM(String::Format("TestShader(error:%d) is failed", errorCode), false);
+        }
+        void TestProgram(BOSS_DBG_PRM GLuint program)
+        {
+            QOpenGLContext* ctx = QOpenGLContext::currentContext();
+            QOpenGLFunctions* f = ctx->functions();
+
+            GLint linked;
+            f->glGetProgramiv(program, GL_LINK_STATUS, &linked);
+            if(!linked)
+            {
+                int i32InfoLogLength, i32CharsWritten;
+                f->glGetProgramiv(program, GL_INFO_LOG_LENGTH, &i32InfoLogLength);
+                char* pszInfoLog = new char[i32InfoLogLength];
+                f->glGetProgramInfoLog(program, i32InfoLogLength, &i32CharsWritten, pszInfoLog);
+                BOSS_ASSERT_PRM(String::Format("TestProgram(%s) is failed", pszInfoLog), false);
+                delete [] pszInfoLog;
+            }
+            else if(auto errorCode = glGetError())
+                BOSS_ASSERT_PRM(String::Format("TestProgram(error:%d) is failed", errorCode), false);
+        }
+        void LoadIdentity()
+        {
+            mM[0][0] = 1; mM[0][1] = 0; mM[0][2] = 0; mM[0][3] = 0;
+            mM[1][0] = 0; mM[1][1] = 1; mM[1][2] = 0; mM[1][3] = 0;
+            mM[2][0] = 0; mM[2][1] = 0; mM[2][2] = 1; mM[2][3] = 0;
+            mM[3][0] = 0; mM[3][1] = 0; mM[3][2] = 0; mM[3][3] = 1;
+        }
+        void Multiply(
+            const float m00, const float m01, const float m02, const float m03,
+            const float m10, const float m11, const float m12, const float m13,
+            const float m20, const float m21, const float m22, const float m23,
+            const float m30, const float m31, const float m32, const float m33)
+        {
+            GLfloat m[4][4];
+            Memory::Copy(&m[0][0], &mM[0][0], sizeof(GLfloat) * 16);
+            mM[0][0] = m[0][0] * m00 + m[0][1] * m10 + m[0][2] * m20 + m[0][3] * m30;
+            mM[0][1] = m[0][0] * m01 + m[0][1] * m11 + m[0][2] * m21 + m[0][3] * m31;
+            mM[0][2] = m[0][0] * m02 + m[0][1] * m12 + m[0][2] * m22 + m[0][3] * m32;
+            mM[0][3] = m[0][0] * m03 + m[0][1] * m13 + m[0][2] * m23 + m[0][3] * m33;
+            mM[1][0] = m[1][0] * m00 + m[1][1] * m10 + m[1][2] * m20 + m[1][3] * m30;
+            mM[1][1] = m[1][0] * m01 + m[1][1] * m11 + m[1][2] * m21 + m[1][3] * m31;
+            mM[1][2] = m[1][0] * m02 + m[1][1] * m12 + m[1][2] * m22 + m[1][3] * m32;
+            mM[1][3] = m[1][0] * m03 + m[1][1] * m13 + m[1][2] * m23 + m[1][3] * m33;
+            mM[2][0] = m[2][0] * m00 + m[2][1] * m10 + m[2][2] * m20 + m[2][3] * m30;
+            mM[2][1] = m[2][0] * m01 + m[2][1] * m11 + m[2][2] * m21 + m[2][3] * m31;
+            mM[2][2] = m[2][0] * m02 + m[2][1] * m12 + m[2][2] * m22 + m[2][3] * m32;
+            mM[2][3] = m[2][0] * m03 + m[2][1] * m13 + m[2][2] * m23 + m[2][3] * m33;
+            mM[3][0] = m[3][0] * m00 + m[3][1] * m10 + m[3][2] * m20 + m[3][3] * m30;
+            mM[3][1] = m[3][0] * m01 + m[3][1] * m11 + m[3][2] * m21 + m[3][3] * m31;
+            mM[3][2] = m[3][0] * m02 + m[3][1] * m12 + m[3][2] * m22 + m[3][3] * m32;
+            mM[3][3] = m[3][0] * m03 + m[3][1] * m13 + m[3][2] * m23 + m[3][3] * m33;
+        }
+
+    private:
+        GLuint mVShader;
+        GLuint mFShader;
+        GLuint mProgram;
+
+    private:
+        enum {VerticeID = 0, ColorID = 1, TexCoordsID = 2};
+        struct Attrib
+        {
+            GLfloat vertices[2];
+            union
+            {
+                GLubyte colors[4];
+                GLuint color32;
+            };
+            GLfloat texcoords[2];
+        };
+        Attrib mAttrib[4];
+        GLint mMatrix;
+        GLfloat mM[4][4];
+    };
+
     class SurfaceClass
     {
     public:
@@ -1545,12 +1941,14 @@
         {
             BOSS_ASSERT("잘못된 시나리오입니다", false);
             mSavedSurface = nullptr;
+            mIsValidLastImage = false;
         }
         SurfaceClass(sint32 width, sint32 height, QOpenGLFramebufferObjectFormat* format)
             : mFBO(width, height, *format), mDevice(width, height)
         {
             BOSS_ASSERT("FBO생성에 실패하였습니다", mFBO.isValid());
             mSavedSurface = nullptr;
+            mIsValidLastImage = false;
         }
         ~SurfaceClass()
         {
@@ -1569,7 +1967,8 @@
         }
 
     public:
-        inline uint32 id() const {return mFBO.handle();}
+        inline uint32 fbo() const {return mFBO.handle();}
+        inline uint32 texture() const {return mFBO.texture();}
         inline sint32 width() const {return mFBO.width();}
         inline sint32 height() const {return mFBO.height();}
         inline QPainter* painter() {return &mCanvas.painter();}
@@ -1586,13 +1985,23 @@
         void UnbindGraphics()
         {
             BOSS_ASSERT("SurfaceClass는 스택식으로 해제해야 합니다", ST() == this);
-            mLastImage = mFBO.toImage(); // 매우 느림, 대책 강구중!
+            mIsValidLastImage = false;
             mCanvas.Unbind();
             if(ST() = mSavedSurface)
             {
                 mSavedSurface->mFBO.bind();
                 mSavedSurface = nullptr;
             }
+        }
+
+        const QImage& GetLastImage() const
+        {
+            if(!mIsValidLastImage)
+            {
+                mIsValidLastImage = true;
+                mLastImage = mFBO.toImage();
+            }
+            return mLastImage;
         }
 
     public:
@@ -1615,14 +2024,16 @@
     private:
         static inline SurfaceClass*& ST() {static SurfaceClass* _ = nullptr; return _;}
         static inline SurfaceClass*& STGL() {static SurfaceClass* _ = nullptr; return _;}
+
     private:
         SurfaceClass* mSavedSurface;
         QOpenGLFramebufferObject mFBO;
         QOpenGLPaintDevice mDevice;
         CanvasClass mCanvas;
 
-    public:
-        QImage mLastImage;
+    private:
+        mutable bool mIsValidLastImage;
+        mutable QImage mLastImage;
     };
 
     class ThreadClass : public QThread

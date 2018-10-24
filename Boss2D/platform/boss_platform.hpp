@@ -973,11 +973,11 @@ namespace BOSS
             static id_surface CreateSurface(sint32 width, sint32 height);
 
             /*!
-            \brief 서피스ID 얻기(OpenGLES의 FBO핸들)
+            \brief 서피스의 FBO핸들 얻기(OpenGL의 FBO핸들)
             \param surface : 서피스
-            \return 서피스ID
+            \return FBO핸들
             */
-            static uint32 GetSurfaceId(id_surface_read surface);
+            static uint32 GetSurfaceFBO(id_surface_read surface);
 
             /*!
             \brief 서피스 가로길이 얻기
@@ -1024,6 +1024,22 @@ namespace BOSS
             \param h : 세로길이(px)
             */
             static void DrawSurface(id_surface_read surface, float sx, float sy, float sw, float sh, float x, float y, float w, float h);
+
+            /*!
+            \brief 지정한 FBO핸들로 서피스 출력(서피스에서 서피스로 가능)
+            \param surface : 출력할 서피스
+            \param sx : 서피스의 좌측위치(px)
+            \param sy : 서피스의 상단위치(px)
+            \param sw : 서피스의 가로길이(px)
+            \param sh : 서피스의 세로길이(px)
+            \param x : 좌측위치(px)
+            \param y : 상단위치(px)
+            \param w : 가로길이(px)
+            \param h : 세로길이(px)
+            \param fbo : 출력될 프레임버퍼의 FBO핸들(화면출력시 0값)
+            \see GetSurfaceFBO
+            */
+            static void DrawSurfaceToFBO(id_surface_read surface, float sx, float sy, float sw, float sh, float x, float y, float w, float h, uint32 fbo = 0);
 
             /*!
             \brief 서피스에서 이미지 얻기

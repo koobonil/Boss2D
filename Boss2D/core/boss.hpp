@@ -9,11 +9,11 @@ namespace BOSS
     // About base types
     typedef signed char                       sint08; // "signed char" for __GNUC__
     typedef unsigned char                     uint08;
-    typedef short                             sint16;
+    typedef signed short                      sint16;
     typedef unsigned short                    uint16;
-    typedef int                               sint32;
+    typedef signed int                        sint32;
     typedef unsigned int                      uint32;
-    typedef long long                         sint64;
+    typedef signed long long                  sint64;
     typedef unsigned long long                uint64;
     typedef const unsigned char*              bytes;
     typedef const char*                       chars;
@@ -44,18 +44,18 @@ namespace BOSS
 
     // About extended types
     typedef void*                             payload;
-    typedef long long                         unknown;
+    typedef signed long long                  unknown;
     typedef bool                              autorun;
-    typedef long long                         dependency;
-    typedef const long long                   linkstep1;
-    typedef const long long                   linkstep2;
-    typedef const long long                   linkstep3;
-    typedef const long long                   linkstep4;
-    typedef const long long                   linkstep5;
-    typedef const long long                   linkstep6;
-    typedef const long long                   linkstep7;
-    typedef const long long                   linkstep8;
-    typedef const long long                   linkstep9;
+    typedef signed long long                  dependency;
+    typedef const signed long long            linkstep1;
+    typedef const signed long long            linkstep2;
+    typedef const signed long long            linkstep3;
+    typedef const signed long long            linkstep4;
+    typedef const signed long long            linkstep5;
+    typedef const signed long long            linkstep6;
+    typedef const signed long long            linkstep7;
+    typedef const signed long long            linkstep8;
+    typedef const signed long long            linkstep9;
 
     // About buffer
     #if BOSS_X64

@@ -290,7 +290,7 @@ namespace BOSS
         PanelState state(chars uiname = nullptr) const;
         Point toview(float x, float y) const;
         void test(UITestOrder order);
-        uint32 fboid() const;
+        uint32 fbo() const;
 
     public:
         inline const Color color() const
