@@ -11,6 +11,7 @@
     QGLFunctions* g_func = nullptr;
     sint32 g_argc = 0;
     char** g_argv = nullptr;
+    static bool g_isBeginGL = false;
 
     SizePolicy::SizePolicy()
     {
@@ -1365,6 +1366,16 @@
             CanvasClass::get()->painter().drawPath(NewPath);
         }
 
+        void Platform::Graphics::DrawTextureToFBO(uint32 texture, orientationtype ori, float tx, float ty, float tw, float th,
+            float x, float y, float w, float h, uint32 fbo)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
+            BOSS_ASSERT("본 함수를 호출하기 전에 BeginGL()을 호출하여야 안전합니다", g_isBeginGL);
+            if(texture == 0) return;
+
+            OpenGLPrivate::ST().DrawTexture(fbo, Rect(x, y, x + w, y + h), texture, ori, Rect(tx, ty, tx + tw, ty + th));
+        }
+
         id_image Platform::Graphics::CreateImage(id_bitmap_read bitmap, const Color coloring, sint32 resizing_width, sint32 resizing_height)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
@@ -1690,7 +1701,6 @@
             return CanvasClass::get()->painter().fontMetrics().ascent();
         }
 
-        static bool g_isBeginGL = false;
         void Platform::Graphics::BeginGL()
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
@@ -1781,14 +1791,14 @@
             CanvasClass::get()->painter().setOpacity(OldOpacity);
         }
 
-        void Platform::Graphics::DrawSurfaceToFBO(id_surface_read surface, float sx, float sy, float sw, float sh, float x, float y, float w, float h, uint32 fbo)
+        void Platform::Graphics::DrawSurfaceToFBO(id_surface_read surface, orientationtype ori, float sx, float sy, float sw, float sh,
+            float x, float y, float w, float h, uint32 fbo)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             BOSS_ASSERT("본 함수를 호출하기 전에 BeginGL()을 호출하여야 안전합니다", g_isBeginGL);
             if(!surface) return;
 
-            OpenGLPrivate::ST().DrawTexture(fbo, Rect(x, y, x + w, y + h),
-                ((const SurfaceClass*) surface)->texture(), Rect(sx, sy, sx + sw, sy + sh));
+            OpenGLPrivate::ST().DrawTexture(fbo, Rect(x, y, x + w, y + h), ((const SurfaceClass*) surface)->texture(), ori, Rect(sx, sy, sx + sw, sy + sh));
         }
 
         id_image_read Platform::Graphics::GetImageFromSurface(id_surface_read surface)
@@ -3381,6 +3391,13 @@
             CurCamera->Capture(preview, needstop);
         }
 
+        uint32 Platform::Camera::LastCapturedTexture(id_camera camera)
+        {
+            if(!camera) return 0;
+            CameraClass* CurCamera = (CameraClass*) camera;
+            return CurCamera->LastCapturedTexture();
+        }
+
         id_image_read Platform::Camera::LastCapturedImage(id_camera camera, sint32 maxwidth, sint32 maxheight, sint32 rotate)
         {
             if(!camera) return nullptr;
@@ -3395,11 +3412,11 @@
             return CurCamera->LastCapturedBitmap(ori);
         }
 
-        size64 Platform::Camera::LastCapturedSize(id_camera camera)
+        size64 Platform::Camera::LastCapturedSize(id_camera camera, orientationtype ori)
         {
             if(!camera) return {0, 0};
             CameraClass* CurCamera = (CameraClass*) camera;
-            return CurCamera->LastCapturedSize();
+            return CurCamera->LastCapturedSize(ori);
         }
 
         uint64 Platform::Camera::LastCapturedTimeMsec(id_camera camera, sint32* avgmsec)

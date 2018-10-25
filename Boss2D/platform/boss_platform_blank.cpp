@@ -869,6 +869,14 @@
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
         }
 
+        void Platform::Graphics::DrawTextureToFBO(uint32 texture, orientationtype ori, float tx, float ty, float tw, float th,
+            float x, float y, float w, float h, uint32 fbo)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
+
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+        }
+
         id_image Platform::Graphics::CreateImage(id_bitmap_read bitmap, const Color coloring, sint32 resizing_width, sint32 resizing_height)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
@@ -1027,7 +1035,8 @@
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
         }
 
-        void Platform::Graphics::DrawSurfaceToFBO(id_surface_read surface, float sx, float sy, float sw, float sh, float x, float y, float w, float h, uint32 fbo)
+        void Platform::Graphics::DrawSurfaceToFBO(id_surface_read surface, orientationtype ori, float sx, float sy, float sw, float sh,
+            float x, float y, float w, float h, uint32 fbo)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
 
@@ -1925,6 +1934,12 @@
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
         }
 
+        uint32 Platform::Camera::LastCapturedTexture(id_camera camera)
+        {
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+            return 0;
+        }
+
         id_image_read Platform::Camera::LastCapturedImage(id_camera camera, sint32 maxwidth, sint32 maxheight, sint32 rotate)
         {
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
@@ -1937,7 +1952,7 @@
             return nullptr;
         }
 
-        size64 Platform::Camera::LastCapturedSize(id_camera camera)
+        size64 Platform::Camera::LastCapturedSize(id_camera camera, orientationtype ori)
         {
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
             return {0, 0};

@@ -1546,11 +1546,17 @@
             mVShader = 0;
             mFShader = 0;
             mProgram = 0;
-            switch(GetVersion())
+            switch(GetVersionGLES())
             {
-            case 0x20: InitShaderGLES20(); break;
-            case 0x30: InitShaderGLES30(); break;
-            default: InitShaderGL(); break;
+            case 0x20:
+                InitShaderGLES20();
+                break;
+            case 0x30: case 0x31:
+                InitShaderGLES30();
+                break;
+            default:
+                InitShaderGL();
+                break;
             }
         }
         ~OpenGLPrivate()
@@ -1621,7 +1627,7 @@
             mAttrib[3].texcoords[1] = 1;
             f->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); TestGL(BOSS_DBG 0);
         }
-        void DrawTexture(uint32 fbo, const BOSS::Rect& rect, uint32 tex, const BOSS::Rect& texrect)
+        void DrawTexture(uint32 fbo, const BOSS::Rect& rect, uint32 tex, orientationtype ori, const BOSS::Rect& texrect)
         {
             QOpenGLContext* ctx = QOpenGLContext::currentContext();
             QOpenGLFunctions* f = ctx->functions();
@@ -1629,6 +1635,8 @@
             f->glBindFramebuffer(GL_FRAMEBUFFER, fbo); TestGL(BOSS_DBG 0);
             GLint ViewPortValues[4] = {0};
             f->glGetIntegerv(GL_VIEWPORT, ViewPortValues);
+            //const GLint Width = ViewPortValues[2] / 4;
+            //const GLint Height = ViewPortValues[3] / 4;
             const GLint Width = ViewPortValues[2];
             const GLint Height = ViewPortValues[3];
             BOSS::Rect NewRect;
@@ -1664,26 +1672,50 @@
             mAttrib[0].vertices[0] = NewRect.l;
             mAttrib[0].vertices[1] = NewRect.t;
             mAttrib[0].color32 = 0xFFFFFFFF;
-            mAttrib[0].texcoords[0] = 0;
-            mAttrib[0].texcoords[1] = 0;
-
             mAttrib[1].vertices[0] = NewRect.r;
             mAttrib[1].vertices[1] = NewRect.t;
             mAttrib[1].color32 = 0xFFFFFFFF;
-            mAttrib[1].texcoords[0] = 1;
-            mAttrib[1].texcoords[1] = 0;
-
             mAttrib[2].vertices[0] = NewRect.l;
             mAttrib[2].vertices[1] = NewRect.b;
             mAttrib[2].color32 = 0xFFFFFFFF;
-            mAttrib[2].texcoords[0] = 0;
-            mAttrib[2].texcoords[1] = 1;
-
             mAttrib[3].vertices[0] = NewRect.r;
             mAttrib[3].vertices[1] = NewRect.b;
             mAttrib[3].color32 = 0xFFFFFFFF;
-            mAttrib[3].texcoords[0] = 1;
-            mAttrib[3].texcoords[1] = 1;
+
+            if(ori == orientationtype_fliped90)
+            {
+                mAttrib[1].texcoords[0] = 0;
+                mAttrib[1].texcoords[1] = 0;
+                mAttrib[3].texcoords[0] = 1;
+                mAttrib[3].texcoords[1] = 0;
+                mAttrib[0].texcoords[0] = 0;
+                mAttrib[0].texcoords[1] = 1;
+                mAttrib[2].texcoords[0] = 1;
+                mAttrib[2].texcoords[1] = 1;
+            }
+            else if(ori == orientationtype_normal180)
+            {
+                mAttrib[3].texcoords[0] = 0;
+                mAttrib[3].texcoords[1] = 0;
+                mAttrib[2].texcoords[0] = 1;
+                mAttrib[2].texcoords[1] = 0;
+                mAttrib[1].texcoords[0] = 0;
+                mAttrib[1].texcoords[1] = 1;
+                mAttrib[0].texcoords[0] = 1;
+                mAttrib[0].texcoords[1] = 1;
+            }
+            else
+            {
+                mAttrib[0].texcoords[0] = 0;
+                mAttrib[0].texcoords[1] = 0;
+                mAttrib[1].texcoords[0] = 1;
+                mAttrib[1].texcoords[1] = 0;
+                mAttrib[2].texcoords[0] = 0;
+                mAttrib[2].texcoords[1] = 1;
+                mAttrib[3].texcoords[0] = 1;
+                mAttrib[3].texcoords[1] = 1;
+            }
+
             f->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); TestGL(BOSS_DBG 0);
         }
 
@@ -1750,22 +1782,27 @@
                 "#version 300 es\n"
                 "layout (location = %d) in highp vec2 a_position;\n"
                 "layout (location = %d) in highp vec4 a_color;\n"
+                "layout (location = %d) in highp vec2 a_texcoord;\n"
                 "uniform highp mat4 u_matrix;\n"
                 "out mediump vec4 v_fragmentColor;\n"
+                "out mediump vec2 v_texCoord;\n"
                 "\n"
                 "void main()\n"
                 "{\n"
                 "    gl_Position = u_matrix * vec4(a_position.x, a_position.y, 0.0, 1.0);\n"
                 "    v_fragmentColor = a_color;\n"
-                "}", VerticeID, ColorID),
+                "    v_texCoord = a_texcoord;\n"
+                "}", VerticeID, ColorID, TexCoordsID),
                 "#version 300 es\n"
                 "layout (location = 0) out highp vec4 oColour;\n"
                 "uniform highp mat4 u_matrix;\n"
+                "uniform highp sampler2D u_texture;\n"
                 "in mediump vec4 v_fragmentColor;\n"
+                "in mediump vec2 v_texCoord;\n"
                 "\n"
                 "void main()\n"
                 "{\n"
-                "    oColour = v_fragmentColor;\n"
+                "    oColour = v_fragmentColor * texture(u_texture, v_texCoord);\n"
                 "}");
         }
         void InitShaderGL()
@@ -1813,10 +1850,10 @@
         }
 
     private:
-        uint08 GetVersion()
+        uint08 GetVersionGLES()
         {
-            static uint08 Version = 0x00;
-            if(Version != 0x00) return Version;
+            static uint08 Version = 0xFF;
+            if(Version != 0xFF) return Version;
 
             chars VendorString = (chars) glGetString(GL_VENDOR);
             chars RendererString = (chars) glGetString(GL_RENDERER);
@@ -1825,6 +1862,13 @@
             // 예시2: OpenGL ES 3.0 APPLE-12.0.38
             // 예시3: 2.1 ATI-1.51.8
             // 예시4: 4.0.0 - Build 10.18.10.4303
+            BOSS_TRACE("========================================");
+            BOSS_TRACE("OpenGLPrivate GetVersion()");
+            BOSS_TRACE("----------------------------------------");
+            BOSS_TRACE("Vendor: %s", VendorString);
+            BOSS_TRACE("Renderer: %s", RendererString);
+            BOSS_TRACE("Version: %s", VersionString);
+            BOSS_TRACE("========================================");
 
             if(!boss_strncmp(VersionString, "OpenGL ES ", 10))
             {
@@ -1832,10 +1876,7 @@
                 const uint32 VersionMinor = VersionString[12] - '0';
                 Version = ((VersionMajor & 0xF) << 4) | (VersionMinor & 0xF);
             }
-            else if(!boss_strncmp(VersionString, "2.", 2)) Version = 0x20 | ((VersionString[2] - '0') & 0xF);
-            else if(!boss_strncmp(VersionString, "4.", 2)) Version = 0x40 | ((VersionString[2] - '0') & 0xF);
-            else BOSS_ASSERT(String::Format("알 수 없는 버전정보(%s | %s | %s)입니다",
-                VendorString, RendererString, VersionString), false);
+            else Version = 0x00; // 데스크탑용 OpenGL
             return Version;
         }
         void TestGL(BOSS_DBG_PRM sint32 nouse)
@@ -3784,22 +3825,30 @@
     private:
         QCamera mCamera;
         id_mutex mMutex;
-        sint32 mLastWidth;
-        sint32 mLastHeight;
         QVideoFrame::PixelFormat mPixelFormat;
         bool mNeedFlip;
         uint08s mLastImage;
+        sint32 mLastImageWidth;
+        sint32 mLastImageHeight;
+        uint32 mLastTexture;
 
     public:
         CameraSurface(const QCameraInfo& info) : mCamera(info)
         {
             mMutex = Mutex::Open();
-            mLastWidth = 0;
-            mLastHeight = 0;
             mNeedFlip = false;
+            mLastImageWidth = 0;
+            mLastImageHeight = 0;
+            mLastTexture = 0;
         }
         ~CameraSurface()
         {
+            if(mLastTexture)
+            if(QOpenGLContext* ctx = QOpenGLContext::currentContext())
+            {
+                QOpenGLFunctions* f = ctx->functions();
+                f->glDeleteTextures(1, &mLastTexture);
+            }
             StopCamera();
             Mutex::Close(mMutex);
         }
@@ -3814,8 +3863,12 @@
     protected:
         void StartPreview(bool preview) {mCamera.setViewfinder(this);}
         void StopPreview() {mCamera.setViewfinder((QAbstractVideoSurface*) nullptr);}
+        sint32 GetLastImageWidth() const {return mLastImageWidth;}
+        sint32 GetLastImageHeight() const {return mLastImageHeight;}
+        uint32 GetLastTexture() {return mLastTexture;}
+
+    protected:
         virtual bool CaptureEnabled() {return false;}
-        virtual Bmp::bitmappixel* GetBuffer(sint32 width, sint32 height) {return nullptr;}
         virtual void BufferFlush() {}
         virtual void AddPictureShotCount() {}
         virtual void AddPreviewShotCount() {}
@@ -3826,8 +3879,8 @@
             Mutex::Lock(mMutex);
             if(0 < mLastImage.Count())
             {
-                width = mLastWidth;
-                height = mLastHeight;
+                width = mLastImageWidth;
+                height = mLastImageHeight;
                 bits.SubtractionAll();
                 if(mNeedFlip)
                 {
@@ -3874,29 +3927,39 @@
             AddPictureShotCount();
             bool Result = false;
             if(frame.isValid() && CaptureEnabled())
+            if(QOpenGLContext* ctx = QOpenGLContext::currentContext())
             {
+                QOpenGLFunctions* f = ctx->functions();
+                if(mLastTexture)
+                    f->glDeleteTextures(1, &mLastTexture);
+                f->glGenTextures(1, &mLastTexture);
+                f->glBindTexture(GL_TEXTURE_2D, mLastTexture);
+                f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
                 // QVideoFrame::map함수의 버그에 따른 수동패치
                 auto FrameType = frame.handleType();
                 if(FrameType == QAbstractVideoBuffer::GLTextureHandle)
                 {
-                    GLuint textureId = frame.handle().toUInt();
-                    QOpenGLContext* ctx = QOpenGLContext::currentContext();
-                    QOpenGLFunctions* f = ctx->functions();
-
                     GLuint fbo = 0, prevFbo = 0;
                     f->glGenFramebuffers(1, &fbo);
                     f->glGetIntegerv(GL_FRAMEBUFFER_BINDING, (GLint*) &prevFbo);
                     f->glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-                    f->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureId, 0);
+                    f->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mLastTexture, 0);
                     Mutex::Lock(mMutex);
                     {
-                        mLastWidth = frame.width();
-                        mLastHeight = frame.height();
                         mPixelFormat = frame.pixelFormat();
                         mNeedFlip = false;
                         mLastImage.SubtractionAll();
-                        f->glReadPixels(0, 0, mLastWidth, mLastHeight, GL_RGBA, GL_UNSIGNED_BYTE,
-                            mLastImage.AtDumpingAdded(4 * mLastWidth * mLastHeight));
+                        mLastImageWidth = frame.width();
+                        mLastImageHeight = frame.height();
+                        f->glReadPixels(0, 0, mLastImageWidth, mLastImageHeight, GL_RGBA, GL_UNSIGNED_BYTE,
+                            mLastImage.AtDumpingAdded(4 * mLastImageWidth * mLastImageHeight));
+                        f->glTexImage2D(GL_TEXTURE_2D,
+                            0, GL_RGBA8, mLastImageWidth, mLastImageHeight,
+                            0, GL_BGRA, GL_UNSIGNED_BYTE, &mLastImage[0]);
                     }
                     Mutex::Unlock(mMutex);
                     BufferFlush();
@@ -3911,19 +3974,25 @@
                     {
                         Mutex::Lock(mMutex);
                         {
-                            mLastWidth = ClonedFrame.width();
-                            mLastHeight = ClonedFrame.height();
                             mPixelFormat = ClonedFrame.pixelFormat();
                             mNeedFlip = true;
                             mLastImage.SubtractionAll();
-                            Memory::Copy(mLastImage.AtDumpingAdded(4 * mLastWidth * mLastHeight),
-                                ClonedFrame.bits(), 4 * mLastWidth * mLastHeight);
+                            mLastImageWidth = ClonedFrame.width();
+                            mLastImageHeight = ClonedFrame.height();
+                            Memory::Copy(mLastImage.AtDumpingAdded(4 * mLastImageWidth * mLastImageHeight),
+                                ClonedFrame.bits(), 4 * mLastImageWidth * mLastImageHeight);
+                            f->glTexImage2D(GL_TEXTURE_2D,
+                                0, GL_RGBA8, mLastImageWidth, mLastImageHeight,
+                                0, GL_BGRA, GL_UNSIGNED_BYTE, &mLastImage[0]);
                         }
                         Mutex::Unlock(mMutex);
                         BufferFlush();
                         ClonedFrame.unmap();
                         Result = true;
                     }
+                    else f->glTexImage2D(GL_TEXTURE_2D,
+                        0, GL_RGBA8, frame.width(), frame.height(),
+                        0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
                 }
             }
             return Result;
@@ -3968,7 +4037,10 @@
             QList<QCameraViewfinderSettings> mAllSettings;
             id_mutex mMutex;
             uint08s mLastImage;
-            uint32 mTextureId;
+            sint32 mLastImageWidth;
+            sint32 mLastImageHeight;
+            uint32 mLastTexture;
+            uint32 mCamTexture;
 
         public:
             CameraSurfaceForAndroid(const QCameraInfo& info)
@@ -4006,10 +4078,13 @@
                 // "Format_YV12;" -> Format_YV12
 
                 mMutex = Mutex::Open();
-                mTextureId = -1;
+                mLastImageWidth = 0;
+                mLastImageHeight = 0;
+                mLastTexture = 0;
+                mCamTexture = 0;
                 // 콜백함수 연결
                 JNINativeMethod methods[] {
-                    {"OnPictureTaken", "([BI)V", reinterpret_cast<void*>(OnPictureTaken)},
+                    {"OnPictureTaken", "([BIII)V", reinterpret_cast<void*>(OnPictureTaken)},
                     {"OnPreviewTaken", "([BIII)V", reinterpret_cast<void*>(OnPreviewTaken)}};                
                 jclass BossCameraManagerClass = env->FindClass("com/boss2d/BossCameraManager");
                 env->RegisterNatives(BossCameraManagerClass, methods, sizeof(methods) / sizeof(methods[0]));
@@ -4018,6 +4093,12 @@
             }
             ~CameraSurfaceForAndroid()
             {
+                if(mLastTexture)
+                if(QOpenGLContext* ctx = QOpenGLContext::currentContext())
+                {
+                    QOpenGLFunctions* f = ctx->functions();
+                    f->glDeleteTextures(1, &mLastTexture);
+                }
                 StopCamera();
                 SavedMe() = nullptr;
                 Mutex::Close(mMutex);
@@ -4029,26 +4110,31 @@
                 QOpenGLContext* ctx = QOpenGLContext::currentContext();
                 BOSS_TRACE("StartCamera: GenTexture begin: 0x%08X", ctx);
                 QOpenGLFunctions* f = ctx->functions();
-                f->glGenTextures(1, &mTextureId);
-                f->glBindTexture(GL_TEXTURE_2D, mTextureId);
+                f->glGenTextures(1, &mCamTexture);
+                f->glBindTexture(GL_TEXTURE_2D, mCamTexture);
                 f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
                 f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
                 f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
                 f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                f->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 256, 256, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
-                BOSS_TRACE("StartCamera: GenTexture - mTextureId: %d, width: %d, height: %d",
-                    mTextureId, mSettings.resolution().width(), mSettings.resolution().height());
+                f->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
+                    mSettings.resolution().width(), mSettings.resolution().height(),
+                    0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
+                BOSS_TRACE("StartCamera: GenTexture - LastTexture: %d, width: %d, height: %d",
+                    mCamTexture, mSettings.resolution().width(), mSettings.resolution().height());
                 QAndroidJniObject::callStaticMethod<void>("com/boss2d/BossCameraManager", "init", "(III)V",
-                    mTextureId, mSettings.resolution().width(), mSettings.resolution().height());
+                    mCamTexture, mSettings.resolution().width(), mSettings.resolution().height());
             }
             void StopCamera()
             {
                 QAndroidJniObject::callStaticMethod<void>("com/boss2d/BossCameraManager", "quit", "()V");
-                QOpenGLContext* ctx = QOpenGLContext::currentContext();
-                BOSS_TRACE("StopCamera: DeleteTexture begin: 0x%08X, %d", ctx, mTextureId);
-                QOpenGLFunctions* f = ctx->functions();
-                f->glDeleteTextures(1, &mTextureId);
-                mTextureId = -1;
+                if(mCamTexture)
+                if(QOpenGLContext* ctx = QOpenGLContext::currentContext())
+                {
+                    BOSS_TRACE("StopCamera: DeleteTexture begin: 0x%08X, %d", ctx, mCamTexture);
+                    QOpenGLFunctions* f = ctx->functions();
+                    f->glDeleteTextures(1, &mCamTexture);
+                    mCamTexture = 0;
+                }
                 BOSS_TRACE("StopCamera: DeleteTexture done");
             }
             const QCameraViewfinderSettings GetSettings() {return mSettings;}
@@ -4058,8 +4144,30 @@
         protected:
             void StartPreview(bool preview) {QAndroidJniObject::callStaticMethod<void>("com/boss2d/BossCameraManager", "play", "(I)V", (preview)? 1 : 2);}
             void StopPreview() {QAndroidJniObject::callStaticMethod<void>("com/boss2d/BossCameraManager", "stop", "()V");}
+            sint32 GetLastImageWidth() const {return mLastImageWidth;}
+            sint32 GetLastImageHeight() const {return mLastImageHeight;}
+            uint32 GetLastTexture()
+            {
+                if(QOpenGLContext* ctx = QOpenGLContext::currentContext())
+                {
+                    QOpenGLFunctions* f = ctx->functions();
+                    if(mLastTexture)
+                        f->glDeleteTextures(1, &mLastTexture);
+                    f->glGenTextures(1, &mLastTexture);
+                    f->glBindTexture(GL_TEXTURE_2D, mLastTexture);
+                    f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                    f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                    f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                    f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                    f->glTexImage2D(GL_TEXTURE_2D,
+                        0, GL_LUMINANCE, mLastImageWidth, mLastImageHeight,
+                        0, GL_LUMINANCE, GL_UNSIGNED_BYTE, &mLastImage[12]);
+                }
+                return mLastTexture;
+            }
+
+        protected:
             virtual bool CaptureEnabled() {return false;}
-            virtual Bmp::bitmappixel* GetBuffer(sint32 width, sint32 height) {return nullptr;}
             virtual void BufferFlush() {}
             virtual void AddPictureShotCount() {}
             virtual void AddPreviewShotCount() {}
@@ -4156,7 +4264,7 @@
                 static CameraSurfaceForAndroid* _ = nullptr;
                 return _;
             }
-            static void OnPictureTaken(JNIEnv* env, jobject thiz, jbyteArray data, jint length)
+            static void OnPictureTaken(JNIEnv* env, jobject thiz, jbyteArray data, jint length, jint width, jint height)
             {
                 BOSS_TRACE("OnPictureTaken Begin(%llu)", Platform::Utility::CurrentTimeMsec());
                 bytes paramData = (bytes) env->GetByteArrayElements(data, nullptr);
@@ -4173,10 +4281,14 @@
                             ((sint32*) paramData)[0], ((sint32*) paramData)[1],
                             ((sint32*) paramData)[2], ((sint32*) paramData)[3], length);
                         Mutex::Lock(Me->mMutex);
-                        Me->mLastImage.SubtractionAll();
-                        const uint32 TypeCode = codeid("JPEG");
-                        Memory::Copy(Me->mLastImage.AtDumpingAdded(4), &TypeCode, 4);
-                        Memory::Copy(Me->mLastImage.AtDumpingAdded(length), paramData, length);
+                        {
+                            Me->mLastImage.SubtractionAll();
+                            Me->mLastImageWidth = width;
+                            Me->mLastImageHeight = height;
+                            const uint32 TypeCode = codeid("JPEG");
+                            Memory::Copy(Me->mLastImage.AtDumpingAdded(4), &TypeCode, 4);
+                            Memory::Copy(Me->mLastImage.AtDumpingAdded(length), paramData, length);
+                        }
                         Mutex::Unlock(Me->mMutex);
                         Me->BufferFlush();
                     }
@@ -4201,12 +4313,16 @@
                             ((sint32*) paramData)[0], ((sint32*) paramData)[1],
                             ((sint32*) paramData)[2], ((sint32*) paramData)[3], length);
                         Mutex::Lock(Me->mMutex);
-                        Me->mLastImage.SubtractionAll();
-                        const uint32 TypeCode = codeid("NV21");
-                        Memory::Copy(Me->mLastImage.AtDumpingAdded(4), &TypeCode, 4);
-                        Memory::Copy(Me->mLastImage.AtDumpingAdded(4), &width, 4);
-                        Memory::Copy(Me->mLastImage.AtDumpingAdded(4), &height, 4);
-                        Memory::Copy(Me->mLastImage.AtDumpingAdded(length), paramData, length);
+                        {
+                            Me->mLastImage.SubtractionAll();
+                            Me->mLastImageWidth = width;
+                            Me->mLastImageHeight = height;
+                            const uint32 TypeCode = codeid("NV21");
+                            Memory::Copy(Me->mLastImage.AtDumpingAdded(4), &TypeCode, 4);
+                            Memory::Copy(Me->mLastImage.AtDumpingAdded(4), &width, 4);
+                            Memory::Copy(Me->mLastImage.AtDumpingAdded(4), &height, 4);
+                            Memory::Copy(Me->mLastImage.AtDumpingAdded(length), paramData, length);
+                        }
                         Mutex::Unlock(Me->mMutex);
                         Me->BufferFlush();
                     }
@@ -4279,14 +4395,23 @@
                     mCaptureOrder = CaptureOrder_NeedStop;
                 mUpdateForImage = true;
                 mUpdateForBitmap = true;
-                const uint64 NewTimeMsec = Platform::Utility::CurrentTimeMsec();
-                mUpdateAvgMsec = (mUpdateAvgMsec * 19 + Math::Max(1, NewTimeMsec - mUpdateTimeMsec)) / 20;
-                mUpdateTimeMsec = NewTimeMsec;
             }
             Mutex::Unlock(mMutex);
         }
-        virtual void AddPictureShotCount() override {mPictureShotCount++;}
-        virtual void AddPreviewShotCount() override {mPreviewShotCount++;}
+        virtual void AddPictureShotCount() override
+        {
+            mPictureShotCount++;
+            const uint64 NewTimeMsec = Platform::Utility::CurrentTimeMsec();
+            mUpdateAvgMsec = (mUpdateAvgMsec * 19 + Math::Max(1, NewTimeMsec - mUpdateTimeMsec)) / 20;
+            mUpdateTimeMsec = NewTimeMsec;
+        }
+        virtual void AddPreviewShotCount() override
+        {
+            mPreviewShotCount++;
+            const uint64 NewTimeMsec = Platform::Utility::CurrentTimeMsec();
+            mUpdateAvgMsec = (mUpdateAvgMsec * 19 + Math::Max(1, NewTimeMsec - mUpdateTimeMsec)) / 20;
+            mUpdateTimeMsec = NewTimeMsec;
+        }
 
     public:
         void Capture(bool preview, bool needstop)
@@ -4298,6 +4423,10 @@
                 StartPreview(preview);
             }
             Mutex::Unlock(mMutex);
+        }
+        uint32 GetCapturedTexture()
+        {
+            return GetLastTexture();
         }
         void GetCapturedImage(QPixmap& pixmap, sint32 maxwidth, sint32 maxheight, sint32 rotate)
         {
@@ -4369,13 +4498,22 @@
             }
             Mutex::Unlock(mMutex);
         }
-        size64 GetCapturedSize() const
+        size64 GetCapturedSize(orientationtype ori) const
         {
             size64 Result = {0, 0};
             Mutex::Lock(mMutex);
             {
-                Result.w = mDecodedWidth;
-                Result.h = mDecodedHeight;
+                if(ori == orientationtype_normal90 || ori == orientationtype_normal270 ||
+                    ori == orientationtype_fliped90 || ori == orientationtype_fliped270)
+                {
+                    Result.w = GetLastImageHeight();
+                    Result.h = GetLastImageWidth();
+                }
+                else
+                {
+                    Result.w = GetLastImageWidth();
+                    Result.h = GetLastImageHeight();
+                }
             }
             Mutex::Unlock(mMutex);
             return Result;
@@ -4539,6 +4677,12 @@
             if(mCameraService)
                 mCameraService->Capture(preview, needstop);
         }
+        uint32 LastCapturedTexture()
+        {
+            if(mCameraService)
+                return mCameraService->GetCapturedTexture();
+            return 0;
+        }
         id_image_read LastCapturedImage(sint32 maxwidth, sint32 maxheight, sint32 rotate)
         {
             if(mCameraService)
@@ -4557,10 +4701,10 @@
             }
             return nullptr;
         }
-        size64 LastCapturedSize() const
+        size64 LastCapturedSize(orientationtype ori) const
         {
             if(mCameraService)
-                return mCameraService->GetCapturedSize();
+                return mCameraService->GetCapturedSize(ori);
             return {0, 0};
         }
         uint64 LastCapturedTimeMsec(sint32* avgmsec) const

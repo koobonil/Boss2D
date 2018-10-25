@@ -858,6 +858,23 @@ namespace BOSS
             static void DrawPolyBezier(float x, float y, Points p, float thick, bool showfirst, bool showlast);
 
             /*!
+            \brief 지정한 FBO핸들로 텍스처 출력
+            \param texture : 출력할 텍스처
+            \param ori : 90도기준 회전상태와 상하반전여부
+            \param tx : 텍스처의 좌측위치(px)
+            \param ty : 텍스처의 상단위치(px)
+            \param tw : 텍스처의 가로길이(px)
+            \param th : 텍스처의 세로길이(px)
+            \param x : 좌측위치(px)
+            \param y : 상단위치(px)
+            \param w : 가로길이(px)
+            \param h : 세로길이(px)
+            \param fbo : 출력될 프레임버퍼의 FBO핸들(화면출력시 0)
+            */
+            static void DrawTextureToFBO(uint32 texture, orientationtype ori, float tx, float ty, float tw, float th,
+                float x, float y, float w, float h, uint32 fbo = 0);
+
+            /*!
             \brief 이미지 생성
             \param bitmap : 비트맵
             \param coloring : 컬러링 색상
@@ -1028,6 +1045,7 @@ namespace BOSS
             /*!
             \brief 지정한 FBO핸들로 서피스 출력(서피스에서 서피스로 가능)
             \param surface : 출력할 서피스
+            \param ori : 90도기준 회전상태와 상하반전여부
             \param sx : 서피스의 좌측위치(px)
             \param sy : 서피스의 상단위치(px)
             \param sw : 서피스의 가로길이(px)
@@ -1036,10 +1054,11 @@ namespace BOSS
             \param y : 상단위치(px)
             \param w : 가로길이(px)
             \param h : 세로길이(px)
-            \param fbo : 출력될 프레임버퍼의 FBO핸들(화면출력시 0값)
+            \param fbo : 출력될 프레임버퍼의 FBO핸들(화면출력시 0)
             \see GetSurfaceFBO
             */
-            static void DrawSurfaceToFBO(id_surface_read surface, float sx, float sy, float sw, float sh, float x, float y, float w, float h, uint32 fbo = 0);
+            static void DrawSurfaceToFBO(id_surface_read surface, orientationtype ori, float sx, float sy, float sw, float sh,
+                float x, float y, float w, float h, uint32 fbo = 0);
 
             /*!
             \brief 서피스에서 이미지 얻기
@@ -2107,6 +2126,13 @@ namespace BOSS
             static void Capture(id_camera camera, bool preview, bool needstop);
 
             /*!
+            \brief 마지막 촬영한 텍스처 얻기
+            \param camera : 카메라ID
+            \return 촬영한 텍스처(0은 실패)
+            */
+            static uint32 LastCapturedTexture(id_camera camera);
+
+            /*!
             \brief 마지막 촬영한 이미지 얻기
             \param camera : 카메라ID
             \param maxwidth : 가로길이 최대값
@@ -2127,9 +2153,10 @@ namespace BOSS
             /*!
             \brief 마지막 촬영한 이미지크기 얻기
             \param camera : 카메라ID
+            \param ori : 90도기준 회전상태와 상하반전여부(디폴트는 상하반전)
             \return 촬영한 이미지크기
             */
-            static size64 LastCapturedSize(id_camera camera);
+            static size64 LastCapturedSize(id_camera camera, orientationtype ori = orientationtype_fliped0);
 
             /*!
             \brief 마지막 촬영한 시간 얻기
