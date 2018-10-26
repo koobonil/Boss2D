@@ -457,17 +457,17 @@
             return true;
         }
 
-        h_dock Platform::CreateDock(h_view view, UIAllow allow, UIAllow allowbase)
+        h_dock Platform::CreateDock(h_view view, UIDirection direction, UIDirection directionbase)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
-            UIAllow allows[2] = {allow, allowbase};
+            UIDirection directions[2] = {direction, directionbase};
             Qt::DockWidgetAreas Areas[2] = {Qt::NoDockWidgetArea, Qt::NoDockWidgetArea};
             for(sint32 i = 0; i < 2; ++i)
             {
-                if(allows[i] & UIA_Left) Areas[i] = Areas[i] | Qt::LeftDockWidgetArea;
-                if(allows[i] & UIA_Top) Areas[i] = Areas[i] | Qt::TopDockWidgetArea;
-                if(allows[i] & UIA_Right) Areas[i] = Areas[i] | Qt::RightDockWidgetArea;
-                if(allows[i] & UIA_Bottom) Areas[i] = Areas[i] | Qt::BottomDockWidgetArea;
+                if(directions[i] & UID_Left) Areas[i] = Areas[i] | Qt::LeftDockWidgetArea;
+                if(directions[i] & UID_Top) Areas[i] = Areas[i] | Qt::TopDockWidgetArea;
+                if(directions[i] & UID_Right) Areas[i] = Areas[i] | Qt::RightDockWidgetArea;
+                if(directions[i] & UID_Bottom) Areas[i] = Areas[i] | Qt::BottomDockWidgetArea;
             }
 
             QDockWidget* NewDock = new QDockWidget(GenericView::cast(view)->getName(), g_window);
@@ -1366,14 +1366,15 @@
             CanvasClass::get()->painter().drawPath(NewPath);
         }
 
-        void Platform::Graphics::DrawTextureToFBO(uint32 texture, orientationtype ori, float tx, float ty, float tw, float th,
-            float x, float y, float w, float h, uint32 fbo)
+        void Platform::Graphics::DrawTextureToFBO(uint32 texture, float tx, float ty, float tw, float th,
+            orientationtype ori, bool antialiasing, float x, float y, float w, float h, uint32 fbo)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             BOSS_ASSERT("본 함수를 호출하기 전에 BeginGL()을 호출하여야 안전합니다", g_isBeginGL);
             if(texture == 0) return;
 
-            OpenGLPrivate::ST().DrawTexture(fbo, Rect(x, y, x + w, y + h), texture, ori, Rect(tx, ty, tx + tw, ty + th));
+            OpenGLPrivate::ST().DrawTexture(fbo, Rect(x, y, x + w, y + h),
+                texture, Rect(tx, ty, tx + tw, ty + th), ori, antialiasing);
         }
 
         id_image Platform::Graphics::CreateImage(id_bitmap_read bitmap, const Color coloring, sint32 resizing_width, sint32 resizing_height)
@@ -1725,7 +1726,7 @@
             if(!g_data->getGLWidget()) return nullptr;
             
             QOpenGLFramebufferObjectFormat SurfaceFormat;
-            SurfaceFormat.setSamples(4);
+            SurfaceFormat.setSamples(0);
             SurfaceFormat.setMipmap(false);
             SurfaceFormat.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
             SurfaceFormat.setTextureTarget(GL_TEXTURE_2D);
@@ -1791,14 +1792,15 @@
             CanvasClass::get()->painter().setOpacity(OldOpacity);
         }
 
-        void Platform::Graphics::DrawSurfaceToFBO(id_surface_read surface, orientationtype ori, float sx, float sy, float sw, float sh,
-            float x, float y, float w, float h, uint32 fbo)
+        void Platform::Graphics::DrawSurfaceToFBO(id_surface_read surface, float sx, float sy, float sw, float sh,
+            orientationtype ori, bool antialiasing, float x, float y, float w, float h, uint32 fbo)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             BOSS_ASSERT("본 함수를 호출하기 전에 BeginGL()을 호출하여야 안전합니다", g_isBeginGL);
             if(!surface) return;
 
-            OpenGLPrivate::ST().DrawTexture(fbo, Rect(x, y, x + w, y + h), ((const SurfaceClass*) surface)->texture(), ori, Rect(sx, sy, sx + sw, sy + sh));
+            OpenGLPrivate::ST().DrawTexture(fbo, Rect(x, y, x + w, y + h),
+                ((const SurfaceClass*) surface)->texture(), Rect(sx, sy, sx + sw, sy + sh), ori, antialiasing);
         }
 
         id_image_read Platform::Graphics::GetImageFromSurface(id_surface_read surface)
@@ -3118,7 +3120,7 @@
             NewWeb->Reload(url);
 
             h_web NewWebHandle = h_web::create_by_buf(BOSS_DBG (buffer) NewWeb);
-            NewWeb->attachHandle(NewWebHandle);
+            NewWeb->AttachHandle(NewWebHandle);
             return NewWebHandle;
         }
 
@@ -3157,6 +3159,12 @@
         {
             if(WebPrivate* CurWeb = (WebPrivate*) web.get())
                 CurWeb->SendKeyEvent(code, text, pressed);
+        }
+
+        void Platform::Web::CallJSFunction(h_web web, chars script, sint32 matchid)
+        {
+            if(WebPrivate* CurWeb = (WebPrivate*) web.get())
+                CurWeb->CallJSFunction(script, matchid);
         }
 
         id_image_read Platform::Web::GetScreenshotImage(h_web web)

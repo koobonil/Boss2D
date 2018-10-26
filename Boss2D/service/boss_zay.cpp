@@ -726,8 +726,8 @@ namespace BOSS
             const float YRate = LastClip.Height() / SurfaceHeight;
             const sint32 DstWidth = (sint32) (SurfaceWidth * XRate);
             const sint32 DstHeight = (sint32) (SurfaceHeight * YRate);
-            Platform::Graphics::DrawSurface(surface, 0, 0, SurfaceWidth, SurfaceHeight,
-                LastClip.l, LastClip.t, DstWidth, DstHeight);
+            Platform::Graphics::DrawSurfaceToFBO(surface, 0, 0, SurfaceWidth, SurfaceHeight,
+                orientationtype_normal0, false, LastClip.l, LastClip.t, DstWidth, DstHeight, fbo());
         }
     }
 

@@ -338,7 +338,7 @@
             return true;
         }
 
-        h_dock Platform::CreateDock(h_view view, UIAllow allow, UIAllow allowbase)
+        h_dock Platform::CreateDock(h_view view, UIDirection direction, UIDirection directionbase)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
 
@@ -917,8 +917,8 @@
             BOSS_ASSERT("Further development is needed.", false);
         }
 
-        void Platform::Graphics::DrawTextureToFBO(uint32 texture, orientationtype ori, float tx, float ty, float tw, float th,
-            float x, float y, float w, float h, uint32 fbo)
+        void Platform::Graphics::DrawTextureToFBO(uint32 texture, float tx, float ty, float tw, float th,
+            orientationtype ori, bool antialiasing, float x, float y, float w, float h, uint32 fbo)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
 
@@ -1083,8 +1083,8 @@
             BOSS_ASSERT("Further development is needed.", false);
         }
 
-        void Platform::Graphics::DrawSurfaceToFBO(id_surface_read surface, orientationtype ori, float sx, float sy, float sw, float sh,
-            float x, float y, float w, float h, uint32 fbo)
+        void Platform::Graphics::DrawSurfaceToFBO(id_surface_read surface, float sx, float sy, float sw, float sh,
+            orientationtype ori, bool antialiasing, float x, float y, float w, float h, uint32 fbo)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
 
@@ -1833,6 +1833,11 @@
         }
 
         void Platform::Web::SendKeyEvent(h_web web, sint32 code, chars text, bool pressed)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+        }
+
+        void Platform::Web::CallJSFunction(h_web web, chars script, sint32 matchid)
         {
             BOSS_ASSERT("Further development is needed.", false);
         }

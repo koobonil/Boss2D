@@ -9,8 +9,8 @@ namespace BOSS
     enum WindowEvent {WE_Tick, WE_Max};
     enum UIRole {UIR_Menu = 0x1, UIR_Tool = 0x2, UIR_Both = 0x3};
     static UIRole operator|(UIRole a, UIRole b) {return (UIRole) (int(a) | int(b));}
-    enum UIAllow {UIA_Left = 0x1, UIA_Top = 0x2, UIA_Right = 0x4, UIA_Bottom = 0x8, UIA_Wherever = 0xF};
-    static UIAllow operator|(UIAllow a, UIAllow b) {return (UIAllow) (int(a) | int(b));}
+    enum UIDirection {UID_Left = 0x1, UID_Top = 0x2, UID_Right = 0x4, UID_Bottom = 0x8, UID_Wherever = 0xF};
+    static UIDirection operator|(UIDirection a, UIDirection b) {return (UIDirection) (int(a) | int(b));}
     enum UIAlign {
         UIA_LeftTop,    UIA_CenterTop,    UIA_RightTop,
         UIA_LeftMiddle, UIA_CenterMiddle, UIA_RightMiddle,
@@ -193,11 +193,11 @@ namespace BOSS
         /*!
         \brief 도킹바 생성 및 추가
         \param view : 뷰핸들
-        \param allow : 도킹할 방향
-        \param allowbase : 도킹이 가능한 방향
+        \param direction : 도킹할 방향
+        \param directionbase : 도킹이 가능한 모든 방향
         \return 도킹바핸들
         */
-        static h_dock CreateDock(h_view view, UIAllow allow, UIAllow allowbase = UIA_Wherever);
+        static h_dock CreateDock(h_view view, UIDirection direction, UIDirection directionbase = UID_Wherever);
 
         /*!
         \brief 윈도우에 액션 추가
@@ -860,19 +860,20 @@ namespace BOSS
             /*!
             \brief 지정한 FBO핸들로 텍스처 출력
             \param texture : 출력할 텍스처
-            \param ori : 90도기준 회전상태와 상하반전여부
             \param tx : 텍스처의 좌측위치(px)
             \param ty : 텍스처의 상단위치(px)
             \param tw : 텍스처의 가로길이(px)
             \param th : 텍스처의 세로길이(px)
+            \param ori : 출력할 방식(90도기준 회전상태와 상하반전여부)
+            \param antialiasing : 계단현상 보간처리 적용여부
             \param x : 좌측위치(px)
             \param y : 상단위치(px)
             \param w : 가로길이(px)
             \param h : 세로길이(px)
             \param fbo : 출력될 프레임버퍼의 FBO핸들(화면출력시 0)
             */
-            static void DrawTextureToFBO(uint32 texture, orientationtype ori, float tx, float ty, float tw, float th,
-                float x, float y, float w, float h, uint32 fbo = 0);
+            static void DrawTextureToFBO(uint32 texture, float tx, float ty, float tw, float th,
+                orientationtype ori, bool antialiasing, float x, float y, float w, float h, uint32 fbo = 0);
 
             /*!
             \brief 이미지 생성
@@ -1045,11 +1046,12 @@ namespace BOSS
             /*!
             \brief 지정한 FBO핸들로 서피스 출력(서피스에서 서피스로 가능)
             \param surface : 출력할 서피스
-            \param ori : 90도기준 회전상태와 상하반전여부
             \param sx : 서피스의 좌측위치(px)
             \param sy : 서피스의 상단위치(px)
             \param sw : 서피스의 가로길이(px)
             \param sh : 서피스의 세로길이(px)
+            \param ori : 출력할 방식(90도기준 회전상태와 상하반전여부)
+            \param antialiasing : 계단현상 보간처리 적용여부
             \param x : 좌측위치(px)
             \param y : 상단위치(px)
             \param w : 가로길이(px)
@@ -1057,8 +1059,8 @@ namespace BOSS
             \param fbo : 출력될 프레임버퍼의 FBO핸들(화면출력시 0)
             \see GetSurfaceFBO
             */
-            static void DrawSurfaceToFBO(id_surface_read surface, orientationtype ori, float sx, float sy, float sw, float sh,
-                float x, float y, float w, float h, uint32 fbo = 0);
+            static void DrawSurfaceToFBO(id_surface_read surface, float sx, float sy, float sw, float sh,
+                orientationtype ori, bool antialiasing, float x, float y, float w, float h, uint32 fbo = 0);
 
             /*!
             \brief 서피스에서 이미지 얻기
@@ -1784,7 +1786,7 @@ namespace BOSS
         class Web
         {
         public:
-            typedef void (*EventCB)(payload, chars, chars);
+            typedef void (*EventCB)(payload data, chars type, chars param);
 
             /*!
             \brief 웹핸들 할당
@@ -1847,6 +1849,15 @@ namespace BOSS
             \param pressed : 눌려짐 여부
             */
             static void SendKeyEvent(h_web web, sint32 code, chars text, bool pressed);
+
+            /*!
+            \brief 웹페이지의 자바스크립트함수 호출
+            \param web : 해당 웹핸들
+            \param script : 자바스크립트 소스코드(예시: "func(1, 2);")
+            \param matchid : 호출결과를 매칭하기 위한 ID(Create의 EventCB를 통해 결과받음)
+            \see Create
+            */
+            static void CallJSFunction(h_web web, chars script, sint32 matchid = 0);
 
             /*!
             \brief 웹페이지 스크린샷 이미지 얻기

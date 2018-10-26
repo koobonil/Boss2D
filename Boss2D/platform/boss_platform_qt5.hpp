@@ -1627,7 +1627,7 @@
             mAttrib[3].texcoords[1] = 1;
             f->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); TestGL(BOSS_DBG 0);
         }
-        void DrawTexture(uint32 fbo, const BOSS::Rect& rect, uint32 tex, orientationtype ori, const BOSS::Rect& texrect)
+        void DrawTexture(uint32 fbo, const BOSS::Rect& rect, uint32 tex, const BOSS::Rect& texrect, orientationtype ori, bool antialiasing)
         {
             QOpenGLContext* ctx = QOpenGLContext::currentContext();
             QOpenGLFunctions* f = ctx->functions();
@@ -1637,20 +1637,26 @@
             f->glGetIntegerv(GL_VIEWPORT, ViewPortValues);
             //const GLint Width = ViewPortValues[2] / 4;
             //const GLint Height = ViewPortValues[3] / 4;
-            const GLint Width = ViewPortValues[2];
-            const GLint Height = ViewPortValues[3];
+            const GLint DstWidth = ViewPortValues[2];///////////////
+            const GLint DstHeight = ViewPortValues[3];/////////////////////////////////
             BOSS::Rect NewRect;
-            NewRect.l = (rect.l / Width - 0.5) * 2;
-            NewRect.t = (0.5 - rect.t / Height) * 2;
-            NewRect.r = (rect.r / Width - 0.5) * 2;
-            NewRect.b = (0.5 - rect.b / Height) * 2;
+            NewRect.l = (rect.l / DstWidth - 0.5) * 2;
+            NewRect.t = (0.5 - rect.t / DstHeight) * 2;
+            NewRect.r = (rect.r / DstWidth - 0.5) * 2;
+            NewRect.b = (0.5 - rect.b / DstHeight) * 2;
 
             f->glActiveTexture(GL_TEXTURE0);
             f->glBindTexture(GL_TEXTURE_2D, tex);
-            f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            GLint SrcWidth = 0, SrcHeight = 0;
+            glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &SrcWidth);
+            glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &SrcHeight);
+            if(antialiasing)
+            {
+                f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            }
 
             f->glUseProgram(mProgram); TestGL(BOSS_DBG 0);
             f->glBindBuffer(GL_ARRAY_BUFFER, 0); TestGL(BOSS_DBG 0);
@@ -1682,40 +1688,27 @@
             mAttrib[3].vertices[1] = NewRect.b;
             mAttrib[3].color32 = 0xFFFFFFFF;
 
-            if(ori == orientationtype_fliped90)
+            sint32 UV[4] = {2, 3, 1, 0};
+            switch(ori)
             {
-                mAttrib[1].texcoords[0] = 0;
-                mAttrib[1].texcoords[1] = 0;
-                mAttrib[3].texcoords[0] = 1;
-                mAttrib[3].texcoords[1] = 0;
-                mAttrib[0].texcoords[0] = 0;
-                mAttrib[0].texcoords[1] = 1;
-                mAttrib[2].texcoords[0] = 1;
-                mAttrib[2].texcoords[1] = 1;
-            }
-            else if(ori == orientationtype_normal180)
-            {
-                mAttrib[3].texcoords[0] = 0;
-                mAttrib[3].texcoords[1] = 0;
-                mAttrib[2].texcoords[0] = 1;
-                mAttrib[2].texcoords[1] = 0;
-                mAttrib[1].texcoords[0] = 0;
-                mAttrib[1].texcoords[1] = 1;
-                mAttrib[0].texcoords[0] = 1;
-                mAttrib[0].texcoords[1] = 1;
-            }
-            else
-            {
-                mAttrib[0].texcoords[0] = 0;
-                mAttrib[0].texcoords[1] = 0;
-                mAttrib[1].texcoords[0] = 1;
-                mAttrib[1].texcoords[1] = 0;
-                mAttrib[2].texcoords[0] = 0;
-                mAttrib[2].texcoords[1] = 1;
-                mAttrib[3].texcoords[0] = 1;
-                mAttrib[3].texcoords[1] = 1;
+            case orientationtype_normal0: UV[0] = 2; UV[1] = 3; UV[2] = 1; UV[3] = 0; break;
+            case orientationtype_normal90: UV[0] = 0; UV[1] = 2; UV[2] = 3; UV[3] = 1; break;
+            case orientationtype_normal180: UV[0] = 1; UV[1] = 0; UV[2] = 2; UV[3] = 3; break;
+            case orientationtype_normal270: UV[0] = 3; UV[1] = 1; UV[2] = 0; UV[3] = 2; break;
+            case orientationtype_fliped0: UV[0] = 3; UV[1] = 2; UV[2] = 0; UV[3] = 1; break;
+            case orientationtype_fliped90: UV[0] = 2; UV[1] = 0; UV[2] = 1; UV[3] = 3; break;
+            case orientationtype_fliped180: UV[0] = 0; UV[1] = 1; UV[2] = 3; UV[3] = 2; break;
+            case orientationtype_fliped270: UV[0] = 1; UV[1] = 3; UV[2] = 2; UV[3] = 0; break;
             }
 
+            mAttrib[UV[0]].texcoords[0] = texrect.l / SrcWidth; // 좌측상단
+            mAttrib[UV[0]].texcoords[1] = (SrcHeight - texrect.b) / SrcHeight;
+            mAttrib[UV[1]].texcoords[0] = texrect.r / SrcWidth; // 우측상단
+            mAttrib[UV[1]].texcoords[1] = (SrcHeight - texrect.b) / SrcHeight;
+            mAttrib[UV[2]].texcoords[0] = texrect.r / SrcWidth; // 우측하단
+            mAttrib[UV[2]].texcoords[1] = (SrcHeight - texrect.t) / SrcHeight;
+            mAttrib[UV[3]].texcoords[0] = texrect.l / SrcWidth; // 좌측하단
+            mAttrib[UV[3]].texcoords[1] = (SrcHeight - texrect.t) / SrcHeight;
             f->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); TestGL(BOSS_DBG 0);
         }
 
@@ -2747,6 +2740,37 @@
         typedef WebEngineViewForExtraDesktop WebEngineViewClass;
     #endif
 
+    class WebPagePrivate : public QWebEnginePage
+    {
+        Q_OBJECT
+
+    public:
+        WebPagePrivate(QWidget* parent = nullptr) : QWebEnginePage(parent)
+        {
+            mCb = nullptr;
+            mData = nullptr;
+        }
+        ~WebPagePrivate() override {}
+
+    public:
+        void SetCallback(Platform::Web::EventCB cb, payload data)
+        {
+            mCb = cb;
+            mData = data;
+        }
+
+    private:
+        void javaScriptConsoleMessage(JavaScriptConsoleMessageLevel level, const QString& message, int lineNumber, const QString& sourceID) override
+        {
+            if(mCb)
+                mCb(mData, String::Format("JSConsole:%d", level), message.toUtf8().constData());
+        }
+
+    private:
+        Platform::Web::EventCB mCb;
+        payload mData;
+    };
+
     class WebViewPrivate : public WebEngineViewClass
     {
         Q_OBJECT
@@ -2754,13 +2778,15 @@
     public:
         WebViewPrivate(QWidget* parent = nullptr) : WebEngineViewClass(parent), mHandle(h_web::null())
         {
-            mCb = nullptr;
-            mData = nullptr;
             mNowLoading = false;
             mLoadingProgress = 100;
             mLoadingRate = 1;
+            mCb = nullptr;
+            mData = nullptr;
 
+            setPage(new WebPagePrivate(this));
             setMouseTracking(true);
+            connect(this, SIGNAL(titleChanged(QString)), SLOT(onTitleChanged(QString)));
             connect(this, SIGNAL(urlChanged(QUrl)), SLOT(onUrlChanged(QUrl)));
             connect(this, SIGNAL(loadStarted()), SLOT(onLoadStarted()));
             connect(this, SIGNAL(loadProgress(int)), SLOT(onLoadProgress(int)));
@@ -2775,6 +2801,23 @@
         WebViewPrivate(const WebViewPrivate&) {BOSS_ASSERT("사용금지", false);}
         WebViewPrivate& operator=(const WebViewPrivate&) {BOSS_ASSERT("사용금지", false); return *this;}
 
+    public:
+        void SetCallback(Platform::Web::EventCB cb, payload data)
+        {
+            mCb = cb;
+            mData = data;
+            ((WebPagePrivate*) page())->SetCallback(cb, data);
+        }
+        void CallJSFunction(chars script, sint32 matchid)
+        {
+            page()->runJavaScript(script,
+                [this, matchid](const QVariant &v)->void
+                {
+                    if(mCb)
+                        mCb(mData, String::Format("JSFunction:%d", matchid), v.toString().toUtf8().constData());
+                });
+        }
+
     protected:
         void closeEvent(QCloseEvent* event) Q_DECL_OVERRIDE
         {
@@ -2783,6 +2826,11 @@
         }
 
     private slots:
+        void onTitleChanged(const QString& title)
+        {
+            if(mCb)
+                mCb(mData, "TitleChanged", title.toUtf8().constData());
+        }
         void onUrlChanged(const QUrl& url)
         {
             if(mCb)
@@ -2808,11 +2856,13 @@
 
     public:
         h_web mHandle;
-        Platform::Web::EventCB mCb;
-        payload mData;
         bool mNowLoading;
         int mLoadingProgress;
         float mLoadingRate;
+
+    private:
+        Platform::Web::EventCB mCb;
+        payload mData;
     };
 
     #if QT_HAVE_WEBENGINEWIDGETS
@@ -2839,7 +2889,7 @@
             WebPrivateForDesktop& operator=(const WebPrivateForDesktop&) {BOSS_ASSERT("사용금지", false); return *this;}
 
         public:
-            void attachHandle(h_web web)
+            void AttachHandle(h_web web)
             {
                 mView.mHandle = web;
             }
@@ -2872,8 +2922,7 @@
             }
             void SetCallback(Platform::Web::EventCB cb, payload data)
             {
-                mView.mCb = cb;
-                mView.mData = data;
+                mView.SetCallback(cb, data);
             }
             void SendTouchEvent(TouchType type, sint32 x, sint32 y)
             {
@@ -2900,6 +2949,10 @@
                     QKeyEvent NewEvent((pressed)? QKeyEvent::KeyPress : QKeyEvent::KeyRelease, code, Qt::NoModifier, text);
                     QApplication::sendEvent(CurWidget, &NewEvent);
                 }
+            }
+            void CallJSFunction(chars script, sint32 matchid)
+            {
+                mView.CallJSFunction(script, matchid);
             }
             const QPixmap GetPixmap()
             {
@@ -2937,7 +2990,7 @@
             WebPrivateForExtraDesktop& operator=(const WebPrivateForExtraDesktop&) {BOSS_ASSERT("사용금지", false); return *this;}
 
         public:
-            void attachHandle(h_web web)
+            void AttachHandle(h_web web)
             {
             }
             void ClearCookies()
@@ -2967,6 +3020,9 @@
             {
             }
             void SendKeyEvent(sint32 code, chars text, bool pressed)
+            {
+            }
+            void CallJSFunction(chars script, sint32 matchid)
             {
             }
             const QPixmap GetPixmap()
