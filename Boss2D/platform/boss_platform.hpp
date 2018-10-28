@@ -872,7 +872,7 @@ namespace BOSS
             \param h : 세로길이(px)
             \param fbo : 출력될 프레임버퍼의 FBO핸들(화면출력시 0)
             */
-            static void DrawTextureToFBO(uint32 texture, float tx, float ty, float tw, float th,
+            static void DrawTextureToFBO(id_texture_read texture, float tx, float ty, float tw, float th,
                 orientationtype ori, bool antialiasing, float x, float y, float w, float h, uint32 fbo = 0);
 
             /*!
@@ -983,6 +983,43 @@ namespace BOSS
             static void EndGL();
 
             /*!
+            \brief 텍스처 생성
+            \param width : 가로길이(px)
+            \param height : 세로길이(px)
+            \param grayscale : 흑백텍스처인지 여부
+            \param bits : 초기화할 비트맵 Bits데이터
+            \return 생성된 텍스쳐
+            */
+            static id_texture CreateTexture(sint32 width, sint32 height, bool grayscale = false, const void* bits = nullptr);
+
+            /*!
+            \brief 텍스처의 핸들 얻기(OpenGL의 텍스처ID)
+            \param texture : 텍스처
+            \return 텍스처 핸들
+            */
+            static uint32 GetTextureID(id_texture_read texture);
+
+            /*!
+            \brief 텍스처 가로길이 얻기
+            \param texture : 텍스처
+            \return 텍스처 가로길이
+            */
+            static sint32 GetTextureWidth(id_texture_read texture);
+
+            /*!
+            \brief 텍스처 세로길이 얻기
+            \param texture : 텍스처
+            \return 텍스처 세로길이
+            */
+            static sint32 GetTextureHeight(id_texture_read texture);
+
+            /*!
+            \brief 텍스처 삭제
+            \param texture : 삭제할 텍스처
+            */
+            static void RemoveTexture(id_texture texture);
+
+            /*!
             \brief 서피스(FBO) 생성
             \param width : 가로길이(px)
             \param height : 세로길이(px)
@@ -993,7 +1030,7 @@ namespace BOSS
             /*!
             \brief 서피스의 FBO핸들 얻기(OpenGL의 FBO핸들)
             \param surface : 서피스
-            \return FBO핸들
+            \return 서피스 FBO핸들
             */
             static uint32 GetSurfaceFBO(id_surface_read surface);
 
@@ -2139,9 +2176,9 @@ namespace BOSS
             /*!
             \brief 마지막 촬영한 텍스처 얻기
             \param camera : 카메라ID
-            \return 촬영한 텍스처(0은 실패)
+            \return 촬영한 텍스처(nullptr은 실패)
             */
-            static uint32 LastCapturedTexture(id_camera camera);
+            static id_texture_read LastCapturedTexture(id_camera camera);
 
             /*!
             \brief 마지막 촬영한 이미지 얻기
@@ -2164,10 +2201,9 @@ namespace BOSS
             /*!
             \brief 마지막 촬영한 이미지크기 얻기
             \param camera : 카메라ID
-            \param ori : 90도기준 회전상태와 상하반전여부(디폴트는 상하반전)
             \return 촬영한 이미지크기
             */
-            static size64 LastCapturedSize(id_camera camera, orientationtype ori = orientationtype_fliped0);
+            static size64 LastCapturedSize(id_camera camera);
 
             /*!
             \brief 마지막 촬영한 시간 얻기

@@ -869,7 +869,7 @@
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
         }
 
-        void Platform::Graphics::DrawTextureToFBO(uint32 texture, float tx, float ty, float tw, float th,
+        void Platform::Graphics::DrawTextureToFBO(id_texture_read texture, float tx, float ty, float tw, float th,
             orientationtype ori, bool antialiasing, float x, float y, float w, float h, uint32 fbo)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
@@ -969,6 +969,45 @@
         }
 
         void Platform::Graphics::EndGL()
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
+
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+        }
+
+        id_texture Platform::Graphics::CreateTexture(sint32 width, sint32 height, bool grayscale, const void* bits)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
+
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+            return nullptr;
+        }
+
+        uint32 Platform::Graphics::GetTextureID(id_texture_read texture)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
+
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+            return 0;
+        }
+
+        sint32 Platform::Graphics::GetTextureWidth(id_texture_read texture)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
+
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+            return 0;
+        }
+
+        sint32 Platform::Graphics::GetTextureHeight(id_texture_read texture)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
+
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+            return 0;
+        }
+
+        void Platform::Graphics::RemoveTexture(id_texture texture)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
 
@@ -1939,10 +1978,10 @@
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
         }
 
-        uint32 Platform::Camera::LastCapturedTexture(id_camera camera)
+        id_texture_read Platform::Camera::LastCapturedTexture(id_camera camera)
         {
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
-            return 0;
+            return nullptr;
         }
 
         id_image_read Platform::Camera::LastCapturedImage(id_camera camera, sint32 maxwidth, sint32 maxheight, sint32 rotate)
@@ -1957,7 +1996,7 @@
             return nullptr;
         }
 
-        size64 Platform::Camera::LastCapturedSize(id_camera camera, orientationtype ori)
+        size64 Platform::Camera::LastCapturedSize(id_camera camera)
         {
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
             return {0, 0};

@@ -1366,7 +1366,7 @@
             CanvasClass::get()->painter().drawPath(NewPath);
         }
 
-        void Platform::Graphics::DrawTextureToFBO(uint32 texture, float tx, float ty, float tw, float th,
+        void Platform::Graphics::DrawTextureToFBO(id_texture_read texture, float tx, float ty, float tw, float th,
             orientationtype ori, bool antialiasing, float x, float y, float w, float h, uint32 fbo)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
@@ -1718,6 +1718,36 @@
             g_isBeginGL = false;
             CanvasClass::get()->painter().endNativePainting();
             SurfaceClass::UnlockForGL();
+        }
+
+        id_texture Platform::Graphics::CreateTexture(sint32 width, sint32 height, bool grayscale, const void* bits)
+        {
+            buffer NewTexture = Buffer::Alloc<TextureClass>(BOSS_DBG 1);
+            ((TextureClass*) NewTexture)->Create(width, height, grayscale, bits);
+            return (id_texture) NewTexture;
+        }
+
+        uint32 Platform::Graphics::GetTextureID(id_texture_read texture)
+        {
+            if(!texture) return 0;
+            return ((const TextureClass*) texture)->id();
+        }
+
+        sint32 Platform::Graphics::GetTextureWidth(id_texture_read texture)
+        {
+            if(!texture) return 0;
+            return ((const TextureClass*) texture)->width();
+        }
+
+        sint32 Platform::Graphics::GetTextureHeight(id_texture_read texture)
+        {
+            if(!texture) return 0;
+            return ((const TextureClass*) texture)->height();
+        }
+
+        void Platform::Graphics::RemoveTexture(id_texture texture)
+        {
+            Buffer::Free((buffer) texture);
         }
 
         id_surface Platform::Graphics::CreateSurface(sint32 width, sint32 height)
@@ -3399,7 +3429,7 @@
             CurCamera->Capture(preview, needstop);
         }
 
-        uint32 Platform::Camera::LastCapturedTexture(id_camera camera)
+        id_texture_read Platform::Camera::LastCapturedTexture(id_camera camera)
         {
             if(!camera) return 0;
             CameraClass* CurCamera = (CameraClass*) camera;
@@ -3420,11 +3450,11 @@
             return CurCamera->LastCapturedBitmap(ori);
         }
 
-        size64 Platform::Camera::LastCapturedSize(id_camera camera, orientationtype ori)
+        size64 Platform::Camera::LastCapturedSize(id_camera camera)
         {
             if(!camera) return {0, 0};
             CameraClass* CurCamera = (CameraClass*) camera;
-            return CurCamera->LastCapturedSize(ori);
+            return CurCamera->LastCapturedSize();
         }
 
         uint64 Platform::Camera::LastCapturedTimeMsec(id_camera camera, sint32* avgmsec)
