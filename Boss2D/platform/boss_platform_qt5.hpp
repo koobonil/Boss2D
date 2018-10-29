@@ -1543,9 +1543,9 @@
     private:
         OpenGLPrivate()
         {
-            mVShader = 0;
-            mFShader = 0;
-            mProgram = 0;
+            mVShader[0] = mVShader[1] = 0;
+            mFShader[0] = mFShader[1] = 0;
+            mProgram[0] = mProgram[1] = 0;
             switch(GetVersionGLES())
             {
             case 0x20:
@@ -1585,7 +1585,7 @@
             NewRect.r = (rect.r / Width - 0.5) * 2;
             NewRect.b = (0.5 - rect.b / Height) * 2;
 
-            f->glUseProgram(mProgram); TestGL(BOSS_DBG 0);
+            f->glUseProgram(mProgram[0]); TestGL(BOSS_DBG 0);
             f->glBindBuffer(GL_ARRAY_BUFFER, 0); TestGL(BOSS_DBG 0);
             f->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); TestGL(BOSS_DBG 0);
             f->glEnableVertexAttribArray(VerticeID); TestGL(BOSS_DBG 0);
@@ -1594,7 +1594,7 @@
             f->glVertexAttribPointer(VerticeID, 2, GL_FLOAT, GL_FALSE, sizeof(Attrib), &mAttrib[0].vertices[0]); TestGL(BOSS_DBG 0);
             f->glVertexAttribPointer(ColorID, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Attrib), &mAttrib[0].colors[0]); TestGL(BOSS_DBG 0);
             f->glVertexAttribPointer(TexCoordsID, 2, GL_FLOAT, GL_FALSE, sizeof(Attrib), &mAttrib[0].texcoords[0]); TestGL(BOSS_DBG 0);
-            f->glUniformMatrix4fv(mMatrix, 1, GL_FALSE, (const GLfloat*) &mM[0][0]); TestGL(BOSS_DBG 0);
+            f->glUniformMatrix4fv(mMatrix[0], 1, GL_FALSE, (const GLfloat*) &mM[0][0]); TestGL(BOSS_DBG 0);
 
             f->glDisable(GL_CULL_FACE); TestGL(BOSS_DBG 0);
             f->glDisable(GL_DEPTH_TEST); TestGL(BOSS_DBG 0);
@@ -1648,10 +1648,12 @@
             NewRect.r = (rect.r / DstWidth - 0.5) * 2;
             NewRect.b = (0.5 - rect.b / DstHeight) * 2;
 
-            f->glActiveTexture(GL_TEXTURE0);
-            f->glBindTexture(GL_TEXTURE_2D, Platform::Graphics::GetTextureID(tex));
-            const GLint SrcWidth = Platform::Graphics::GetTextureWidth(tex);
-            const GLint SrcHeight = Platform::Graphics::GetTextureHeight(tex);
+            const bool IsYUV = (mProgram[1] && Platform::Graphics::IsTextureYUV(tex));
+            for(sint32 i = 0, iend = (IsYUV)? 3 : 1; i < iend; ++i)
+            {
+                f->glActiveTexture(GL_TEXTURE0 + i);
+                f->glBindTexture(GL_TEXTURE_2D, Platform::Graphics::GetTextureID(tex, i));
+            }
             if(antialiasing)
             {
                 f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -1667,7 +1669,11 @@
                 f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             }
 
-            f->glUseProgram(mProgram); TestGL(BOSS_DBG 0);
+            const GLint SrcWidth = Platform::Graphics::GetTextureWidth(tex);
+            const GLint SrcHeight = Platform::Graphics::GetTextureHeight(tex);
+            const sint32 SelectedProgram = (IsYUV)? 1 : 0;
+            f->glUseProgram(mProgram[SelectedProgram]); TestGL(BOSS_DBG 0);
+
             f->glBindBuffer(GL_ARRAY_BUFFER, 0); TestGL(BOSS_DBG 0);
             f->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); TestGL(BOSS_DBG 0);
             f->glEnableVertexAttribArray(VerticeID); TestGL(BOSS_DBG 0);
@@ -1676,7 +1682,7 @@
             f->glVertexAttribPointer(VerticeID, 2, GL_FLOAT, GL_FALSE, sizeof(Attrib), &mAttrib[0].vertices[0]); TestGL(BOSS_DBG 0);
             f->glVertexAttribPointer(ColorID, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Attrib), &mAttrib[0].colors[0]); TestGL(BOSS_DBG 0);
             f->glVertexAttribPointer(TexCoordsID, 2, GL_FLOAT, GL_FALSE, sizeof(Attrib), &mAttrib[0].texcoords[0]); TestGL(BOSS_DBG 0);
-            f->glUniformMatrix4fv(mMatrix, 1, GL_FALSE, (const GLfloat*) &mM[0][0]); TestGL(BOSS_DBG 0);
+            f->glUniformMatrix4fv(mMatrix[SelectedProgram], 1, GL_FALSE, (const GLfloat*) &mM[0][0]); TestGL(BOSS_DBG 0);
 
             f->glDisable(GL_CULL_FACE); TestGL(BOSS_DBG 0);
             f->glDisable(GL_DEPTH_TEST); TestGL(BOSS_DBG 0);
@@ -1722,40 +1728,42 @@
         }
 
     private:
-        void InitShader(chars vsource, chars fsource)
+        void InitShader(chars vsource_rgb, chars fsource_rgb, chars vsource_yuv = nullptr, chars fsource_yuv = nullptr)
         {
             QOpenGLContext* ctx = QOpenGLContext::currentContext();
             QOpenGLFunctions* f = ctx->functions();
 
-            chars VertexShaderSourceCodePtr = vsource;
-            chars FragmentShaderSourceCodePtr = fsource;
+            chars VSources[2] = {vsource_rgb, vsource_yuv};
+            chars FSources[2] = {fsource_rgb, fsource_yuv};
+            for(sint32 i = 0, iend = (vsource_yuv && fsource_yuv)? 2 : 1; i < iend; ++i)
+            {
+                mVShader[i] = f->glCreateShader(GL_VERTEX_SHADER); TestGL(BOSS_DBG 0);
+                f->glShaderSource(mVShader[i], 1, &VSources[i], NULL); TestGL(BOSS_DBG 0);
+                f->glCompileShader(mVShader[i]); TestShader(BOSS_DBG mVShader[i]);
 
-            mVShader = f->glCreateShader(GL_VERTEX_SHADER); TestGL(BOSS_DBG 0);
-            f->glShaderSource(mVShader, 1, &VertexShaderSourceCodePtr, NULL); TestGL(BOSS_DBG 0);
-            f->glCompileShader(mVShader); TestShader(BOSS_DBG mVShader);
+                mFShader[i] = f->glCreateShader(GL_FRAGMENT_SHADER); TestGL(BOSS_DBG 0);
+                f->glShaderSource(mFShader[i], 1, &FSources[i], NULL); TestGL(BOSS_DBG 0);
+                f->glCompileShader(mFShader[i]); TestShader(BOSS_DBG mFShader[i]);
 
-            mFShader = f->glCreateShader(GL_FRAGMENT_SHADER); TestGL(BOSS_DBG 0);
-            f->glShaderSource(mFShader, 1, &FragmentShaderSourceCodePtr, NULL); TestGL(BOSS_DBG 0);
-            f->glCompileShader(mFShader); TestShader(BOSS_DBG mFShader);
+                mProgram[i] = f->glCreateProgram(); TestGL(BOSS_DBG 0);
+                f->glAttachShader(mProgram[i], mVShader[i]); TestShader(BOSS_DBG mVShader[i]);
+                f->glAttachShader(mProgram[i], mFShader[i]); TestShader(BOSS_DBG mFShader[i]);
 
-            mProgram = f->glCreateProgram(); TestGL(BOSS_DBG 0);
-            f->glAttachShader(mProgram, mVShader); TestShader(BOSS_DBG mVShader);
-            f->glAttachShader(mProgram, mFShader); TestShader(BOSS_DBG mFShader);
+                f->glEnableVertexAttribArray(VerticeID); TestGL(BOSS_DBG 0);
+                f->glEnableVertexAttribArray(ColorID); TestGL(BOSS_DBG 0);
+                f->glBindAttribLocation(mProgram[i], VerticeID, "a_position"); TestGL(BOSS_DBG 0);
+                f->glBindAttribLocation(mProgram[i], ColorID, "a_color"); TestGL(BOSS_DBG 0);
+                f->glVertexAttribPointer(VerticeID, 2, GL_FLOAT, GL_FALSE, sizeof(Attrib), &mAttrib[0].vertices[0]); TestGL(BOSS_DBG 0);
+                f->glVertexAttribPointer(ColorID, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Attrib), &mAttrib[0].colors[0]); TestGL(BOSS_DBG 0);
 
-            f->glEnableVertexAttribArray(VerticeID); TestGL(BOSS_DBG 0);
-            f->glEnableVertexAttribArray(ColorID); TestGL(BOSS_DBG 0);
-            f->glBindAttribLocation(mProgram, VerticeID, "a_position"); TestGL(BOSS_DBG 0);
-            f->glBindAttribLocation(mProgram, ColorID, "a_color"); TestGL(BOSS_DBG 0);
-            f->glVertexAttribPointer(VerticeID, 2, GL_FLOAT, GL_FALSE, sizeof(Attrib), &mAttrib[0].vertices[0]); TestGL(BOSS_DBG 0);
-            f->glVertexAttribPointer(ColorID, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Attrib), &mAttrib[0].colors[0]); TestGL(BOSS_DBG 0);
+                f->glLinkProgram(mProgram[i]); TestProgram(BOSS_DBG mProgram[i]);
+                f->glValidateProgram(mProgram[i]); TestProgram(BOSS_DBG mProgram[i]);
 
-            f->glLinkProgram(mProgram); TestProgram(BOSS_DBG mProgram);
-            f->glValidateProgram(mProgram); TestProgram(BOSS_DBG mProgram);
-
-            LoadIdentity();
-            f->glUseProgram(mProgram); TestProgram(BOSS_DBG mProgram);
-            mMatrix = f->glGetUniformLocation(mProgram, "u_matrix"); TestGL(BOSS_DBG 0);
-            f->glUniformMatrix4fv(mMatrix, 1, GL_FALSE, (const GLfloat*) &mM[0][0]); TestGL(BOSS_DBG 0);
+                LoadIdentity();
+                f->glUseProgram(mProgram[i]); TestProgram(BOSS_DBG mProgram[i]);
+                mMatrix[i] = f->glGetUniformLocation(mProgram[i], "u_matrix"); TestGL(BOSS_DBG 0);
+                f->glUniformMatrix4fv(mMatrix[i], 1, GL_FALSE, (const GLfloat*) &mM[0][0]); TestGL(BOSS_DBG 0);
+            }
         }
         void InitShaderGLES20()
         {
@@ -1780,21 +1788,25 @@
         }
         void InitShaderGLES30()
         {
-            InitShader(String::Format(
-                "#version 300 es\n"
-                "layout (location = %d) in highp vec2 a_position;\n"
-                "layout (location = %d) in highp vec4 a_color;\n"
-                "layout (location = %d) in highp vec2 a_texcoord;\n"
-                "uniform highp mat4 u_matrix;\n"
-                "out mediump vec4 v_fragmentColor;\n"
-                "out mediump vec2 v_texCoord;\n"
-                "\n"
-                "void main()\n"
-                "{\n"
-                "    gl_Position = u_matrix * vec4(a_position.x, a_position.y, 0.0, 1.0);\n"
-                "    v_fragmentColor = a_color;\n"
-                "    v_texCoord = a_texcoord;\n"
-                "}", VerticeID, ColorID, TexCoordsID),
+            InitShader(
+                ////////////////////////////////////////////////////////////
+                // RGB
+                ////////////////////////////////////////////////////////////
+                String::Format(
+                    "#version 300 es\n"
+                    "layout (location = %d) in highp vec2 a_position;\n"
+                    "layout (location = %d) in highp vec4 a_color;\n"
+                    "layout (location = %d) in highp vec2 a_texcoord;\n"
+                    "uniform highp mat4 u_matrix;\n"
+                    "out mediump vec4 v_fragmentColor;\n"
+                    "out mediump vec2 v_texCoord;\n"
+                    "\n"
+                    "void main()\n"
+                    "{\n"
+                    "    gl_Position = u_matrix * vec4(a_position.x, a_position.y, 0.0, 1.0);\n"
+                    "    v_fragmentColor = a_color;\n"
+                    "    v_texCoord = a_texcoord;\n"
+                    "}", VerticeID, ColorID, TexCoordsID),
                 "#version 300 es\n"
                 "layout (location = 0) out highp vec4 oColour;\n"
                 "uniform highp mat4 u_matrix;\n"
@@ -1805,25 +1817,63 @@
                 "void main()\n"
                 "{\n"
                 "    oColour = v_fragmentColor * texture(u_texture, v_texCoord);\n"
+                "}",
+                ////////////////////////////////////////////////////////////
+                // YUV
+                ////////////////////////////////////////////////////////////
+                String::Format(
+                    "#version 300 es\n"
+                    "layout (location = %d) in highp vec2 a_position;\n"
+                    "layout (location = %d) in highp vec4 a_color;\n"
+                    "layout (location = %d) in highp vec2 a_texcoord;\n"
+                    "uniform highp mat4 u_matrix;\n"
+                    "out mediump vec4 v_fragmentColor;\n"
+                    "out mediump vec2 v_texCoord;\n"
+                    "\n"
+                    "void main()\n"
+                    "{\n"
+                    "    gl_Position = u_matrix * vec4(a_position.x, a_position.y, 0.0, 1.0);\n"
+                    "    v_fragmentColor = a_color;\n"
+                    "    v_texCoord = a_texcoord;\n"
+                    "}", VerticeID, ColorID, TexCoordsID),
+                "#version 300 es\n"
+                "layout (location = 0) out highp vec4 oColour;\n"
+                "uniform highp mat4 u_matrix;\n"
+                "uniform highp sampler2D u_texture_y;\n"
+                "uniform highp sampler2D u_texture_u;\n"
+                "uniform highp sampler2D u_texture_v;\n"
+                "in mediump vec4 v_fragmentColor;\n"
+                "in mediump vec2 v_texCoord;\n"
+                "\n"
+                "void main()\n"
+                "{\n"
+                "    highp float y = texture(u_texture_y, v_texCoord).r;\n"
+                "    highp float u = texture(u_texture_u, v_texCoord).r - 0.5;\n"
+                "    highp float v = texture(u_texture_v, v_texCoord).r - 0.5;\n"
+                "    highp float r = y + 1.40200 * v;\n"
+                "    highp float g = y - 0.34414 * u - 0.71414 * v;\n"
+                "    highp float b = y + 1.77200 * u;\n"
+                "    oColour = v_fragmentColor * vec4(r, g, b, 1.0);\n"
                 "}");
         }
         void InitShaderGL()
         {
-            InitShader(String::Format(
-                "#version 330 core\n"
-                "layout (location = %d) in highp vec2 a_position;\n"
-                "layout (location = %d) in highp vec4 a_color;\n"
-                "layout (location = %d) in highp vec2 a_texcoord;\n"
-                "uniform highp mat4 u_matrix;\n"
-                "out mediump vec4 v_fragmentColor;\n"
-                "out mediump vec2 v_texCoord;\n"
-                "\n"
-                "void main()\n"
-                "{\n"
-                "    gl_Position = u_matrix * vec4(a_position.x, a_position.y, 0.0, 1.0);\n"
-                "    v_fragmentColor = a_color;\n"
-                "    v_texCoord = a_texcoord;\n"
-                "}", VerticeID, ColorID, TexCoordsID),
+            InitShader(
+                String::Format(
+                    "#version 330 core\n"
+                    "layout (location = %d) in highp vec2 a_position;\n"
+                    "layout (location = %d) in highp vec4 a_color;\n"
+                    "layout (location = %d) in highp vec2 a_texcoord;\n"
+                    "uniform highp mat4 u_matrix;\n"
+                    "out mediump vec4 v_fragmentColor;\n"
+                    "out mediump vec2 v_texCoord;\n"
+                    "\n"
+                    "void main()\n"
+                    "{\n"
+                    "    gl_Position = u_matrix * vec4(a_position.x, a_position.y, 0.0, 1.0);\n"
+                    "    v_fragmentColor = a_color;\n"
+                    "    v_texCoord = a_texcoord;\n"
+                    "}", VerticeID, ColorID, TexCoordsID),
                 "#version  330 core\n"
                 "layout (location = 0) out highp vec4 oColour;\n"
                 "uniform highp mat4 u_matrix;\n"
@@ -1841,13 +1891,12 @@
             if(QOpenGLContext* ctx = QOpenGLContext::currentContext())
             {
                 QOpenGLFunctions* f = ctx->functions();
-
-                f->glDeleteProgram(mProgram); TestGL(BOSS_DBG 0);
-                mProgram = 0;
-                f->glDeleteShader(mProgram); TestGL(BOSS_DBG 0);
-                mVShader = 0;
-                f->glDeleteShader(mProgram); TestGL(BOSS_DBG 0);
-                mFShader = 0;
+                for(sint32 i = 0; i < 2; ++i)
+                {
+                    if(mProgram[i]) {f->glDeleteProgram(mProgram[i]); TestGL(BOSS_DBG 0); mProgram[i] = 0;}
+                    if(mVShader[i]) {f->glDeleteShader(mVShader[i]); TestGL(BOSS_DBG 0); mVShader[i] = 0;}
+                    if(mFShader[i]) {f->glDeleteShader(mFShader[i]); TestGL(BOSS_DBG 0); mFShader[i] = 0;}
+                }
             }
         }
 
@@ -1956,9 +2005,9 @@
         }
 
     private:
-        GLuint mVShader;
-        GLuint mFShader;
-        GLuint mProgram;
+        GLuint mVShader[2];
+        GLuint mFShader[2];
+        GLuint mProgram[2];
 
     private:
         enum {VerticeID = 0, ColorID = 1, TexCoordsID = 2};
@@ -1973,7 +2022,7 @@
             GLfloat texcoords[2];
         };
         Attrib mAttrib[4];
-        GLint mMatrix;
+        GLint mMatrix[2];
         GLfloat mM[4][4];
     };
 
@@ -1984,9 +2033,10 @@
     public:
         TextureClass()
         {
-            mTexture = 0;
+            mYUV = false;
             mWidth = 0;
             mHeight = 0;
+            mTexture[0] = mTexture[1] = mTexture[2] = 0;
         }
         ~TextureClass()
         {
@@ -1994,68 +2044,86 @@
         }
 
     public:
-        void Create(sint32 width, sint32 height, bool grayscale, const void* bits)
+        void Create(bool yuv, sint32 width, sint32 height, const void* bits)
         {
             QOpenGLContext* ctx = QOpenGLContext::currentContext();
             BOSS_ASSERT("OpenGL의 Context접근에 실패하였습니다", ctx);
             if(ctx)
             {
                 QOpenGLFunctions* f = ctx->functions();
-                f->glGenTextures(1, &mTexture);
+                mYUV = yuv;
                 mWidth = width;
                 mHeight = height;
-
-                f->glBindTexture(GL_TEXTURE_2D, mTexture);
-                f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-                f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-                f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                if(grayscale)
+                if(yuv)
                 {
-                    f->glTexImage2D(GL_TEXTURE_2D,
-                        0, GL_LUMINANCE, width, height,
-                        0, GL_LUMINANCE, GL_UNSIGNED_BYTE, bits);
+                    const void* Pixels[3] = {bits, &((bytes) bits)[mWidth * mHeight], &((bytes) bits)[mWidth * mHeight * 3 / 2]};
+                    const sint32 Widths[3]  = {mWidth, mWidth / 2, mWidth / 2};
+                    const sint32 Heights[3] = {mHeight, mHeight / 2, mHeight / 2};
+                    f->glGenTextures(3, mTexture);
+                    for(sint32 i = 0; i < 3; ++i)
+                    {
+                        f->glBindTexture(GL_TEXTURE_2D, mTexture[i]);
+                        f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                        f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                        f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                        f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                        f->glTexImage2D(GL_TEXTURE_2D,
+                            0, GL_LUMINANCE, Widths[i], Heights[i],
+                            0, GL_LUMINANCE, GL_UNSIGNED_BYTE, Pixels[i]);
+                    }
                 }
                 else
                 {
+                    f->glGenTextures(1, mTexture);
+                    f->glBindTexture(GL_TEXTURE_2D, mTexture[0]);
+                    f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                    f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                    f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                    f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                     f->glTexImage2D(GL_TEXTURE_2D,
-                        0, GL_RGBA8, width, height,
+                        0, GL_RGBA8, mWidth, mHeight,
                         0, GL_BGRA, GL_UNSIGNED_BYTE, bits);
                 }
             }
         }
         void Remove()
         {
-            if(mTexture)
+            QOpenGLContext* ctx = QOpenGLContext::currentContext();
+            BOSS_ASSERT("OpenGL의 Context접근에 실패하였습니다", ctx);
+            if(ctx)
             {
-                QOpenGLContext* ctx = QOpenGLContext::currentContext();
-                BOSS_ASSERT("OpenGL의 Context접근에 실패하였습니다", ctx);
-                if(ctx)
+                QOpenGLFunctions* f = ctx->functions();
+                for(sint32 i = 0; i < 3; ++i)
                 {
-                    QOpenGLFunctions* f = ctx->functions();
-                    f->glDeleteTextures(1, &mTexture);
+                    if(mTexture[i])
+                    {
+                        f->glDeleteTextures(1, &mTexture[i]);
+                        mTexture[i] = 0;
+                    }
                 }
-                mTexture = 0;
             }
         }
 
     public:
-        inline uint32 id() const {return mTexture;}
+        inline bool yuv() const {return mYUV;}
         inline sint32 width() const {return mWidth;}
         inline sint32 height() const {return mHeight;}
+        inline uint32 id(sint32 i) const {return mTexture[i];}
 
     public:
         void SetDataDirectly(uint32 texture, sint32 width, sint32 height)
         {
-            mTexture = texture;
+            mYUV = false;
             mWidth = width;
             mHeight = height;
+            mTexture[0] = texture;
         }
 
     private:
-        uint32 mTexture;
+        bool mYUV;
         sint32 mWidth;
         sint32 mHeight;
+        uint32 mTexture[3];
     };
 
     class SurfaceClass
@@ -4133,7 +4201,7 @@
                         mLastImageHeight = frame.height();
                         f->glReadPixels(0, 0, mLastImageWidth, mLastImageHeight, GL_RGBA, GL_UNSIGNED_BYTE,
                             mLastImage.AtDumpingAdded(4 * mLastImageWidth * mLastImageHeight));
-                        mLastTexture = Platform::Graphics::CreateTexture(mLastImageWidth, mLastImageHeight, false, &mLastImage[0]);
+                        mLastTexture = Platform::Graphics::CreateTexture(false, mLastImageWidth, mLastImageHeight, &mLastImage[0]);
                     }
                     Mutex::Unlock(mMutex);
                     BufferFlush();
@@ -4155,14 +4223,14 @@
                             mLastImageHeight = ClonedFrame.height();
                             Memory::Copy(mLastImage.AtDumpingAdded(4 * mLastImageWidth * mLastImageHeight),
                                 ClonedFrame.bits(), 4 * mLastImageWidth * mLastImageHeight);
-                            mLastTexture = Platform::Graphics::CreateTexture(mLastImageWidth, mLastImageHeight, false, &mLastImage[0]);
+                            mLastTexture = Platform::Graphics::CreateTexture(false, mLastImageWidth, mLastImageHeight, &mLastImage[0]);
                         }
                         Mutex::Unlock(mMutex);
                         BufferFlush();
                         ClonedFrame.unmap();
                         Result = true;
                     }
-                    else mLastTexture = Platform::Graphics::CreateTexture(frame.width(), frame.height());
+                    else mLastTexture = Platform::Graphics::CreateTexture(false, frame.width(), frame.height());
                 }
             }
             return Result;
@@ -4273,7 +4341,7 @@
         public:
             void StartCamera()
             {
-                mCamTexture = Platform::Graphics::CreateTexture(mSettings.resolution().width(), mSettings.resolution().height());
+                mCamTexture = Platform::Graphics::CreateTexture(false, mSettings.resolution().width(), mSettings.resolution().height());
                 BOSS_TRACE("StartCamera: GenTexture - LastTexture: %d, width: %d, height: %d",
                     Platform::Graphics::GetTextureID(mCamTexture), mSettings.resolution().width(), mSettings.resolution().height());
                 QAndroidJniObject::callStaticMethod<void>("com/boss2d/BossCameraManager", "init", "(III)V",
@@ -4300,7 +4368,7 @@
                 Platform::Graphics::RemoveTexture(mLastTexture);
                 mLastTexture = nullptr;
                 if(12 < mLastImage.Count())
-                    mLastTexture = Platform::Graphics::CreateTexture(mLastImageWidth, mLastImageHeight, true, &mLastImage[12]);
+                    mLastTexture = Platform::Graphics::CreateTexture(true, mLastImageWidth, mLastImageHeight, &mLastImage[12]);
                 return mLastTexture;
             }
 

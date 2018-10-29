@@ -984,20 +984,28 @@ namespace BOSS
 
             /*!
             \brief 텍스처 생성
+            \param yuv : YUV타입인지의 여부
             \param width : 가로길이(px)
             \param height : 세로길이(px)
-            \param grayscale : 흑백텍스처인지 여부
             \param bits : 초기화할 비트맵 Bits데이터
             \return 생성된 텍스쳐
             */
-            static id_texture CreateTexture(sint32 width, sint32 height, bool grayscale = false, const void* bits = nullptr);
+            static id_texture CreateTexture(bool yuv, sint32 width, sint32 height, const void* bits = nullptr);
+
+            /*!
+            \brief 텍스처의 YUV타입 여부
+            \param texture : 텍스처
+            \return YUV타입인지의 여부
+            */
+            static bool IsTextureYUV(id_texture_read texture);
 
             /*!
             \brief 텍스처의 핸들 얻기(OpenGL의 텍스처ID)
             \param texture : 텍스처
+            \param i : 텍스처순번
             \return 텍스처 핸들
             */
-            static uint32 GetTextureID(id_texture_read texture);
+            static uint32 GetTextureID(id_texture_read texture, sint32 i = 0);
 
             /*!
             \brief 텍스처 가로길이 얻기

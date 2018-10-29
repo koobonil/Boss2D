@@ -1131,7 +1131,7 @@
             BOSS_ASSERT("Further development is needed.", false);
         }
 
-        id_texture Platform::Graphics::CreateTexture(sint32 width, sint32 height, bool grayscale, const void* bits)
+        id_texture Platform::Graphics::CreateTexture(bool yuv, sint32 width, sint32 height, const void* bits)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
 
@@ -1139,7 +1139,15 @@
             return nullptr;
         }
 
-        uint32 Platform::Graphics::GetTextureID(id_texture_read texture)
+        bool Platform::Graphics::IsTextureYUV(id_texture_read texture)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
+
+            BOSS_ASSERT("Further development is needed.", false);
+            return false;
+        }
+
+        uint32 Platform::Graphics::GetTextureID(id_texture_read texture, sint32 i)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
 

@@ -1720,17 +1720,23 @@
             SurfaceClass::UnlockForGL();
         }
 
-        id_texture Platform::Graphics::CreateTexture(sint32 width, sint32 height, bool grayscale, const void* bits)
+        id_texture Platform::Graphics::CreateTexture(bool yuv, sint32 width, sint32 height, const void* bits)
         {
             buffer NewTexture = Buffer::Alloc<TextureClass>(BOSS_DBG 1);
-            ((TextureClass*) NewTexture)->Create(width, height, grayscale, bits);
+            ((TextureClass*) NewTexture)->Create(yuv, width, height, bits);
             return (id_texture) NewTexture;
         }
 
-        uint32 Platform::Graphics::GetTextureID(id_texture_read texture)
+        bool Platform::Graphics::IsTextureYUV(id_texture_read texture)
+        {
+            if(!texture) return false;
+            return ((const TextureClass*) texture)->yuv();
+        }
+
+        uint32 Platform::Graphics::GetTextureID(id_texture_read texture, sint32 i)
         {
             if(!texture) return 0;
-            return ((const TextureClass*) texture)->id();
+            return ((const TextureClass*) texture)->id(i);
         }
 
         sint32 Platform::Graphics::GetTextureWidth(id_texture_read texture)
