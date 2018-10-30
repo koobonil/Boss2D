@@ -1031,7 +1031,7 @@
             return nullptr;
         }
 
-        bool Platform::Graphics::IsTextureYUV(id_texture_read texture)
+        bool Platform::Graphics::IsTextureNV21(id_texture_read texture)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
 

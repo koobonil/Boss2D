@@ -993,11 +993,11 @@ namespace BOSS
             static id_texture CreateTexture(bool yuv, sint32 width, sint32 height, const void* bits = nullptr);
 
             /*!
-            \brief 텍스처의 YUV타입 여부
+            \brief 텍스처의 NV21타입 여부
             \param texture : 텍스처
-            \return YUV타입인지의 여부
+            \return NV21타입인지의 여부
             */
-            static bool IsTextureYUV(id_texture_read texture);
+            static bool IsTextureNV21(id_texture_read texture);
 
             /*!
             \brief 텍스처의 핸들 얻기(OpenGL의 텍스처ID)

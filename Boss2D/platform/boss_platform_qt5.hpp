@@ -1546,12 +1546,12 @@
             mVShader[0] = mVShader[1] = 0;
             mFShader[0] = mFShader[1] = 0;
             mProgram[0] = mProgram[1] = 0;
-            switch(GetVersionGLES())
+            switch(GetVersionGLES() & 0xF0)
             {
             case 0x20:
                 InitShaderGLES20();
                 break;
-            case 0x30: case 0x31:
+            case 0x30:
                 InitShaderGLES30();
                 break;
             default:
@@ -1648,11 +1648,20 @@
             NewRect.r = (rect.r / DstWidth - 0.5) * 2;
             NewRect.b = (0.5 - rect.b / DstHeight) * 2;
 
-            const bool IsYUV = (mProgram[1] && Platform::Graphics::IsTextureYUV(tex));
-            for(sint32 i = 0, iend = (IsYUV)? 3 : 1; i < iend; ++i)
+            const bool IsNV21 = (mProgram[1] && Platform::Graphics::IsTextureNV21(tex));
+            if(IsNV21)
             {
-                f->glActiveTexture(GL_TEXTURE0 + i);
-                f->glBindTexture(GL_TEXTURE_2D, Platform::Graphics::GetTextureID(tex, i));
+                f->glActiveTexture(GL_TEXTURE0);
+                f->glBindTexture(GL_TEXTURE_2D, Platform::Graphics::GetTextureID(tex, 0));
+                f->glUniform1i(mTextureY, 0);
+                f->glActiveTexture(GL_TEXTURE1);
+                f->glBindTexture(GL_TEXTURE_2D, Platform::Graphics::GetTextureID(tex, 1));
+                f->glUniform1i(mTextureUV, 1);
+            }
+            else
+            {
+                f->glActiveTexture(GL_TEXTURE0);
+                f->glBindTexture(GL_TEXTURE_2D, Platform::Graphics::GetTextureID(tex));
             }
             if(antialiasing)
             {
@@ -1671,7 +1680,7 @@
 
             const GLint SrcWidth = Platform::Graphics::GetTextureWidth(tex);
             const GLint SrcHeight = Platform::Graphics::GetTextureHeight(tex);
-            const sint32 SelectedProgram = (IsYUV)? 1 : 0;
+            const sint32 SelectedProgram = (IsNV21)? 1 : 0;
             f->glUseProgram(mProgram[SelectedProgram]); TestGL(BOSS_DBG 0);
 
             f->glBindBuffer(GL_ARRAY_BUFFER, 0); TestGL(BOSS_DBG 0);
@@ -1728,14 +1737,14 @@
         }
 
     private:
-        void InitShader(chars vsource_rgb, chars fsource_rgb, chars vsource_yuv = nullptr, chars fsource_yuv = nullptr)
+        void InitShader(chars vsource_rgb, chars fsource_rgb, chars vsource_nv21 = nullptr, chars fsource_nv21 = nullptr)
         {
             QOpenGLContext* ctx = QOpenGLContext::currentContext();
             QOpenGLFunctions* f = ctx->functions();
 
-            chars VSources[2] = {vsource_rgb, vsource_yuv};
-            chars FSources[2] = {fsource_rgb, fsource_yuv};
-            for(sint32 i = 0, iend = (vsource_yuv && fsource_yuv)? 2 : 1; i < iend; ++i)
+            chars VSources[2] = {vsource_rgb, vsource_nv21};
+            chars FSources[2] = {fsource_rgb, fsource_nv21};
+            for(sint32 i = 0, iend = (vsource_nv21 && fsource_nv21)? 2 : 1; i < iend; ++i)
             {
                 mVShader[i] = f->glCreateShader(GL_VERTEX_SHADER); TestGL(BOSS_DBG 0);
                 f->glShaderSource(mVShader[i], 1, &VSources[i], NULL); TestGL(BOSS_DBG 0);
@@ -1763,6 +1772,11 @@
                 f->glUseProgram(mProgram[i]); TestProgram(BOSS_DBG mProgram[i]);
                 mMatrix[i] = f->glGetUniformLocation(mProgram[i], "u_matrix"); TestGL(BOSS_DBG 0);
                 f->glUniformMatrix4fv(mMatrix[i], 1, GL_FALSE, (const GLfloat*) &mM[0][0]); TestGL(BOSS_DBG 0);
+                if(i == 1)
+                {
+                    mTextureY = f->glGetUniformLocation(mProgram[i], "u_texture_y"); TestGL(BOSS_DBG 0);
+                    mTextureUV = f->glGetUniformLocation(mProgram[i], "u_texture_uv"); TestGL(BOSS_DBG 0);
+                }
             }
         }
         void InitShaderGLES20()
@@ -1819,7 +1833,7 @@
                 "    oColour = v_fragmentColor * texture(u_texture, v_texCoord);\n"
                 "}",
                 ////////////////////////////////////////////////////////////
-                // YUV
+                // NV21
                 ////////////////////////////////////////////////////////////
                 String::Format(
                     "#version 300 es\n"
@@ -1827,6 +1841,8 @@
                     "layout (location = %d) in highp vec4 a_color;\n"
                     "layout (location = %d) in highp vec2 a_texcoord;\n"
                     "uniform highp mat4 u_matrix;\n"
+                    "uniform highp sampler2D u_texture_y;\n"
+                    "uniform highp sampler2D u_texture_uv;\n"
                     "out mediump vec4 v_fragmentColor;\n"
                     "out mediump vec2 v_texCoord;\n"
                     "\n"
@@ -1840,19 +1856,18 @@
                 "layout (location = 0) out highp vec4 oColour;\n"
                 "uniform highp mat4 u_matrix;\n"
                 "uniform highp sampler2D u_texture_y;\n"
-                "uniform highp sampler2D u_texture_u;\n"
-                "uniform highp sampler2D u_texture_v;\n"
+                "uniform highp sampler2D u_texture_uv;\n"
                 "in mediump vec4 v_fragmentColor;\n"
                 "in mediump vec2 v_texCoord;\n"
                 "\n"
                 "void main()\n"
                 "{\n"
                 "    highp float y = texture(u_texture_y, v_texCoord).r;\n"
-                "    highp float u = texture(u_texture_u, v_texCoord).r - 0.5;\n"
-                "    highp float v = texture(u_texture_v, v_texCoord).r - 0.5;\n"
-                "    highp float r = y + 1.40200 * v;\n"
-                "    highp float g = y - 0.34414 * u - 0.71414 * v;\n"
-                "    highp float b = y + 1.77200 * u;\n"
+                "    highp float u = texture(u_texture_uv, v_texCoord).a - 0.5;\n"
+                "    highp float v = texture(u_texture_uv, v_texCoord).r - 0.5;\n"
+                "    highp float r = y + 1.403 * v;\n"
+                "    highp float g = y - 0.344 * u - 0.714 * v;\n"
+                "    highp float b = y + 1.770 * u;\n"
                 "    oColour = v_fragmentColor * vec4(r, g, b, 1.0);\n"
                 "}");
         }
@@ -2028,6 +2043,8 @@
         Attrib mAttrib[4];
         GLint mMatrix[2];
         GLfloat mM[4][4];
+        GLint mTextureY;
+        GLint mTextureUV;
     };
 
     class TextureClass
@@ -2037,10 +2054,10 @@
     public:
         TextureClass()
         {
-            mYUV = false;
+            mNV21 = false;
             mWidth = 0;
             mHeight = 0;
-            mTexture[0] = mTexture[1] = mTexture[2] = 0;
+            mTexture[0] = mTexture[1] = 0;
         }
         ~TextureClass()
         {
@@ -2048,45 +2065,47 @@
         }
 
     public:
-        void Create(bool yuv, sint32 width, sint32 height, const void* bits)
+        void Create(bool nv21, sint32 width, sint32 height, const void* bits)
         {
             QOpenGLContext* ctx = QOpenGLContext::currentContext();
             BOSS_ASSERT("OpenGL의 Context접근에 실패하였습니다", ctx);
             if(ctx)
             {
                 QOpenGLFunctions* f = ctx->functions();
-                mYUV = yuv;
+                mNV21 = nv21;
                 mWidth = width;
                 mHeight = height;
-                if(yuv)
+                if(nv21)
                 {
-                    const void* Pixels[3] = {bits, &((bytes) bits)[mWidth * mHeight], &((bytes) bits)[mWidth * mHeight * 3 / 2]};
-                    const sint32 Widths[3]  = {mWidth, mWidth / 2, mWidth / 2};
-                    const sint32 Heights[3] = {mHeight, mHeight / 2, mHeight / 2};
-                    f->glGenTextures(3, mTexture);
-                    for(sint32 i = 0; i < 3; ++i)
+                    const void* Pixels[2] = {bits, &((bytes) bits)[mWidth * mHeight]};
+                    const sint32 Level[2] = {GL_LUMINANCE, GL_LUMINANCE_ALPHA};
+                    const sint32 Widths[2]  = {mWidth, mWidth / 2};
+                    const sint32 Heights[2] = {mHeight, mHeight / 2};
+                    f->glGenTextures(2, mTexture);
+                    for(sint32 i = 0; i < 2; ++i)
                     {
                         f->glBindTexture(GL_TEXTURE_2D, mTexture[i]);
+                        f->glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+                        f->glTexImage2D(GL_TEXTURE_2D,
+                            0, Level[i], Widths[i], Heights[i],
+                            0, Level[i], GL_UNSIGNED_BYTE, Pixels[i]);
                         f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
                         f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
                         f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
                         f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                        f->glTexImage2D(GL_TEXTURE_2D,
-                            0, GL_LUMINANCE, Widths[i], Heights[i],
-                            0, GL_LUMINANCE, GL_UNSIGNED_BYTE, Pixels[i]);
                     }
                 }
                 else
                 {
                     f->glGenTextures(1, mTexture);
                     f->glBindTexture(GL_TEXTURE_2D, mTexture[0]);
+                    f->glTexImage2D(GL_TEXTURE_2D,
+                        0, GL_RGBA8, mWidth, mHeight,
+                        0, GL_BGRA, GL_UNSIGNED_BYTE, bits);
                     f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
                     f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
                     f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
                     f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                    f->glTexImage2D(GL_TEXTURE_2D,
-                        0, GL_RGBA8, mWidth, mHeight,
-                        0, GL_BGRA, GL_UNSIGNED_BYTE, bits);
                 }
             }
         }
@@ -2109,7 +2128,7 @@
         }
 
     public:
-        inline bool yuv() const {return mYUV;}
+        inline bool nv21() const {return mNV21;}
         inline sint32 width() const {return mWidth;}
         inline sint32 height() const {return mHeight;}
         inline uint32 id(sint32 i) const {return mTexture[i];}
@@ -2117,17 +2136,17 @@
     public:
         void SetDataDirectly(uint32 texture, sint32 width, sint32 height)
         {
-            mYUV = false;
+            mNV21 = false;
             mWidth = width;
             mHeight = height;
             mTexture[0] = texture;
         }
 
     private:
-        bool mYUV;
+        bool mNV21;
         sint32 mWidth;
         sint32 mHeight;
-        uint32 mTexture[3];
+        uint32 mTexture[2];
     };
 
     class SurfaceClass

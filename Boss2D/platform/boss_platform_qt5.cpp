@@ -1727,10 +1727,10 @@
             return (id_texture) NewTexture;
         }
 
-        bool Platform::Graphics::IsTextureYUV(id_texture_read texture)
+        bool Platform::Graphics::IsTextureNV21(id_texture_read texture)
         {
             if(!texture) return false;
-            return ((const TextureClass*) texture)->yuv();
+            return ((const TextureClass*) texture)->nv21();
         }
 
         uint32 Platform::Graphics::GetTextureID(id_texture_read texture, sint32 i)
