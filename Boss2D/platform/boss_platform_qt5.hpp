@@ -1906,9 +1906,11 @@
             static uint08 Version = 0xFF;
             if(Version != 0xFF) return Version;
 
-            chars VendorString = (chars) glGetString(GL_VENDOR);
-            chars RendererString = (chars) glGetString(GL_RENDERER);
-            chars VersionString = (chars) glGetString(GL_VERSION);
+            QOpenGLContext* ctx = QOpenGLContext::currentContext();
+            QOpenGLFunctions* f = ctx->functions();
+            chars VendorString = (chars) f->glGetString(GL_VENDOR);
+            chars RendererString = (chars) f->glGetString(GL_RENDERER);
+            chars VersionString = (chars) f->glGetString(GL_VERSION);
             // 예시1: OpenGL ES 2.0 IMGSGX543-124.1
             // 예시2: OpenGL ES 3.0 APPLE-12.0.38
             // 예시3: 2.1 ATI-1.51.8
@@ -1932,7 +1934,9 @@
         }
         void TestGL(BOSS_DBG_PRM sint32 nouse)
         {
-            if(auto errorCode = glGetError())
+            QOpenGLContext* ctx = QOpenGLContext::currentContext();
+            QOpenGLFunctions* f = ctx->functions();
+            if(auto errorCode = f->glGetError())
                 BOSS_ASSERT_PRM(String::Format("TestGL(error:%d) is failed", errorCode), false);
         }
         void TestShader(BOSS_DBG_PRM GLuint shader)
@@ -1949,7 +1953,7 @@
                 f->glGetShaderInfoLog(shader, 4096, &s, log);
                 BOSS_ASSERT_PRM(String::Format("TestShader(%s) is failed", log), false);
             }
-            else if(auto errorCode = glGetError())
+            else if(auto errorCode = f->glGetError())
                 BOSS_ASSERT_PRM(String::Format("TestShader(error:%d) is failed", errorCode), false);
         }
         void TestProgram(BOSS_DBG_PRM GLuint program)
@@ -1968,7 +1972,7 @@
                 BOSS_ASSERT_PRM(String::Format("TestProgram(%s) is failed", pszInfoLog), false);
                 delete [] pszInfoLog;
             }
-            else if(auto errorCode = glGetError())
+            else if(auto errorCode = f->glGetError())
                 BOSS_ASSERT_PRM(String::Format("TestProgram(error:%d) is failed", errorCode), false);
         }
         void LoadIdentity()
@@ -2163,7 +2167,7 @@
         inline uint32 fbo() const {return mFBO.handle();}
         inline id_texture_read texture() const
         {
-            mLastTexture.SetDataDirectly(mFBO.texture(), mFBO.texture(), mFBO.texture());
+            mLastTexture.SetDataDirectly(mFBO.texture(), mFBO.width(), mFBO.height());
             return (id_texture_read) &mLastTexture;
         }
         inline sint32 width() const {return mFBO.width();}
@@ -2190,7 +2194,6 @@
                 mSavedSurface = nullptr;
             }
         }
-
         const QImage& GetLastImage() const
         {
             if(!mIsValidLastImage)
@@ -3012,7 +3015,11 @@
                 [this, matchid](const QVariant& v)->void
                 {
                     if(mCb)
-                        mCb(mData, String::Format("JSFunction:%d", matchid), v.toString().toUtf8().constData());
+                    {
+                        const String Result = v.toString().toUtf8().constData();
+                        if(0 < Result.Length())
+                            mCb(mData, String::Format("JSFunction:%d", matchid), Result);
+                    }
                 });
         }
 
@@ -3158,8 +3165,8 @@
             }
             const QImage& GetImage()
             {
-                mView.update();
                 CanvasClass CurCanvas(&mLastImage);
+                mView.update();
                 const QRect CurRect(0, 0, mLastImage.width(), mLastImage.height());
                 mScene.render(&CurCanvas.painter(), CurRect, CurRect);
                 return mLastImage;

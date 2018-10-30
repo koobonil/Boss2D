@@ -3149,7 +3149,7 @@
         ////////////////////////////////////////////////////////////////////////////////
         h_web Platform::Web::Create(chars url, sint32 width, sint32 height, bool clearcookies, EventCB cb, payload data)
         {
-            WebPrivate* NewWeb = (WebPrivate*) Buffer::Alloc<WebPrivate>(BOSS_DBG 1);
+            auto NewWeb = (WebPrivate*) Buffer::Alloc<WebPrivate>(BOSS_DBG 1);
             if(clearcookies) NewWeb->ClearCookies();
             if(cb) NewWeb->SetCallback(cb, data);
             NewWeb->Resize(width, height);
@@ -3167,45 +3167,45 @@
 
         void Platform::Web::Reload(h_web web, chars url)
         {
-            if(WebPrivate* CurWeb = (WebPrivate*) web.get())
+            if(auto CurWeb = (WebPrivate*) web.get())
                 CurWeb->Reload(url);
         }
 
         bool Platform::Web::NowLoading(h_web web, float* rate)
         {
-            if(WebPrivate* CurWeb = (WebPrivate*) web.get())
+            if(auto CurWeb = (WebPrivate*) web.get())
                 return CurWeb->NowLoading(rate);
             return false;
         }
 
         bool Platform::Web::Resize(h_web web, sint32 width, sint32 height)
         {
-            if(WebPrivate* CurWeb = (WebPrivate*) web.get())
+            if(auto CurWeb = (WebPrivate*) web.get())
                 return CurWeb->Resize(width, height);
             return false;
         }
 
         void Platform::Web::SendTouchEvent(h_web web, TouchType type, sint32 x, sint32 y)
         {
-            if(WebPrivate* CurWeb = (WebPrivate*) web.get())
+            if(auto CurWeb = (WebPrivate*) web.get())
                 CurWeb->SendTouchEvent(type, x, y);
         }
 
         void Platform::Web::SendKeyEvent(h_web web, sint32 code, chars text, bool pressed)
         {
-            if(WebPrivate* CurWeb = (WebPrivate*) web.get())
+            if(auto CurWeb = (WebPrivate*) web.get())
                 CurWeb->SendKeyEvent(code, text, pressed);
         }
 
         void Platform::Web::CallJSFunction(h_web web, chars script, sint32 matchid)
         {
-            if(WebPrivate* CurWeb = (WebPrivate*) web.get())
+            if(auto CurWeb = (WebPrivate*) web.get())
                 CurWeb->CallJSFunction(script, matchid);
         }
 
         id_image_read Platform::Web::GetScreenshotImage(h_web web)
         {
-            if(WebPrivate* CurWeb = (WebPrivate*) web.get())
+            if(auto CurWeb = (WebPrivate*) web.get())
             {
                 QPixmap& ScreenshotPixmap = *BOSS_STORAGE_SYS(QPixmap);
                 ScreenshotPixmap = CurWeb->GetPixmap();
@@ -3216,7 +3216,7 @@
 
         id_bitmap_read Platform::Web::GetScreenshotBitmap(h_web web, orientationtype ori)
         {
-            if(WebPrivate* CurWeb = (WebPrivate*) web.get())
+            if(auto CurWeb = (WebPrivate*) web.get())
             {
                 Image& ScreenshotImage = *BOSS_STORAGE_SYS(Image);
                 const QImage& CurImage = CurWeb->GetImage();
