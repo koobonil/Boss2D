@@ -1131,7 +1131,15 @@
             BOSS_ASSERT("Further development is needed.", false);
         }
 
-        id_texture Platform::Graphics::CreateTexture(bool yuv, sint32 width, sint32 height, const void* bits)
+        id_texture Platform::Graphics::CreateTexture(bool nv21, sint32 width, sint32 height, const void* bits)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
+
+            BOSS_ASSERT("Further development is needed.", false);
+            return nullptr;
+        }
+
+        id_texture Platform::Graphics::CloneTexture(id_texture texture)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
 
@@ -1176,6 +1184,14 @@
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
 
             BOSS_ASSERT("Further development is needed.", false);
+        }
+
+        id_bitmap Platform::Graphics::CreateBitmapFromTexture(id_texture_read texture)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
+
+            BOSS_ASSERT("Further development is needed.", false);
+            return nullptr;
         }
 
         id_surface Platform::Graphics::CreateSurface(sint32 width, sint32 height)
@@ -2240,7 +2256,7 @@
             BOSS_ASSERT("Further development is needed.", false);
         }
 
-        id_texture_read Platform::Camera::LastCapturedTexture(id_camera camera)
+        id_texture Platform::Camera::CloneCapturedTexture(id_camera camera)
         {
             BOSS_ASSERT("Further development is needed.", false);
             return nullptr;

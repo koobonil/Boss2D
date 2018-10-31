@@ -157,6 +157,9 @@
                     }
                     result = app.exec();
                     PlatformQuit();
+                    ////////////////////////
+                    // 이 시점에서 모든 활성화된 뷰를 제거해야 함!!!
+                    ////////////////////////
                 }
                 g_window = nullptr;
             }
@@ -201,8 +204,10 @@
             qDebug() << "************************************************************";
         #endif
 
-        if(Platform::Option::GetFlag("AssertPopup"))
+        static bool IsRunning = false;
+        if(!IsRunning && Platform::Option::GetFlag("AssertPopup"))
         {
+            IsRunning = true;
             #if BOSS_WINDOWS
                 QString AssertMessage;
                 AssertMessage.sprintf(
@@ -238,6 +243,7 @@
                 case QMessageBox::NoToAll: return 1;
                 }
             #endif
+            IsRunning = false;
         }
         return 2;
     }
@@ -1720,11 +1726,17 @@
             SurfaceClass::UnlockForGL();
         }
 
-        id_texture Platform::Graphics::CreateTexture(bool yuv, sint32 width, sint32 height, const void* bits)
+        id_texture Platform::Graphics::CreateTexture(bool nv21, sint32 width, sint32 height, const void* bits)
         {
             buffer NewTexture = Buffer::Alloc<TextureClass>(BOSS_DBG 1);
-            ((TextureClass*) NewTexture)->Create(yuv, width, height, bits);
+            ((TextureClass*) NewTexture)->Init(nv21, width, height, bits);
             return (id_texture) NewTexture;
+        }
+
+        id_texture Platform::Graphics::CloneTexture(id_texture texture)
+        {
+            if(!texture) return false;
+            return (id_texture) ((TextureClass*) texture)->clone();
         }
 
         bool Platform::Graphics::IsTextureNV21(id_texture_read texture)
@@ -1753,7 +1765,14 @@
 
         void Platform::Graphics::RemoveTexture(id_texture texture)
         {
-            Buffer::Free((buffer) texture);
+            if(texture && ((TextureClass*) texture)->release())
+                Buffer::Free((buffer) texture);
+        }
+
+        id_bitmap Platform::Graphics::CreateBitmapFromTexture(id_texture_read texture)
+        {
+            if(!texture) return nullptr;
+            return ((const TextureClass*) texture)->CreateBitmap();
         }
 
         id_surface Platform::Graphics::CreateSurface(sint32 width, sint32 height)
@@ -3435,11 +3454,11 @@
             CurCamera->Capture(preview, needstop);
         }
 
-        id_texture_read Platform::Camera::LastCapturedTexture(id_camera camera)
+        id_texture Platform::Camera::CloneCapturedTexture(id_camera camera)
         {
-            if(!camera) return 0;
+            if(!camera) return nullptr;
             CameraClass* CurCamera = (CameraClass*) camera;
-            return CurCamera->LastCapturedTexture();
+            return CurCamera->CloneCapturedTexture();
         }
 
         id_image_read Platform::Camera::LastCapturedImage(id_camera camera, sint32 maxwidth, sint32 maxheight, sint32 rotate)

@@ -131,6 +131,8 @@ namespace BOSS
 
     id_bitmap Bmp::CloneFromBits(bytes bits, sint32 width, sint32 height, sint32 bitcount, orientationtype ori, id_bitmap oldbitmap)
     {
+        BOSS_ASSERT("oldbitmap와 복제할 bits는 같을 수 없습니다", !oldbitmap || GetBits(oldbitmap) != bits);
+
         id_bitmap NewBitmap;
         sint32 NewBitmapWidth;
         sint32 NewBitmapHeight;
@@ -148,7 +150,10 @@ namespace BOSS
 
         if(!oldbitmap || Bmp::GetBitCount(oldbitmap) != 32 ||
             Bmp::GetWidth(oldbitmap) != NewBitmapWidth || Bmp::GetHeight(oldbitmap) != NewBitmapHeight)
+        {
+            Remove(oldbitmap);
             NewBitmap = Create(4, NewBitmapWidth, NewBitmapHeight);
+        }
         else NewBitmap = oldbitmap;
 
         const sint32 SrcXRow = (bitcount / 8);

@@ -984,13 +984,20 @@ namespace BOSS
 
             /*!
             \brief 텍스처 생성
-            \param yuv : YUV타입인지의 여부
+            \param nv21 : NV21타입인지의 여부
             \param width : 가로길이(px)
             \param height : 세로길이(px)
             \param bits : 초기화할 비트맵 Bits데이터
             \return 생성된 텍스쳐
             */
-            static id_texture CreateTexture(bool yuv, sint32 width, sint32 height, const void* bits = nullptr);
+            static id_texture CreateTexture(bool nv21, sint32 width, sint32 height, const void* bits = nullptr);
+
+            /*!
+            \brief 텍스처 복제
+            \param texture : 텍스처
+            \return 복제된 텍스쳐
+            */
+            static id_texture CloneTexture(id_texture texture);
 
             /*!
             \brief 텍스처의 NV21타입 여부
@@ -1026,6 +1033,13 @@ namespace BOSS
             \param texture : 삭제할 텍스처
             */
             static void RemoveTexture(id_texture texture);
+
+            /*!
+            \brief 텍스처에서 비트맵 생성하기
+            \param texture : 텍스처
+            \return 텍스처 비트맵(nullptr은 실패)
+            */
+            static id_bitmap CreateBitmapFromTexture(id_texture_read texture);
 
             /*!
             \brief 서피스(FBO) 생성
@@ -2182,42 +2196,42 @@ namespace BOSS
             static void Capture(id_camera camera, bool preview, bool needstop);
 
             /*!
-            \brief 마지막 촬영한 텍스처 얻기
+            \brief 마지막 촬영된 텍스처 복제
             \param camera : 카메라ID
-            \return 촬영한 텍스처(nullptr은 실패)
+            \return 복제된 텍스처(nullptr은 실패)
             */
-            static id_texture_read LastCapturedTexture(id_camera camera);
+            static id_texture CloneCapturedTexture(id_camera camera);
 
             /*!
-            \brief 마지막 촬영한 이미지 얻기
+            \brief 마지막 촬영된 이미지 얻기
             \param camera : 카메라ID
             \param maxwidth : 가로길이 최대값
             \param maxheight : 세로길이 최대값
             \param rotate : 회전각도
-            \return 촬영한 이미지(nullptr은 실패)
+            \return 촬영된 이미지(nullptr은 실패)
             */
             static id_image_read LastCapturedImage(id_camera camera, sint32 maxwidth = -1, sint32 maxheight = -1, sint32 rotate = 0);
 
             /*!
-            \brief 마지막 촬영한 비트맵 얻기
+            \brief 마지막 촬영된 비트맵 얻기
             \param camera : 카메라ID
             \param ori : 90도기준 회전상태와 상하반전여부(디폴트는 상하반전)
-            \return 촬영한 비트맵(nullptr은 실패)
+            \return 촬영된 비트맵(nullptr은 실패)
             */
             static id_bitmap_read LastCapturedBitmap(id_camera camera, orientationtype ori = orientationtype_fliped0);
 
             /*!
-            \brief 마지막 촬영한 이미지크기 얻기
+            \brief 마지막 촬영된 이미지크기 얻기
             \param camera : 카메라ID
-            \return 촬영한 이미지크기
+            \return 촬영된 이미지크기
             */
             static size64 LastCapturedSize(id_camera camera);
 
             /*!
-            \brief 마지막 촬영한 시간 얻기
+            \brief 마지막 촬영된 시간 얻기
             \param camera : 카메라ID
             \param avgmsec : 평균촬영간격
-            \return 촬영한 시간
+            \return 촬영된 시간
             */
             static uint64 LastCapturedTimeMsec(id_camera camera, sint32* avgmsec = nullptr);
 

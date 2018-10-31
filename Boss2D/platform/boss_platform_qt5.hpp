@@ -2054,6 +2054,7 @@
     public:
         TextureClass()
         {
+            mRefCount = 1;
             mNV21 = false;
             mWidth = 0;
             mHeight = 0;
@@ -2061,11 +2062,12 @@
         }
         ~TextureClass()
         {
+            BOSS_ASSERT("잘못된 시나리오입니다", mRefCount == 0);
             Remove();
         }
 
     public:
-        void Create(bool nv21, sint32 width, sint32 height, const void* bits)
+        void Init(bool nv21, sint32 width, sint32 height, const void* bits)
         {
             QOpenGLContext* ctx = QOpenGLContext::currentContext();
             BOSS_ASSERT("OpenGL의 Context접근에 실패하였습니다", ctx);
@@ -2116,7 +2118,7 @@
             if(ctx)
             {
                 QOpenGLFunctions* f = ctx->functions();
-                for(sint32 i = 0; i < 3; ++i)
+                for(sint32 i = 0; i < 2; ++i)
                 {
                     if(mTexture[i])
                     {
@@ -2126,8 +2128,39 @@
                 }
             }
         }
+        id_bitmap CreateBitmap() const
+        {
+            QOpenGLContext* ctx = QOpenGLContext::currentContext();
+            BOSS_ASSERT("OpenGL의 Context접근에 실패하였습니다", ctx);
+            if(ctx)
+            {
+                QOpenGLFunctions* f = ctx->functions();
+                auto NewBitmap = Bmp::Create(4, mWidth, mHeight);
+
+                if(mNV21)
+                {
+                    ////////////////////////////////////////////
+                    ////////////////////////////////////////////
+                }
+                else
+                {
+                    GLuint fbo = 0, prevFbo = 0;
+                    f->glGenFramebuffers(1, &fbo);
+                    f->glGetIntegerv(GL_FRAMEBUFFER_BINDING, (GLint*) &prevFbo);
+                    f->glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+                    f->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mTexture[0], 0);
+                    f->glReadPixels(0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, Bmp::GetBits(NewBitmap));
+                    f->glBindFramebuffer(GL_FRAMEBUFFER, prevFbo);
+                    f->glDeleteFramebuffers(1, &fbo);
+                }
+                return NewBitmap;
+            }
+            return nullptr;
+        }
 
     public:
+        inline TextureClass* clone() {++mRefCount; return this;}
+        inline bool release() {return (--mRefCount == 0);}
         inline bool nv21() const {return mNV21;}
         inline sint32 width() const {return mWidth;}
         inline sint32 height() const {return mHeight;}
@@ -2143,6 +2176,7 @@
         }
 
     private:
+        sint32 mRefCount;
         bool mNV21;
         sint32 mWidth;
         sint32 mHeight;
@@ -4110,7 +4144,6 @@
         uint08s mLastImage;
         sint32 mLastImageWidth;
         sint32 mLastImageHeight;
-        id_texture mLastTexture;
 
     public:
         CameraSurface(const QCameraInfo& info) : mCamera(info)
@@ -4119,11 +4152,9 @@
             mNeedFlip = false;
             mLastImageWidth = 0;
             mLastImageHeight = 0;
-            mLastTexture = nullptr;
         }
         ~CameraSurface()
         {
-            Platform::Graphics::RemoveTexture(mLastTexture);
             StopCamera();
             Mutex::Close(mMutex);
         }
@@ -4140,7 +4171,12 @@
         void StopPreview() {mCamera.setViewfinder((QAbstractVideoSurface*) nullptr);}
         sint32 GetLastImageWidth() const {return mLastImageWidth;}
         sint32 GetLastImageHeight() const {return mLastImageHeight;}
-        id_texture_read GetLastTexture() {return mLastTexture;}
+        id_texture CreateLastTexture()
+        {
+            if(0 < mLastImageWidth && 0 < mLastImageHeight && 0 < mLastImage.Count())
+                return Platform::Graphics::CreateTexture(false, mLastImageWidth, mLastImageHeight, &mLastImage[0]);
+            return nullptr;
+        }
 
     protected:
         virtual bool CaptureEnabled() {return false;}
@@ -4202,16 +4238,33 @@
             AddPictureShotCount();
             bool Result = false;
             if(frame.isValid() && CaptureEnabled())
-            if(QOpenGLContext* ctx = QOpenGLContext::currentContext())
             {
-                QOpenGLFunctions* f = ctx->functions();
-                Platform::Graphics::RemoveTexture(mLastTexture);
-                mLastTexture = nullptr;
-
-                // QVideoFrame::map함수의 버그에 따른 수동패치
                 auto FrameType = frame.handleType();
-                if(FrameType == QAbstractVideoBuffer::GLTextureHandle)
+                if(FrameType != QAbstractVideoBuffer::GLTextureHandle)
                 {
+                    QVideoFrame ClonedFrame(frame);
+                    if(ClonedFrame.map(QAbstractVideoBuffer::ReadOnly))
+                    {
+                        Mutex::Lock(mMutex);
+                        {
+                            mPixelFormat = ClonedFrame.pixelFormat();
+                            mNeedFlip = true;
+                            mLastImage.SubtractionAll();
+                            mLastImageWidth = ClonedFrame.width();
+                            mLastImageHeight = ClonedFrame.height();
+                            Memory::Copy(mLastImage.AtDumpingAdded(4 * mLastImageWidth * mLastImageHeight),
+                                ClonedFrame.bits(), 4 * mLastImageWidth * mLastImageHeight);
+                        }
+                        Mutex::Unlock(mMutex);
+                        BufferFlush();
+                        ClonedFrame.unmap();
+                        Result = true;
+                    }
+                }
+                // QVideoFrame::map함수의 버그에 따른 수동패치
+                else if(QOpenGLContext* ctx = QOpenGLContext::currentContext())
+                {
+                    QOpenGLFunctions* f = ctx->functions();
                     GLuint textureId = frame.handle().toUInt();
                     GLuint fbo = 0, prevFbo = 0;
                     f->glGenFramebuffers(1, &fbo);
@@ -4227,36 +4280,12 @@
                         mLastImageHeight = frame.height();
                         f->glReadPixels(0, 0, mLastImageWidth, mLastImageHeight, GL_RGBA, GL_UNSIGNED_BYTE,
                             mLastImage.AtDumpingAdded(4 * mLastImageWidth * mLastImageHeight));
-                        mLastTexture = Platform::Graphics::CreateTexture(false, mLastImageWidth, mLastImageHeight, &mLastImage[0]);
                     }
                     Mutex::Unlock(mMutex);
                     BufferFlush();
                     f->glBindFramebuffer(GL_FRAMEBUFFER, prevFbo);
                     f->glDeleteFramebuffers(1, &fbo);
                     Result = true;
-                }
-                else
-                {
-                    QVideoFrame ClonedFrame(frame);
-                    if(ClonedFrame.map(QAbstractVideoBuffer::ReadOnly))
-                    {
-                        Mutex::Lock(mMutex);
-                        {
-                            mPixelFormat = ClonedFrame.pixelFormat();
-                            mNeedFlip = true;
-                            mLastImage.SubtractionAll();
-                            mLastImageWidth = ClonedFrame.width();
-                            mLastImageHeight = ClonedFrame.height();
-                            Memory::Copy(mLastImage.AtDumpingAdded(4 * mLastImageWidth * mLastImageHeight),
-                                ClonedFrame.bits(), 4 * mLastImageWidth * mLastImageHeight);
-                            mLastTexture = Platform::Graphics::CreateTexture(false, mLastImageWidth, mLastImageHeight, &mLastImage[0]);
-                        }
-                        Mutex::Unlock(mMutex);
-                        BufferFlush();
-                        ClonedFrame.unmap();
-                        Result = true;
-                    }
-                    else mLastTexture = Platform::Graphics::CreateTexture(false, frame.width(), frame.height());
                 }
             }
             return Result;
@@ -4303,7 +4332,6 @@
             uint08s mLastImage;
             sint32 mLastImageWidth;
             sint32 mLastImageHeight;
-            id_texture mLastTexture;
             id_texture mCamTexture;
 
         public:
@@ -4389,13 +4417,11 @@
             void StopPreview() {QAndroidJniObject::callStaticMethod<void>("com/boss2d/BossCameraManager", "stop", "()V");}
             sint32 GetLastImageWidth() const {return mLastImageWidth;}
             sint32 GetLastImageHeight() const {return mLastImageHeight;}
-            id_texture_read GetLastTexture()
+            id_texture CreateLastTexture()
             {
-                Platform::Graphics::RemoveTexture(mLastTexture);
-                mLastTexture = nullptr;
-                if(12 < mLastImage.Count())
-                    mLastTexture = Platform::Graphics::CreateTexture(true, mLastImageWidth, mLastImageHeight, &mLastImage[12]);
-                return mLastTexture;
+                if(0 < mLastImageWidth && 0 < mLastImageHeight && 12 < mLastImage.Count())
+                    return Platform::Graphics::CreateTexture(true, mLastImageWidth, mLastImageHeight, &mLastImage[12]);
+                return nullptr;
             }
 
         protected:
@@ -4658,9 +4684,15 @@
             }
             Mutex::Unlock(mMutex);
         }
-        id_texture_read GetCapturedTexture()
+        id_texture CloneCapturedTexture()
         {
-            return GetLastTexture();
+            id_texture Result = nullptr;
+            Mutex::Lock(mMutex);
+            {
+                Result = CreateLastTexture();
+            }
+            Mutex::Unlock(mMutex);
+            return Result;
         }
         void GetCapturedImage(QPixmap& pixmap, sint32 maxwidth, sint32 maxheight, sint32 rotate)
         {
@@ -4721,12 +4753,7 @@
                 {
                     mUpdateForBitmap = false;
                     if(mUpdateForImage) DecodeImage(mDecodedWidth, mDecodedHeight, mDecodedBits);
-                    auto NewBitmap = Bmp::CloneFromBits(&mDecodedBits[0], mDecodedWidth, mDecodedHeight, 32, ori, bitmap);
-                    if(bitmap != NewBitmap)
-                    {
-                        Bmp::Remove(bitmap);
-                        bitmap = NewBitmap;
-                    }
+                    bitmap = Bmp::CloneFromBits(&mDecodedBits[0], mDecodedWidth, mDecodedHeight, 32, ori, bitmap);
                     //단편화방지차원: if(!mUpdateForImage) mDecodedBits.Clear();
                 }
             }
@@ -4902,10 +4929,10 @@
             if(mCameraService)
                 mCameraService->Capture(preview, needstop);
         }
-        id_texture_read LastCapturedTexture()
+        id_texture CloneCapturedTexture()
         {
             if(mCameraService)
-                return mCameraService->GetCapturedTexture();
+                return mCameraService->CloneCapturedTexture();
             return nullptr;
         }
         id_image_read LastCapturedImage(sint32 maxwidth, sint32 maxheight, sint32 rotate)
