@@ -254,6 +254,23 @@ namespace BOSS
         return NewBitmap;
     }
 
+    id_bitmap Bmp::CloneFromNV21(bytes ys, uv16s uvs, sint32 width, sint32 height)
+    {
+        id_bitmap NewBitmap = Create(4, width, height);
+        auto DstBits = (Bmp::bitmappixel*) GetBits(NewBitmap);
+        for(sint32 y = 0; y < height; ++y)
+        for(sint32 x = 0; x < width; ++x)
+        {
+            bitmappixel& CurBit = DstBits[x + (height - 1 - y) * width];
+            CurBit.r = *ys;
+            CurBit.g = *ys;
+            CurBit.b = *ys;
+            CurBit.a = 0xFF;
+            ys++;
+        }
+        return NewBitmap;
+    }
+
     id_bitmap Bmp::Copy(id_bitmap_read bitmap, sint32 l, sint32 t, sint32 r, sint32 b)
     {
         BOSS_ASSERT("본 함수는 32비트 비트맵만 지원합니다", GetBitCount(bitmap) == 32);
@@ -290,6 +307,24 @@ namespace BOSS
         {
             bitmappixel& CurBit = CurBits[x + (CurHeight - 1 - y) * CurWidth];
             if(CurBit.argb == from) CurBit.argb = to;
+        }
+    }
+
+    void Bmp::SwapRedBlue(id_bitmap bitmap)
+    {
+        BOSS_ASSERT("본 함수는 32비트 비트맵만 지원합니다", GetBitCount(bitmap) == 32);
+        const sint32 CurWidthHeight = GetWidth(bitmap) * GetHeight(bitmap);
+        bitmappixel* CurBits = (bitmappixel*) GetBits(bitmap);
+        const bitmappixel* CurBitsEnd = CurBits + CurWidthHeight;
+        bitmappixel Temp;
+        switch(~(CurWidthHeight - 1) & 0xFF)
+        while(CurBits < CurBitsEnd)
+        {
+            CASE256(
+                Temp = *CurBits;
+                CurBits->r = Temp.b;
+                CurBits->b = Temp.r;
+                CurBits++;)
         }
     }
 

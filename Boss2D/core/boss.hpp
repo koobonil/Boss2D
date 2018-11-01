@@ -23,6 +23,8 @@ namespace BOSS
     typedef const wchar_t*                    wchars;
     typedef const wchar_t*                    wchars_endless;
     typedef unsigned int                      argb32;
+    typedef struct {uint08 u, v;}             uv16;
+    typedef const uv16*                       uv16s;
     typedef struct {unsigned char ip[4];}     ip4address;
     typedef struct {unsigned char ip[16];}    ip6address;
 

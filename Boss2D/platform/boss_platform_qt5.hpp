@@ -1915,8 +1915,8 @@
             }
         }
 
-    private:
-        uint08 GetVersionGLES()
+    public:
+        static uint08 GetVersionGLES()
         {
             static uint08 Version = 0xFF;
             if(Version != 0xFF) return Version;
@@ -1947,14 +1947,14 @@
             else Version = 0x00; // 데스크탑용 OpenGL
             return Version;
         }
-        void TestGL(BOSS_DBG_PRM sint32 nouse)
+        static void TestGL(BOSS_DBG_PRM sint32 nouse)
         {
             QOpenGLContext* ctx = QOpenGLContext::currentContext();
             QOpenGLFunctions* f = ctx->functions();
             if(auto errorCode = f->glGetError())
                 BOSS_ASSERT_PRM(String::Format("TestGL(error:%d) is failed", errorCode), false);
         }
-        void TestShader(BOSS_DBG_PRM GLuint shader)
+        static void TestShader(BOSS_DBG_PRM GLuint shader)
         {
             QOpenGLContext* ctx = QOpenGLContext::currentContext();
             QOpenGLFunctions* f = ctx->functions();
@@ -1971,7 +1971,7 @@
             else if(auto errorCode = f->glGetError())
                 BOSS_ASSERT_PRM(String::Format("TestShader(error:%d) is failed", errorCode), false);
         }
-        void TestProgram(BOSS_DBG_PRM GLuint program)
+        static void TestProgram(BOSS_DBG_PRM GLuint program)
         {
             QOpenGLContext* ctx = QOpenGLContext::currentContext();
             QOpenGLFunctions* f = ctx->functions();
@@ -1990,6 +1990,7 @@
             else if(auto errorCode = f->glGetError())
                 BOSS_ASSERT_PRM(String::Format("TestProgram(error:%d) is failed", errorCode), false);
         }
+    private:
         void LoadIdentity()
         {
             mM[0][0] = 1; mM[0][1] = 0; mM[0][2] = 0; mM[0][3] = 0;
@@ -2135,12 +2136,11 @@
             if(ctx)
             {
                 QOpenGLFunctions* f = ctx->functions();
-                auto NewBitmap = Bmp::Create(4, mWidth, mHeight);
-
+                id_bitmap NewBitmap = nullptr;
                 if(mNV21)
                 {
-                    ////////////////////////////////////////////
-                    ////////////////////////////////////////////
+                    //////////////////////////////////////////////////////
+                    ///////////////////////////////////////////////////////////////////////
                 }
                 else
                 {
@@ -2148,10 +2148,13 @@
                     f->glGenFramebuffers(1, &fbo);
                     f->glGetIntegerv(GL_FRAMEBUFFER_BINDING, (GLint*) &prevFbo);
                     f->glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+                    auto NewBitmap = Bmp::Create(4, mWidth, mHeight);
                     f->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mTexture[0], 0);
                     f->glReadPixels(0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, Bmp::GetBits(NewBitmap));
                     f->glBindFramebuffer(GL_FRAMEBUFFER, prevFbo);
                     f->glDeleteFramebuffers(1, &fbo);
+                    Bmp::SwapRedBlue(NewBitmap);
                 }
                 return NewBitmap;
             }
@@ -4414,7 +4417,6 @@
                 mMutex = Mutex::Open();
                 mLastImageWidth = 0;
                 mLastImageHeight = 0;
-                mLastTexture = nullptr;
                 mCamTexture = nullptr;
                 // 콜백함수 연결
                 JNINativeMethod methods[] {
@@ -4427,7 +4429,6 @@
             }
             ~CameraSurfaceForAndroid()
             {
-                Platform::Graphics::RemoveTexture(mLastTexture);
                 Platform::Graphics::RemoveTexture(mCamTexture);
                 StopCamera();
                 SavedMe() = nullptr;

@@ -181,6 +181,9 @@ static void TraceCallback(void* ctx, int level, const char* string)
 
 H264EncoderPrivate::H264EncoderPrivate(sint32 width, sint32 height, bool fastmode)
 {
+    BOSS_ASSERT("width값은 짝수여야 합니다", (width & 1) == 0);
+    BOSS_ASSERT("height값은 짝수여야 합니다", (height & 1) == 0);
+
     mEncoder = nullptr;
     int rv = WelsCreateSVCEncoder(&mEncoder);
     BOSS_ASSERT("WelsCreateSVCEncoder가 실패하였습니다", rv == cmResultSuccess && mEncoder != nullptr);
