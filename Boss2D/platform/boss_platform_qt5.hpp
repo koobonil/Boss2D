@@ -26,6 +26,7 @@
     #include <QGLWidget>
     #include <QGLFunctions>
     #include <QGLShaderProgram>
+    #include <QGLFramebufferObject>
     #include <QtPurchasing>
 
     #if QT_HAVE_SERIALPORT
@@ -47,7 +48,6 @@
     #include <QLocalServer>
 
     #if QT_HAVE_WEBENGINEWIDGETS
-        #include <QtWebEngine>
         #include <QWebEngineView>
         #include <QWebEngineProfile>
     #endif
@@ -2167,12 +2167,18 @@
         inline uint32 id(sint32 i) const {return mTexture[i];}
 
     public:
-        void SetDataDirectly(uint32 texture, sint32 width, sint32 height)
+        void ResetDirectly(uint32 texture, sint32 width, sint32 height)
         {
+            mRefCount = 1;
             mNV21 = false;
             mWidth = width;
             mHeight = height;
             mTexture[0] = texture;
+        }
+        void ClearDirectly()
+        {
+            mRefCount = 0;
+            mTexture[0] = 0;
         }
 
     private:
@@ -2202,7 +2208,7 @@
         ~SurfaceClass()
         {
             mFBO.release();
-            mLastTexture.SetDataDirectly(0, 0, 0);
+            mLastTexture.ClearDirectly();
         }
 
     public:
@@ -2220,7 +2226,7 @@
         inline uint32 fbo() const {return mFBO.handle();}
         inline id_texture_read texture() const
         {
-            mLastTexture.SetDataDirectly(mFBO.texture(), mFBO.width(), mFBO.height());
+            mLastTexture.ResetDirectly(mFBO.texture(), mFBO.width(), mFBO.height());
             return (id_texture_read) &mLastTexture;
         }
         inline sint32 width() const {return mFBO.width();}
@@ -3129,17 +3135,19 @@
         public:
             WebPrivateForDesktop()
             {
-                static bool JustOnce = true;
-                if(JustOnce)
-                {
-                    JustOnce = false;
-                    QtWebEngine::initialize();
-                }
                 mProxy = mScene.addWidget(&mView);
+                mLastFBO = nullptr;
+                ResetFBO(1, 1);
             }
             ~WebPrivateForDesktop()
             {
                 mScene.removeItem(mProxy);
+                if(mLastFBO)
+                {
+                    mLastFBO->release();
+                    delete mLastFBO;
+                }
+                mLastTexture.ClearDirectly();
             }
 
         public:
@@ -3174,6 +3182,7 @@
                 {
                     mView.resize(width, height);
                     mLastImage = QImage(width, height, QImage::Format_ARGB32);
+                    ResetFBO(width, height);
                     return true;
                 }
                 return false;
@@ -3212,6 +3221,11 @@
             {
                 mView.CallJSFunction(script, matchid);
             }
+            id_texture_read GetTexture()
+            {
+                mLastTexture.ResetDirectly(mLastFBO->texture(), mLastFBO->width(), mLastFBO->height());
+                return (id_texture_read) &mLastTexture;
+            }
             const QPixmap GetPixmap()
             {
                 return QPixmap::fromImage(GetImage());
@@ -3226,10 +3240,34 @@
             }
 
         private:
+            void ResetFBO(sint32 width, sint32 height)
+            {
+                if(mLastFBO)
+                {
+                    mLastFBO->release();
+                    delete mLastFBO;
+                }
+
+                QGLFramebufferObjectFormat SurfaceFormat;
+                SurfaceFormat.setSamples(0);
+                SurfaceFormat.setMipmap(false);
+                SurfaceFormat.setAttachment(QGLFramebufferObject::CombinedDepthStencil);
+                SurfaceFormat.setTextureTarget(GL_TEXTURE_2D);
+                #if BOSS_IPHONE | BOSS_ANDROID
+                    SurfaceFormat.setInternalTextureFormat(GL_RGBA8);
+                #else
+                    SurfaceFormat.setInternalTextureFormat(GL_RGBA32F_ARB);
+                #endif
+                mLastFBO = new QGLFramebufferObject(width, height, SurfaceFormat);
+            }
+
+        private:
             WebViewPrivate mView;
             QGraphicsProxyWidget* mProxy;
             QGraphicsScene mScene;
             QImage mLastImage;
+            QGLFramebufferObject* mLastFBO;
+            TextureClass mLastTexture;
         };
         typedef WebPrivateForDesktop WebPrivate;
     #else
@@ -3282,6 +3320,10 @@
             }
             void CallJSFunction(chars script, sint32 matchid)
             {
+            }
+            id_texture_read GetTexture()
+            {
+                return nullptr;
             }
             const QPixmap GetPixmap()
             {
