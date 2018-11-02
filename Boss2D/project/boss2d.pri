@@ -3,8 +3,6 @@ QT += gui
 QT += network
 QT += opengl
 QT += widgets
-QT += multimedia
-QT += purchasing
 qtHaveModule(serialport){
     QT += serialport
     DEFINES += QT_HAVE_SERIALPORT
@@ -15,6 +13,14 @@ qtHaveModule(webenginewidgets){
     QT += webengine
     QT += webenginewidgets
     DEFINES += QT_HAVE_WEBENGINEWIDGETS
+}
+qtHaveModule(multimedia){
+    QT += multimedia
+    DEFINES += QT_HAVE_MULTIMEDIA
+}
+qtHaveModule(purchasing){
+    QT += purchasing
+    DEFINES += QT_HAVE_PURCHASING
 }
 
 CONFIG += c++11
