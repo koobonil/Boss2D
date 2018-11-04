@@ -238,6 +238,12 @@ namespace BOSS
         ((TaskingClass*) tasking)->m_query.Enqueue(query);
     }
 
+    sint32 Tasking::GetQueryCount(id_tasking tasking)
+    {
+        if(!tasking) return 0;
+        return ((TaskingClass*) tasking)->m_query.Count();
+    }
+
     buffer Tasking::GetAnswer(id_tasking tasking)
     {
         if(!tasking) return nullptr;

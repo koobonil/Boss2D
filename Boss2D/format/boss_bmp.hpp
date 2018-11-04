@@ -14,6 +14,10 @@ namespace BOSS
         typedef union {argb32 argb; struct {uint08 b; uint08 g; uint08 r; uint08 a;};} bitmappixel;
 
     public:
+        static id_bitmap FromAsset(chars filename);
+        static void ToAsset(id_bitmap_read bitmap, chars filename);
+
+    public:
         static id_bitmap Create(sint32 bytesperpixel, sint32 width, sint32 height, sint16 param1 = 0, sint16 param2 = 0);
         static id_bitmap Clone(id_bitmap_read bitmap);
         // 안드로이드 일부폰에는 자주 큰 메모리를 잡고 해제하면 프레임이 현저하게 나빠지니 oldbitmap을 활용할 것!

@@ -1030,7 +1030,7 @@
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
         }
 
-        id_bitmap Platform::Graphics::CreateBitmapFromTexture(id_texture_read texture)
+        id_bitmap Platform::Graphics::CreateBitmapFromTexture(id_texture texture)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
 

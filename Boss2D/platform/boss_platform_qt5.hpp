@@ -2080,10 +2080,11 @@
                 mHeight = height;
                 if(nv21)
                 {
-                    const void* Pixels[2] = {bits, &((bytes) bits)[mWidth * mHeight]};
                     const sint32 Level[2] = {GL_LUMINANCE, GL_LUMINANCE_ALPHA};
                     const sint32 Widths[2]  = {mWidth, mWidth / 2};
                     const sint32 Heights[2] = {mHeight, mHeight / 2};
+                    const void* Bits[2] = {bits, (bits)? &((bytes) bits)[mWidth * mHeight] : nullptr};
+                    const sint32 BitsSizes[2] = {1 * Widths[0] * Heights[0], 2 * Widths[1] * Heights[1]};
                     f->glGenTextures(2, mTexture);
                     for(sint32 i = 0; i < 2; ++i)
                     {
@@ -2091,15 +2092,18 @@
                         f->glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
                         f->glTexImage2D(GL_TEXTURE_2D,
                             0, Level[i], Widths[i], Heights[i],
-                            0, Level[i], GL_UNSIGNED_BYTE, Pixels[i]);
+                            0, Level[i], GL_UNSIGNED_BYTE, Bits[i]);
                         f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
                         f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
                         f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
                         f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                        if(Bits[i]) // CreateBitmap()을 위해 저장해 둠
+                            Memory::Copy(mBits[i].AtDumping(0, BitsSizes[i]), Bits[i], BitsSizes[i]);
                     }
                 }
                 else
                 {
+                    const sint32 BitsSize = 4 * mWidth * mHeight;
                     f->glGenTextures(1, mTexture);
                     f->glBindTexture(GL_TEXTURE_2D, mTexture[0]);
                     f->glTexImage2D(GL_TEXTURE_2D,
@@ -2109,6 +2113,8 @@
                     f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
                     f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
                     f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                    if(bits) // CreateBitmap()을 위해 저장해 둠
+                        Memory::Copy(mBits[0].AtDumping(0, BitsSize), bits, BitsSize);
                 }
             }
         }
@@ -2129,36 +2135,29 @@
                 }
             }
         }
-        id_bitmap CreateBitmap() const
+        id_bitmap CreateBitmap()
         {
-            QOpenGLContext* ctx = QOpenGLContext::currentContext();
-            BOSS_ASSERT("OpenGL의 Context접근에 실패하였습니다", ctx);
-            if(ctx)
+            id_bitmap NewBitmap = nullptr;
+            if(mNV21)
             {
-                QOpenGLFunctions* f = ctx->functions();
-                id_bitmap NewBitmap = nullptr;
-                if(mNV21)
-                {
-                    //////////////////////////////////////////////////////
-                    ///////////////////////////////////////////////////////////////////////
-                }
-                else
-                {
-                    GLuint fbo = 0, prevFbo = 0;
-                    f->glGenFramebuffers(1, &fbo);
-                    f->glGetIntegerv(GL_FRAMEBUFFER_BINDING, (GLint*) &prevFbo);
-                    f->glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
-                    auto NewBitmap = Bmp::Create(4, mWidth, mHeight);
-                    f->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mTexture[0], 0);
-                    f->glReadPixels(0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, Bmp::GetBits(NewBitmap));
-                    f->glBindFramebuffer(GL_FRAMEBUFFER, prevFbo);
-                    f->glDeleteFramebuffers(1, &fbo);
-                    Bmp::SwapRedBlue(NewBitmap);
-                }
-                return NewBitmap;
+                const sint32 Widths[2]  = {mWidth, mWidth / 2};
+                const sint32 Heights[2] = {mHeight, mHeight / 2};
+                const sint32 BitsSizes[2] = {1 * Widths[0] * Heights[0], 2 * Widths[1] * Heights[1]};
+                if(mBits[0].Count() == BitsSizes[0] && mBits[1].Count() == BitsSizes[1])
+                    NewBitmap = Bmp::CloneFromNV21(&mBits[0][0], (uv16s) &mBits[1][0], mWidth, mHeight);
+                else BOSS_ASSERT("미리 저장된 mBits가 없어서 CreateBitmap에 실패하였습니다", false);
             }
-            return nullptr;
+            else
+            {
+                const sint32 BitsSize = 4 * mWidth * mHeight;
+                if(mBits[0].Count() == BitsSize)
+                {
+                    NewBitmap = Bmp::Create(4, mWidth, mHeight);
+                    Memory::Copy(Bmp::GetBits(NewBitmap), &mBits[0][0], BitsSize);
+                }
+                else BOSS_ASSERT("미리 저장된 mBits가 없어서 CreateBitmap에 실패하였습니다", false);
+            }
+            return NewBitmap;
         }
 
     public:
@@ -2190,6 +2189,7 @@
         sint32 mWidth;
         sint32 mHeight;
         uint32 mTexture[2];
+        uint08s mBits[2];
     };
 
     class SurfaceClass

@@ -1766,10 +1766,10 @@
                 Buffer::Free((buffer) texture);
         }
 
-        id_bitmap Platform::Graphics::CreateBitmapFromTexture(id_texture_read texture)
+        id_bitmap Platform::Graphics::CreateBitmapFromTexture(id_texture texture)
         {
             if(!texture) return nullptr;
-            return ((const TextureClass*) texture)->CreateBitmap();
+            return ((TextureClass*) texture)->CreateBitmap();
         }
 
         id_surface Platform::Graphics::CreateSurface(sint32 width, sint32 height)

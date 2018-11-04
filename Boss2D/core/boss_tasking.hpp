@@ -82,6 +82,14 @@ namespace BOSS
         static void SendQuery(id_tasking tasking, buffer query);
 
         /*!
+        \brief 해당 태스킹으로부터 송신한 처리되지 않은 버퍼수량
+        \param tasking : 태스킹ID
+        \return 처리되지 않은 버퍼수량
+        \see SendQuery
+        */
+        static sint32 GetQueryCount(id_tasking tasking);
+
+        /*!
         \brief 해당 태스킹으로부터 응답수신
         \param tasking : 태스킹ID
         \return 수신된 버퍼(없으면 nullptr)

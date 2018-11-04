@@ -69,6 +69,28 @@
 
 namespace BOSS
 {
+    id_bitmap Bmp::FromAsset(chars filename)
+    {
+        id_asset_read BmpAsset = Asset::OpenForRead(filename);
+        const sint32 FileSize = Asset::Size(BmpAsset);
+        buffer BmpBuffer = Buffer::Alloc(BOSS_DBG FileSize - 2);
+        Asset::Skip(BmpAsset, 2);
+        Asset::Read(BmpAsset, (uint08*) BmpBuffer, FileSize - 2);
+        Asset::Close(BmpAsset);
+        id_bitmap NewBitmap = Bmp::Clone((id_bitmap) BmpBuffer);
+        Buffer::Free(BmpBuffer);
+        return NewBitmap;
+    }
+
+    void Bmp::ToAsset(id_bitmap_read bitmap, chars filename)
+    {
+        id_asset BmpAsset = Asset::OpenForWrite(filename, true);
+        const uint32 BmpSize = Bmp::GetFileSizeWithoutBM(bitmap);
+        Asset::Write(BmpAsset, (bytes) "BM", 2);
+        Asset::Write(BmpAsset, (bytes) bitmap, BmpSize);
+        Asset::Close(BmpAsset);
+    }
+
     id_bitmap Bmp::Create(sint32 bytesperpixel, sint32 width, sint32 height, sint16 param1, sint16 param2)
     {
         const sint32 BmpRow = (bytesperpixel * width + 3) & ~3;
@@ -258,15 +280,46 @@ namespace BOSS
     {
         id_bitmap NewBitmap = Create(4, width, height);
         auto DstBits = (Bmp::bitmappixel*) GetBits(NewBitmap);
-        for(sint32 y = 0; y < height; ++y)
-        for(sint32 x = 0; x < width; ++x)
+        const sint32 UVWidth = width / 2;
+        const sint32 UVHeight = height / 2;
+        for(sint32 y = 0; y < UVHeight; ++y)
+        for(sint32 x = 0; x < UVWidth; ++x)
         {
-            bitmappixel& CurBit = DstBits[x + (height - 1 - y) * width];
-            CurBit.r = *ys;
-            CurBit.g = *ys;
-            CurBit.b = *ys;
-            CurBit.a = 0xFF;
-            ys++;
+            bitmappixel* CurBit = &DstBits[x * 2 + (height - 1 - y * 2) * width];
+            auto& CurBit0 = CurBit[0];
+            auto& CurBit1 = CurBit[1];
+            auto& CurBit2 = CurBit[0 - width];
+            auto& CurBit3 = CurBit[1 - width];
+
+            bytes CurY = &ys[x * 2 + y * 2 * width];
+            const sint32 CurY0 = (sint32) (CurY[0] & 0xFF);
+            const sint32 CurY1 = (sint32) (CurY[1] & 0xFF);
+            const sint32 CurY2 = (sint32) (CurY[0 + width] & 0xFF);
+            const sint32 CurY3 = (sint32) (CurY[1 + width] & 0xFF);
+
+            uv16 CurUV = uvs[x + y * UVWidth];
+            const sint32 CurU = ((sint32) (CurUV.u & 0xFF)) - 128;
+            const sint32 CurV = ((sint32) (CurUV.v & 0xFF)) - 128;
+            const sint32 RAdd = (sint32) (1.403f * CurV);
+            const sint32 GSub = (sint32) (0.344f * CurU + 0.714f * CurV);
+            const sint32 BAdd = (sint32) (1.770f * CurU);
+
+            CurBit0.a = 0xFF;
+            CurBit0.r = Math::Clamp(CurY0 + RAdd, 0, 255);
+            CurBit0.g = Math::Clamp(CurY0 - GSub, 0, 255);
+            CurBit0.b = Math::Clamp(CurY0 + BAdd, 0, 255);
+            CurBit1.a = 0xFF;
+            CurBit1.r = Math::Clamp(CurY1 + RAdd, 0, 255);
+            CurBit1.g = Math::Clamp(CurY1 - GSub, 0, 255);
+            CurBit1.b = Math::Clamp(CurY1 + BAdd, 0, 255);
+            CurBit2.a = 0xFF;
+            CurBit2.r = Math::Clamp(CurY2 + RAdd, 0, 255);
+            CurBit2.g = Math::Clamp(CurY2 - GSub, 0, 255);
+            CurBit2.b = Math::Clamp(CurY2 + BAdd, 0, 255);
+            CurBit3.a = 0xFF;
+            CurBit3.r = Math::Clamp(CurY3 + RAdd, 0, 255);
+            CurBit3.g = Math::Clamp(CurY3 - GSub, 0, 255);
+            CurBit3.b = Math::Clamp(CurY3 + BAdd, 0, 255);
         }
         return NewBitmap;
     }

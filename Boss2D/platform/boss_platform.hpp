@@ -1039,7 +1039,7 @@ namespace BOSS
             \param texture : 텍스처
             \return 텍스처 비트맵(nullptr은 실패)
             */
-            static id_bitmap CreateBitmapFromTexture(id_texture_read texture);
+            static id_bitmap CreateBitmapFromTexture(id_texture texture);
 
             /*!
             \brief 서피스(FBO) 생성
