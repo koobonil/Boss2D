@@ -199,7 +199,7 @@ namespace BOSS
             else
             {
                 const sint32 DataSize = ((bits[1] & 0xFF) << 16) | ((bits[2] & 0xFF) << 8) | (bits[3] & 0xFF);
-                ChunkSize = 15 + DataSize;
+                ChunkSize = 11 + DataSize + 4;
                 switch(bits[0])
                 {
                 case 0x08: LogCollector += "[Audio: "; break;
@@ -208,7 +208,16 @@ namespace BOSS
                 default: LogCollector += "[Unknown: "; break;
                 }
                 const sint32 TimeStamp = ((bits[7] & 0xFF) << 24) | ((bits[4] & 0xFF) << 16) | ((bits[5] & 0xFF) << 8) | (bits[6] & 0xFF);
-                LogCollector += String::Format("0x%08X, %d Byte]\r\n", TimeStamp, DataSize);
+                LogCollector += String::Format("%dms, %dbyte]", TimeStamp, DataSize);
+
+                // 청크데이터
+                for(sint32 i = 0; i < DataSize; ++i)
+                {
+                    if((i % 16) == 0)
+                        LogCollector += "\r\n\t";
+                    LogCollector += String::Format("%02X ", bits[11 + i]);
+                }
+                LogCollector += "\r\n";
             }
             bits += ChunkSize;
             length -= ChunkSize;

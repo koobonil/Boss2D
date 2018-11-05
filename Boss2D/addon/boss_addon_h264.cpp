@@ -254,6 +254,8 @@ H264EncoderPrivate::~H264EncoderPrivate()
     }
 }
 
+#define BSTIME_RATE (10)
+
 void H264EncoderPrivate::Encode(const uint32* rgba, id_flash flash, uint64 timems)
 {
     uint08* yplane = mPic.pData[0];
@@ -275,6 +277,7 @@ void H264EncoderPrivate::Encode(const uint32* rgba, id_flash flash, uint64 timem
 
     if(rv == cmResultSuccess && mInfo.eFrameType != videoFrameTypeSkip)
     {
+        const sint32 CompositionTime = timems / BSTIME_RATE;
         for(sint32 i = 0; i < mInfo.iLayerNum; ++i)
         {
             const SLayerBSInfo& CurLayer = mInfo.sLayerInfo[i];
@@ -288,14 +291,14 @@ void H264EncoderPrivate::Encode(const uint32* rgba, id_flash flash, uint64 timem
             const bool IsNALU = (CurLayer.uiLayerType == VIDEO_CODING_LAYER);
             mTempChunk.AtAdding() = (IsInterframe)? 0x27 : 0x17; // 1_:keyframe, 2_:interframe, _7:AVC
             mTempChunk.AtAdding() = (IsNALU)? 0x01 : 0x00; // AVC NALU, AVC sequence header
-            Memory::Copy(mTempChunk.AtDumpingAdded(3), GetBE3(timems & 0x00FFFFFF), 3); // CompositionTime
+            Memory::Copy(mTempChunk.AtDumpingAdded(3), GetBE3(CompositionTime & 0x00FFFFFF), 3); // CompositionTime
 
             // 태그데이터
             if(IsNALU)
             {
                 Memory::Copy(mTempChunk.AtDumpingAdded(4), GetBE4(BufSize), 4); // NALU Size
                 Memory::Copy(mTempChunk.AtDumpingAdded(BufSize), CurLayer.pBsBuf, BufSize); // NALU
-                Flv::WriteChunk(flash, 0x09, &mTempChunk[0], mTempChunk.Count(), timems); // video
+                Flv::WriteChunk(flash, 0x09, &mTempChunk[0], mTempChunk.Count(), CompositionTime * BSTIME_RATE); // video
             }
             else
             {
@@ -317,7 +320,7 @@ void H264EncoderPrivate::Encode(const uint32* rgba, id_flash flash, uint64 timem
                 mTempChunk.AtAdding() = 0x01; // NumberOfPPS
                 Memory::Copy(mTempChunk.AtDumpingAdded(2), GetBE2(PPSEnd - PPSBegin), 2); // PPS-Length
                 Memory::Copy(mTempChunk.AtDumpingAdded(PPSEnd - PPSBegin), &CurLayer.pBsBuf[PPSBegin], PPSEnd - PPSBegin); // PPS-NALU
-                Flv::WriteChunk(flash, 0x09, &mTempChunk[0], mTempChunk.Count(), timems); // video
+                Flv::WriteChunk(flash, 0x09, &mTempChunk[0], mTempChunk.Count(), CompositionTime * BSTIME_RATE); // video
             }
         }
     }
@@ -447,7 +450,7 @@ uint64 H264DecoderPrivate::DecodeFrame(bytes src, sint32 sliceSize, sint32 msec,
     SBufferInfo bufInfo;
     memset(bufdata, 0, sizeof(bufdata));
     memset(&bufInfo, 0, sizeof(SBufferInfo));
-    bufInfo.uiInBsTimeStamp = msec;
+    bufInfo.uiInBsTimeStamp = msec / BSTIME_RATE;
     DECODING_STATE rv = mDecoder->DecodeFrame2(src, sliceSize, bufdata, &bufInfo);
     BOSS_ASSERT("DecodeFrame2가 실패하였습니다", rv == dsErrorFree);
 
@@ -479,7 +482,7 @@ uint64 H264DecoderPrivate::DecodeFrame(bytes src, sint32 sliceSize, sint32 msec,
         };
         cb(data, frame);
     }
-    return bufInfo.uiOutYuvTimeStamp;
+    return bufInfo.uiOutYuvTimeStamp * BSTIME_RATE;
 }
 
 bytes H264DecoderPrivate::GetBsBuf(bool nalu, bytes chunk, sint32 chunksize, sint32& bssize, CollectorType*& collector)
