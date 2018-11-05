@@ -1035,11 +1035,18 @@ namespace BOSS
             static void RemoveTexture(id_texture texture);
 
             /*!
-            \brief 텍스처에서 비트맵 생성하기
+            \brief 텍스처에서 비트맵 생성하기(GL방식)
             \param texture : 텍스처
             \return 텍스처 비트맵(nullptr은 실패)
             */
-            static id_bitmap CreateBitmapFromTexture(id_texture texture);
+            static id_bitmap CreateBitmapFromTextureGL(id_texture_read texture);
+
+            /*!
+            \brief 텍스처에서 비트맵 생성하기(Copy방식)
+            \param texture : 텍스처
+            \return 텍스처 비트맵(nullptr은 실패)
+            */
+            static id_bitmap CreateBitmapFromTextureFast(id_texture texture);
 
             /*!
             \brief 서피스(FBO) 생성

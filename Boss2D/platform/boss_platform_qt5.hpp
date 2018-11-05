@@ -2135,7 +2135,33 @@
                 }
             }
         }
-        id_bitmap CreateBitmap()
+        id_bitmap CreateBitmapByGL() const
+        {
+            id_bitmap NewBitmap = nullptr;
+            if(mNV21)
+                BOSS_ASSERT("NV21방식은 CreateBitmapByGL를 지원하지 않습니다", false);
+            else
+            {
+                QOpenGLContext* ctx = QOpenGLContext::currentContext();
+                if(ctx)
+                {
+                    QOpenGLFunctions* f = ctx->functions();
+                    GLuint fbo = 0, prevFbo = 0;
+                    f->glGenFramebuffers(1, &fbo);
+                    f->glGetIntegerv(GL_FRAMEBUFFER_BINDING, (GLint*) &prevFbo);
+                    f->glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+                    NewBitmap = Bmp::Create(4, mWidth, mHeight);
+                    f->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mTexture[0], 0);
+                    f->glReadPixels(0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, Bmp::GetBits(NewBitmap));
+                    f->glBindFramebuffer(GL_FRAMEBUFFER, prevFbo);
+                    f->glDeleteFramebuffers(1, &fbo);
+                    Bmp::SwapRedBlue(NewBitmap);
+                }
+                else BOSS_ASSERT("OpenGL의 Context접근에 실패하였습니다", ctx);
+            }
+            return NewBitmap;
+        }
+        id_bitmap CreateBitmapByCopy() const
         {
             id_bitmap NewBitmap = nullptr;
             if(mNV21)
@@ -2145,7 +2171,7 @@
                 const sint32 BitsSizes[2] = {1 * Widths[0] * Heights[0], 2 * Widths[1] * Heights[1]};
                 if(mBits[0].Count() == BitsSizes[0] && mBits[1].Count() == BitsSizes[1])
                     NewBitmap = Bmp::CloneFromNV21(&mBits[0][0], (uv16s) &mBits[1][0], mWidth, mHeight);
-                else BOSS_ASSERT("미리 저장된 mBits가 없어서 CreateBitmap에 실패하였습니다", false);
+                else BOSS_ASSERT("미리 저장된 mBits가 없어서 CreateBitmapByCopy에 실패하였습니다", false);
             }
             else
             {
@@ -2155,7 +2181,7 @@
                     NewBitmap = Bmp::Create(4, mWidth, mHeight);
                     Memory::Copy(Bmp::GetBits(NewBitmap), &mBits[0][0], BitsSize);
                 }
-                else BOSS_ASSERT("미리 저장된 mBits가 없어서 CreateBitmap에 실패하였습니다", false);
+                else BOSS_ASSERT("미리 저장된 mBits가 없어서 CreateBitmapByCopy에 실패하였습니다", false);
             }
             return NewBitmap;
         }
