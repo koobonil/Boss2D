@@ -4488,8 +4488,16 @@
             sint32 GetLastImageHeight() const {return mLastImageHeight;}
             id_texture CreateLastTexture()
             {
-                if(0 < mLastImageWidth && 0 < mLastImageHeight && 12 < mLastImage.Count())
-                    return Platform::Graphics::CreateTexture(true, mLastImageWidth, mLastImageHeight, &mLastImage[12]);
+                if(0 < mLastImageWidth && 0 < mLastImageHeight)
+                {
+                    switch(*((uint32*) &mLastImage[0]))
+                    {
+                    case codeid("NV21"):
+                        if(12 < mLastImage.Count())
+                            return Platform::Graphics::CreateTexture(true, mLastImageWidth, mLastImageHeight, &mLastImage[12]);
+                        break;
+                    }
+                }
                 return nullptr;
             }
 
@@ -4550,7 +4558,7 @@
                         break;
                     case codeid("JPEG"):
                         BOSS_TRACE("DecodeImage(JPEG)");
-                        if(id_bitmap NewBitmap = AddOn::Jpg::ToBmp(&mLastImage[4], mLastImage.Count()))
+                        if(id_bitmap NewBitmap = AddOn::Jpg::ToBmp(&mLastImage[4], mLastImage.Count() - 4))
                         {
                             BOSS_TRACE("DecodeImage(JPEG) - Mid-A");
                             width = Bmp::GetWidth(NewBitmap);
