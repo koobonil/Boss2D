@@ -26,6 +26,10 @@
 #define BOSS_FAKEWIN_DECLSPEC_DLLIMPORT //__declspec(dllimport)
 #define BOSS_FAKEWIN_STDCALL            //__stdcall
 
+#if !BOSS_WINDOWS | BOSS_WINDOWS_MINGW
+    #define _alloca(N) alloca(N)
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // _BOSS_BATCH_COMMAND_ {"type" : "include-alias", "prm" : "BOSS_FAKEWIN_", "restore-comment" : " //original-code:"}
 #if BOSS_WINDOWS & !BOSS_NEED_FORCED_FAKEWIN
@@ -68,17 +72,6 @@
     typedef struct fd_set boss_fakewin_struct_fd_set;
     #define GetCurrentDirectoryW boss_fakewin_GetCurrentDirectoryW
     typedef unsigned short mode_t;
-
-    #if BOSS_WINDOWS_MINGW
-        struct addrinfo
-        {
-            struct sockaddr* ai_addr;
-            int ai_addrlen;
-            int ai_family;
-            int ai_socktype;
-            int ai_protocol;
-        };
-    #endif
 #else
     #define BOSS_FAKEWIN_IS_ENABLED
     #define BOSS_FAKEWIN_V_windows_h                       <addon/boss_fakewin.h>
@@ -459,6 +452,7 @@
     #define CreateProcess CreateProcessA
     #define GetModuleHandle GetModuleHandleA
 
+    #define _alloca boss_fakewin_alloca
     #define _access boss_fakewin_access
     #define _waccess boss_fakewin_waccess
     #define _chmod boss_fakewin_chmod
@@ -504,7 +498,6 @@
     #define FD_SET boss_fakewin_FD_SET
     #define FD_ZERO boss_fakewin_FD_ZERO
     #define FD_ISSET boss_fakewin_FD_ISSET
-    #define _alloca boss_fakewin_alloca
     #define _fileno boss_fakewin_fileno
     #define _getch boss_fakewin_getch
     #define _getdrive boss_fakewin_getdrive
@@ -634,6 +627,7 @@
     #ifdef __cplusplus
         extern "C" {
     #endif
+    void* boss_fakewin_alloca(size_t);
     int boss_fakewin_access(const char*,int);
     int boss_fakewin_waccess(const wchar_t*,int);
     int boss_fakewin_chmod(const char*,int);
@@ -679,7 +673,6 @@
     void boss_fakewin_FD_SET(int fd, boss_fd_set* fdset);
     void boss_fakewin_FD_ZERO(boss_fd_set* fdset);
     int boss_fakewin_FD_ISSET(int fd, boss_fd_set* set);
-    void* boss_fakewin_alloca(size_t);
     int boss_fakewin_fileno(FILE*);
     int boss_fakewin_getch();
     int boss_fakewin_getdrive();

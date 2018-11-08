@@ -1926,19 +1926,26 @@ namespace BOSS
             static void CallJSFunction(h_web web, chars script, sint32 matchid = 0);
 
             /*!
-            \brief 웹페이지 스크린샷 이미지 얻기
+            \brief 웹페이지 텍스처 얻기
             \param web : 해당 웹핸들
-            \return 스크린샷 이미지(nullptr은 실패)
+            \return 웹페이지 텍스처(nullptr은 실패)
             */
-            static id_image_read GetScreenshotImage(h_web web);
+            static id_texture_read GetPageTexture(h_web web);
 
             /*!
-            \brief 웹페이지 스크린샷 비트맵 얻기
+            \brief 웹페이지 이미지 얻기
+            \param web : 해당 웹핸들
+            \return 웹페이지 이미지(nullptr은 실패)
+            */
+            static id_image_read GetPageImage(h_web web);
+
+            /*!
+            \brief 웹페이지 비트맵 얻기
             \param web : 해당 웹핸들
             \param ori : 90도기준 회전상태와 상하반전여부(디폴트는 상하반전)
-            \return 스크린샷 비트맵(nullptr은 실패)
+            \return 웹페이지 비트맵(nullptr은 실패)
             */
-            static id_bitmap_read GetScreenshotBitmap(h_web web, orientationtype ori = orientationtype_fliped0);
+            static id_bitmap_read GetPageBitmap(h_web web, orientationtype ori = orientationtype_fliped0);
 
             /*!
             \brief 네이티브형 웹핸들 할당

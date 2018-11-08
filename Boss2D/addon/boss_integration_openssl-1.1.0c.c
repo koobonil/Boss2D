@@ -374,7 +374,7 @@
 #include <addon/openssl-1.1.0c_for_boss/crypto/bn/bn_const.c>
 #include <addon/openssl-1.1.0c_for_boss/crypto/bn/bn_err.c>
 #include <addon/openssl-1.1.0c_for_boss/crypto/bn/bn_dh.c>
-#if BOSS_WINDOWS
+#if BOSS_WINDOWS & !BOSS_WINDOWS_MINGW
     #include <addon/openssl-1.1.0c_for_boss/crypto/bn/asm/x86_64-gcc.c> // assembly code
 #else
     #include <addon/openssl-1.1.0c_for_boss/crypto/bn/bn_asm.c>

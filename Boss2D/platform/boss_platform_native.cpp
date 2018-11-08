@@ -1913,13 +1913,19 @@
             BOSS_ASSERT("Further development is needed.", false);
         }
 
-        id_image_read Platform::Web::GetScreenshotImage(h_web web)
+        id_texture_read Platform::Web::GetPageTexture(h_web web)
         {
             BOSS_ASSERT("Further development is needed.", false);
             return nullptr;
         }
 
-        id_bitmap_read Platform::Web::GetScreenshotBitmap(h_web web, orientationtype ori)
+        id_image_read Platform::Web::GetPageImage(h_web web)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return nullptr;
+        }
+
+        id_bitmap_read Platform::Web::GetPageBitmap(h_web web, orientationtype ori)
         {
             BOSS_ASSERT("Further development is needed.", false);
             return nullptr;

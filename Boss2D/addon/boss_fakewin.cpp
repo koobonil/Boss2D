@@ -11,6 +11,8 @@
 
 #include "boss_fakewin.h"
 
+#undef GetCurrentDirectoryW
+
 extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR lpBuffer)
 {
     static const WString& Root = Platform::File::GetFullPath((wchars) L"");
@@ -75,7 +77,6 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     #undef FlushFileBuffers
     #undef FormatMessageA    
     #undef FormatMessageW
-    #undef GetCurrentDirectoryW
     #undef GetCurrentProcess
     #undef GetCurrentThread
     #undef GetCurrentThreadId
@@ -265,7 +266,6 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     #undef fd_set
     #undef FD_SET
     #undef FD_ZERO
-    #undef _alloca
     #undef _fileno
     #undef _getch
     #undef _getdrive
@@ -1909,16 +1909,6 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     extern "C" void boss_fakewin_FD_ZERO(boss_fd_set* fdset)
     {
         boss_FD_ZERO(fdset);
-    }
-
-    extern "C" void* boss_fakewin_alloca(size_t _Size)
-    {
-        //#if BOSS_WINDOWS
-        //    return _alloca(_Size);
-        //#else
-            static uint08s _;
-            return _.AtDumping(0, _Size);
-        //#endif
     }
 
     extern "C" int boss_fakewin_fileno(FILE* _File)

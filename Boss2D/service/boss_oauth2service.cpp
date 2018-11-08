@@ -107,7 +107,7 @@ namespace BOSS
             if(IsSigning(false))
             {
                 Platform::Web::Resize(data().mWeb, width, height);
-                return Platform::Web::GetScreenshotImage(data().mWeb);
+                return Platform::Web::GetPageImage(data().mWeb);
             }
             return nullptr;
         }

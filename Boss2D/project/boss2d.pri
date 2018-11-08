@@ -31,6 +31,7 @@ win32-msvc*: QMAKE_CFLAGS += /bigobj
 win32-msvc*: QMAKE_CXXFLAGS += /bigobj
 win32-g++: LIBS += -lwsock32
 win32-g++: LIBS += -lws2_32
+win32-g++: LIBS += -lwinmm
 android: LIBS += -landroid
 macx|ios: LIBS += -framework CoreFoundation
 linux-g++: CONFIG += link_pkgconfig

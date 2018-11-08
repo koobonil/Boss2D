@@ -1732,7 +1732,7 @@
 
         id_texture Platform::Graphics::CloneTexture(id_texture texture)
         {
-            if(!texture) return false;
+            if(!texture) return nullptr;
             return (id_texture) ((TextureClass*) texture)->clone();
         }
 
@@ -1784,7 +1784,7 @@
             if(!g_data->getGLWidget()) return nullptr;
             
             QOpenGLFramebufferObjectFormat SurfaceFormat;
-            SurfaceFormat.setSamples(0);
+            SurfaceFormat.setSamples(4);
             SurfaceFormat.setMipmap(false);
             SurfaceFormat.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
             SurfaceFormat.setTextureTarget(GL_TEXTURE_2D);
@@ -2523,21 +2523,31 @@
         ////////////////////////////////////////////////////////////////////////////////
         id_sound Platform::Sound::OpenForFile(chars filename, bool loop, sint32 fade_msec)
         {
-            BOSS_ASSERT("해당 사운드파일이 존재하지 않습니다", Platform::File::Exist(filename));
-            SoundClass* NewSound = new SoundClass(filename, loop);
-            return (id_sound) NewSound;
+            #ifdef QT_HAVE_MULTIMEDIA
+                BOSS_ASSERT("해당 사운드파일이 존재하지 않습니다", Platform::File::Exist(filename));
+                SoundClass* NewSound = new SoundClass(filename, loop);
+                return (id_sound) NewSound;
+            #else
+                return nullptr;
+            #endif
         }
 
         id_sound Platform::Sound::OpenForStream(sint32 channel, sint32 sample_rate, sint32 sample_size)
         {
-            SoundClass* NewSound = new SoundClass(channel, sample_rate, sample_size);
-            return (id_sound) NewSound;
+            #ifdef QT_HAVE_MULTIMEDIA
+                SoundClass* NewSound = new SoundClass(channel, sample_rate, sample_size);
+                return (id_sound) NewSound;
+            #else
+                return nullptr;
+            #endif
         }
 
         void Platform::Sound::Close(id_sound sound)
         {
-            SoundClass* OldSound = (SoundClass*) sound;
-            delete OldSound;
+            #ifdef QT_HAVE_MULTIMEDIA
+                SoundClass* OldSound = (SoundClass*) sound;
+                delete OldSound;
+            #endif
         }
 
         void Platform::Sound::SetVolume(float volume, sint32 fade_msec)
@@ -2546,31 +2556,40 @@
 
         void Platform::Sound::Play(id_sound sound, float volume_rate)
         {
-            SoundClass* CurSound = (SoundClass*) sound;
-            if(!CurSound) return;
-            CurSound->Play(volume_rate);
+            #ifdef QT_HAVE_MULTIMEDIA
+                SoundClass* CurSound = (SoundClass*) sound;
+                if(!CurSound) return;
+                CurSound->Play(volume_rate);
+            #endif
         }
 
         void Platform::Sound::Stop(id_sound sound)
         {
-            SoundClass* CurSound = (SoundClass*) sound;
-            if(!CurSound) return;
-            CurSound->Stop();
+            #ifdef QT_HAVE_MULTIMEDIA
+                SoundClass* CurSound = (SoundClass*) sound;
+                if(!CurSound) return;
+                CurSound->Stop();
+            #endif
         }
 
         bool Platform::Sound::NowPlaying(id_sound sound)
         {
-            SoundClass* CurSound = (SoundClass*) sound;
-            if(CurSound)
-                return CurSound->NowPlaying();
+            #ifdef QT_HAVE_MULTIMEDIA
+                SoundClass* CurSound = (SoundClass*) sound;
+                if(CurSound)
+                    return CurSound->NowPlaying();
+            #endif
             return false;
         }
 
         sint32 Platform::Sound::AddStreamForPlay(id_sound sound, bytes raw, sint32 size, sint32 timeout)
         {
-            SoundClass* CurSound = (SoundClass*) sound;
-            if(!CurSound) return false;
-            return CurSound->AddStreamForPlay(raw, size, timeout);
+            #ifdef QT_HAVE_MULTIMEDIA
+                SoundClass* CurSound = (SoundClass*) sound;
+                if(CurSound)
+                    return CurSound->AddStreamForPlay(raw, size, timeout);
+            #endif
+            return false;
         }
 
         void Platform::Sound::StopAll()
@@ -3225,7 +3244,14 @@
                 CurWeb->CallJSFunction(script, matchid);
         }
 
-        id_image_read Platform::Web::GetScreenshotImage(h_web web)
+        id_texture_read Platform::Web::GetPageTexture(h_web web)
+        {
+            if(auto CurWeb = (WebPrivate*) web.get())
+                return CurWeb->GetTexture();
+            return nullptr;
+        }
+
+        id_image_read Platform::Web::GetPageImage(h_web web)
         {
             if(auto CurWeb = (WebPrivate*) web.get())
             {
@@ -3236,7 +3262,7 @@
             return nullptr;
         }
 
-        id_bitmap_read Platform::Web::GetScreenshotBitmap(h_web web, orientationtype ori)
+        id_bitmap_read Platform::Web::GetPageBitmap(h_web web, orientationtype ori)
         {
             if(auto CurWeb = (WebPrivate*) web.get())
             {
@@ -3269,35 +3295,48 @@
         ////////////////////////////////////////////////////////////////////////////////
         id_purchase Platform::Purchase::Open(chars name, PurchaseType type)
         {
-            auto NewPurchase = new PurchasePrivate();
-            if(!NewPurchase->Register(name, type))
-            {
-                delete NewPurchase;
+            #ifdef QT_HAVE_PURCHASING
+                auto NewPurchase = new PurchasePrivate();
+                if(!NewPurchase->Register(name, type))
+                {
+                    delete NewPurchase;
+                    return nullptr;
+                }
+                return (id_purchase) NewPurchase;
+            #else
                 return nullptr;
-            }
-            return (id_purchase) NewPurchase;
+            #endif
         }
 
         void Platform::Purchase::Close(id_purchase purchase)
         {
-            if(!purchase) return;
-            auto OldPurchase = (PurchasePrivate*) purchase;
-            delete OldPurchase;
+            #ifdef QT_HAVE_PURCHASING
+                if(!purchase) return;
+                auto OldPurchase = (PurchasePrivate*) purchase;
+                delete OldPurchase;
+            #endif
         }
 
         bool Platform::Purchase::IsPurchased(id_purchase purchase)
         {
-            if(!purchase) return false;
-            auto CurPurchase = (PurchasePrivate*) purchase;
-            ///////////////////////////////////
+            #ifdef QT_HAVE_PURCHASING
+                if(!purchase) return false;
+                auto CurPurchase = (PurchasePrivate*) purchase;
+                ///////////////////////////////////
+            #endif
             return false;
         }
 
         bool Platform::Purchase::Purchasing(id_purchase purchase, PurchaseCB cb)
         {
-            if(!purchase) return false;
-            auto CurPurchase = (PurchasePrivate*) purchase;
-            return CurPurchase->Purchase(cb);
+            #ifdef QT_HAVE_PURCHASING
+                if(purchase)
+                {
+                    auto CurPurchase = (PurchasePrivate*) purchase;
+                    return CurPurchase->Purchase(cb);
+                }
+            #endif
+            return false;
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -3426,84 +3465,132 @@
         ////////////////////////////////////////////////////////////////////////////////
         Strings Platform::Camera::GetAllNames(String* spec)
         {
-            return CameraClass::GetList(spec);
+            #ifdef QT_HAVE_MULTIMEDIA
+                return CameraClass::GetList(spec);
+            #else
+                return Strings();
+            #endif
         }
 
         id_camera Platform::Camera::Open(chars name, sint32 width, sint32 height)
         {
-            CameraClass* NewCamera = new CameraClass(name, width, height);
-            if(NewCamera->IsValid())
-                return (id_camera) NewCamera;
-            delete NewCamera;
+            #ifdef QT_HAVE_MULTIMEDIA
+                CameraClass* NewCamera = new CameraClass(name, width, height);
+                if(NewCamera->IsValid())
+                    return (id_camera) NewCamera;
+                delete NewCamera;
+            #endif
             return nullptr;
         }
 
         void Platform::Camera::Close(id_camera camera)
         {
-            if(camera && ((CameraClass*) camera)->SubRef())
-                delete (CameraClass*) camera;
+            #ifdef QT_HAVE_MULTIMEDIA
+                if(camera && ((CameraClass*) camera)->SubRef())
+                    delete (CameraClass*) camera;
+            #endif
         }
 
         id_camera Platform::Camera::Clone(id_camera camera)
         {
-            if(!camera) return nullptr;
-            return (id_camera) ((CameraClass*) camera)->AddRef();
+            #ifdef QT_HAVE_MULTIMEDIA
+                if(camera)
+                    return (id_camera) ((CameraClass*) camera)->AddRef();
+            #endif
+            return nullptr;
         }
 
         void Platform::Camera::Capture(id_camera camera, bool preview, bool needstop)
         {
-            if(!camera) return;
-            CameraClass* CurCamera = (CameraClass*) camera;
-            CurCamera->Capture(preview, needstop);
+            #ifdef QT_HAVE_MULTIMEDIA
+                if(!camera) return;
+                CameraClass* CurCamera = (CameraClass*) camera;
+                CurCamera->Capture(preview, needstop);
+            #endif
         }
 
         id_texture Platform::Camera::CloneCapturedTexture(id_camera camera)
         {
-            if(!camera) return nullptr;
-            CameraClass* CurCamera = (CameraClass*) camera;
-            return CurCamera->CloneCapturedTexture();
+            #ifdef QT_HAVE_MULTIMEDIA
+                if(camera)
+                {
+                    CameraClass* CurCamera = (CameraClass*) camera;
+                    return CurCamera->CloneCapturedTexture();
+                }
+            #endif
+            return nullptr;
         }
 
         id_image_read Platform::Camera::LastCapturedImage(id_camera camera, sint32 maxwidth, sint32 maxheight, sint32 rotate)
         {
-            if(!camera) return nullptr;
-            CameraClass* CurCamera = (CameraClass*) camera;
-            return CurCamera->LastCapturedImage(maxwidth, maxheight, rotate);
+            #ifdef QT_HAVE_MULTIMEDIA
+                if(camera)
+                {
+                    CameraClass* CurCamera = (CameraClass*) camera;
+                    return CurCamera->LastCapturedImage(maxwidth, maxheight, rotate);
+                }
+            #endif
+            return nullptr;
         }
 
         id_bitmap_read Platform::Camera::LastCapturedBitmap(id_camera camera, orientationtype ori)
         {
-            if(!camera) return nullptr;
-            CameraClass* CurCamera = (CameraClass*) camera;
-            return CurCamera->LastCapturedBitmap(ori);
+            #ifdef QT_HAVE_MULTIMEDIA
+                if(camera)
+                {
+                    CameraClass* CurCamera = (CameraClass*) camera;
+                    return CurCamera->LastCapturedBitmap(ori);
+                }
+            #endif
+            return nullptr;
         }
 
         size64 Platform::Camera::LastCapturedSize(id_camera camera)
         {
-            if(!camera) return {0, 0};
-            CameraClass* CurCamera = (CameraClass*) camera;
-            return CurCamera->LastCapturedSize();
+            #ifdef QT_HAVE_MULTIMEDIA
+                if(camera)
+                {
+                    CameraClass* CurCamera = (CameraClass*) camera;
+                    return CurCamera->LastCapturedSize();
+                }
+            #endif
+            return {0, 0};
         }
 
         uint64 Platform::Camera::LastCapturedTimeMsec(id_camera camera, sint32* avgmsec)
         {
-            if(!camera) return 0;
-            CameraClass* CurCamera = (CameraClass*) camera;
-            return CurCamera->LastCapturedTimeMsec(avgmsec);
+            #ifdef QT_HAVE_MULTIMEDIA
+                if(camera)
+                {
+                    CameraClass* CurCamera = (CameraClass*) camera;
+                    return CurCamera->LastCapturedTimeMsec(avgmsec);
+                }
+            #endif
+            return 0;
         }
 
         sint32 Platform::Camera::TotalPictureShotCount(id_camera camera)
         {
-            if(!camera) return 0;
-            CameraClass* CurCamera = (CameraClass*) camera;
-            return CurCamera->TotalPictureShotCount();
+            #ifdef QT_HAVE_MULTIMEDIA
+                if(camera)
+                {
+                    CameraClass* CurCamera = (CameraClass*) camera;
+                    return CurCamera->TotalPictureShotCount();
+                }
+            #endif
+            return 0;
         }
 
         sint32 Platform::Camera::TotalPreviewShotCount(id_camera camera)
         {
-            if(!camera) return 0;
-            CameraClass* CurCamera = (CameraClass*) camera;
-            return CurCamera->TotalPreviewShotCount();
+            #ifdef QT_HAVE_MULTIMEDIA
+                if(camera)
+                {
+                    CameraClass* CurCamera = (CameraClass*) camera;
+                    return CurCamera->TotalPreviewShotCount();
+                }
+            #endif
+            return 0;
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -3511,58 +3598,91 @@
         ////////////////////////////////////////////////////////////////////////////////
         Strings Platform::Microphone::GetAllNames(String* spec)
         {
-            return MicrophoneClass::GetList(spec);
+            #ifdef QT_HAVE_MULTIMEDIA
+                return MicrophoneClass::GetList(spec);
+            #else
+                return Strings();
+            #endif
         }
 
         id_microphone Platform::Microphone::Open(chars name, sint32 maxcount)
         {
-            MicrophoneClass* NewMicrophone = new MicrophoneClass(name, maxcount);
-            if(NewMicrophone->IsValid())
-                return (id_microphone) NewMicrophone;
-            delete NewMicrophone;
+            #ifdef QT_HAVE_MULTIMEDIA
+                MicrophoneClass* NewMicrophone = new MicrophoneClass(name, maxcount);
+                if(NewMicrophone->IsValid())
+                    return (id_microphone) NewMicrophone;
+                delete NewMicrophone;
+            #endif
             return nullptr;
         }
 
         void Platform::Microphone::Close(id_microphone microphone)
         {
-            delete (MicrophoneClass*) microphone;
+            #ifdef QT_HAVE_MULTIMEDIA
+                delete (MicrophoneClass*) microphone;
+            #endif
         }
 
         sint32 Platform::Microphone::GetBitRate(id_microphone microphone)
         {
-            if(!microphone) return 0;
-            MicrophoneClass* CurMicrophone = (MicrophoneClass*) microphone;
-            return CurMicrophone->GetAudioSettings().bitRate();
+            #ifdef QT_HAVE_MULTIMEDIA
+                if(microphone)
+                {
+                    MicrophoneClass* CurMicrophone = (MicrophoneClass*) microphone;
+                    return CurMicrophone->GetAudioSettings().bitRate();
+                }
+            #endif
+            return 0;
         }
 
         sint32 Platform::Microphone::GetChannel(id_microphone microphone)
         {
-            if(!microphone) return 0;
-            MicrophoneClass* CurMicrophone = (MicrophoneClass*) microphone;
-            return CurMicrophone->GetAudioSettings().channelCount();
+            #ifdef QT_HAVE_MULTIMEDIA
+                if(microphone)
+                {
+                    MicrophoneClass* CurMicrophone = (MicrophoneClass*) microphone;
+                    return CurMicrophone->GetAudioSettings().channelCount();
+                }
+            #endif
+            return 0;
         }
 
         sint32 Platform::Microphone::GetSampleRate(id_microphone microphone)
         {
-            if(!microphone) return 0;
-            MicrophoneClass* CurMicrophone = (MicrophoneClass*) microphone;
-            return CurMicrophone->GetAudioSettings().sampleRate();
+            #ifdef QT_HAVE_MULTIMEDIA
+                if(microphone)
+                {
+                    MicrophoneClass* CurMicrophone = (MicrophoneClass*) microphone;
+                    return CurMicrophone->GetAudioSettings().sampleRate();
+                }
+            #endif
+            return 0;
         }
 
         bool Platform::Microphone::TryNextSound(id_microphone microphone)
         {
-            if(!microphone) return false;
-            MicrophoneClass* CurMicrophone = (MicrophoneClass*) microphone;
-            return CurMicrophone->TryLastData();
+            #ifdef QT_HAVE_MULTIMEDIA
+                if(microphone)
+                {
+                    MicrophoneClass* CurMicrophone = (MicrophoneClass*) microphone;
+                    return CurMicrophone->TryLastData();
+                }
+            #endif
+            return false;
         }
 
         bytes Platform::Microphone::GetSoundData(id_microphone microphone, sint32* length, uint64* timems)
         {
-            if(!microphone) return nullptr;
-            MicrophoneClass* CurMicrophone = (MicrophoneClass*) microphone;
-            const auto& LastData = CurMicrophone->GetLastData(timems);
-            if(length) *length = LastData.Count();
-            return (0 < LastData.Count())? &LastData[0] : nullptr;
+            #ifdef QT_HAVE_MULTIMEDIA
+                if(microphone)
+                {
+                    MicrophoneClass* CurMicrophone = (MicrophoneClass*) microphone;
+                    const auto& LastData = CurMicrophone->GetLastData(timems);
+                    if(length) *length = LastData.Count();
+                    return (0 < LastData.Count())? &LastData[0] : nullptr;
+                }
+            #endif
+            return nullptr;
         }
     }
 

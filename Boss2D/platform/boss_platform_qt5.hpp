@@ -11,12 +11,7 @@
     #include <QMainWindow>
     #include <QSystemTrayIcon>
 
-    #include <QMediaPlayer>
-    #include <QMediaPlaylist>
-    #include <QAudioOutput>
-    #include <QAudioInput>
     #include <QBuffer>
-
     #include <QHostInfo>
     #include <QTcpSocket>
     #include <QUdpSocket>
@@ -27,27 +22,37 @@
     #include <QGLFunctions>
     #include <QGLShaderProgram>
     #include <QGLFramebufferObject>
-    #include <QtPurchasing>
 
-    #if QT_HAVE_SERIALPORT
+    #ifdef QT_HAVE_PURCHASING
+        #include <QtPurchasing>
+    #endif
+
+    #ifdef QT_HAVE_SERIALPORT
         #include <QtSerialPort>
         #include <QSerialPortInfo>
     #endif
 
-    #include <QCamera>
-    #include <QCameraInfo>
-    #include <QCameraImageCapture>
-    #include <QAbstractVideoSurface>
+    #ifdef QT_HAVE_MULTIMEDIA
+        #include <QMediaPlayer>
+        #include <QMediaPlaylist>
+        #include <QAudioOutput>
+        #include <QAudioInput>
 
-    #include <QAudioRecorder>
-    #include <QAudioProbe>
-    #include <QAudioDeviceInfo>
+        #include <QCamera>
+        #include <QCameraInfo>
+        #include <QCameraImageCapture>
+        #include <QAbstractVideoSurface>
+
+        #include <QAudioRecorder>
+        #include <QAudioProbe>
+        #include <QAudioDeviceInfo>
+    #endif
+
     #include <QDesktopServices>
-
     #include <QLocalSocket>
     #include <QLocalServer>
 
-    #if QT_HAVE_WEBENGINEWIDGETS
+    #ifdef QT_HAVE_WEBENGINEWIDGETS
         #include <QWebEngineView>
         #include <QWebEngineProfile>
     #endif
@@ -2453,149 +2458,151 @@
         sint64 m_laptime;
     };
 
-    class SoundClass
-    {
-    public:
-        SoundClass(chars filename, bool loop)
+    #ifdef QT_HAVE_MULTIMEDIA
+        class SoundClass
         {
-            m_volume = 0;
-            m_player = new QMediaPlayer();
-            m_playlist = nullptr;
-            m_output = nullptr;
-            m_outputdevice = nullptr;
-            m_outputmutex = nullptr;
-
-            if(loop)
+        public:
+            SoundClass(chars filename, bool loop)
             {
-                m_playlist = new QMediaPlaylist();
-                m_playlist->addMedia(QUrl::fromLocalFile(filename));
-                m_playlist->setPlaybackMode(QMediaPlaylist::Loop);
-                m_player->setPlaylist(m_playlist);
-            }
-            else m_player->setMedia(QUrl::fromLocalFile(filename));
-            m_player->setVolume(100);
-        }
-        SoundClass(sint32 channel, sint32 sample_rate, sint32 sample_size)
-        {
-            QAudioFormat AudioFormat;
-            AudioFormat.setCodec("audio/pcm");
-            AudioFormat.setChannelCount(channel);
-            AudioFormat.setSampleRate(sample_rate);
-            AudioFormat.setSampleSize(sample_size);
-            AudioFormat.setSampleType(QAudioFormat::SignedInt);
-            AudioFormat.setByteOrder(QAudioFormat::LittleEndian);
+                m_volume = 0;
+                m_player = new QMediaPlayer();
+                m_playlist = nullptr;
+                m_output = nullptr;
+                m_outputdevice = nullptr;
+                m_outputmutex = nullptr;
 
-            m_volume = 0;
-            m_player = nullptr;
-            m_playlist = nullptr;
-            m_output = new QAudioOutput(AudioFormat);
-            m_output->setBufferSize(sample_rate);
-            m_output->setVolume(100);
-            m_outputdevice = nullptr;
-            m_outputmutex = Mutex::Open();
-        }
-        ~SoundClass()
-        {
-            Stop();
-            delete m_player;
-            delete m_playlist;
-            delete m_output;
-            Mutex::Close(m_outputmutex);
-        }
-
-    public:
-        void Play(float volume_rate)
-        {
-            m_volume = Math::Max(0, 256 * volume_rate);
-            branch;
-            jump(m_player)
-            {
-                m_player->setVolume(100 * volume_rate);
-                m_player->play();
-            }
-            jump(m_output)
-            {
-                if(!m_outputdevice)
+                if(loop)
                 {
-                    Mutex::Lock(m_outputmutex);
-                    m_outputdevice = m_output->start();
-                    Mutex::Unlock(m_outputmutex);
+                    m_playlist = new QMediaPlaylist();
+                    m_playlist->addMedia(QUrl::fromLocalFile(filename));
+                    m_playlist->setPlaybackMode(QMediaPlaylist::Loop);
+                    m_player->setPlaylist(m_playlist);
+                }
+                else m_player->setMedia(QUrl::fromLocalFile(filename));
+                m_player->setVolume(100);
+            }
+            SoundClass(sint32 channel, sint32 sample_rate, sint32 sample_size)
+            {
+                QAudioFormat AudioFormat;
+                AudioFormat.setCodec("audio/pcm");
+                AudioFormat.setChannelCount(channel);
+                AudioFormat.setSampleRate(sample_rate);
+                AudioFormat.setSampleSize(sample_size);
+                AudioFormat.setSampleType(QAudioFormat::SignedInt);
+                AudioFormat.setByteOrder(QAudioFormat::LittleEndian);
+
+                m_volume = 0;
+                m_player = nullptr;
+                m_playlist = nullptr;
+                m_output = new QAudioOutput(AudioFormat);
+                m_output->setBufferSize(sample_rate);
+                m_output->setVolume(100);
+                m_outputdevice = nullptr;
+                m_outputmutex = Mutex::Open();
+            }
+            ~SoundClass()
+            {
+                Stop();
+                delete m_player;
+                delete m_playlist;
+                delete m_output;
+                Mutex::Close(m_outputmutex);
+            }
+
+        public:
+            void Play(float volume_rate)
+            {
+                m_volume = Math::Max(0, 256 * volume_rate);
+                branch;
+                jump(m_player)
+                {
+                    m_player->setVolume(100 * volume_rate);
+                    m_player->play();
+                }
+                jump(m_output)
+                {
+                    if(!m_outputdevice)
+                    {
+                        Mutex::Lock(m_outputmutex);
+                        m_outputdevice = m_output->start();
+                        Mutex::Unlock(m_outputmutex);
+                    }
                 }
             }
-        }
-        void Stop()
-        {
-            branch;
-            jump(m_player) m_player->stop();
-            jump(m_output)
+            void Stop()
             {
-                if(m_outputdevice)
+                branch;
+                jump(m_player) m_player->stop();
+                jump(m_output)
                 {
-                    Mutex::Lock(m_outputmutex);
-                    m_output->stop();
-                    m_outputdevice = nullptr;
-                    Mutex::Unlock(m_outputmutex);
-                }
-            }
-        }
-        bool NowPlaying()
-        {
-            branch;
-            jump(m_player)
-            {
-                if(m_player->state() == QMediaPlayer::PlayingState)
-                    return true;
-            }
-            jump(m_output)
-            {
-                if(m_outputdevice && m_output->state() == QAudio::ActiveState)
-                    return true;
-            }
-            return false;
-        }
-        sint32 AddStreamForPlay(bytes raw, sint32 size, sint32 timeout)
-        {
-            Mutex::Lock(m_outputmutex);
-            sint32 WrittenBytes = -1;
-            if(m_outputdevice)
-                WrittenBytes = m_outputdevice->write((chars) raw, size);
-            Mutex::Unlock(m_outputmutex);
-
-            if(WrittenBytes == -1)
-                return -1;
-            else if(WrittenBytes < size)
-            {
-                uint64 BeginMsec = Platform::Utility::CurrentTimeMsec();
-                while(Platform::Utility::CurrentTimeMsec() < BeginMsec + timeout)
-                {
-                    Platform::Utility::Sleep(1, false, false);
-                    raw += WrittenBytes;
-                    size -= WrittenBytes;
-
-                    Mutex::Lock(m_outputmutex);
-                    WrittenBytes = -1;
                     if(m_outputdevice)
-                        WrittenBytes = m_outputdevice->write((chars) raw, size);
-                    Mutex::Unlock(m_outputmutex);
-
-                    if(WrittenBytes == -1)
-                        return -1;
-                    if(WrittenBytes == size)
-                        return m_volume;
+                    {
+                        Mutex::Lock(m_outputmutex);
+                        m_output->stop();
+                        m_outputdevice = nullptr;
+                        Mutex::Unlock(m_outputmutex);
+                    }
                 }
-                return -1; // Timeout
             }
-            return m_volume;
-        }
+            bool NowPlaying()
+            {
+                branch;
+                jump(m_player)
+                {
+                    if(m_player->state() == QMediaPlayer::PlayingState)
+                        return true;
+                }
+                jump(m_output)
+                {
+                    if(m_outputdevice && m_output->state() == QAudio::ActiveState)
+                        return true;
+                }
+                return false;
+            }
+            sint32 AddStreamForPlay(bytes raw, sint32 size, sint32 timeout)
+            {
+                Mutex::Lock(m_outputmutex);
+                sint32 WrittenBytes = -1;
+                if(m_outputdevice)
+                    WrittenBytes = m_outputdevice->write((chars) raw, size);
+                Mutex::Unlock(m_outputmutex);
 
-    private:
-        sint32 m_volume;
-        QMediaPlayer* m_player;
-        QMediaPlaylist* m_playlist;
-        QAudioOutput* m_output;
-        QIODevice* m_outputdevice;
-        id_mutex m_outputmutex;
-    };
+                if(WrittenBytes == -1)
+                    return -1;
+                else if(WrittenBytes < size)
+                {
+                    uint64 BeginMsec = Platform::Utility::CurrentTimeMsec();
+                    while(Platform::Utility::CurrentTimeMsec() < BeginMsec + timeout)
+                    {
+                        Platform::Utility::Sleep(1, false, false);
+                        raw += WrittenBytes;
+                        size -= WrittenBytes;
+
+                        Mutex::Lock(m_outputmutex);
+                        WrittenBytes = -1;
+                        if(m_outputdevice)
+                            WrittenBytes = m_outputdevice->write((chars) raw, size);
+                        Mutex::Unlock(m_outputmutex);
+
+                        if(WrittenBytes == -1)
+                            return -1;
+                        if(WrittenBytes == size)
+                            return m_volume;
+                    }
+                    return -1; // Timeout
+                }
+                return m_volume;
+            }
+
+        private:
+            sint32 m_volume;
+            QMediaPlayer* m_player;
+            QMediaPlaylist* m_playlist;
+            QAudioOutput* m_output;
+            QIODevice* m_outputdevice;
+            id_mutex m_outputmutex;
+        };
+    #endif
 
     class TCPPeerData : public QObjectUserData
     {
@@ -3021,7 +3028,7 @@
         WebEnginePageForExtraDesktop* mPage;
     };
 
-    #if QT_HAVE_WEBENGINEWIDGETS
+    #ifdef QT_HAVE_WEBENGINEWIDGETS
         typedef QWebEnginePage WebEnginePageClass;
         typedef QWebEngineView WebEngineViewClass;
     #else
@@ -3158,25 +3165,20 @@
         payload mData;
     };
 
-    #if QT_HAVE_WEBENGINEWIDGETS
+    #ifdef QT_HAVE_WEBENGINEWIDGETS
         class WebPrivateForDesktop
         {
         public:
             WebPrivateForDesktop()
             {
                 mProxy = mScene.addWidget(&mView);
-                mLastFBO = nullptr;
-                ResetFBO(1, 1);
+                mLastTextureGL = nullptr;
             }
             ~WebPrivateForDesktop()
             {
                 mScene.removeItem(mProxy);
-                if(mLastFBO)
-                {
-                    mLastFBO->release();
-                    delete mLastFBO;
-                }
                 mLastTexture.ClearDirectly();
+                delete mLastTextureGL;
             }
 
         public:
@@ -3211,7 +3213,6 @@
                 {
                     mView.resize(width, height);
                     mLastImage = QImage(width, height, QImage::Format_ARGB32);
-                    ResetFBO(width, height);
                     return true;
                 }
                 return false;
@@ -3252,7 +3253,9 @@
             }
             id_texture_read GetTexture()
             {
-                mLastTexture.ResetDirectly(mLastFBO->texture(), mLastFBO->width(), mLastFBO->height());
+                delete mLastTextureGL;
+                mLastTextureGL = new QOpenGLTexture(GetImage());
+                mLastTexture.ResetDirectly(mLastTextureGL->textureId(), mLastTextureGL->width(), mLastTextureGL->height());
                 return (id_texture_read) &mLastTexture;
             }
             const QPixmap GetPixmap()
@@ -3263,31 +3266,8 @@
             {
                 CanvasClass CurCanvas(&mLastImage);
                 mView.update();
-                const QRect CurRect(0, 0, mLastImage.width(), mLastImage.height());
-                mScene.render(&CurCanvas.painter(), CurRect, CurRect);
+                mView.render(&CurCanvas.painter());
                 return mLastImage;
-            }
-
-        private:
-            void ResetFBO(sint32 width, sint32 height)
-            {
-                if(mLastFBO)
-                {
-                    mLastFBO->release();
-                    delete mLastFBO;
-                }
-
-                QGLFramebufferObjectFormat SurfaceFormat;
-                SurfaceFormat.setSamples(0);
-                SurfaceFormat.setMipmap(false);
-                SurfaceFormat.setAttachment(QGLFramebufferObject::CombinedDepthStencil);
-                SurfaceFormat.setTextureTarget(GL_TEXTURE_2D);
-                #if BOSS_IPHONE | BOSS_ANDROID
-                    SurfaceFormat.setInternalTextureFormat(GL_RGBA8);
-                #else
-                    SurfaceFormat.setInternalTextureFormat(GL_RGBA32F_ARB);
-                #endif
-                mLastFBO = new QGLFramebufferObject(width, height, SurfaceFormat);
             }
 
         private:
@@ -3295,8 +3275,8 @@
             QGraphicsProxyWidget* mProxy;
             QGraphicsScene mScene;
             QImage mLastImage;
-            QGLFramebufferObject* mLastFBO;
             TextureClass mLastTexture;
+            QOpenGLTexture* mLastTextureGL;
         };
         typedef WebPrivateForDesktop WebPrivate;
     #else
@@ -3371,70 +3351,74 @@
         typedef WebPrivateForExtraDesktop WebPrivate;
     #endif
 
-    class PurchasePrivate : public QInAppStore
-    {
-        Q_OBJECT
-
-    public:
-        PurchasePrivate(QWidget* parent = nullptr) : QInAppStore(parent)
+    #ifdef QT_HAVE_PURCHASING
+        class PurchasePrivate : public QInAppStore
         {
-            mProduct = nullptr;
-            connect(this, SIGNAL(productRegistered(QInAppProduct*)), SLOT(onProductRegistered(QInAppProduct*)));
-            connect(this, SIGNAL(productUnknown(QInAppProduct::ProductType, const QString&)), SLOT(onProductUnknown(QInAppProduct::ProductType, const QString&)));
-            connect(this, SIGNAL(transactionReady(QInAppTransaction*)), SLOT(onTransactionReady(QInAppTransaction*)));
-        }
-        ~PurchasePrivate()
-        {
-        }
+            Q_OBJECT
 
-    public:
-        PurchasePrivate(const PurchasePrivate&) {BOSS_ASSERT("사용금지", false);}
-        PurchasePrivate& operator=(const PurchasePrivate&) {BOSS_ASSERT("사용금지", false); return *this;}
-
-    public:
-        bool Register(chars name, PurchaseType type)
-        {
-            mName = name;
-            switch(type)
+        public:
+            PurchasePrivate(QWidget* parent = nullptr) : QInAppStore(parent)
             {
-            case PT_Consumable:
-                registerProduct(QInAppProduct::Consumable, name);
-                return true;
-            case PT_Unlockable:
-                registerProduct(QInAppProduct::Unlockable, name);
-                return true;
+                mProduct = nullptr;
+                connect(this, SIGNAL(productRegistered(QInAppProduct*)), SLOT(onProductRegistered(QInAppProduct*)));
+                connect(this, SIGNAL(productUnknown(QInAppProduct::ProductType, const QString&)), SLOT(onProductUnknown(QInAppProduct::ProductType, const QString&)));
+                connect(this, SIGNAL(transactionReady(QInAppTransaction*)), SLOT(onTransactionReady(QInAppTransaction*)));
             }
-            return false;
-        }
-        bool Purchase(PurchaseCB cb)
-        {
-            if(!mProduct)
-                mProduct = registeredProduct((chars) mName);
-            if(mProduct)
+            ~PurchasePrivate()
             {
-                mProduct->purchase();
-                return true;
             }
-            return false;
-        }
 
-    private slots:
-        void onProductRegistered(QInAppProduct* product)
-        {
-        }
-        void onProductUnknown(QInAppProduct::ProductType productType, const QString& identifier)
-        {
-        }
-        void onTransactionReady(QInAppTransaction* transaction)
-        {
-        }
+        public:
+            PurchasePrivate(const PurchasePrivate&) {BOSS_ASSERT("사용금지", false);}
+            PurchasePrivate& operator=(const PurchasePrivate&) {BOSS_ASSERT("사용금지", false); return *this;}
 
-    public:
-        String mName;
-        QInAppProduct* mProduct;
-    };
+        public:
+            bool Register(chars name, PurchaseType type)
+            {
+                mName = name;
+                switch(type)
+                {
+                case PT_Consumable:
+                    registerProduct(QInAppProduct::Consumable, name);
+                    return true;
+                case PT_Unlockable:
+                    registerProduct(QInAppProduct::Unlockable, name);
+                    return true;
+                }
+                return false;
+            }
+            bool Purchase(PurchaseCB cb)
+            {
+                if(!mProduct)
+                    mProduct = registeredProduct((chars) mName);
+                if(mProduct)
+                {
+                    mProduct->purchase();
+                    return true;
+                }
+                return false;
+            }
 
-    #if BOSS_ANDROID & QT_HAVE_SERIALPORT
+        private slots:
+            void onProductRegistered(QInAppProduct* product)
+            {
+            }
+            void onProductUnknown(QInAppProduct::ProductType productType, const QString& identifier)
+            {
+            }
+            void onTransactionReady(QInAppTransaction* transaction)
+            {
+            }
+
+        public:
+            String mName;
+            QInAppProduct* mProduct;
+        };
+    #else
+        class PurchasePrivate : public QObject {Q_OBJECT};
+    #endif
+
+    #if BOSS_ANDROID & defined(QT_HAVE_SERIALPORT)
         typedef QSerialPortInfo SerialPortInfoClass;
         class SerialPortForAndroid
         {
@@ -3740,7 +3724,7 @@
             }
         };
         typedef SerialPortForAndroid SerialPortClass;
-    #elif QT_HAVE_SERIALPORT
+    #elif defined(QT_HAVE_SERIALPORT)
         typedef QSerialPortInfo SerialPortInfoClass;
         typedef QSerialPort SerialPortClass;
     #else
@@ -4203,301 +4187,50 @@
         }
     };
 
-    class CameraSurface : public QAbstractVideoSurface
-    {
-        Q_OBJECT
-
-    private:
-        QCamera mCamera;
-        id_mutex mMutex;
-        QVideoFrame::PixelFormat mPixelFormat;
-        bool mNeedFlip;
-        uint08s mLastImage;
-        sint32 mLastImageWidth;
-        sint32 mLastImageHeight;
-
-    public:
-        CameraSurface(const QCameraInfo& info) : mCamera(info)
+    #ifdef QT_HAVE_MULTIMEDIA
+        class CameraSurface : public QAbstractVideoSurface
         {
-            mMutex = Mutex::Open();
-            mNeedFlip = false;
-            mLastImageWidth = 0;
-            mLastImageHeight = 0;
-        }
-        ~CameraSurface()
-        {
-            StopCamera();
-            Mutex::Close(mMutex);
-        }
+            Q_OBJECT
 
-    public:
-        void StartCamera() {mCamera.start();}
-        void StopCamera() {mCamera.stop();}
-        const QCameraViewfinderSettings GetSettings() {return mCamera.viewfinderSettings();}
-        void SetSettings(const QCameraViewfinderSettings& settings) {mCamera.setViewfinderSettings(settings);}
-        const QList<QCameraViewfinderSettings> GetSupportedAllSettings() {return mCamera.supportedViewfinderSettings();}
-
-    protected:
-        void StartPreview(bool preview) {mCamera.setViewfinder(this);}
-        void StopPreview() {mCamera.setViewfinder((QAbstractVideoSurface*) nullptr);}
-        sint32 GetLastImageWidth() const {return mLastImageWidth;}
-        sint32 GetLastImageHeight() const {return mLastImageHeight;}
-        id_texture CreateLastTexture()
-        {
-            if(0 < mLastImageWidth && 0 < mLastImageHeight && 0 < mLastImage.Count())
-                return Platform::Graphics::CreateTexture(false, mLastImageWidth, mLastImageHeight, &mLastImage[0]);
-            return nullptr;
-        }
-
-    protected:
-        virtual bool CaptureEnabled() {return false;}
-        virtual void BufferFlush() {}
-        virtual void AddPictureShotCount() {}
-        virtual void AddPreviewShotCount() {}
-
-    protected:
-        void DecodeImage(sint32& width, sint32& height, uint08s& bits)
-        {
-            Mutex::Lock(mMutex);
-            if(0 < mLastImage.Count())
-            {
-                width = mLastImageWidth;
-                height = mLastImageHeight;
-                bits.SubtractionAll();
-                if(mNeedFlip)
-                {
-                    switch(mPixelFormat)
-                    {
-                    case QVideoFrame::Format_RGB32:
-                        ToARGB32<QVideoFrame::Format_RGB32, true>((bytes) &mLastImage[0], width, height, 4 * width,
-                            bits.AtDumpingAdded(4 * width * height));
-                        break;
-                    case QVideoFrame::Format_BGR32:
-                        ToARGB32<QVideoFrame::Format_BGR32, true>((bytes) &mLastImage[0], width, height, 4 * width,
-                            bits.AtDumpingAdded(4 * width * height));
-                        break;
-                    }
-                }
-                else switch(mPixelFormat)
-                {
-                case QVideoFrame::Format_RGB32:
-                    ToARGB32<QVideoFrame::Format_RGB32, false>((bytes) &mLastImage[0], width, height, 4 * width,
-                        bits.AtDumpingAdded(4 * width * height));
-                    break;
-                case QVideoFrame::Format_BGR32:
-                    ToARGB32<QVideoFrame::Format_BGR32, false>((bytes) &mLastImage[0], width, height, 4 * width,
-                        bits.AtDumpingAdded(4 * width * height));
-                    break;
-                }
-                //단편화방지차원: mLastImage.Clear();
-            }
-            Mutex::Unlock(mMutex);
-        }
-
-    private:
-        virtual QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const
-        {
-            Q_UNUSED(handleType);
-            return QList<QVideoFrame::PixelFormat>()
-                << QVideoFrame::Format_RGB32
-                << QVideoFrame::Format_BGR32;
-        }
-
-    private slots:
-        virtual bool present(const QVideoFrame& frame)
-        {
-            AddPictureShotCount();
-            bool Result = false;
-            if(frame.isValid() && CaptureEnabled())
-            {
-                auto FrameType = frame.handleType();
-                if(FrameType != QAbstractVideoBuffer::GLTextureHandle)
-                {
-                    QVideoFrame ClonedFrame(frame);
-                    if(ClonedFrame.map(QAbstractVideoBuffer::ReadOnly))
-                    {
-                        Mutex::Lock(mMutex);
-                        {
-                            mPixelFormat = ClonedFrame.pixelFormat();
-                            mNeedFlip = true;
-                            mLastImage.SubtractionAll();
-                            mLastImageWidth = ClonedFrame.width();
-                            mLastImageHeight = ClonedFrame.height();
-                            Memory::Copy(mLastImage.AtDumpingAdded(4 * mLastImageWidth * mLastImageHeight),
-                                ClonedFrame.bits(), 4 * mLastImageWidth * mLastImageHeight);
-                        }
-                        Mutex::Unlock(mMutex);
-                        BufferFlush();
-                        ClonedFrame.unmap();
-                        Result = true;
-                    }
-                }
-                // QVideoFrame::map함수의 버그에 따른 수동패치
-                else if(QOpenGLContext* ctx = QOpenGLContext::currentContext())
-                {
-                    QOpenGLFunctions* f = ctx->functions();
-                    GLuint textureId = frame.handle().toUInt();
-                    GLuint fbo = 0, prevFbo = 0;
-                    f->glGenFramebuffers(1, &fbo);
-                    f->glGetIntegerv(GL_FRAMEBUFFER_BINDING, (GLint*) &prevFbo);
-                    f->glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-                    f->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureId, 0);
-                    Mutex::Lock(mMutex);
-                    {
-                        mPixelFormat = frame.pixelFormat();
-                        mNeedFlip = false;
-                        mLastImage.SubtractionAll();
-                        mLastImageWidth = frame.width();
-                        mLastImageHeight = frame.height();
-                        f->glReadPixels(0, 0, mLastImageWidth, mLastImageHeight, GL_RGBA, GL_UNSIGNED_BYTE,
-                            mLastImage.AtDumpingAdded(4 * mLastImageWidth * mLastImageHeight));
-                    }
-                    Mutex::Unlock(mMutex);
-                    BufferFlush();
-                    f->glBindFramebuffer(GL_FRAMEBUFFER, prevFbo);
-                    f->glDeleteFramebuffers(1, &fbo);
-                    Result = true;
-                }
-            }
-            return Result;
-        }
-
-    private:
-        template<sint32 FORMAT, bool FLIP>
-        void ToARGB32(bytes srcbits, const sint32 width, const sint32 height, const sint32 rowbytes, uint08* dstbits)
-        {
-            for(sint32 y = 0, yend = height; y < yend; ++y)
-            {
-                Bmp::bitmappixel* CurDst = (Bmp::bitmappixel*) &dstbits[rowbytes * y];
-                bytes CurSrc = (FLIP)? &srcbits[rowbytes * (yend - 1 - y)] : &srcbits[rowbytes * y];
-                for(sint32 x = 0, xend = width; x < xend; ++x)
-                {
-                    if(FORMAT == (sint32) QVideoFrame::Format_RGB32)
-                    {
-                        CurDst->a = 0xFF;
-                        CurDst->r = CurSrc[2];
-                        CurDst->g = CurSrc[1];
-                        CurDst->b = CurSrc[0];
-                        CurDst++; CurSrc += 4;
-                    }
-                    if(FORMAT == (sint32) QVideoFrame::Format_BGR32)
-                    {
-                        CurDst->a = 0xFF;
-                        CurDst->r = CurSrc[0];
-                        CurDst->g = CurSrc[1];
-                        CurDst->b = CurSrc[2];
-                        CurDst++; CurSrc += 4;
-                    }
-                }
-            }
-        }
-    };
-
-    #if BOSS_ANDROID
-        class CameraSurfaceForAndroid
-        {
         private:
-            QCameraViewfinderSettings mSettings;
-            QList<QCameraViewfinderSettings> mAllSettings;
+            QCamera mCamera;
             id_mutex mMutex;
+            QVideoFrame::PixelFormat mPixelFormat;
+            bool mNeedFlip;
             uint08s mLastImage;
             sint32 mLastImageWidth;
             sint32 mLastImageHeight;
-            id_texture mCamTexture;
 
         public:
-            CameraSurfaceForAndroid(const QCameraInfo& info)
+            CameraSurface(const QCameraInfo& info) : mCamera(info)
             {
-                JNIEnv* env = GetAndroidJNIEnv();
-                // 카메라 정보수집
-                QAndroidJniObject Collector = QAndroidJniObject::callStaticObjectMethod("com/boss2d/BossCameraManager", "info", "()Ljava/lang/String;");
-                String Result = Collector.toString().toUtf8().constData();
-                chars ResultPtr = Result;
-
-                // 정보입력
-                QList<QSize> SupportedResolutions;
-                for(sint32 i = 0; (i = Result.Find(i, "Size_")) != -1;)
-                {
-                    QSize NewResolution;
-                    i += 5; // Size_
-                    NewResolution.setWidth(Parser::GetInt(ResultPtr, -1, &i));
-                    i += 1; // x
-                    NewResolution.setHeight(Parser::GetInt(ResultPtr, -1, &i));
-                    i += 1; // ;
-                    SupportedResolutions.append(NewResolution);
-                }
-                foreach(const auto& CurResolution, SupportedResolutions)
-                {
-                    QCameraViewfinderSettings NewSettings = mSettings;
-                    NewSettings.setResolution(CurResolution);
-                    mAllSettings.append(NewSettings);
-                }
-                // "Format_JPEG;" -> Format_Jpeg
-                // "Format_NV21;" -> Format_NV21
-                // "Format_RGB_565;" -> Format_RGB565
-                // "Format_YUV_420_888;" -> Format_YUV420P
-                // "Format_YUV_444_888;" -> Format_YUV444
-                // "Format_YUY2;" -> Format_YUYV
-                // "Format_YV12;" -> Format_YV12
-
                 mMutex = Mutex::Open();
+                mNeedFlip = false;
                 mLastImageWidth = 0;
                 mLastImageHeight = 0;
-                mCamTexture = nullptr;
-                // 콜백함수 연결
-                JNINativeMethod methods[] {
-                    {"OnPictureTaken", "([BIII)V", reinterpret_cast<void*>(OnPictureTaken)},
-                    {"OnPreviewTaken", "([BIII)V", reinterpret_cast<void*>(OnPreviewTaken)}};                
-                jclass BossCameraManagerClass = env->FindClass("com/boss2d/BossCameraManager");
-                env->RegisterNatives(BossCameraManagerClass, methods, sizeof(methods) / sizeof(methods[0]));
-                env->DeleteLocalRef(BossCameraManagerClass);
-                SavedMe() = this;
             }
-            ~CameraSurfaceForAndroid()
+            ~CameraSurface()
             {
-                Platform::Graphics::RemoveTexture(mCamTexture);
                 StopCamera();
-                SavedMe() = nullptr;
                 Mutex::Close(mMutex);
             }
 
         public:
-            void StartCamera()
-            {
-                mCamTexture = Platform::Graphics::CreateTexture(false, mSettings.resolution().width(), mSettings.resolution().height());
-                BOSS_TRACE("StartCamera: GenTexture - LastTexture: %d, width: %d, height: %d",
-                    Platform::Graphics::GetTextureID(mCamTexture), mSettings.resolution().width(), mSettings.resolution().height());
-                QAndroidJniObject::callStaticMethod<void>("com/boss2d/BossCameraManager", "init", "(III)V",
-                    Platform::Graphics::GetTextureID(mCamTexture), mSettings.resolution().width(), mSettings.resolution().height());
-            }
-            void StopCamera()
-            {
-                QAndroidJniObject::callStaticMethod<void>("com/boss2d/BossCameraManager", "quit", "()V");
-                Platform::Graphics::RemoveTexture(mCamTexture);
-                mCamTexture = nullptr;
-                BOSS_TRACE("StopCamera: DeleteTexture done");
-            }
-            const QCameraViewfinderSettings GetSettings() {return mSettings;}
-            void SetSettings(const QCameraViewfinderSettings& settings) {mSettings = settings;}
-            const QList<QCameraViewfinderSettings> GetSupportedAllSettings() {return mAllSettings;}
+            void StartCamera() {mCamera.start();}
+            void StopCamera() {mCamera.stop();}
+            const QCameraViewfinderSettings GetSettings() {return mCamera.viewfinderSettings();}
+            void SetSettings(const QCameraViewfinderSettings& settings) {mCamera.setViewfinderSettings(settings);}
+            const QList<QCameraViewfinderSettings> GetSupportedAllSettings() {return mCamera.supportedViewfinderSettings();}
 
         protected:
-            void StartPreview(bool preview) {QAndroidJniObject::callStaticMethod<void>("com/boss2d/BossCameraManager", "play", "(I)V", (preview)? 1 : 2);}
-            void StopPreview() {QAndroidJniObject::callStaticMethod<void>("com/boss2d/BossCameraManager", "stop", "()V");}
+            void StartPreview(bool preview) {mCamera.setViewfinder(this);}
+            void StopPreview() {mCamera.setViewfinder((QAbstractVideoSurface*) nullptr);}
             sint32 GetLastImageWidth() const {return mLastImageWidth;}
             sint32 GetLastImageHeight() const {return mLastImageHeight;}
             id_texture CreateLastTexture()
             {
-                if(0 < mLastImageWidth && 0 < mLastImageHeight)
-                {
-                    switch(*((uint32*) &mLastImage[0]))
-                    {
-                    case codeid("NV21"):
-                        if(12 < mLastImage.Count())
-                            return Platform::Graphics::CreateTexture(true, mLastImageWidth, mLastImageHeight, &mLastImage[12]);
-                        break;
-                    }
-                }
+                if(0 < mLastImageWidth && 0 < mLastImageHeight && 0 < mLastImage.Count())
+                    return Platform::Graphics::CreateTexture(false, mLastImageWidth, mLastImageHeight, &mLastImage[0]);
                 return nullptr;
             }
 
@@ -4510,725 +4243,984 @@
         protected:
             void DecodeImage(sint32& width, sint32& height, uint08s& bits)
             {
-                BOSS_TRACE("DecodeImage - Begin(%d)", mLastImage.Count());
                 Mutex::Lock(mMutex);
                 if(0 < mLastImage.Count())
                 {
-                    switch(*((uint32*) &mLastImage[0]))
+                    width = mLastImageWidth;
+                    height = mLastImageHeight;
+                    bits.SubtractionAll();
+                    if(mNeedFlip)
                     {
-                    case codeid("NV21"):
+                        switch(mPixelFormat)
                         {
-                            BOSS_TRACE("DecodeImage(RAW8) - Mid-A (%llu)", Platform::Utility::CurrentTimeMsec());
-                            width = *((sint32*) &mLastImage[4]);
-                            height = *((sint32*) &mLastImage[8]);
-                            bits.SubtractionAll();
-                            Bmp::bitmappixel* Dst = (Bmp::bitmappixel*)
-                                bits.AtDumpingAdded(sizeof(Bmp::bitmappixel) * width * height);
-                            auto SrcY = (const uint08*) &mLastImage[12];
-                            auto SrcUVBegin = (const uint08*) &mLastImage[12 + width * height];
-                            const uint08* SrcUVPair[2] = {SrcUVBegin, SrcUVBegin};
-                            for(sint32 y = 0; y < height; ++y)
-                            {
-                                const uint08*& SrcUV = SrcUVPair[y & 1];
-                                for(sint32 x = 0; x < width; x += 2)
-                                {
-                                    const sint32 Y1 = *(SrcY++) & 0xFF;
-                                    const sint32 Y2 = *(SrcY++) & 0xFF;
-                                    const sint32 V = (*(SrcUV++) & 0xFF) - 128;
-                                    const sint32 U = (*(SrcUV++) & 0xFF) - 128;
-                                    const sint32 Y1Value = (sint32)(1.164f * (Y1 - 16));
-                                    const sint32 Y2Value = (sint32)(1.164f * (Y2 - 16));
-                                    const sint32 RValue = (sint32)(1.596f * V);
-                                    const sint32 GValue = (sint32)(0.391f * U + 0.813f * V);
-                                    const sint32 BValue = (sint32)(2.018f * U);
-                                    Dst->a = 0xFF;
-                                    Dst->r = (uint08) Math::Max(0, Math::Min(Y1Value + RValue, 255));
-                                    Dst->g = (uint08) Math::Max(0, Math::Min(Y1Value - GValue, 255));
-                                    Dst->b = (uint08) Math::Max(0, Math::Min(Y1Value + BValue, 255));
-                                    Dst++;
-                                    Dst->a = 0xFF;
-                                    Dst->r = (uint08) Math::Max(0, Math::Min(Y2Value + RValue, 255));
-                                    Dst->g = (uint08) Math::Max(0, Math::Min(Y2Value - GValue, 255));
-                                    Dst->b = (uint08) Math::Max(0, Math::Min(Y2Value + BValue, 255));
-                                    Dst++;
-                                }
-                            }
-                            BOSS_TRACE("DecodeImage(RAW8) - Mid-B (%llu)", Platform::Utility::CurrentTimeMsec());
+                        case QVideoFrame::Format_RGB32:
+                            ToARGB32<QVideoFrame::Format_RGB32, true>((bytes) &mLastImage[0], width, height, 4 * width,
+                                bits.AtDumpingAdded(4 * width * height));
+                            break;
+                        case QVideoFrame::Format_BGR32:
+                            ToARGB32<QVideoFrame::Format_BGR32, true>((bytes) &mLastImage[0], width, height, 4 * width,
+                                bits.AtDumpingAdded(4 * width * height));
+                            break;
                         }
+                    }
+                    else switch(mPixelFormat)
+                    {
+                    case QVideoFrame::Format_RGB32:
+                        ToARGB32<QVideoFrame::Format_RGB32, false>((bytes) &mLastImage[0], width, height, 4 * width,
+                            bits.AtDumpingAdded(4 * width * height));
                         break;
-                    case codeid("JPEG"):
-                        BOSS_TRACE("DecodeImage(JPEG)");
-                        if(id_bitmap NewBitmap = AddOn::Jpg::ToBmp(&mLastImage[4], mLastImage.Count() - 4))
-                        {
-                            BOSS_TRACE("DecodeImage(JPEG) - Mid-A");
-                            width = Bmp::GetWidth(NewBitmap);
-                            height = Bmp::GetHeight(NewBitmap);
-                            bits.SubtractionAll();
-                            Bmp::bitmappixel* Dst = (Bmp::bitmappixel*)
-                                bits.AtDumpingAdded(sizeof(Bmp::bitmappixel) * width * height);
-                            auto Src = (const Bmp::bitmappixel*) Bmp::GetBits(NewBitmap);
-                            for(sint32 y = 0; y < height; ++y)
-                                Memory::Copy(&Dst[width * y], &Src[width * (height - 1 - y)],
-                                    sizeof(Bmp::bitmappixel) * width);
-                            Bmp::Remove(NewBitmap);
-                            BOSS_TRACE("DecodeImage(JPEG) - Mid-B");
-                        }
+                    case QVideoFrame::Format_BGR32:
+                        ToARGB32<QVideoFrame::Format_BGR32, false>((bytes) &mLastImage[0], width, height, 4 * width,
+                            bits.AtDumpingAdded(4 * width * height));
                         break;
                     }
                     //단편화방지차원: mLastImage.Clear();
                 }
-                else
-                {
-                    width = 1;
-                    height = 1;
-                    bits.SubtractionAll();
-                    Bmp::bitmappixel* Dst = (Bmp::bitmappixel*)
-                        bits.AtDumpingAdded(sizeof(Bmp::bitmappixel) * width * height);
-                    Dst->a = 0xFF;
-                    Dst->r = 0xFF;
-                    Dst->g = 0x00;
-                    Dst->b = 0x00;
-                }
                 Mutex::Unlock(mMutex);
-                BOSS_TRACE("DecodeImage - End(%d)", bits.Count());
             }
 
         private:
-            static CameraSurfaceForAndroid*& SavedMe()
+            virtual QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const
             {
-                static CameraSurfaceForAndroid* _ = nullptr;
-                return _;
+                Q_UNUSED(handleType);
+                return QList<QVideoFrame::PixelFormat>()
+                    << QVideoFrame::Format_RGB32
+                    << QVideoFrame::Format_BGR32;
             }
-            static void OnPictureTaken(JNIEnv* env, jobject thiz, jbyteArray data, jint length, jint width, jint height)
+
+        private slots:
+            virtual bool present(const QVideoFrame& frame)
             {
-                BOSS_TRACE("OnPictureTaken Begin(%llu)", Platform::Utility::CurrentTimeMsec());
-                bytes paramData = (bytes) env->GetByteArrayElements(data, nullptr);
-                CameraSurfaceForAndroid* Me = SavedMe();
-                BOSS_TRACE("OnPictureTaken - width: %d, height: %d, paramData: %08X, length: %d, Me: %08X",
-                    width, height, paramData, length, Me);
-                if(Me)
+                AddPictureShotCount();
+                bool Result = false;
+                if(frame.isValid() && CaptureEnabled())
                 {
-                    Me->AddPictureShotCount();
-                    if(Me->CaptureEnabled())
-                    if(paramData && 0 < length)
+                    auto FrameType = frame.handleType();
+                    if(FrameType != QAbstractVideoBuffer::GLTextureHandle)
                     {
-                        if(16 <= length)
-                        BOSS_TRACE("OnPictureTaken - %08X %08X %08X %08X... (%d)",
-                            ((sint32*) paramData)[0], ((sint32*) paramData)[1],
-                            ((sint32*) paramData)[2], ((sint32*) paramData)[3], length);
-                        Mutex::Lock(Me->mMutex);
+                        QVideoFrame ClonedFrame(frame);
+                        if(ClonedFrame.map(QAbstractVideoBuffer::ReadOnly))
                         {
-                            Me->mLastImage.SubtractionAll();
-                            Me->mLastImageWidth = width;
-                            Me->mLastImageHeight = height;
-                            const uint32 TypeCode = codeid("JPEG");
-                            Memory::Copy(Me->mLastImage.AtDumpingAdded(4), &TypeCode, 4);
-                            Memory::Copy(Me->mLastImage.AtDumpingAdded(length), paramData, length);
+                            Mutex::Lock(mMutex);
+                            {
+                                mPixelFormat = ClonedFrame.pixelFormat();
+                                mNeedFlip = true;
+                                mLastImage.SubtractionAll();
+                                mLastImageWidth = ClonedFrame.width();
+                                mLastImageHeight = ClonedFrame.height();
+                                Memory::Copy(mLastImage.AtDumpingAdded(4 * mLastImageWidth * mLastImageHeight),
+                                    ClonedFrame.bits(), 4 * mLastImageWidth * mLastImageHeight);
+                            }
+                            Mutex::Unlock(mMutex);
+                            BufferFlush();
+                            ClonedFrame.unmap();
+                            Result = true;
                         }
-                        Mutex::Unlock(Me->mMutex);
-                        Me->BufferFlush();
+                    }
+                    // QVideoFrame::map함수의 버그에 따른 수동패치
+                    else if(QOpenGLContext* ctx = QOpenGLContext::currentContext())
+                    {
+                        QOpenGLFunctions* f = ctx->functions();
+                        GLuint textureId = frame.handle().toUInt();
+                        GLuint fbo = 0, prevFbo = 0;
+                        f->glGenFramebuffers(1, &fbo);
+                        f->glGetIntegerv(GL_FRAMEBUFFER_BINDING, (GLint*) &prevFbo);
+                        f->glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+                        f->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureId, 0);
+                        Mutex::Lock(mMutex);
+                        {
+                            mPixelFormat = frame.pixelFormat();
+                            mNeedFlip = false;
+                            mLastImage.SubtractionAll();
+                            mLastImageWidth = frame.width();
+                            mLastImageHeight = frame.height();
+                            f->glReadPixels(0, 0, mLastImageWidth, mLastImageHeight, GL_RGBA, GL_UNSIGNED_BYTE,
+                                mLastImage.AtDumpingAdded(4 * mLastImageWidth * mLastImageHeight));
+                        }
+                        Mutex::Unlock(mMutex);
+                        BufferFlush();
+                        f->glBindFramebuffer(GL_FRAMEBUFFER, prevFbo);
+                        f->glDeleteFramebuffers(1, &fbo);
+                        Result = true;
                     }
                 }
-                env->ReleaseByteArrayElements(data, (jbyte*) paramData, JNI_ABORT);
-                BOSS_TRACE("OnPictureTaken End(%llu)", Platform::Utility::CurrentTimeMsec());
+                return Result;
             }
-            static void OnPreviewTaken(JNIEnv* env, jobject thiz, jbyteArray data, jint length, jint width, jint height)
+
+        private:
+            template<sint32 FORMAT, bool FLIP>
+            void ToARGB32(bytes srcbits, const sint32 width, const sint32 height, const sint32 rowbytes, uint08* dstbits)
             {
-                BOSS_TRACE("OnPreviewTaken Begin(%llu)", Platform::Utility::CurrentTimeMsec());
-                bytes paramData = (bytes) env->GetByteArrayElements(data, nullptr);
-                CameraSurfaceForAndroid* Me = SavedMe();
-                BOSS_TRACE("OnPreviewTaken - width: %d, height: %d, paramData: %08X, length: %d, Me: %08X",
-                    width, height, paramData, length, Me);
-                if(Me)
+                for(sint32 y = 0, yend = height; y < yend; ++y)
                 {
-                    Me->AddPreviewShotCount();
-                    if(Me->CaptureEnabled())
-                    if(paramData && 0 < length)
+                    Bmp::bitmappixel* CurDst = (Bmp::bitmappixel*) &dstbits[rowbytes * y];
+                    bytes CurSrc = (FLIP)? &srcbits[rowbytes * (yend - 1 - y)] : &srcbits[rowbytes * y];
+                    for(sint32 x = 0, xend = width; x < xend; ++x)
                     {
-                        if(16 <= length)
-                        BOSS_TRACE("OnPreviewTaken - %08X %08X %08X %08X... (%d)",
-                            ((sint32*) paramData)[0], ((sint32*) paramData)[1],
-                            ((sint32*) paramData)[2], ((sint32*) paramData)[3], length);
-                        Mutex::Lock(Me->mMutex);
+                        if(FORMAT == (sint32) QVideoFrame::Format_RGB32)
                         {
-                            Me->mLastImage.SubtractionAll();
-                            Me->mLastImageWidth = width;
-                            Me->mLastImageHeight = height;
-                            const uint32 TypeCode = codeid("NV21");
-                            Memory::Copy(Me->mLastImage.AtDumpingAdded(4), &TypeCode, 4);
-                            Memory::Copy(Me->mLastImage.AtDumpingAdded(4), &width, 4);
-                            Memory::Copy(Me->mLastImage.AtDumpingAdded(4), &height, 4);
-                            Memory::Copy(Me->mLastImage.AtDumpingAdded(length), paramData, length);
+                            CurDst->a = 0xFF;
+                            CurDst->r = CurSrc[2];
+                            CurDst->g = CurSrc[1];
+                            CurDst->b = CurSrc[0];
+                            CurDst++; CurSrc += 4;
                         }
-                        Mutex::Unlock(Me->mMutex);
-                        Me->BufferFlush();
+                        if(FORMAT == (sint32) QVideoFrame::Format_BGR32)
+                        {
+                            CurDst->a = 0xFF;
+                            CurDst->r = CurSrc[0];
+                            CurDst->g = CurSrc[1];
+                            CurDst->b = CurSrc[2];
+                            CurDst++; CurSrc += 4;
+                        }
                     }
                 }
-                env->ReleaseByteArrayElements(data, (jbyte*) paramData, JNI_ABORT);
-                BOSS_TRACE("OnPreviewTaken End(%llu)", Platform::Utility::CurrentTimeMsec());
             }
         };
-        typedef CameraSurfaceForAndroid CameraSurfaceClass;
+
+        #if BOSS_ANDROID
+            class CameraSurfaceForAndroid
+            {
+            private:
+                QCameraViewfinderSettings mSettings;
+                QList<QCameraViewfinderSettings> mAllSettings;
+                id_mutex mMutex;
+                uint08s mLastImage;
+                sint32 mLastImageWidth;
+                sint32 mLastImageHeight;
+                id_texture mCamTexture;
+
+            public:
+                CameraSurfaceForAndroid(const QCameraInfo& info)
+                {
+                    JNIEnv* env = GetAndroidJNIEnv();
+                    // 카메라 정보수집
+                    QAndroidJniObject Collector = QAndroidJniObject::callStaticObjectMethod("com/boss2d/BossCameraManager", "info", "()Ljava/lang/String;");
+                    String Result = Collector.toString().toUtf8().constData();
+                    chars ResultPtr = Result;
+
+                    // 정보입력
+                    QList<QSize> SupportedResolutions;
+                    for(sint32 i = 0; (i = Result.Find(i, "Size_")) != -1;)
+                    {
+                        QSize NewResolution;
+                        i += 5; // Size_
+                        NewResolution.setWidth(Parser::GetInt(ResultPtr, -1, &i));
+                        i += 1; // x
+                        NewResolution.setHeight(Parser::GetInt(ResultPtr, -1, &i));
+                        i += 1; // ;
+                        SupportedResolutions.append(NewResolution);
+                    }
+                    foreach(const auto& CurResolution, SupportedResolutions)
+                    {
+                        QCameraViewfinderSettings NewSettings = mSettings;
+                        NewSettings.setResolution(CurResolution);
+                        mAllSettings.append(NewSettings);
+                    }
+                    // "Format_JPEG;" -> Format_Jpeg
+                    // "Format_NV21;" -> Format_NV21
+                    // "Format_RGB_565;" -> Format_RGB565
+                    // "Format_YUV_420_888;" -> Format_YUV420P
+                    // "Format_YUV_444_888;" -> Format_YUV444
+                    // "Format_YUY2;" -> Format_YUYV
+                    // "Format_YV12;" -> Format_YV12
+
+                    mMutex = Mutex::Open();
+                    mLastImageWidth = 0;
+                    mLastImageHeight = 0;
+                    mCamTexture = nullptr;
+                    // 콜백함수 연결
+                    JNINativeMethod methods[] {
+                        {"OnPictureTaken", "([BIII)V", reinterpret_cast<void*>(OnPictureTaken)},
+                        {"OnPreviewTaken", "([BIII)V", reinterpret_cast<void*>(OnPreviewTaken)}};
+                    jclass BossCameraManagerClass = env->FindClass("com/boss2d/BossCameraManager");
+                    env->RegisterNatives(BossCameraManagerClass, methods, sizeof(methods) / sizeof(methods[0]));
+                    env->DeleteLocalRef(BossCameraManagerClass);
+                    SavedMe() = this;
+                }
+                ~CameraSurfaceForAndroid()
+                {
+                    Platform::Graphics::RemoveTexture(mCamTexture);
+                    StopCamera();
+                    SavedMe() = nullptr;
+                    Mutex::Close(mMutex);
+                }
+
+            public:
+                void StartCamera()
+                {
+                    mCamTexture = Platform::Graphics::CreateTexture(false, mSettings.resolution().width(), mSettings.resolution().height());
+                    BOSS_TRACE("StartCamera: GenTexture - LastTexture: %d, width: %d, height: %d",
+                        Platform::Graphics::GetTextureID(mCamTexture), mSettings.resolution().width(), mSettings.resolution().height());
+                    QAndroidJniObject::callStaticMethod<void>("com/boss2d/BossCameraManager", "init", "(III)V",
+                        Platform::Graphics::GetTextureID(mCamTexture), mSettings.resolution().width(), mSettings.resolution().height());
+                }
+                void StopCamera()
+                {
+                    QAndroidJniObject::callStaticMethod<void>("com/boss2d/BossCameraManager", "quit", "()V");
+                    Platform::Graphics::RemoveTexture(mCamTexture);
+                    mCamTexture = nullptr;
+                    BOSS_TRACE("StopCamera: DeleteTexture done");
+                }
+                const QCameraViewfinderSettings GetSettings() {return mSettings;}
+                void SetSettings(const QCameraViewfinderSettings& settings) {mSettings = settings;}
+                const QList<QCameraViewfinderSettings> GetSupportedAllSettings() {return mAllSettings;}
+
+            protected:
+                void StartPreview(bool preview) {QAndroidJniObject::callStaticMethod<void>("com/boss2d/BossCameraManager", "play", "(I)V", (preview)? 1 : 2);}
+                void StopPreview() {QAndroidJniObject::callStaticMethod<void>("com/boss2d/BossCameraManager", "stop", "()V");}
+                sint32 GetLastImageWidth() const {return mLastImageWidth;}
+                sint32 GetLastImageHeight() const {return mLastImageHeight;}
+                id_texture CreateLastTexture()
+                {
+                    if(0 < mLastImageWidth && 0 < mLastImageHeight)
+                    {
+                        switch(*((uint32*) &mLastImage[0]))
+                        {
+                        case codeid("NV21"):
+                            if(12 < mLastImage.Count())
+                                return Platform::Graphics::CreateTexture(true, mLastImageWidth, mLastImageHeight, &mLastImage[12]);
+                            break;
+                        }
+                    }
+                    return nullptr;
+                }
+
+            protected:
+                virtual bool CaptureEnabled() {return false;}
+                virtual void BufferFlush() {}
+                virtual void AddPictureShotCount() {}
+                virtual void AddPreviewShotCount() {}
+
+            protected:
+                void DecodeImage(sint32& width, sint32& height, uint08s& bits)
+                {
+                    BOSS_TRACE("DecodeImage - Begin(%d)", mLastImage.Count());
+                    Mutex::Lock(mMutex);
+                    if(0 < mLastImage.Count())
+                    {
+                        switch(*((uint32*) &mLastImage[0]))
+                        {
+                        case codeid("NV21"):
+                            {
+                                BOSS_TRACE("DecodeImage(RAW8) - Mid-A (%llu)", Platform::Utility::CurrentTimeMsec());
+                                width = *((sint32*) &mLastImage[4]);
+                                height = *((sint32*) &mLastImage[8]);
+                                bits.SubtractionAll();
+                                Bmp::bitmappixel* Dst = (Bmp::bitmappixel*)
+                                    bits.AtDumpingAdded(sizeof(Bmp::bitmappixel) * width * height);
+                                auto SrcY = (const uint08*) &mLastImage[12];
+                                auto SrcUVBegin = (const uint08*) &mLastImage[12 + width * height];
+                                const uint08* SrcUVPair[2] = {SrcUVBegin, SrcUVBegin};
+                                for(sint32 y = 0; y < height; ++y)
+                                {
+                                    const uint08*& SrcUV = SrcUVPair[y & 1];
+                                    for(sint32 x = 0; x < width; x += 2)
+                                    {
+                                        const sint32 Y1 = *(SrcY++) & 0xFF;
+                                        const sint32 Y2 = *(SrcY++) & 0xFF;
+                                        const sint32 V = (*(SrcUV++) & 0xFF) - 128;
+                                        const sint32 U = (*(SrcUV++) & 0xFF) - 128;
+                                        const sint32 Y1Value = (sint32)(1.164f * (Y1 - 16));
+                                        const sint32 Y2Value = (sint32)(1.164f * (Y2 - 16));
+                                        const sint32 RValue = (sint32)(1.596f * V);
+                                        const sint32 GValue = (sint32)(0.391f * U + 0.813f * V);
+                                        const sint32 BValue = (sint32)(2.018f * U);
+                                        Dst->a = 0xFF;
+                                        Dst->r = (uint08) Math::Max(0, Math::Min(Y1Value + RValue, 255));
+                                        Dst->g = (uint08) Math::Max(0, Math::Min(Y1Value - GValue, 255));
+                                        Dst->b = (uint08) Math::Max(0, Math::Min(Y1Value + BValue, 255));
+                                        Dst++;
+                                        Dst->a = 0xFF;
+                                        Dst->r = (uint08) Math::Max(0, Math::Min(Y2Value + RValue, 255));
+                                        Dst->g = (uint08) Math::Max(0, Math::Min(Y2Value - GValue, 255));
+                                        Dst->b = (uint08) Math::Max(0, Math::Min(Y2Value + BValue, 255));
+                                        Dst++;
+                                    }
+                                }
+                                BOSS_TRACE("DecodeImage(RAW8) - Mid-B (%llu)", Platform::Utility::CurrentTimeMsec());
+                            }
+                            break;
+                        case codeid("JPEG"):
+                            BOSS_TRACE("DecodeImage(JPEG)");
+                            if(id_bitmap NewBitmap = AddOn::Jpg::ToBmp(&mLastImage[4], mLastImage.Count() - 4))
+                            {
+                                BOSS_TRACE("DecodeImage(JPEG) - Mid-A");
+                                width = Bmp::GetWidth(NewBitmap);
+                                height = Bmp::GetHeight(NewBitmap);
+                                bits.SubtractionAll();
+                                Bmp::bitmappixel* Dst = (Bmp::bitmappixel*)
+                                    bits.AtDumpingAdded(sizeof(Bmp::bitmappixel) * width * height);
+                                auto Src = (const Bmp::bitmappixel*) Bmp::GetBits(NewBitmap);
+                                for(sint32 y = 0; y < height; ++y)
+                                    Memory::Copy(&Dst[width * y], &Src[width * (height - 1 - y)],
+                                        sizeof(Bmp::bitmappixel) * width);
+                                Bmp::Remove(NewBitmap);
+                                BOSS_TRACE("DecodeImage(JPEG) - Mid-B");
+                            }
+                            break;
+                        }
+                        //단편화방지차원: mLastImage.Clear();
+                    }
+                    else
+                    {
+                        width = 1;
+                        height = 1;
+                        bits.SubtractionAll();
+                        Bmp::bitmappixel* Dst = (Bmp::bitmappixel*)
+                            bits.AtDumpingAdded(sizeof(Bmp::bitmappixel) * width * height);
+                        Dst->a = 0xFF;
+                        Dst->r = 0xFF;
+                        Dst->g = 0x00;
+                        Dst->b = 0x00;
+                    }
+                    Mutex::Unlock(mMutex);
+                    BOSS_TRACE("DecodeImage - End(%d)", bits.Count());
+                }
+
+            private:
+                static CameraSurfaceForAndroid*& SavedMe()
+                {
+                    static CameraSurfaceForAndroid* _ = nullptr;
+                    return _;
+                }
+                static void OnPictureTaken(JNIEnv* env, jobject thiz, jbyteArray data, jint length, jint width, jint height)
+                {
+                    BOSS_TRACE("OnPictureTaken Begin(%llu)", Platform::Utility::CurrentTimeMsec());
+                    bytes paramData = (bytes) env->GetByteArrayElements(data, nullptr);
+                    CameraSurfaceForAndroid* Me = SavedMe();
+                    BOSS_TRACE("OnPictureTaken - width: %d, height: %d, paramData: %08X, length: %d, Me: %08X",
+                        width, height, paramData, length, Me);
+                    if(Me)
+                    {
+                        Me->AddPictureShotCount();
+                        if(Me->CaptureEnabled())
+                        if(paramData && 0 < length)
+                        {
+                            if(16 <= length)
+                            BOSS_TRACE("OnPictureTaken - %08X %08X %08X %08X... (%d)",
+                                ((sint32*) paramData)[0], ((sint32*) paramData)[1],
+                                ((sint32*) paramData)[2], ((sint32*) paramData)[3], length);
+                            Mutex::Lock(Me->mMutex);
+                            {
+                                Me->mLastImage.SubtractionAll();
+                                Me->mLastImageWidth = width;
+                                Me->mLastImageHeight = height;
+                                const uint32 TypeCode = codeid("JPEG");
+                                Memory::Copy(Me->mLastImage.AtDumpingAdded(4), &TypeCode, 4);
+                                Memory::Copy(Me->mLastImage.AtDumpingAdded(length), paramData, length);
+                            }
+                            Mutex::Unlock(Me->mMutex);
+                            Me->BufferFlush();
+                        }
+                    }
+                    env->ReleaseByteArrayElements(data, (jbyte*) paramData, JNI_ABORT);
+                    BOSS_TRACE("OnPictureTaken End(%llu)", Platform::Utility::CurrentTimeMsec());
+                }
+                static void OnPreviewTaken(JNIEnv* env, jobject thiz, jbyteArray data, jint length, jint width, jint height)
+                {
+                    BOSS_TRACE("OnPreviewTaken Begin(%llu)", Platform::Utility::CurrentTimeMsec());
+                    bytes paramData = (bytes) env->GetByteArrayElements(data, nullptr);
+                    CameraSurfaceForAndroid* Me = SavedMe();
+                    BOSS_TRACE("OnPreviewTaken - width: %d, height: %d, paramData: %08X, length: %d, Me: %08X",
+                        width, height, paramData, length, Me);
+                    if(Me)
+                    {
+                        Me->AddPreviewShotCount();
+                        if(Me->CaptureEnabled())
+                        if(paramData && 0 < length)
+                        {
+                            if(16 <= length)
+                            BOSS_TRACE("OnPreviewTaken - %08X %08X %08X %08X... (%d)",
+                                ((sint32*) paramData)[0], ((sint32*) paramData)[1],
+                                ((sint32*) paramData)[2], ((sint32*) paramData)[3], length);
+                            Mutex::Lock(Me->mMutex);
+                            {
+                                Me->mLastImage.SubtractionAll();
+                                Me->mLastImageWidth = width;
+                                Me->mLastImageHeight = height;
+                                const uint32 TypeCode = codeid("NV21");
+                                Memory::Copy(Me->mLastImage.AtDumpingAdded(4), &TypeCode, 4);
+                                Memory::Copy(Me->mLastImage.AtDumpingAdded(4), &width, 4);
+                                Memory::Copy(Me->mLastImage.AtDumpingAdded(4), &height, 4);
+                                Memory::Copy(Me->mLastImage.AtDumpingAdded(length), paramData, length);
+                            }
+                            Mutex::Unlock(Me->mMutex);
+                            Me->BufferFlush();
+                        }
+                    }
+                    env->ReleaseByteArrayElements(data, (jbyte*) paramData, JNI_ABORT);
+                    BOSS_TRACE("OnPreviewTaken End(%llu)", Platform::Utility::CurrentTimeMsec());
+                }
+            };
+            typedef CameraSurfaceForAndroid CameraSurfaceClass;
+        #else
+            typedef CameraSurface CameraSurfaceClass;
+        #endif
+
+        class CameraService : public CameraSurfaceClass
+        {
+        private:
+            enum CaptureOrder {CaptureOrder_None, CaptureOrder_ShotOnly, CaptureOrder_ShotAndStop, CaptureOrder_NeedStop};
+            id_mutex mMutex;
+            bool mStartPreview;
+            CaptureOrder mCaptureOrder;
+            sint32 mDecodedWidth;
+            sint32 mDecodedHeight;
+            uint08s mDecodedBits;
+            bool mUpdateForImage;
+            bool mUpdateForBitmap;
+            uint64 mUpdateTimeMsec;
+            float mUpdateAvgMsec;
+            sint32 mPictureShotCount;
+            sint32 mPreviewShotCount;
+
+        public:
+            CameraService(const QCameraInfo& info) : CameraSurfaceClass(info)
+            {
+                mMutex = Mutex::Open();
+                mStartPreview = false;
+                mCaptureOrder = CaptureOrder_None;
+                mDecodedWidth = 0;
+                mDecodedHeight = 0;
+                mUpdateForImage = false;
+                mUpdateForBitmap = false;
+                mUpdateTimeMsec = Platform::Utility::CurrentTimeMsec();
+                mUpdateAvgMsec = 0;
+                mPictureShotCount = 0;
+                mPreviewShotCount = 0;
+            }
+            ~CameraService()
+            {
+                Mutex::Close(mMutex);
+            }
+
+        private:
+            virtual bool CaptureEnabled() override
+            {
+                bool Result = false;
+                Mutex::Lock(mMutex);
+                {
+                    Result = (mCaptureOrder == CaptureOrder_ShotOnly
+                        || mCaptureOrder == CaptureOrder_ShotAndStop);
+                }
+                Mutex::Unlock(mMutex);
+                return Result;
+            }
+            virtual void BufferFlush() override
+            {
+                Mutex::Lock(mMutex);
+                {
+                    if(mCaptureOrder == CaptureOrder_ShotOnly)
+                        mCaptureOrder = CaptureOrder_None;
+                    else if(mCaptureOrder == CaptureOrder_ShotAndStop)
+                        mCaptureOrder = CaptureOrder_NeedStop;
+                    mUpdateForImage = true;
+                    mUpdateForBitmap = true;
+                }
+                Mutex::Unlock(mMutex);
+            }
+            virtual void AddPictureShotCount() override
+            {
+                mPictureShotCount++;
+                const uint64 NewTimeMsec = Platform::Utility::CurrentTimeMsec();
+                mUpdateAvgMsec = (mUpdateAvgMsec * 19 + Math::Max(1, NewTimeMsec - mUpdateTimeMsec)) / 20;
+                mUpdateTimeMsec = NewTimeMsec;
+            }
+            virtual void AddPreviewShotCount() override
+            {
+                mPreviewShotCount++;
+                const uint64 NewTimeMsec = Platform::Utility::CurrentTimeMsec();
+                mUpdateAvgMsec = (mUpdateAvgMsec * 19 + Math::Max(1, NewTimeMsec - mUpdateTimeMsec)) / 20;
+                mUpdateTimeMsec = NewTimeMsec;
+            }
+
+        public:
+            void Capture(bool preview, bool needstop)
+            {
+                Mutex::Lock(mMutex);
+                {
+                    mCaptureOrder = (needstop)? CaptureOrder_ShotAndStop : CaptureOrder_ShotOnly;
+                    mStartPreview = true;
+                    StartPreview(preview);
+                }
+                Mutex::Unlock(mMutex);
+            }
+            id_texture CloneCapturedTexture()
+            {
+                id_texture Result = nullptr;
+                Mutex::Lock(mMutex);
+                {
+                    Result = CreateLastTexture();
+                }
+                Mutex::Unlock(mMutex);
+                return Result;
+            }
+            void GetCapturedImage(QPixmap& pixmap, sint32 maxwidth, sint32 maxheight, sint32 rotate)
+            {
+                Mutex::Lock(mMutex);
+                {
+                    if(mCaptureOrder == CaptureOrder_NeedStop)
+                    {
+                        mCaptureOrder = CaptureOrder_None;
+                        if(mStartPreview)
+                        {
+                            mStartPreview = false;
+                            StopPreview();
+                        }
+                    }
+                    if(mUpdateForImage)
+                    {
+                        mUpdateForImage = false;
+                        if(mUpdateForBitmap) DecodeImage(mDecodedWidth, mDecodedHeight, mDecodedBits);
+                        QImage NewImage(&mDecodedBits[0], mDecodedWidth, mDecodedHeight, QImage::Format_ARGB32);
+
+                        if(maxwidth == -1 && maxheight == -1)
+                        {maxwidth = mDecodedWidth; maxheight = mDecodedHeight;}
+                        else if(maxwidth == -1) maxwidth = mDecodedWidth * maxheight / mDecodedHeight;
+                        else if(maxheight == -1) maxheight = mDecodedHeight * maxwidth / mDecodedWidth;
+
+                        // 스케일링
+                        if(maxwidth < mDecodedWidth || maxheight < mDecodedHeight)
+                            NewImage = NewImage.scaled(Math::Min(maxwidth, mDecodedWidth), Math::Min(maxheight, mDecodedHeight));
+
+                        // 회전
+                        if(0 < rotate)
+                        {
+                            QMatrix NewMatrix;
+                            NewMatrix.translate(mDecodedWidth / 2, mDecodedHeight / 2);
+                            NewMatrix.rotate(rotate);
+                            NewImage = NewImage.transformed(NewMatrix);
+                        }
+                        pixmap.convertFromImage(NewImage);
+                        //단편화방지차원: if(!mUpdateForBitmap) mDecodedBits.Clear();
+                    }
+                }
+                Mutex::Unlock(mMutex);
+            }
+            void GetCapturedBitmap(id_bitmap& bitmap, orientationtype ori)
+            {
+                Mutex::Lock(mMutex);
+                {
+                    if(mCaptureOrder == CaptureOrder_NeedStop)
+                    {
+                        mCaptureOrder = CaptureOrder_None;
+                        if(mStartPreview)
+                        {
+                            mStartPreview = false;
+                            StopPreview();
+                        }
+                    }
+                    if(mUpdateForBitmap)
+                    {
+                        mUpdateForBitmap = false;
+                        if(mUpdateForImage) DecodeImage(mDecodedWidth, mDecodedHeight, mDecodedBits);
+                        bitmap = Bmp::CloneFromBits(&mDecodedBits[0], mDecodedWidth, mDecodedHeight, 32, ori, bitmap);
+                        //단편화방지차원: if(!mUpdateForImage) mDecodedBits.Clear();
+                    }
+                }
+                Mutex::Unlock(mMutex);
+            }
+            size64 GetCapturedSize() const
+            {
+                size64 Result = {0, 0};
+                Mutex::Lock(mMutex);
+                {
+                    Result.w = GetLastImageWidth();
+                    Result.h = GetLastImageHeight();
+                }
+                Mutex::Unlock(mMutex);
+                return Result;
+            }
+            uint64 GetCapturedTimeMsec(sint32* avgmsec) const
+            {
+                uint64 Result = 0;
+                Mutex::Lock(mMutex);
+                {
+                    Result = mUpdateTimeMsec;
+                    if(avgmsec) *avgmsec = Math::Max(1, (sint32) mUpdateAvgMsec);
+                }
+                Mutex::Unlock(mMutex);
+                return Result;
+            }
+            sint32 GetPictureShotCount() const
+            {
+                return mPictureShotCount;
+            }
+            sint32 GetPreviewShotCount() const
+            {
+                return mPreviewShotCount;
+            }
+        };
+
+        class CameraClass
+        {
+        private:
+            sint32 mRefCount;
+            QCameraInfo mCameraInfo;
+            CameraService* mCameraService;
+            QPixmap mLastPixmap;
+            id_bitmap mLastBitmap;
+
+        public:
+            static Strings GetList(String* spec)
+            {
+                Strings Result;
+                Context SpecCollector;
+                const QList<QCameraInfo>& AllCameras = QCameraInfo::availableCameras();
+                foreach(const auto& CurCamera, AllCameras)
+                {
+                    String CurName = CurCamera.description().toUtf8().constData();
+                    if(CurName.Length() == 0)
+                        CurName = CurCamera.deviceName().toUtf8().constData();
+                    Result.AtAdding() = CurName;
+                    if(spec)
+                    {
+                        Context& NewChild = SpecCollector.At(SpecCollector.LengthOfIndexable());
+                        NewChild.At("description").Set(CurCamera.description().toUtf8().constData());
+                        NewChild.At("devicename").Set(CurCamera.deviceName().toUtf8().constData());
+                        NewChild.At("position").Set(String::FromInteger(CurCamera.position()));
+                        NewChild.At("orientation").Set(String::FromInteger(CurCamera.orientation()));
+                    }
+                }
+                if(spec)
+                    *spec = SpecCollector.SaveJson(*spec);
+                return Result;
+            }
+
+        public:
+            CameraClass(chars name, sint32 width, sint32 height)
+            {
+                mRefCount = 1;
+                mCameraService = nullptr;
+                mLastBitmap = nullptr;
+                const QList<QCameraInfo>& AllCameraInfos = QCameraInfo::availableCameras();
+                foreach(const auto& CurCameraInfo, AllCameraInfos)
+                {
+                    if(*name == '\0' || CurCameraInfo.description() == name || CurCameraInfo.deviceName() == name)
+                    {
+                        mCameraInfo = CurCameraInfo;
+                        mCameraService = new CameraService(mCameraInfo);
+
+                        sint32 BestValue = 0, SavedWidth = -1, SavedHeight = -1;
+                        double SavedMinFR = -1, SavedMaxFR = -1;
+                        auto AllSettings = mCameraService->GetSupportedAllSettings();
+                        BOSS_TRACE("Created Camera: %s(%s) [Included %d settings]",
+                            CurCameraInfo.deviceName().toUtf8().constData(),
+                            CurCameraInfo.description().toUtf8().constData(), AllSettings.size());
+                        BOSS_TRACE(" - Setting Count: %d", AllSettings.size());
+                        foreach(const auto& CurSetting, AllSettings)
+                        {
+                            const sint32 CurWidth = CurSetting.resolution().width();
+                            const sint32 CurHeight = CurSetting.resolution().height();
+                            const double CurMinFR = CurSetting.minimumFrameRate();
+                            const double CurMaxFR = CurSetting.maximumFrameRate();
+                            BOSS_TRACE(" - 1.Supported Resolution: %dx%d", CurWidth, CurHeight);
+                            BOSS_TRACE(" - 2.Supported PixelFormat: %d", (sint32) CurSetting.pixelFormat());
+                            BOSS_TRACE(" - 3.Supported FrameRate: %f~%f", (float) CurMinFR, (float) CurMaxFR);
+                            bool IsFinded = false;
+                            if(width == -1 && height == -1)
+                            {
+                                if(BestValue <= CurWidth * CurHeight)
+                                {
+                                    BestValue = CurWidth * CurHeight;
+                                    IsFinded = true;
+                                }
+                            }
+                            else if(width == -1)
+                            {
+                                if(height == CurHeight && BestValue <= CurWidth)
+                                {
+                                    BestValue = CurWidth;
+                                    IsFinded = true;
+                                }
+                            }
+                            else if(height == -1)
+                            {
+                                if(width == CurWidth && BestValue <= CurHeight)
+                                {
+                                    BestValue = CurHeight;
+                                    IsFinded = true;
+                                }
+                            }
+                            else if(width == CurWidth && height == CurHeight)
+                                IsFinded = true;
+                            if(IsFinded)
+                            {
+                                SavedWidth = CurWidth;
+                                SavedHeight = CurHeight;
+                                SavedMinFR = CurMinFR;
+                                SavedMaxFR = CurMaxFR;
+                            }
+                        }
+
+                        QCameraViewfinderSettings NewSettings = mCameraService->GetSettings();
+                        if(SavedWidth != -1 && SavedHeight != -1)
+                            NewSettings.setResolution(SavedWidth, SavedHeight);
+                        else NewSettings.setResolution(640, 480);
+                        if(SavedMinFR != -1) NewSettings.setMinimumFrameRate(SavedMinFR);
+                        if(SavedMaxFR != -1) NewSettings.setMaximumFrameRate(SavedMaxFR);
+                        mCameraService->SetSettings(NewSettings);
+                        mCameraService->StartCamera();
+                        break;
+                    }
+                }
+            }
+            ~CameraClass()
+            {
+                delete mCameraService;
+                Bmp::Remove(mLastBitmap);
+            }
+
+        public:
+            CameraClass* AddRef()
+            {
+                mRefCount++;
+                return this;
+            }
+            bool SubRef()
+            {
+                return (--mRefCount == 0);
+            }
+            bool IsValid() const
+            {
+                return (mCameraService != nullptr);
+            }
+            void Capture(bool preview, bool needstop)
+            {
+                if(mCameraService)
+                    mCameraService->Capture(preview, needstop);
+            }
+            id_texture CloneCapturedTexture()
+            {
+                if(mCameraService)
+                    return mCameraService->CloneCapturedTexture();
+                return nullptr;
+            }
+            id_image_read LastCapturedImage(sint32 maxwidth, sint32 maxheight, sint32 rotate)
+            {
+                if(mCameraService)
+                {
+                    mCameraService->GetCapturedImage(mLastPixmap, maxwidth, maxheight, rotate);
+                    return (id_image_read) &mLastPixmap;
+                }
+                return nullptr;
+            }
+            id_bitmap_read LastCapturedBitmap(orientationtype ori)
+            {
+                if(mCameraService)
+                {
+                    mCameraService->GetCapturedBitmap(mLastBitmap, ori);
+                    return mLastBitmap;
+                }
+                return nullptr;
+            }
+            size64 LastCapturedSize() const
+            {
+                if(mCameraService)
+                    return mCameraService->GetCapturedSize();
+                return {0, 0};
+            }
+            uint64 LastCapturedTimeMsec(sint32* avgmsec) const
+            {
+                if(mCameraService)
+                    return mCameraService->GetCapturedTimeMsec(avgmsec);
+                return 0;
+            }
+            sint32 TotalPictureShotCount() const
+            {
+                if(mCameraService)
+                    return mCameraService->GetPictureShotCount();
+                return 0;
+            }
+            sint32 TotalPreviewShotCount() const
+            {
+                if(mCameraService)
+                    return mCameraService->GetPreviewShotCount();
+                return 0;
+            }
+        };
     #else
-        typedef CameraSurface CameraSurfaceClass;
+        class CameraSurface : public QObject {Q_OBJECT};
     #endif
 
-    class CameraService : public CameraSurfaceClass
-    {
-    private:
-        enum CaptureOrder {CaptureOrder_None, CaptureOrder_ShotOnly, CaptureOrder_ShotAndStop, CaptureOrder_NeedStop};
-        id_mutex mMutex;
-        bool mStartPreview;
-        CaptureOrder mCaptureOrder;
-        sint32 mDecodedWidth;
-        sint32 mDecodedHeight;
-        uint08s mDecodedBits;
-        bool mUpdateForImage;
-        bool mUpdateForBitmap;
-        uint64 mUpdateTimeMsec;
-        float mUpdateAvgMsec;
-        sint32 mPictureShotCount;
-        sint32 mPreviewShotCount;
+    #ifdef QT_HAVE_MULTIMEDIA
+        class MicrophoneClass : public QAudioProbe
+        {
+            Q_OBJECT
 
-    public:
-        CameraService(const QCameraInfo& info) : CameraSurfaceClass(info)
-        {
-            mMutex = Mutex::Open();
-            mStartPreview = false;
-            mCaptureOrder = CaptureOrder_None;
-            mDecodedWidth = 0;
-            mDecodedHeight = 0;
-            mUpdateForImage = false;
-            mUpdateForBitmap = false;
-            mUpdateTimeMsec = Platform::Utility::CurrentTimeMsec();
-            mUpdateAvgMsec = 0;
-            mPictureShotCount = 0;
-            mPreviewShotCount = 0;
-        }
-        ~CameraService()
-        {
-            Mutex::Close(mMutex);
-        }
-
-    private:
-        virtual bool CaptureEnabled() override
-        {
-            bool Result = false;
-            Mutex::Lock(mMutex);
+        private:
+            class Data
             {
-                Result = (mCaptureOrder == CaptureOrder_ShotOnly
-                    || mCaptureOrder == CaptureOrder_ShotAndStop);
-            }
-            Mutex::Unlock(mMutex);
-            return Result;
-        }
-        virtual void BufferFlush() override
-        {
-            Mutex::Lock(mMutex);
-            {
-                if(mCaptureOrder == CaptureOrder_ShotOnly)
-                    mCaptureOrder = CaptureOrder_None;
-                else if(mCaptureOrder == CaptureOrder_ShotAndStop)
-                    mCaptureOrder = CaptureOrder_NeedStop;
-                mUpdateForImage = true;
-                mUpdateForBitmap = true;
-            }
-            Mutex::Unlock(mMutex);
-        }
-        virtual void AddPictureShotCount() override
-        {
-            mPictureShotCount++;
-            const uint64 NewTimeMsec = Platform::Utility::CurrentTimeMsec();
-            mUpdateAvgMsec = (mUpdateAvgMsec * 19 + Math::Max(1, NewTimeMsec - mUpdateTimeMsec)) / 20;
-            mUpdateTimeMsec = NewTimeMsec;
-        }
-        virtual void AddPreviewShotCount() override
-        {
-            mPreviewShotCount++;
-            const uint64 NewTimeMsec = Platform::Utility::CurrentTimeMsec();
-            mUpdateAvgMsec = (mUpdateAvgMsec * 19 + Math::Max(1, NewTimeMsec - mUpdateTimeMsec)) / 20;
-            mUpdateTimeMsec = NewTimeMsec;
-        }
-
-    public:
-        void Capture(bool preview, bool needstop)
-        {
-            Mutex::Lock(mMutex);
-            {
-                mCaptureOrder = (needstop)? CaptureOrder_ShotAndStop : CaptureOrder_ShotOnly;
-                mStartPreview = true;
-                StartPreview(preview);
-            }
-            Mutex::Unlock(mMutex);
-        }
-        id_texture CloneCapturedTexture()
-        {
-            id_texture Result = nullptr;
-            Mutex::Lock(mMutex);
-            {
-                Result = CreateLastTexture();
-            }
-            Mutex::Unlock(mMutex);
-            return Result;
-        }
-        void GetCapturedImage(QPixmap& pixmap, sint32 maxwidth, sint32 maxheight, sint32 rotate)
-        {
-            Mutex::Lock(mMutex);
-            {
-                if(mCaptureOrder == CaptureOrder_NeedStop)
+            public:
+                Data() {}
+                ~Data() {}
+            public:
+                Data(const Data& rhs) {operator=(rhs);}
+                Data& operator=(const Data& rhs)
                 {
-                    mCaptureOrder = CaptureOrder_None;
-                    if(mStartPreview)
+                    mPcm = rhs.mPcm;
+                    mTimeMsec = rhs.mTimeMsec;
+                    return *this;
+                }
+                operator void*() const {return nullptr;}
+                bool operator!() const {return (mPcm.Count() == 0);}
+            public:
+                uint08s mPcm;
+                uint64 mTimeMsec;
+            };
+
+        private:
+            QAudioRecorder* mRecorder;
+            QAudioEncoderSettings mAudioSettings;
+            const sint32 mMaxQueueCount;
+            Queue<Data> mDataQueue;
+            Data mLastData;
+
+        public:
+            static Strings GetList(String* spec)
+            {
+                Strings Result;
+                Context SpecCollector;
+                const QList<QAudioDeviceInfo>& AllMicrophones = QAudioDeviceInfo::availableDevices(QAudio::AudioInput);
+                foreach(const auto& CurMicrophone, AllMicrophones)
+                {
+                    String CurName = CurMicrophone.deviceName().toUtf8().constData();
+                    Result.AtAdding() = CurName;
+                    if(spec)
                     {
-                        mStartPreview = false;
-                        StopPreview();
+                        Context& NewChild = SpecCollector.At(SpecCollector.LengthOfIndexable());
+                        NewChild.At("devicename").Set(CurName);
+                        const auto& AllByteOrders = CurMicrophone.supportedByteOrders();
+                        foreach(const auto& CurByteOrder, AllByteOrders)
+                        {
+                            Context& NewChild2 = NewChild.At("byteorders").At(NewChild.At("byteorders").LengthOfIndexable());
+                            if(CurByteOrder == QAudioFormat::BigEndian) NewChild2.Set("BigEndian");
+                            else if(CurByteOrder == QAudioFormat::LittleEndian) NewChild2.Set("LittleEndian");
+                        }
+                        const auto& AllChannelCounts = CurMicrophone.supportedChannelCounts();
+                        foreach(const auto& CurChannelCount, AllChannelCounts)
+                        {
+                            Context& NewChild2 = NewChild.At("channelcounts").At(NewChild.At("channelcounts").LengthOfIndexable());
+                            NewChild2.Set(String::FromInteger(CurChannelCount));
+                        }
+                        const auto& AllCodecs = CurMicrophone.supportedCodecs();
+                        foreach(const auto& CurCodec, AllCodecs)
+                        {
+                            Context& NewChild2 = NewChild.At("codecs").At(NewChild.At("codecs").LengthOfIndexable());
+                            NewChild2.Set(CurCodec.toUtf8().constData());
+                        }
+                        const auto& AllSampleRates = CurMicrophone.supportedSampleRates();
+                        foreach(const auto& CurSampleRate, AllSampleRates)
+                        {
+                            Context& NewChild2 = NewChild.At("samplerates").At(NewChild.At("samplerates").LengthOfIndexable());
+                            NewChild2.Set(String::FromInteger(CurSampleRate));
+                        }
+                        const auto& AllSampleSizes = CurMicrophone.supportedSampleSizes();
+                        foreach(const auto& CurSampleSize, AllSampleSizes)
+                        {
+                            Context& NewChild2 = NewChild.At("samplesizes").At(NewChild.At("samplesizes").LengthOfIndexable());
+                            NewChild2.Set(String::FromInteger(CurSampleSize));
+                        }
+                        const auto& AllSampleTypes = CurMicrophone.supportedSampleTypes();
+                        foreach(const auto& CurSampleType, AllSampleTypes)
+                        {
+                            Context& NewChild2 = NewChild.At("sampletypes").At(NewChild.At("sampletypes").LengthOfIndexable());
+                            if(CurSampleType == QAudioFormat::Unknown) NewChild2.Set("Unknown");
+                            else if(CurSampleType == QAudioFormat::SignedInt) NewChild2.Set("SignedInt");
+                            else if(CurSampleType == QAudioFormat::UnSignedInt) NewChild2.Set("UnSignedInt");
+                            else if(CurSampleType == QAudioFormat::Float) NewChild2.Set("Float");
+                        }
                     }
                 }
-                if(mUpdateForImage)
-                {
-                    mUpdateForImage = false;
-                    if(mUpdateForBitmap) DecodeImage(mDecodedWidth, mDecodedHeight, mDecodedBits);
-                    QImage NewImage(&mDecodedBits[0], mDecodedWidth, mDecodedHeight, QImage::Format_ARGB32);
-
-                    if(maxwidth == -1 && maxheight == -1)
-                    {maxwidth = mDecodedWidth; maxheight = mDecodedHeight;}
-                    else if(maxwidth == -1) maxwidth = mDecodedWidth * maxheight / mDecodedHeight;
-                    else if(maxheight == -1) maxheight = mDecodedHeight * maxwidth / mDecodedWidth;
-
-                    // 스케일링
-                    if(maxwidth < mDecodedWidth || maxheight < mDecodedHeight)
-                        NewImage = NewImage.scaled(Math::Min(maxwidth, mDecodedWidth), Math::Min(maxheight, mDecodedHeight));
-
-                    // 회전
-                    if(0 < rotate)
-                    {
-                        QMatrix NewMatrix;
-                        NewMatrix.translate(mDecodedWidth / 2, mDecodedHeight / 2);
-                        NewMatrix.rotate(rotate);
-                        NewImage = NewImage.transformed(NewMatrix);
-                    }
-                    pixmap.convertFromImage(NewImage);
-                    //단편화방지차원: if(!mUpdateForBitmap) mDecodedBits.Clear();
-                }
-            }
-            Mutex::Unlock(mMutex);
-        }
-        void GetCapturedBitmap(id_bitmap& bitmap, orientationtype ori)
-        {
-            Mutex::Lock(mMutex);
-            {
-                if(mCaptureOrder == CaptureOrder_NeedStop)
-                {
-                    mCaptureOrder = CaptureOrder_None;
-                    if(mStartPreview)
-                    {
-                        mStartPreview = false;
-                        StopPreview();
-                    }
-                }
-                if(mUpdateForBitmap)
-                {
-                    mUpdateForBitmap = false;
-                    if(mUpdateForImage) DecodeImage(mDecodedWidth, mDecodedHeight, mDecodedBits);
-                    bitmap = Bmp::CloneFromBits(&mDecodedBits[0], mDecodedWidth, mDecodedHeight, 32, ori, bitmap);
-                    //단편화방지차원: if(!mUpdateForImage) mDecodedBits.Clear();
-                }
-            }
-            Mutex::Unlock(mMutex);
-        }
-        size64 GetCapturedSize() const
-        {
-            size64 Result = {0, 0};
-            Mutex::Lock(mMutex);
-            {
-                Result.w = GetLastImageWidth();
-                Result.h = GetLastImageHeight();
-            }
-            Mutex::Unlock(mMutex);
-            return Result;
-        }
-        uint64 GetCapturedTimeMsec(sint32* avgmsec) const
-        {
-            uint64 Result = 0;
-            Mutex::Lock(mMutex);
-            {
-                Result = mUpdateTimeMsec;
-                if(avgmsec) *avgmsec = Math::Max(1, (sint32) mUpdateAvgMsec);
-            }
-            Mutex::Unlock(mMutex);
-            return Result;
-        }
-        sint32 GetPictureShotCount() const
-        {
-            return mPictureShotCount;
-        }
-        sint32 GetPreviewShotCount() const
-        {
-            return mPreviewShotCount;
-        }
-    };
-
-    class CameraClass
-    {
-    private:
-        sint32 mRefCount;
-        QCameraInfo mCameraInfo;
-        CameraService* mCameraService;
-        QPixmap mLastPixmap;
-        id_bitmap mLastBitmap;
-
-    public:
-        static Strings GetList(String* spec)
-        {
-            Strings Result;
-            Context SpecCollector;
-            const QList<QCameraInfo>& AllCameras = QCameraInfo::availableCameras();
-            foreach(const auto& CurCamera, AllCameras)
-            {
-                String CurName = CurCamera.description().toUtf8().constData();
-                if(CurName.Length() == 0)
-                    CurName = CurCamera.deviceName().toUtf8().constData();
-                Result.AtAdding() = CurName;
                 if(spec)
-                {
-                    Context& NewChild = SpecCollector.At(SpecCollector.LengthOfIndexable());
-                    NewChild.At("description").Set(CurCamera.description().toUtf8().constData());
-                    NewChild.At("devicename").Set(CurCamera.deviceName().toUtf8().constData());
-                    NewChild.At("position").Set(String::FromInteger(CurCamera.position()));
-                    NewChild.At("orientation").Set(String::FromInteger(CurCamera.orientation()));
-                }
+                    *spec = SpecCollector.SaveJson(*spec);
+                return Result;
             }
-            if(spec)
-                *spec = SpecCollector.SaveJson(*spec);
-            return Result;
-        }
 
-    public:
-        CameraClass(chars name, sint32 width, sint32 height)
-        {
-            mRefCount = 1;
-            mCameraService = nullptr;
-            mLastBitmap = nullptr;
-            const QList<QCameraInfo>& AllCameraInfos = QCameraInfo::availableCameras();
-            foreach(const auto& CurCameraInfo, AllCameraInfos)
-            {
-                if(*name == '\0' || CurCameraInfo.description() == name || CurCameraInfo.deviceName() == name)
-                {
-                    mCameraInfo = CurCameraInfo;
-                    mCameraService = new CameraService(mCameraInfo);
-
-                    sint32 BestValue = 0, SavedWidth = -1, SavedHeight = -1;
-                    double SavedMinFR = -1, SavedMaxFR = -1;
-                    auto AllSettings = mCameraService->GetSupportedAllSettings();
-                    BOSS_TRACE("Created Camera: %s(%s) [Included %d settings]",
-                        CurCameraInfo.deviceName().toUtf8().constData(),
-                        CurCameraInfo.description().toUtf8().constData(), AllSettings.size());
-                    BOSS_TRACE(" - Setting Count: %d", AllSettings.size());
-                    foreach(const auto& CurSetting, AllSettings)
-                    {
-                        const sint32 CurWidth = CurSetting.resolution().width();
-                        const sint32 CurHeight = CurSetting.resolution().height();
-                        const double CurMinFR = CurSetting.minimumFrameRate();
-                        const double CurMaxFR = CurSetting.maximumFrameRate();
-                        BOSS_TRACE(" - 1.Supported Resolution: %dx%d", CurWidth, CurHeight);
-                        BOSS_TRACE(" - 2.Supported PixelFormat: %d", (sint32) CurSetting.pixelFormat());
-                        BOSS_TRACE(" - 3.Supported FrameRate: %f~%f", (float) CurMinFR, (float) CurMaxFR);
-                        bool IsFinded = false;
-                        if(width == -1 && height == -1)
-                        {
-                            if(BestValue <= CurWidth * CurHeight)
-                            {
-                                BestValue = CurWidth * CurHeight;
-                                IsFinded = true;
-                            }
-                        }
-                        else if(width == -1)
-                        {
-                            if(height == CurHeight && BestValue <= CurWidth)
-                            {
-                                BestValue = CurWidth;
-                                IsFinded = true;
-                            }
-                        }
-                        else if(height == -1)
-                        {
-                            if(width == CurWidth && BestValue <= CurHeight)
-                            {
-                                BestValue = CurHeight;
-                                IsFinded = true;
-                            }
-                        }
-                        else if(width == CurWidth && height == CurHeight)
-                            IsFinded = true;
-                        if(IsFinded)
-                        {
-                            SavedWidth = CurWidth;
-                            SavedHeight = CurHeight;
-                            SavedMinFR = CurMinFR;
-                            SavedMaxFR = CurMaxFR;
-                        }
-                    }
-
-                    QCameraViewfinderSettings NewSettings = mCameraService->GetSettings();
-                    if(SavedWidth != -1 && SavedHeight != -1)
-                        NewSettings.setResolution(SavedWidth, SavedHeight);
-                    else NewSettings.setResolution(640, 480);
-                    if(SavedMinFR != -1) NewSettings.setMinimumFrameRate(SavedMinFR);
-                    if(SavedMaxFR != -1) NewSettings.setMaximumFrameRate(SavedMaxFR);
-                    mCameraService->SetSettings(NewSettings);
-                    mCameraService->StartCamera();
-                    break;
-                }
-            }
-        }
-        ~CameraClass()
-        {
-            delete mCameraService;
-            Bmp::Remove(mLastBitmap);
-        }
-
-    public:
-        CameraClass* AddRef()
-        {
-            mRefCount++;
-            return this;
-        }
-        bool SubRef()
-        {
-            return (--mRefCount == 0);
-        }
-        bool IsValid() const
-        {
-            return (mCameraService != nullptr);
-        }
-        void Capture(bool preview, bool needstop)
-        {
-            if(mCameraService)
-                mCameraService->Capture(preview, needstop);
-        }
-        id_texture CloneCapturedTexture()
-        {
-            if(mCameraService)
-                return mCameraService->CloneCapturedTexture();
-            return nullptr;
-        }
-        id_image_read LastCapturedImage(sint32 maxwidth, sint32 maxheight, sint32 rotate)
-        {
-            if(mCameraService)
-            {
-                mCameraService->GetCapturedImage(mLastPixmap, maxwidth, maxheight, rotate);
-                return (id_image_read) &mLastPixmap;
-            }
-            return nullptr;
-        }
-        id_bitmap_read LastCapturedBitmap(orientationtype ori)
-        {
-            if(mCameraService)
-            {
-                mCameraService->GetCapturedBitmap(mLastBitmap, ori);
-                return mLastBitmap;
-            }
-            return nullptr;
-        }
-        size64 LastCapturedSize() const
-        {
-            if(mCameraService)
-                return mCameraService->GetCapturedSize();
-            return {0, 0};
-        }
-        uint64 LastCapturedTimeMsec(sint32* avgmsec) const
-        {
-            if(mCameraService)
-                return mCameraService->GetCapturedTimeMsec(avgmsec);
-            return 0;
-        }
-        sint32 TotalPictureShotCount() const
-        {
-            if(mCameraService)
-                return mCameraService->GetPictureShotCount();
-            return 0;
-        }
-        sint32 TotalPreviewShotCount() const
-        {
-            if(mCameraService)
-                return mCameraService->GetPreviewShotCount();
-            return 0;
-        }
-    };
-
-    class MicrophoneClass : public QAudioProbe
-    {
-        Q_OBJECT
-
-    private:
-        class Data
-        {
         public:
-            Data() {}
-            ~Data() {}
-        public:
-            Data(const Data& rhs) {operator=(rhs);}
-            Data& operator=(const Data& rhs)
+            MicrophoneClass(chars name, sint32 maxcount) : mMaxQueueCount(maxcount)
             {
-                mPcm = rhs.mPcm;
-                mTimeMsec = rhs.mTimeMsec;
-                return *this;
-            }
-            operator void*() const {return nullptr;}
-            bool operator!() const {return (mPcm.Count() == 0);}
-        public:
-            uint08s mPcm;
-            uint64 mTimeMsec;
-        };
-
-    private:
-        QAudioRecorder* mRecorder;
-        QAudioEncoderSettings mAudioSettings;
-        const sint32 mMaxQueueCount;
-        Queue<Data> mDataQueue;
-        Data mLastData;
-
-    public:
-        static Strings GetList(String* spec)
-        {
-            Strings Result;
-            Context SpecCollector;
-            const QList<QAudioDeviceInfo>& AllMicrophones = QAudioDeviceInfo::availableDevices(QAudio::AudioInput);
-            foreach(const auto& CurMicrophone, AllMicrophones)
-            {
-                String CurName = CurMicrophone.deviceName().toUtf8().constData();
-                Result.AtAdding() = CurName;
-                if(spec)
+                mRecorder = new QAudioRecorder();
+                QString SelectedInput = "";
+                if(*name != '\0')
                 {
-                    Context& NewChild = SpecCollector.At(SpecCollector.LengthOfIndexable());
-                    NewChild.At("devicename").Set(CurName);
-                    const auto& AllByteOrders = CurMicrophone.supportedByteOrders();
-                    foreach(const auto& CurByteOrder, AllByteOrders)
-                    {
-                        Context& NewChild2 = NewChild.At("byteorders").At(NewChild.At("byteorders").LengthOfIndexable());
-                        if(CurByteOrder == QAudioFormat::BigEndian) NewChild2.Set("BigEndian");
-                        else if(CurByteOrder == QAudioFormat::LittleEndian) NewChild2.Set("LittleEndian");
-                    }
-                    const auto& AllChannelCounts = CurMicrophone.supportedChannelCounts();
-                    foreach(const auto& CurChannelCount, AllChannelCounts)
-                    {
-                        Context& NewChild2 = NewChild.At("channelcounts").At(NewChild.At("channelcounts").LengthOfIndexable());
-                        NewChild2.Set(String::FromInteger(CurChannelCount));
-                    }
-                    const auto& AllCodecs = CurMicrophone.supportedCodecs();
-                    foreach(const auto& CurCodec, AllCodecs)
-                    {
-                        Context& NewChild2 = NewChild.At("codecs").At(NewChild.At("codecs").LengthOfIndexable());
-                        NewChild2.Set(CurCodec.toUtf8().constData());
-                    }
-                    const auto& AllSampleRates = CurMicrophone.supportedSampleRates();
-                    foreach(const auto& CurSampleRate, AllSampleRates)
-                    {
-                        Context& NewChild2 = NewChild.At("samplerates").At(NewChild.At("samplerates").LengthOfIndexable());
-                        NewChild2.Set(String::FromInteger(CurSampleRate));
-                    }
-                    const auto& AllSampleSizes = CurMicrophone.supportedSampleSizes();
-                    foreach(const auto& CurSampleSize, AllSampleSizes)
-                    {
-                        Context& NewChild2 = NewChild.At("samplesizes").At(NewChild.At("samplesizes").LengthOfIndexable());
-                        NewChild2.Set(String::FromInteger(CurSampleSize));
-                    }
-                    const auto& AllSampleTypes = CurMicrophone.supportedSampleTypes();
-                    foreach(const auto& CurSampleType, AllSampleTypes)
-                    {
-                        Context& NewChild2 = NewChild.At("sampletypes").At(NewChild.At("sampletypes").LengthOfIndexable());
-                        if(CurSampleType == QAudioFormat::Unknown) NewChild2.Set("Unknown");
-                        else if(CurSampleType == QAudioFormat::SignedInt) NewChild2.Set("SignedInt");
-                        else if(CurSampleType == QAudioFormat::UnSignedInt) NewChild2.Set("UnSignedInt");
-                        else if(CurSampleType == QAudioFormat::Float) NewChild2.Set("Float");
-                    }
+                    QStringList Inputs = mRecorder->audioInputs();
+                    foreach(QString Input, Inputs)
+                        if(!String::Compare(name, Input.toUtf8().constData()))
+                            SelectedInput = Input;
                 }
-            }
-            if(spec)
-                *spec = SpecCollector.SaveJson(*spec);
-            return Result;
-        }
+                else SelectedInput = mRecorder->defaultAudioInput();
+                if(SelectedInput.length() == 0)
+                {
+                    delete mRecorder;
+                    mRecorder = nullptr;
+                    return;
+                }
+                mRecorder->setAudioInput(SelectedInput);
 
-    public:
-        MicrophoneClass(chars name, sint32 maxcount) : mMaxQueueCount(maxcount)
-        {
-            mRecorder = new QAudioRecorder();
-            QString SelectedInput = "";
-            if(*name != '\0')
-            {
-                QStringList Inputs = mRecorder->audioInputs();
-                foreach(QString Input, Inputs)
-                    if(!String::Compare(name, Input.toUtf8().constData()))
-                        SelectedInput = Input;
+                mAudioSettings = mRecorder->audioSettings();
+                mAudioSettings.setCodec("audio/pcm");
+                mAudioSettings.setBitRate(128000);
+                mAudioSettings.setChannelCount(2);
+                mAudioSettings.setSampleRate(44100);
+                mAudioSettings.setQuality(QMultimedia::HighQuality);
+                mAudioSettings.setEncodingMode(QMultimedia::ConstantBitRateEncoding);
+                mRecorder->setAudioSettings(mAudioSettings);
+
+                connect(this, SIGNAL(audioBufferProbed(QAudioBuffer)), this, SLOT(processBuffer(QAudioBuffer)));
+                setSource(mRecorder);
+                mRecorder->record();
             }
-            else SelectedInput = mRecorder->defaultAudioInput();
-            if(SelectedInput.length() == 0)
+            ~MicrophoneClass()
             {
+                setSource((QMediaRecorder*) nullptr);
                 delete mRecorder;
-                mRecorder = nullptr;
-                return;
+                while(0 < mDataQueue.Count())
+                    mDataQueue.Dequeue();
             }
-            mRecorder->setAudioInput(SelectedInput);
 
-            mAudioSettings = mRecorder->audioSettings();
-            mAudioSettings.setCodec("audio/pcm");
-            mAudioSettings.setBitRate(128000);
-            mAudioSettings.setChannelCount(2);
-            mAudioSettings.setSampleRate(44100);
-            mAudioSettings.setQuality(QMultimedia::HighQuality);
-            mAudioSettings.setEncodingMode(QMultimedia::ConstantBitRateEncoding);
-            mRecorder->setAudioSettings(mAudioSettings);
-
-            connect(this, SIGNAL(audioBufferProbed(QAudioBuffer)), this, SLOT(processBuffer(QAudioBuffer)));
-            setSource(mRecorder);
-            mRecorder->record();
-        }
-        ~MicrophoneClass()
-        {
-            setSource((QMediaRecorder*) nullptr);
-            delete mRecorder;
-            while(0 < mDataQueue.Count())
-                mDataQueue.Dequeue();
-        }
-
-    public:
-        bool IsValid()
-        {
-            return (mRecorder != nullptr);
-        }
-        bool TryLastData()
-        {
-            if(0 < mDataQueue.Count())
+        public:
+            bool IsValid()
             {
-                mLastData = mDataQueue.Dequeue();
-                return true;
+                return (mRecorder != nullptr);
             }
-            return false;
-        }
-        const uint08s& GetLastData(uint64* timems) const
-        {
-            if(timems) *timems = mLastData.mTimeMsec;
-            return mLastData.mPcm;
-        }
-        const QAudioEncoderSettings& GetAudioSettings() const
-        {return mAudioSettings;}
-
-    private slots:
-        virtual void processBuffer(const QAudioBuffer& buffer)
-        {
-            // 한계처리
-            while(mMaxQueueCount < mDataQueue.Count())
-                mDataQueue.Dequeue();
-            // 데이터적재
-            if(buffer.isValid())
+            bool TryLastData()
             {
-                Data NewData;
-                Memory::Copy(NewData.mPcm.AtDumpingAdded(buffer.byteCount()), buffer.constData(), buffer.byteCount());
-                NewData.mTimeMsec = Platform::Utility::CurrentTimeMsec();
-                mDataQueue.Enqueue(NewData);
+                if(0 < mDataQueue.Count())
+                {
+                    mLastData = mDataQueue.Dequeue();
+                    return true;
+                }
+                return false;
             }
-        }
-    };
+            const uint08s& GetLastData(uint64* timems) const
+            {
+                if(timems) *timems = mLastData.mTimeMsec;
+                return mLastData.mPcm;
+            }
+            const QAudioEncoderSettings& GetAudioSettings() const
+            {return mAudioSettings;}
+
+        private slots:
+            virtual void processBuffer(const QAudioBuffer& buffer)
+            {
+                // 한계처리
+                while(mMaxQueueCount < mDataQueue.Count())
+                    mDataQueue.Dequeue();
+                // 데이터적재
+                if(buffer.isValid())
+                {
+                    Data NewData;
+                    Memory::Copy(NewData.mPcm.AtDumpingAdded(buffer.byteCount()), buffer.constData(), buffer.byteCount());
+                    NewData.mTimeMsec = Platform::Utility::CurrentTimeMsec();
+                    mDataQueue.Enqueue(NewData);
+                }
+            }
+        };
+    #else
+        class MicrophoneClass : public QObject {Q_OBJECT};
+    #endif
 
 #elif defined(_MSC_VER) && defined(QT_DLL)
 

@@ -12,7 +12,7 @@
     #define LEVITTE_DEBUG_MEM
 #endif
 
-#if BOSS_WINDOWS
+#if BOSS_WINDOWS & !BOSS_WINDOWS_MINGW
     typedef __int64 i64;
     typedef unsigned __int64 u64;
     #define SHA_LONG64 unsigned __int64

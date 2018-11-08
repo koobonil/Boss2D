@@ -11,7 +11,7 @@
     </Link>
     <ClCompile>
       <AdditionalIncludeDirectories>$(SolutionDir)..\source;..\..\Boss2D\core;..\..\Boss2D;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtNetwork;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtMultimedia;$(QTDIR)\include\QtPurchasing;$(QTDIR)\include\QtSerialPort;$(QTDIR)\include\QtWebEngine;$(QTDIR)\include\QtWebEngineWidgets;.\GeneratedFiles;.\GeneratedFiles\$(ConfigurationName);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>BOSS_NDEBUG=0;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_NETWORK_LIB;QT_OPENGL_LIB;QT_WIDGETS_LIB;QT_MULTIMEDIA_LIB;QT_PURCHASING_LIB;QT_SERIALPORT_LIB;QT_WEBENGINE_LIB;QT_WEBENGINEWIDGETS_LIB;QT_HAVE_WEBENGINEWIDGETS=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BOSS_NDEBUG=0;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_NETWORK_LIB;QT_OPENGL_LIB;QT_WIDGETS_LIB;QT_MULTIMEDIA_LIB;QT_PURCHASING_LIB;QT_SERIALPORT_LIB;QT_WEBENGINE_LIB;QT_WEBENGINEWIDGETS_LIB;QT_HAVE_WEBENGINEWIDGETS;QT_HAVE_MULTIMEDIA;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -21,7 +21,7 @@
     </Link>
     <ClCompile>
       <AdditionalIncludeDirectories>$(SolutionDir)..\source;..\..\Boss2D\core;..\..\Boss2D;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtNetwork;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtMultimedia;$(QTDIR)\include\QtPurchasing;$(QTDIR)\include\QtSerialPort;$(QTDIR)\include\QtWebEngine;$(QTDIR)\include\QtWebEngineWidgets;.\GeneratedFiles;.\GeneratedFiles\$(ConfigurationName);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>BOSS_NDEBUG=0;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_NETWORK_LIB;QT_OPENGL_LIB;QT_WIDGETS_LIB;QT_MULTIMEDIA_LIB;QT_PURCHASING_LIB;QT_SERIALPORT_LIB;QT_WEBENGINE_LIB;QT_WEBENGINEWIDGETS_LIB;QT_HAVE_WEBENGINEWIDGETS=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BOSS_NDEBUG=0;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_NETWORK_LIB;QT_OPENGL_LIB;QT_WIDGETS_LIB;QT_MULTIMEDIA_LIB;QT_PURCHASING_LIB;QT_SERIALPORT_LIB;QT_WEBENGINE_LIB;QT_WEBENGINEWIDGETS_LIB;QT_HAVE_WEBENGINEWIDGETS;QT_HAVE_MULTIMEDIA;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -31,7 +31,7 @@
     </Link>
     <ClCompile>
       <AdditionalIncludeDirectories>$(SolutionDir)..\source;..\..\Boss2D\core;..\..\Boss2D;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtNetwork;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtMultimedia;$(QTDIR)\include\QtPurchasing;$(QTDIR)\include\QtSerialPort;$(QTDIR)\include\QtWebEngine;$(QTDIR)\include\QtWebEngineWidgets;.\GeneratedFiles;.\GeneratedFiles\$(ConfigurationName);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>BOSS_NDEBUG=1;QT_NO_DEBUG;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_NETWORK_LIB;QT_OPENGL_LIB;QT_WIDGETS_LIB;QT_MULTIMEDIA_LIB;QT_PURCHASING_LIB;QT_SERIALPORT_LIB;QT_WEBENGINE_LIB;QT_WEBENGINEWIDGETS_LIB;QT_HAVE_WEBENGINEWIDGETS=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BOSS_NDEBUG=1;QT_NO_DEBUG;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_NETWORK_LIB;QT_OPENGL_LIB;QT_WIDGETS_LIB;QT_MULTIMEDIA_LIB;QT_PURCHASING_LIB;QT_SERIALPORT_LIB;QT_WEBENGINE_LIB;QT_WEBENGINEWIDGETS_LIB;QT_HAVE_WEBENGINEWIDGETS;QT_HAVE_MULTIMEDIA;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -41,7 +41,7 @@
     </Link>
     <ClCompile>
       <AdditionalIncludeDirectories>$(SolutionDir)..\source;..\..\Boss2D\core;..\..\Boss2D;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtNetwork;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtMultimedia;$(QTDIR)\include\QtPurchasing;$(QTDIR)\include\QtSerialPort;$(QTDIR)\include\QtWebEngine;$(QTDIR)\include\QtWebEngineWidgets;.\GeneratedFiles;.\GeneratedFiles\$(ConfigurationName);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>BOSS_NDEBUG=1;QT_NO_DEBUG;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_NETWORK_LIB;QT_OPENGL_LIB;QT_WIDGETS_LIB;QT_MULTIMEDIA_LIB;QT_PURCHASING_LIB;QT_SERIALPORT_LIB;QT_WEBENGINE_LIB;QT_WEBENGINEWIDGETS_LIB;QT_HAVE_WEBENGINEWIDGETS=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BOSS_NDEBUG=1;QT_NO_DEBUG;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_NETWORK_LIB;QT_OPENGL_LIB;QT_WIDGETS_LIB;QT_MULTIMEDIA_LIB;QT_PURCHASING_LIB;QT_SERIALPORT_LIB;QT_WEBENGINE_LIB;QT_WEBENGINEWIDGETS_LIB;QT_HAVE_WEBENGINEWIDGETS;QT_HAVE_MULTIMEDIA;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup />
