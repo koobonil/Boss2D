@@ -38,6 +38,14 @@ namespace BOSS
         static void Copy(void* dst, const void* src, const sint32 size);
 
         /*!
+        \brief 스텐실복사(dst가 2바이트마다 src는 1바이트씩만 복사)
+        \param dst : 복사받을 시작주소(size의 2배이상이어야 함)
+        \param src : 복사할 시작주소
+        \param size : 복사할 길이(byte)
+        */
+        static void CopyStencil(void* dst, const void* src, const sint32 size);
+
+        /*!
         \brief 채우기
         \param dst : 채워넣을 시작주소
         \param dstsize : 채워넣을 길이(byte)

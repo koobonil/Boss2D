@@ -96,7 +96,8 @@ namespace BOSS
             static id_h264 CreateDecoder(void);
             static void Release(id_h264 h264);
             static void EncodeOnce(id_h264 h264, const uint32* rgba, id_flash flash, uint64 timems);
-            static id_bitmap DecodeOnce(id_h264 h264, id_flash flash, uint64* timems = nullptr);
+            static id_bitmap DecodeBitmapOnce(id_h264 h264, id_flash flash, uint64* timems = nullptr);
+            static id_texture DecodeTextureOnce(id_h264 h264, id_flash flash, uint64* timems = nullptr);
             static void DecodeSeek(id_h264 h264, id_flash flash, uint64 timems);
         };
 
@@ -128,6 +129,7 @@ namespace BOSS
         public:
             typedef void (*FindContoursCB)(sint32 count, const point64* dots, payload data);
             typedef void (*HoughLinesCB)(const point64f dot1, const point64f dot2, payload data);
+            typedef void (*HoughCirclesCB)(const point64f dot, const float radius, payload data);
 
         public:
             static id_opencv Create(void);
@@ -138,6 +140,7 @@ namespace BOSS
             static id_bitmap GetUpdatedImage(id_opencv opencv);
             static void GetFindContours(id_opencv opencv, FindContoursCB cb, payload data = nullptr);
             static void GetHoughLines(id_opencv opencv, HoughLinesCB cb, payload data = nullptr);
+            static void GetHoughCircles(id_opencv opencv, HoughCirclesCB cb, payload data = nullptr);
         };
 
         //! \brief SSL연동

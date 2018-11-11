@@ -23,6 +23,7 @@ namespace BOSS
     BOSS_DECLARE_ADDON_FUNCTION(OpenCV, GetUpdatedImage, id_bitmap, id_opencv)
     BOSS_DECLARE_ADDON_FUNCTION(OpenCV, GetFindContours, void, id_opencv, AddOn::OpenCV::FindContoursCB, payload)
     BOSS_DECLARE_ADDON_FUNCTION(OpenCV, GetHoughLines, void, id_opencv, AddOn::OpenCV::HoughLinesCB, payload)
+    BOSS_DECLARE_ADDON_FUNCTION(OpenCV, GetHoughCircles, void, id_opencv, AddOn::OpenCV::HoughCirclesCB, payload)
 
     static autorun Bind_AddOn_OpenCV()
     {
@@ -34,6 +35,7 @@ namespace BOSS
         Core_AddOn_OpenCV_GetUpdatedImage() = Customized_AddOn_OpenCV_GetUpdatedImage;
         Core_AddOn_OpenCV_GetFindContours() = Customized_AddOn_OpenCV_GetFindContours;
         Core_AddOn_OpenCV_GetHoughLines() = Customized_AddOn_OpenCV_GetHoughLines;
+        Core_AddOn_OpenCV_GetHoughCircles() = Customized_AddOn_OpenCV_GetHoughCircles;
         return true;
     }
     static autorun _ = Bind_AddOn_OpenCV();
@@ -85,37 +87,32 @@ namespace BOSS
     {
         if(!opencv) return;
         CVObject* CurCV = (CVObject*) opencv;
-        
+        BOSS_ASSERT("본 함수는 32비트 비트맵만 지원합니다", Bmp::GetBitCount(bmp) == 32);
+
         bytes BmpBits = (bytes) Bmp::GetBits(bmp);
         const sint32 BmpWidth = Bmp::GetWidth(bmp);
         const sint32 BmpHeight = Bmp::GetHeight(bmp);
-        const sint32 BmpBitCount = Bmp::GetBitCount(bmp);
-        if(id_bitmap NewBitmap = Bmp::CloneFromBits(BmpBits, BmpWidth, BmpHeight, BmpBitCount, orientationtype_fliped0))
+        cv::Mat OneImage(BmpHeight, BmpWidth, CV_8UC4, (void*) Bmp::GetBits(bmp));
+
+        // 블러와 흑백화
+        cv::cvtColor(OneImage, CurCV->mGrayImage, cv::COLOR_BGR2GRAY);
+        cv::GaussianBlur(CurCV->mGrayImage, CurCV->mGrayImage, cv::Size(9, 9), 2, 2);
+        CurCV->mResult = &CurCV->mGrayImage;
+
+        // 배경축출
+        if(CurCV->mEnableMOG2)
         {
-            cv::Mat OneImage(BmpHeight, BmpWidth, CV_8UC4, (void*) Bmp::GetBits(NewBitmap));
+            CurCV->mMOG2->apply(*CurCV->mResult, CurCV->mMOG2Mask);
+            CurCV->mMOG2Image.convertTo(CurCV->mMOG2Image, -1, 1, -100);
+            CurCV->mResult->copyTo(CurCV->mMOG2Image, CurCV->mMOG2Mask);
+            CurCV->mResult = &CurCV->mMOG2Image;
+        }
 
-            // 블러와 흑백화
-            cv::blur(OneImage, CurCV->mGrayImage, cv::Size(5, 5));
-            cv::cvtColor(CurCV->mGrayImage, CurCV->mGrayImage, cv::COLOR_BGR2GRAY);
-            CurCV->mResult = &CurCV->mGrayImage;
-
-            // 배경축출
-            if(CurCV->mEnableMOG2)
-            {
-                CurCV->mMOG2->apply(*CurCV->mResult, CurCV->mMOG2Mask);
-                CurCV->mMOG2Image.convertTo(CurCV->mMOG2Image, -1, 1, -100);
-                CurCV->mResult->copyTo(CurCV->mMOG2Image, CurCV->mMOG2Mask);
-                CurCV->mResult = &CurCV->mMOG2Image;
-            }
-
-            // 캐니엣지화
-            if(CurCV->mEnableCanny)
-            {
-                cv::Canny(*CurCV->mResult, CurCV->mCannyImage, CurCV->mLow, CurCV->mHigh, CurCV->mAperture);
-                CurCV->mResult = &CurCV->mCannyImage;
-            }
-
-            Bmp::Remove(NewBitmap);
+        // 캐니엣지화
+        if(CurCV->mEnableCanny)
+        {
+            cv::Canny(*CurCV->mResult, CurCV->mCannyImage, CurCV->mLow, CurCV->mHigh, CurCV->mAperture);
+            CurCV->mResult = &CurCV->mCannyImage;
         }
     }
 
@@ -176,6 +173,26 @@ namespace BOSS
         {
             const auto& CurLine = Lines[i];
             cb(Point(CurLine[0], CurLine[1]), Point(CurLine[2], CurLine[3]), data);
+        }
+    }
+
+    void Customized_AddOn_OpenCV_GetHoughCircles(id_opencv opencv, AddOn::OpenCV::HoughCirclesCB cb, payload data)
+    {
+        if(!opencv) return;
+        CVObject* CurCV = (CVObject*) opencv;
+
+        // 허프식 원검출
+        std::vector< cv::Vec3f > Circles;
+        const double DP = 2; // 해상도의 반감계수(1은 100%, 2는 50%)
+        const double MinDist = Math::Min(CurCV->mResult->cols, CurCV->mResult->rows) / 10; // 감지된 원과 원간의 최소간격
+        const double Param1 = 200; // CV_HOUGH_GRADIENT의 경우, Canny 엣지 검출기에 전달 된 두 개의 상위 임계값
+        const double Param2 = 80; // CV_HOUGH_GRADIENT의 경우, 원 중심에 대한 임계 값, 크기가 작을수록 더 많은 거짓 서클이 감지
+        cv::HoughCircles(*CurCV->mResult, Circles, CV_HOUGH_GRADIENT, DP, MinDist, Param1, Param2, 0, 0);
+
+        for(size_t i = 0, iend = Circles.size(); i < iend; ++i)
+        {
+            const auto& CurCircle = Circles[i];
+            cb(Point(CurCircle[0], CurCV->mResult->rows - CurCircle[1]), CurCircle[2], data);
         }
     }
 }

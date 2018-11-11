@@ -1522,7 +1522,11 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     }
     extern "C" BOOL boss_fakewin_QueryPerformanceCounter(LARGE_INTEGER* lpPerformanceCount)
     {
-        BOSS_ASSERT("########## QueryPerformanceCounter준비중", false);
+        if(lpPerformanceCount)
+        {
+            lpPerformanceCount->QuadPart = Platform::Utility::CurrentTimeMsec();
+            return 1;
+        }
         return 0;
     }
 
@@ -2368,7 +2372,7 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     }
     extern "C" errno_t boss_fakewin_strncpy_s(char* strDestination, size_t numberOfElements, const char* strSource, size_t count)
     {
-        BOSS_ASSERT("########## strncpy_s준비중", false);
+        boss_strncpy(strDestination, strSource, (numberOfElements < count)? numberOfElements : count);
         return 0;
     }
     extern "C" errno_t boss_fakewin_wcscpy_s(wchar_t *strDestination, size_t numberOfElements, const wchar_t *strSource)

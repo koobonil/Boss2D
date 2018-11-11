@@ -79,7 +79,8 @@ public:
     }
 
 public:
-    id_bitmap Decode(id_flash flash, uint64* timems);
+    id_bitmap DecodeBitmap(id_flash flash, uint64* timems);
+    id_texture DecodeTexture(id_flash flash, uint64* timems);
     void Seek(id_flash flash, uint64 timems);
 
 private:
@@ -104,4 +105,5 @@ private:
 
 private:
     ISVCDecoder* mDecoder;
+    uint08s mTempBits;
 };

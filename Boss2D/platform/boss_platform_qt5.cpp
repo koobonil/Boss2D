@@ -1723,10 +1723,10 @@
             SurfaceClass::UnlockForGL();
         }
 
-        id_texture Platform::Graphics::CreateTexture(bool nv21, sint32 width, sint32 height, const void* bits)
+        id_texture Platform::Graphics::CreateTexture(bool nv21, bool bitmapcache, sint32 width, sint32 height, const void* bits)
         {
             buffer NewTexture = Buffer::Alloc<TextureClass>(BOSS_DBG 1);
-            ((TextureClass*) NewTexture)->Init(nv21, width, height, bits);
+            ((TextureClass*) NewTexture)->Init(nv21, bitmapcache, width, height, bits);
             return (id_texture) NewTexture;
         }
 
@@ -3509,13 +3509,13 @@
             #endif
         }
 
-        id_texture Platform::Camera::CloneCapturedTexture(id_camera camera)
+        id_texture Platform::Camera::CloneCapturedTexture(id_camera camera, bool bitmapcache)
         {
             #ifdef QT_HAVE_MULTIMEDIA
                 if(camera)
                 {
                     CameraClass* CurCamera = (CameraClass*) camera;
-                    return CurCamera->CloneCapturedTexture();
+                    return CurCamera->CloneCapturedTexture(bitmapcache);
                 }
             #endif
             return nullptr;

@@ -2073,7 +2073,7 @@
         }
 
     public:
-        void Init(bool nv21, sint32 width, sint32 height, const void* bits)
+        void Init(bool nv21, bool bitmapcache, sint32 width, sint32 height, const void* bits)
         {
             QOpenGLContext* ctx = QOpenGLContext::currentContext();
             BOSS_ASSERT("OpenGL의 Context접근에 실패하였습니다", ctx);
@@ -2102,7 +2102,7 @@
                         f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
                         f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
                         f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                        if(Bits[i]) // CreateBitmap()을 위해 저장해 둠
+                        if(bitmapcache && Bits[i]) // CreateBitmap()을 위해 저장해 둠
                             Memory::Copy(mBits[i].AtDumping(0, BitsSizes[i]), Bits[i], BitsSizes[i]);
                     }
                 }
@@ -2118,7 +2118,7 @@
                     f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
                     f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
                     f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                    if(bits) // CreateBitmap()을 위해 저장해 둠
+                    if(bitmapcache && bits) // CreateBitmap()을 위해 저장해 둠
                         Memory::Copy(mBits[0].AtDumping(0, BitsSize), bits, BitsSize);
                 }
             }
@@ -4227,10 +4227,10 @@
             void StopPreview() {mCamera.setViewfinder((QAbstractVideoSurface*) nullptr);}
             sint32 GetLastImageWidth() const {return mLastImageWidth;}
             sint32 GetLastImageHeight() const {return mLastImageHeight;}
-            id_texture CreateLastTexture()
+            id_texture CreateLastTexture(bool bitmapcache)
             {
                 if(0 < mLastImageWidth && 0 < mLastImageHeight && 0 < mLastImage.Count())
-                    return Platform::Graphics::CreateTexture(false, mLastImageWidth, mLastImageHeight, &mLastImage[0]);
+                    return Platform::Graphics::CreateTexture(false, bitmapcache, mLastImageWidth, mLastImageHeight, &mLastImage[0]);
                 return nullptr;
             }
 
@@ -4449,7 +4449,7 @@
             public:
                 void StartCamera()
                 {
-                    mCamTexture = Platform::Graphics::CreateTexture(false, mSettings.resolution().width(), mSettings.resolution().height());
+                    mCamTexture = Platform::Graphics::CreateTexture(false, false, mSettings.resolution().width(), mSettings.resolution().height());
                     BOSS_TRACE("StartCamera: GenTexture - LastTexture: %d, width: %d, height: %d",
                         Platform::Graphics::GetTextureID(mCamTexture), mSettings.resolution().width(), mSettings.resolution().height());
                     QAndroidJniObject::callStaticMethod<void>("com/boss2d/BossCameraManager", "init", "(III)V",
@@ -4471,7 +4471,7 @@
                 void StopPreview() {QAndroidJniObject::callStaticMethod<void>("com/boss2d/BossCameraManager", "stop", "()V");}
                 sint32 GetLastImageWidth() const {return mLastImageWidth;}
                 sint32 GetLastImageHeight() const {return mLastImageHeight;}
-                id_texture CreateLastTexture()
+                id_texture CreateLastTexture(bool bitmapcache)
                 {
                     if(0 < mLastImageWidth && 0 < mLastImageHeight)
                     {
@@ -4479,7 +4479,7 @@
                         {
                         case codeid("NV21"):
                             if(12 < mLastImage.Count())
-                                return Platform::Graphics::CreateTexture(true, mLastImageWidth, mLastImageHeight, &mLastImage[12]);
+                                return Platform::Graphics::CreateTexture(true, bitmapcache, mLastImageWidth, mLastImageHeight, &mLastImage[12]);
                             break;
                         }
                     }
@@ -4746,12 +4746,12 @@
                 }
                 Mutex::Unlock(mMutex);
             }
-            id_texture CloneCapturedTexture()
+            id_texture CloneCapturedTexture(bool bitmapcache)
             {
                 id_texture Result = nullptr;
                 Mutex::Lock(mMutex);
                 {
-                    Result = CreateLastTexture();
+                    Result = CreateLastTexture(bitmapcache);
                 }
                 Mutex::Unlock(mMutex);
                 return Result;
@@ -4991,10 +4991,10 @@
                 if(mCameraService)
                     mCameraService->Capture(preview, needstop);
             }
-            id_texture CloneCapturedTexture()
+            id_texture CloneCapturedTexture(bool bitmapcache)
             {
                 if(mCameraService)
-                    return mCameraService->CloneCapturedTexture();
+                    return mCameraService->CloneCapturedTexture(bitmapcache);
                 return nullptr;
             }
             id_image_read LastCapturedImage(sint32 maxwidth, sint32 maxheight, sint32 rotate)

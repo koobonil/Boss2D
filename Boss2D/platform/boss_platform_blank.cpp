@@ -975,7 +975,7 @@
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
         }
 
-        id_texture Platform::Graphics::CreateTexture(bool nv21, sint32 width, sint32 height, const void* bits)
+        id_texture Platform::Graphics::CreateTexture(bool nv21, bool bitmapcache, sint32 width, sint32 height, const void* bits)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
 
@@ -2016,7 +2016,7 @@
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
         }
 
-        id_texture Platform::Camera::CloneCapturedTexture(id_camera camera)
+        id_texture Platform::Camera::CloneCapturedTexture(id_camera camera, bool bitmapcache)
         {
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
             return nullptr;

@@ -985,12 +985,13 @@ namespace BOSS
             /*!
             \brief 텍스처 생성
             \param nv21 : NV21타입인지의 여부
+            \param bitmapcache : 비트맵생성용 캐시를 보관해둘지의 여부
             \param width : 가로길이(px)
             \param height : 세로길이(px)
             \param bits : 초기화할 비트맵 Bits데이터
             \return 생성된 텍스쳐
             */
-            static id_texture CreateTexture(bool nv21, sint32 width, sint32 height, const void* bits = nullptr);
+            static id_texture CreateTexture(bool nv21, bool bitmapcache, sint32 width, sint32 height, const void* bits = nullptr);
 
             /*!
             \brief 텍스처 복제
@@ -2212,9 +2213,10 @@ namespace BOSS
             /*!
             \brief 마지막 촬영된 텍스처 복제
             \param camera : 카메라ID
+            \param bitmapcache : 비트맵생성용 캐시를 보관해둘지의 여부
             \return 복제된 텍스처(nullptr은 실패)
             */
-            static id_texture CloneCapturedTexture(id_camera camera);
+            static id_texture CloneCapturedTexture(id_camera camera, bool bitmapcache);
 
             /*!
             \brief 마지막 촬영된 이미지 얻기

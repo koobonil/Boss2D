@@ -21,7 +21,8 @@ namespace BOSS
     BOSS_DECLARE_ADDON_FUNCTION(H264, CreateDecoder, id_h264, void)
     BOSS_DECLARE_ADDON_FUNCTION(H264, Release, void, id_h264)
     BOSS_DECLARE_ADDON_FUNCTION(H264, EncodeOnce, void, id_h264, const uint32*, id_flash, uint64)
-    BOSS_DECLARE_ADDON_FUNCTION(H264, DecodeOnce, id_bitmap, id_h264, id_flash, uint64*)
+    BOSS_DECLARE_ADDON_FUNCTION(H264, DecodeBitmapOnce, id_bitmap, id_h264, id_flash, uint64*)
+    BOSS_DECLARE_ADDON_FUNCTION(H264, DecodeTextureOnce, id_texture, id_h264, id_flash, uint64*)
     BOSS_DECLARE_ADDON_FUNCTION(H264, DecodeSeek, void, id_h264, id_flash, uint64)
 
     static autorun Bind_AddOn_H264()
@@ -30,7 +31,8 @@ namespace BOSS
         Core_AddOn_H264_CreateDecoder() = Customized_AddOn_H264_CreateDecoder;
         Core_AddOn_H264_Release() = Customized_AddOn_H264_Release;
         Core_AddOn_H264_EncodeOnce() = Customized_AddOn_H264_EncodeOnce;
-        Core_AddOn_H264_DecodeOnce() = Customized_AddOn_H264_DecodeOnce;
+        Core_AddOn_H264_DecodeBitmapOnce() = Customized_AddOn_H264_DecodeBitmapOnce;
+        Core_AddOn_H264_DecodeTextureOnce() = Customized_AddOn_H264_DecodeTextureOnce;
         Core_AddOn_H264_DecodeSeek() = Customized_AddOn_H264_DecodeSeek;
         return true;
     }
@@ -64,11 +66,19 @@ namespace BOSS
             CurEncoder->Encode(rgba, flash, timems);
     }
 
-    id_bitmap Customized_AddOn_H264_DecodeOnce(id_h264 h264, id_flash flash, uint64* timems)
+    id_bitmap Customized_AddOn_H264_DecodeBitmapOnce(id_h264 h264, id_flash flash, uint64* timems)
     {
         auto CurDecoder = H264DecoderPrivate::Test(h264);
         if(CurDecoder)
-            return CurDecoder->Decode(flash, timems);
+            return CurDecoder->DecodeBitmap(flash, timems);
+        return nullptr;
+    }
+
+    id_texture Customized_AddOn_H264_DecodeTextureOnce(id_h264 h264, id_flash flash, uint64* timems)
+    {
+        auto CurDecoder = H264DecoderPrivate::Test(h264);
+        if(CurDecoder)
+            return CurDecoder->DecodeTexture(flash, timems);
         return nullptr;
     }
 
@@ -355,7 +365,7 @@ H264DecoderPrivate::~H264DecoderPrivate()
     }
 }
 
-id_bitmap H264DecoderPrivate::Decode(id_flash flash, uint64* timems)
+id_bitmap H264DecoderPrivate::DecodeBitmap(id_flash flash, uint64* timems)
 {
     uint08 Type = 0;
     bytes Chunk = nullptr;
@@ -380,6 +390,7 @@ id_bitmap H264DecoderPrivate::Decode(id_flash flash, uint64* timems)
             id_bitmap& Result = *((id_bitmap*) data);
             const sint32 Width = frame.mY.mWidth;
             const sint32 Height = frame.mY.mHeight;
+
             Result = Bmp::Create(4, Width, Height);
             auto Bits = (Bmp::bitmappixel*) Bmp::GetBits(Result);
             for(sint32 y = 0; y < Height; ++y)
@@ -408,11 +419,69 @@ id_bitmap H264DecoderPrivate::Decode(id_flash flash, uint64* timems)
                 }
             }
         }, &Result);
-
     delete Collector;
 
     if(!Result)
-        return Decode(flash, timems);
+        return DecodeBitmap(flash, timems);
+    if(timems) *timems = ResultMsec;
+    return Result;
+}
+
+id_texture H264DecoderPrivate::DecodeTexture(id_flash flash, uint64* timems)
+{
+    uint08 Type = 0;
+    bytes Chunk = nullptr;
+    sint32 ChunkSize = 0;
+    sint32 ChunkMsec = 0;
+    while(Type != 0x09)
+    {
+        Chunk = Flv::ReadChunk(flash, &Type, &ChunkSize, &ChunkMsec);
+        if(!Chunk) return nullptr;
+    }
+
+    const bool IsKeyFrame = !!(Chunk[0] & 0x10);
+    const bool IsNALU = !!(Chunk[1] & 0x01);
+    sint32 BsSize = 0;
+    CollectorType* Collector = nullptr;
+    bytes BsBuf = GetBsBuf(IsNALU, Chunk, ChunkSize, BsSize, Collector);
+
+    id_texture Result = nullptr;
+    void* Payload[2] = {this, &Result};
+    uint64 ResultMsec = DecodeFrame(BsBuf, BsSize, ChunkMsec,
+        [](payload data, const Frame& frame)->void
+        {
+            auto& Self = *((H264DecoderPrivate*) ((void**) data)[0]);
+            auto& Result = *((id_texture*) ((void**) data)[1]);
+            const sint32 Width = frame.mY.mWidth;
+            const sint32 Height = frame.mY.mHeight;
+            const sint32 WidthHalf = Width / 2;
+            const sint32 HeightHalf = Height / 2;
+
+            uint08* DstY = Self.mTempBits.AtDumping(0, Width * Height * 3 / 2);
+            uint08* DstUV = DstY + (Width * Height);
+            bytes SrcY = frame.mY.mData + (frame.mY.mStride * (Height - 1));
+            bytes SrcU = frame.mU.mData + (frame.mU.mStride * (HeightHalf - 1));
+            bytes SrcV = frame.mV.mData + (frame.mV.mStride * (HeightHalf - 1));
+            for(sint32 y = 0; y < Height; ++y)
+            {
+                Memory::Copy(DstY, SrcY, Width);
+                DstY += Width;
+                SrcY -= frame.mY.mStride;
+            }
+            for(sint32 y = 0; y < HeightHalf; ++y)
+            {
+                Memory::CopyStencil(DstUV + 1, SrcU, WidthHalf);
+                Memory::CopyStencil(DstUV + 0, SrcV, WidthHalf);
+                DstUV += Width;
+                SrcU -= frame.mU.mStride;
+                SrcV -= frame.mV.mStride;
+            }
+            Result = Platform::Graphics::CreateTexture(true, false, Width, Height, &Self.mTempBits[0]);
+        }, Payload);
+    delete Collector;
+
+    if(!Result)
+        return DecodeTexture(flash, timems);
     if(timems) *timems = ResultMsec;
     return Result;
 }
