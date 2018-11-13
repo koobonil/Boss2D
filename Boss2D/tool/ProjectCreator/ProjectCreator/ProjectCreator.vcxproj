@@ -213,6 +213,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\config\boss_config.h" />
     <ClInclude Include="ProjectCreator.h" />
     <ClInclude Include="ProjectCreatorDlg.h" />
     <ClInclude Include="Resource.h" />

@@ -7,9 +7,30 @@
     #include <element/boss_image.hpp>
     #include <format/boss_bmp.hpp>
 
-    #include <QtWidgets>
-    #include <QMainWindow>
-    #include <QSystemTrayIcon>
+    #include <QTimer>
+    #include <QElapsedTimer>
+    #include <QEvent>
+    #include <QCloseEvent>
+    #include <QMouseEvent>
+    #include <QWheelEvent>
+    #include <QKeyEvent>
+    #include <QResizeEvent>
+    #include <QPaintEvent>
+    #include <QFile>
+    #include <QFileInfo>
+    #include <QDir>
+    #include <QThread>
+    #include <QEventLoop>
+    #include <QSettings>
+    #include <QAction>
+    #include <QStyle>
+    #include <QToolTip>
+
+    #ifdef QT_HAVE_GRAPHICS
+        #include <QtWidgets>
+        #include <QMainWindow>
+        #include <QSystemTrayIcon>
+    #endif
 
     #include <QBuffer>
     #include <QHostInfo>
@@ -18,10 +39,12 @@
     #include <QTcpServer>
     #include <QNetworkInterface>
 
-    #include <QGLWidget>
-    #include <QGLFunctions>
-    #include <QGLShaderProgram>
-    #include <QGLFramebufferObject>
+    #ifdef QT_HAVE_GRAPHICS
+        #include <QGLWidget>
+        #include <QGLFunctions>
+        #include <QGLShaderProgram>
+        #include <QGLFramebufferObject>
+    #endif
 
     #ifdef QT_HAVE_PURCHASING
         #include <QtPurchasing>
@@ -51,6 +74,7 @@
     #include <QDesktopServices>
     #include <QLocalSocket>
     #include <QLocalServer>
+    #include <QSharedMemory>
 
     #ifdef QT_HAVE_WEBENGINEWIDGETS
         #include <QWebEngineView>
@@ -1113,7 +1137,7 @@
             {
                 #if BOSS_MAC_OSX
                     TypeCollector |= Qt::CustomizeWindowHint | Qt::WindowMinimizeButtonHint | Qt::WindowCloseButtonHint;
-                #elif BOSS_WINDOWS
+                #elif BOSS_WINDOWS | BOSS_LINUX
                     TypeCollector |= Qt::FramelessWindowHint;
                 #endif
             }
@@ -1134,7 +1158,7 @@
             {
                 #if BOSS_MAC_OSX
                     TypeCollector |= Qt::CustomizeWindowHint | Qt::WindowMinimizeButtonHint | Qt::WindowCloseButtonHint;
-                #elif BOSS_WINDOWS
+                #elif BOSS_WINDOWS | BOSS_LINUX
                     TypeCollector |= Qt::FramelessWindowHint;
                 #endif
             }
@@ -1543,791 +1567,795 @@
         QPoint m_parentpos;
     };
 
-    class OpenGLPrivate
-    {
-    private:
-        OpenGLPrivate()
+    #ifdef QT_HAVE_GRAPHICS
+        class OpenGLPrivate
         {
-            mVShader[0] = mVShader[1] = 0;
-            mFShader[0] = mFShader[1] = 0;
-            mProgram[0] = mProgram[1] = 0;
-            switch(GetVersionGLES() & 0xF0)
+        private:
+            OpenGLPrivate()
             {
-            case 0x20:
-                InitShaderGLES20();
-                break;
-            case 0x30:
-                InitShaderGLES30();
-                break;
-            default:
-                InitShaderGL();
-                break;
+                mVShader[0] = mVShader[1] = 0;
+                mFShader[0] = mFShader[1] = 0;
+                mProgram[0] = mProgram[1] = 0;
+                switch(GetVersionGLES() & 0xF0)
+                {
+                case 0x20:
+                    InitShaderGLES20();
+                    break;
+                case 0x30:
+                    InitShaderGLES30();
+                    break;
+                default:
+                    InitShaderGL();
+                    break;
+                }
             }
-        }
-        ~OpenGLPrivate()
-        {
-            TermShader();
-        }
-
-    public:
-        static OpenGLPrivate& ST()
-        {static OpenGLPrivate _; return _;}
-
-    public:
-        void FillRect(uint32 fbo, const BOSS::Rect& rect, const BOSS::Color& color)
-        {
-            QOpenGLContext* ctx = QOpenGLContext::currentContext();
-            QOpenGLFunctions* f = ctx->functions();
-
-            f->glBindFramebuffer(GL_FRAMEBUFFER, fbo); TestGL(BOSS_DBG 0);
-            GLint ViewPortValues[4] = {0};
-            f->glGetIntegerv(GL_VIEWPORT, ViewPortValues);
-            const GLint Width = ViewPortValues[2];
-            const GLint Height = ViewPortValues[3];
-            BOSS::Rect NewRect;
-            NewRect.l = (rect.l / Width - 0.5) * 2;
-            NewRect.t = (0.5 - rect.t / Height) * 2;
-            NewRect.r = (rect.r / Width - 0.5) * 2;
-            NewRect.b = (0.5 - rect.b / Height) * 2;
-
-            f->glUseProgram(mProgram[0]); TestGL(BOSS_DBG 0);
-            f->glBindBuffer(GL_ARRAY_BUFFER, 0); TestGL(BOSS_DBG 0);
-            f->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); TestGL(BOSS_DBG 0);
-            f->glEnableVertexAttribArray(VerticeID); TestGL(BOSS_DBG 0);
-            f->glEnableVertexAttribArray(ColorID); TestGL(BOSS_DBG 0);
-            f->glEnableVertexAttribArray(TexCoordsID); TestGL(BOSS_DBG 0);
-            f->glVertexAttribPointer(VerticeID, 2, GL_FLOAT, GL_FALSE, sizeof(Attrib), &mAttrib[0].vertices[0]); TestGL(BOSS_DBG 0);
-            f->glVertexAttribPointer(ColorID, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Attrib), &mAttrib[0].colors[0]); TestGL(BOSS_DBG 0);
-            f->glVertexAttribPointer(TexCoordsID, 2, GL_FLOAT, GL_FALSE, sizeof(Attrib), &mAttrib[0].texcoords[0]); TestGL(BOSS_DBG 0);
-            f->glUniformMatrix4fv(mMatrix[0], 1, GL_FALSE, (const GLfloat*) &mM[0][0]); TestGL(BOSS_DBG 0);
-
-            f->glDisable(GL_CULL_FACE); TestGL(BOSS_DBG 0);
-            f->glDisable(GL_DEPTH_TEST); TestGL(BOSS_DBG 0);
-            f->glDisable(GL_SCISSOR_TEST); TestGL(BOSS_DBG 0);
-            f->glEnable(GL_BLEND); TestGL(BOSS_DBG 0);
-            f->glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA); TestGL(BOSS_DBG 0);
-
-            mAttrib[0].vertices[0] = NewRect.l;
-            mAttrib[0].vertices[1] = NewRect.t;
-            mAttrib[0].color32 = color.rgba;
-            mAttrib[0].texcoords[0] = 0;
-            mAttrib[0].texcoords[1] = 0;
-
-            mAttrib[1].vertices[0] = NewRect.r;
-            mAttrib[1].vertices[1] = NewRect.t;
-            mAttrib[1].color32 = color.rgba;
-            mAttrib[1].texcoords[0] = 1;
-            mAttrib[1].texcoords[1] = 0;
-
-            mAttrib[2].vertices[0] = NewRect.l;
-            mAttrib[2].vertices[1] = NewRect.b;
-            mAttrib[2].color32 = color.rgba;
-            mAttrib[2].texcoords[0] = 0;
-            mAttrib[2].texcoords[1] = 1;
-
-            mAttrib[3].vertices[0] = NewRect.r;
-            mAttrib[3].vertices[1] = NewRect.b;
-            mAttrib[3].color32 = color.rgba;
-            mAttrib[3].texcoords[0] = 1;
-            mAttrib[3].texcoords[1] = 1;
-            f->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); TestGL(BOSS_DBG 0);
-        }
-        void DrawTexture(uint32 fbo, const BOSS::Rect& rect, id_texture_read tex, const BOSS::Rect& texrect, orientationtype ori, bool antialiasing)
-        {
-            QOpenGLContext* ctx = QOpenGLContext::currentContext();
-            QOpenGLFunctions* f = ctx->functions();
-
-            f->glBindFramebuffer(GL_FRAMEBUFFER, fbo); TestGL(BOSS_DBG 0);
-            GLint ViewPortValues[4] = {0};
-            f->glGetIntegerv(GL_VIEWPORT, ViewPortValues);
-            #if BOSS_ANDROID
-                const GLint DstWidth = ViewPortValues[2] / 4;
-                const GLint DstHeight = ViewPortValues[3] / 4;
-            #else
-                const GLint DstWidth = ViewPortValues[2];
-                const GLint DstHeight = ViewPortValues[3];
-            #endif
-            BOSS::Rect NewRect;
-            NewRect.l = (rect.l / DstWidth - 0.5) * 2;
-            NewRect.t = (0.5 - rect.t / DstHeight) * 2;
-            NewRect.r = (rect.r / DstWidth - 0.5) * 2;
-            NewRect.b = (0.5 - rect.b / DstHeight) * 2;
-
-            const bool IsNV21 = (mProgram[1] && Platform::Graphics::IsTextureNV21(tex));
-            if(IsNV21)
+            ~OpenGLPrivate()
             {
-                f->glActiveTexture(GL_TEXTURE0);
-                f->glBindTexture(GL_TEXTURE_2D, Platform::Graphics::GetTextureID(tex, 0));
-                f->glUniform1i(mTextureY, 0);
-                f->glActiveTexture(GL_TEXTURE1);
-                f->glBindTexture(GL_TEXTURE_2D, Platform::Graphics::GetTextureID(tex, 1));
-                f->glUniform1i(mTextureUV, 1);
-            }
-            else
-            {
-                f->glActiveTexture(GL_TEXTURE0);
-                f->glBindTexture(GL_TEXTURE_2D, Platform::Graphics::GetTextureID(tex));
-            }
-            if(antialiasing)
-            {
-                f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-                f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-                f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            }
-            else
-            {
-                f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-                f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-                f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                TermShader();
             }
 
-            const GLint SrcWidth = Platform::Graphics::GetTextureWidth(tex);
-            const GLint SrcHeight = Platform::Graphics::GetTextureHeight(tex);
-            const sint32 SelectedProgram = (IsNV21)? 1 : 0;
-            f->glUseProgram(mProgram[SelectedProgram]); TestGL(BOSS_DBG 0);
+        public:
+            static OpenGLPrivate& ST()
+            {static OpenGLPrivate _; return _;}
 
-            f->glBindBuffer(GL_ARRAY_BUFFER, 0); TestGL(BOSS_DBG 0);
-            f->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); TestGL(BOSS_DBG 0);
-            f->glEnableVertexAttribArray(VerticeID); TestGL(BOSS_DBG 0);
-            f->glEnableVertexAttribArray(ColorID); TestGL(BOSS_DBG 0);
-            f->glEnableVertexAttribArray(TexCoordsID); TestGL(BOSS_DBG 0);
-            f->glVertexAttribPointer(VerticeID, 2, GL_FLOAT, GL_FALSE, sizeof(Attrib), &mAttrib[0].vertices[0]); TestGL(BOSS_DBG 0);
-            f->glVertexAttribPointer(ColorID, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Attrib), &mAttrib[0].colors[0]); TestGL(BOSS_DBG 0);
-            f->glVertexAttribPointer(TexCoordsID, 2, GL_FLOAT, GL_FALSE, sizeof(Attrib), &mAttrib[0].texcoords[0]); TestGL(BOSS_DBG 0);
-            f->glUniformMatrix4fv(mMatrix[SelectedProgram], 1, GL_FALSE, (const GLfloat*) &mM[0][0]); TestGL(BOSS_DBG 0);
-
-            f->glDisable(GL_CULL_FACE); TestGL(BOSS_DBG 0);
-            f->glDisable(GL_DEPTH_TEST); TestGL(BOSS_DBG 0);
-            f->glDisable(GL_SCISSOR_TEST); TestGL(BOSS_DBG 0);
-            f->glEnable(GL_BLEND); TestGL(BOSS_DBG 0);
-            f->glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA); TestGL(BOSS_DBG 0);
-
-            mAttrib[0].vertices[0] = NewRect.l;
-            mAttrib[0].vertices[1] = NewRect.t;
-            mAttrib[0].color32 = 0xFFFFFFFF;
-            mAttrib[1].vertices[0] = NewRect.r;
-            mAttrib[1].vertices[1] = NewRect.t;
-            mAttrib[1].color32 = 0xFFFFFFFF;
-            mAttrib[2].vertices[0] = NewRect.l;
-            mAttrib[2].vertices[1] = NewRect.b;
-            mAttrib[2].color32 = 0xFFFFFFFF;
-            mAttrib[3].vertices[0] = NewRect.r;
-            mAttrib[3].vertices[1] = NewRect.b;
-            mAttrib[3].color32 = 0xFFFFFFFF;
-
-            sint32 UV[4] = {2, 3, 1, 0};
-            switch(ori)
+        public:
+            void FillRect(uint32 fbo, const BOSS::Rect& rect, const BOSS::Color& color)
             {
-            case orientationtype_normal0: UV[0] = 2; UV[1] = 3; UV[2] = 1; UV[3] = 0; break;
-            case orientationtype_normal90: UV[0] = 0; UV[1] = 2; UV[2] = 3; UV[3] = 1; break;
-            case orientationtype_normal180: UV[0] = 1; UV[1] = 0; UV[2] = 2; UV[3] = 3; break;
-            case orientationtype_normal270: UV[0] = 3; UV[1] = 1; UV[2] = 0; UV[3] = 2; break;
-            case orientationtype_fliped0: UV[0] = 3; UV[1] = 2; UV[2] = 0; UV[3] = 1; break;
-            case orientationtype_fliped90: UV[0] = 2; UV[1] = 0; UV[2] = 1; UV[3] = 3; break;
-            case orientationtype_fliped180: UV[0] = 0; UV[1] = 1; UV[2] = 3; UV[3] = 2; break;
-            case orientationtype_fliped270: UV[0] = 1; UV[1] = 3; UV[2] = 2; UV[3] = 0; break;
-            }
+                QOpenGLContext* ctx = QOpenGLContext::currentContext();
+                QOpenGLFunctions* f = ctx->functions();
 
-            mAttrib[UV[0]].texcoords[0] = texrect.l / SrcWidth; // 좌측상단
-            mAttrib[UV[0]].texcoords[1] = (SrcHeight - texrect.b) / SrcHeight;
-            mAttrib[UV[1]].texcoords[0] = texrect.r / SrcWidth; // 우측상단
-            mAttrib[UV[1]].texcoords[1] = (SrcHeight - texrect.b) / SrcHeight;
-            mAttrib[UV[2]].texcoords[0] = texrect.r / SrcWidth; // 우측하단
-            mAttrib[UV[2]].texcoords[1] = (SrcHeight - texrect.t) / SrcHeight;
-            mAttrib[UV[3]].texcoords[0] = texrect.l / SrcWidth; // 좌측하단
-            mAttrib[UV[3]].texcoords[1] = (SrcHeight - texrect.t) / SrcHeight;
-            f->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); TestGL(BOSS_DBG 0);
-        }
+                f->glBindFramebuffer(GL_FRAMEBUFFER, fbo); TestGL(BOSS_DBG 0);
+                GLint ViewPortValues[4] = {0};
+                f->glGetIntegerv(GL_VIEWPORT, ViewPortValues);
+                const GLint Width = ViewPortValues[2];
+                const GLint Height = ViewPortValues[3];
+                BOSS::Rect NewRect;
+                NewRect.l = (rect.l / Width - 0.5) * 2;
+                NewRect.t = (0.5 - rect.t / Height) * 2;
+                NewRect.r = (rect.r / Width - 0.5) * 2;
+                NewRect.b = (0.5 - rect.b / Height) * 2;
 
-    private:
-        void InitShader(chars vsource_rgb, chars fsource_rgb, chars vsource_nv21 = nullptr, chars fsource_nv21 = nullptr)
-        {
-            QOpenGLContext* ctx = QOpenGLContext::currentContext();
-            QOpenGLFunctions* f = ctx->functions();
-
-            chars VSources[2] = {vsource_rgb, vsource_nv21};
-            chars FSources[2] = {fsource_rgb, fsource_nv21};
-            for(sint32 i = 0, iend = (vsource_nv21 && fsource_nv21)? 2 : 1; i < iend; ++i)
-            {
-                mVShader[i] = f->glCreateShader(GL_VERTEX_SHADER); TestGL(BOSS_DBG 0);
-                f->glShaderSource(mVShader[i], 1, &VSources[i], NULL); TestGL(BOSS_DBG 0);
-                f->glCompileShader(mVShader[i]); TestShader(BOSS_DBG mVShader[i]);
-
-                mFShader[i] = f->glCreateShader(GL_FRAGMENT_SHADER); TestGL(BOSS_DBG 0);
-                f->glShaderSource(mFShader[i], 1, &FSources[i], NULL); TestGL(BOSS_DBG 0);
-                f->glCompileShader(mFShader[i]); TestShader(BOSS_DBG mFShader[i]);
-
-                mProgram[i] = f->glCreateProgram(); TestGL(BOSS_DBG 0);
-                f->glAttachShader(mProgram[i], mVShader[i]); TestShader(BOSS_DBG mVShader[i]);
-                f->glAttachShader(mProgram[i], mFShader[i]); TestShader(BOSS_DBG mFShader[i]);
-
+                f->glUseProgram(mProgram[0]); TestGL(BOSS_DBG 0);
+                f->glBindBuffer(GL_ARRAY_BUFFER, 0); TestGL(BOSS_DBG 0);
+                f->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); TestGL(BOSS_DBG 0);
                 f->glEnableVertexAttribArray(VerticeID); TestGL(BOSS_DBG 0);
                 f->glEnableVertexAttribArray(ColorID); TestGL(BOSS_DBG 0);
-                f->glBindAttribLocation(mProgram[i], VerticeID, "a_position"); TestGL(BOSS_DBG 0);
-                f->glBindAttribLocation(mProgram[i], ColorID, "a_color"); TestGL(BOSS_DBG 0);
+                f->glEnableVertexAttribArray(TexCoordsID); TestGL(BOSS_DBG 0);
                 f->glVertexAttribPointer(VerticeID, 2, GL_FLOAT, GL_FALSE, sizeof(Attrib), &mAttrib[0].vertices[0]); TestGL(BOSS_DBG 0);
                 f->glVertexAttribPointer(ColorID, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Attrib), &mAttrib[0].colors[0]); TestGL(BOSS_DBG 0);
+                f->glVertexAttribPointer(TexCoordsID, 2, GL_FLOAT, GL_FALSE, sizeof(Attrib), &mAttrib[0].texcoords[0]); TestGL(BOSS_DBG 0);
+                f->glUniformMatrix4fv(mMatrix[0], 1, GL_FALSE, (const GLfloat*) &mM[0][0]); TestGL(BOSS_DBG 0);
 
-                f->glLinkProgram(mProgram[i]); TestProgram(BOSS_DBG mProgram[i]);
-                f->glValidateProgram(mProgram[i]); TestProgram(BOSS_DBG mProgram[i]);
+                f->glDisable(GL_CULL_FACE); TestGL(BOSS_DBG 0);
+                f->glDisable(GL_DEPTH_TEST); TestGL(BOSS_DBG 0);
+                f->glDisable(GL_SCISSOR_TEST); TestGL(BOSS_DBG 0);
+                f->glEnable(GL_BLEND); TestGL(BOSS_DBG 0);
+                f->glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA); TestGL(BOSS_DBG 0);
 
-                LoadIdentity();
-                f->glUseProgram(mProgram[i]); TestProgram(BOSS_DBG mProgram[i]);
-                mMatrix[i] = f->glGetUniformLocation(mProgram[i], "u_matrix"); TestGL(BOSS_DBG 0);
-                f->glUniformMatrix4fv(mMatrix[i], 1, GL_FALSE, (const GLfloat*) &mM[0][0]); TestGL(BOSS_DBG 0);
-                if(i == 1)
-                {
-                    mTextureY = f->glGetUniformLocation(mProgram[i], "u_texture_y"); TestGL(BOSS_DBG 0);
-                    mTextureUV = f->glGetUniformLocation(mProgram[i], "u_texture_uv"); TestGL(BOSS_DBG 0);
-                }
+                mAttrib[0].vertices[0] = NewRect.l;
+                mAttrib[0].vertices[1] = NewRect.t;
+                mAttrib[0].color32 = color.rgba;
+                mAttrib[0].texcoords[0] = 0;
+                mAttrib[0].texcoords[1] = 0;
+
+                mAttrib[1].vertices[0] = NewRect.r;
+                mAttrib[1].vertices[1] = NewRect.t;
+                mAttrib[1].color32 = color.rgba;
+                mAttrib[1].texcoords[0] = 1;
+                mAttrib[1].texcoords[1] = 0;
+
+                mAttrib[2].vertices[0] = NewRect.l;
+                mAttrib[2].vertices[1] = NewRect.b;
+                mAttrib[2].color32 = color.rgba;
+                mAttrib[2].texcoords[0] = 0;
+                mAttrib[2].texcoords[1] = 1;
+
+                mAttrib[3].vertices[0] = NewRect.r;
+                mAttrib[3].vertices[1] = NewRect.b;
+                mAttrib[3].color32 = color.rgba;
+                mAttrib[3].texcoords[0] = 1;
+                mAttrib[3].texcoords[1] = 1;
+                f->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); TestGL(BOSS_DBG 0);
             }
-        }
-        void InitShaderGLES20()
-        {
-            InitShader(
-                "attribute highp vec2 a_position;\n"
-                "attribute highp vec4 a_color;\n"
-                "uniform highp mat4 u_matrix;\n"
-                "varying mediump vec4 v_fragmentColor;\n"
-                "\n"
-                "void main()\n"
-                "{\n"
-                "    gl_Position = u_matrix * vec4(a_position.x, a_position.y, 0.0, 1.0);\n"
-                "    v_fragmentColor = a_color;\n"
-                "}",
-                "uniform highp mat4 u_matrix;\n"
-                "varying mediump vec4 v_fragmentColor;\n"
-                "\n"
-                "void main()\n"
-                "{\n"
-                "    gl_FragColor = v_fragmentColor;\n"
-                "}");
-        }
-        void InitShaderGLES30()
-        {
-            InitShader(
-                ////////////////////////////////////////////////////////////
-                // RGB
-                ////////////////////////////////////////////////////////////
-                String::Format(
-                    "#version 300 es\n"
-                    "layout (location = %d) in highp vec2 a_position;\n"
-                    "layout (location = %d) in highp vec4 a_color;\n"
-                    "layout (location = %d) in highp vec2 a_texcoord;\n"
-                    "uniform highp mat4 u_matrix;\n"
-                    "out mediump vec4 v_fragmentColor;\n"
-                    "out mediump vec2 v_texCoord;\n"
-                    "\n"
-                    "void main()\n"
-                    "{\n"
-                    "    gl_Position = u_matrix * vec4(a_position.x, a_position.y, 0.0, 1.0);\n"
-                    "    v_fragmentColor = a_color;\n"
-                    "    v_texCoord = a_texcoord;\n"
-                    "}", VerticeID, ColorID, TexCoordsID),
-                "#version 300 es\n"
-                "layout (location = 0) out highp vec4 oColour;\n"
-                "uniform highp mat4 u_matrix;\n"
-                "uniform highp sampler2D u_texture;\n"
-                "in mediump vec4 v_fragmentColor;\n"
-                "in mediump vec2 v_texCoord;\n"
-                "\n"
-                "void main()\n"
-                "{\n"
-                "    oColour = v_fragmentColor * texture(u_texture, v_texCoord);\n"
-                "}",
-                ////////////////////////////////////////////////////////////
-                // NV21
-                ////////////////////////////////////////////////////////////
-                String::Format(
-                    "#version 300 es\n"
-                    "layout (location = %d) in highp vec2 a_position;\n"
-                    "layout (location = %d) in highp vec4 a_color;\n"
-                    "layout (location = %d) in highp vec2 a_texcoord;\n"
-                    "uniform highp mat4 u_matrix;\n"
-                    "uniform highp sampler2D u_texture_y;\n"
-                    "uniform highp sampler2D u_texture_uv;\n"
-                    "out mediump vec4 v_fragmentColor;\n"
-                    "out mediump vec2 v_texCoord;\n"
-                    "\n"
-                    "void main()\n"
-                    "{\n"
-                    "    gl_Position = u_matrix * vec4(a_position.x, a_position.y, 0.0, 1.0);\n"
-                    "    v_fragmentColor = a_color;\n"
-                    "    v_texCoord = a_texcoord;\n"
-                    "}", VerticeID, ColorID, TexCoordsID),
-                "#version 300 es\n"
-                "layout (location = 0) out highp vec4 oColour;\n"
-                "uniform highp mat4 u_matrix;\n"
-                "uniform highp sampler2D u_texture_y;\n"
-                "uniform highp sampler2D u_texture_uv;\n"
-                "in mediump vec4 v_fragmentColor;\n"
-                "in mediump vec2 v_texCoord;\n"
-                "\n"
-                "void main()\n"
-                "{\n"
-                "    highp float y = texture(u_texture_y, v_texCoord).r;\n"
-                "    highp float u = texture(u_texture_uv, v_texCoord).a - 0.5;\n"
-                "    highp float v = texture(u_texture_uv, v_texCoord).r - 0.5;\n"
-                "    highp float r = y + 1.403 * v;\n"
-                "    highp float g = y - 0.344 * u - 0.714 * v;\n"
-                "    highp float b = y + 1.770 * u;\n"
-                "    oColour = v_fragmentColor * vec4(r, g, b, 1.0);\n"
-                "}");
-        }
-        void InitShaderGL()
-        {
-            InitShader(
-                String::Format(
-                    "#version 330 core\n"
-                    "layout (location = %d) in highp vec2 a_position;\n"
-                    "layout (location = %d) in highp vec4 a_color;\n"
-                    "layout (location = %d) in highp vec2 a_texcoord;\n"
-                    "uniform highp mat4 u_matrix;\n"
-                    "out mediump vec4 v_fragmentColor;\n"
-                    "out mediump vec2 v_texCoord;\n"
-                    "\n"
-                    "void main()\n"
-                    "{\n"
-                    "    gl_Position = u_matrix * vec4(a_position.x, a_position.y, 0.0, 1.0);\n"
-                    "    v_fragmentColor = a_color;\n"
-                    "    v_texCoord = a_texcoord;\n"
-                    "}", VerticeID, ColorID, TexCoordsID),
-                "#version  330 core\n"
-                "layout (location = 0) out highp vec4 oColour;\n"
-                "uniform highp mat4 u_matrix;\n"
-                "uniform highp sampler2D u_texture;\n"
-                "in mediump vec4 v_fragmentColor;\n"
-                "in mediump vec2 v_texCoord;\n"
-                "\n"
-                "void main()\n"
-                "{\n"
-                "    oColour = v_fragmentColor * texture2D(u_texture, v_texCoord);\n"
-                "}");
-        }
-        void TermShader()
-        {
-            if(QOpenGLContext* ctx = QOpenGLContext::currentContext())
+            void DrawTexture(uint32 fbo, const BOSS::Rect& rect, id_texture_read tex, const BOSS::Rect& texrect, orientationtype ori, bool antialiasing)
             {
+                QOpenGLContext* ctx = QOpenGLContext::currentContext();
                 QOpenGLFunctions* f = ctx->functions();
-                for(sint32 i = 0; i < 2; ++i)
+
+                f->glBindFramebuffer(GL_FRAMEBUFFER, fbo); TestGL(BOSS_DBG 0);
+                GLint ViewPortValues[4] = {0};
+                f->glGetIntegerv(GL_VIEWPORT, ViewPortValues);
+                #if BOSS_ANDROID
+                    const GLint DstWidth = ViewPortValues[2] / 4;
+                    const GLint DstHeight = ViewPortValues[3] / 4;
+                #else
+                    const GLint DstWidth = ViewPortValues[2];
+                    const GLint DstHeight = ViewPortValues[3];
+                #endif
+                BOSS::Rect NewRect;
+                NewRect.l = (rect.l / DstWidth - 0.5) * 2;
+                NewRect.t = (0.5 - rect.t / DstHeight) * 2;
+                NewRect.r = (rect.r / DstWidth - 0.5) * 2;
+                NewRect.b = (0.5 - rect.b / DstHeight) * 2;
+
+                const bool IsNV21 = (mProgram[1] && Platform::Graphics::IsTextureNV21(tex));
+                if(IsNV21)
                 {
-                    if(mProgram[i]) {f->glDeleteProgram(mProgram[i]); TestGL(BOSS_DBG 0); mProgram[i] = 0;}
-                    if(mVShader[i]) {f->glDeleteShader(mVShader[i]); TestGL(BOSS_DBG 0); mVShader[i] = 0;}
-                    if(mFShader[i]) {f->glDeleteShader(mFShader[i]); TestGL(BOSS_DBG 0); mFShader[i] = 0;}
-                }
-            }
-        }
-
-    public:
-        static uint08 GetVersionGLES()
-        {
-            static uint08 Version = 0xFF;
-            if(Version != 0xFF) return Version;
-
-            QOpenGLContext* ctx = QOpenGLContext::currentContext();
-            QOpenGLFunctions* f = ctx->functions();
-            chars VendorString = (chars) f->glGetString(GL_VENDOR);
-            chars RendererString = (chars) f->glGetString(GL_RENDERER);
-            chars VersionString = (chars) f->glGetString(GL_VERSION);
-            // 예시1: OpenGL ES 2.0 IMGSGX543-124.1
-            // 예시2: OpenGL ES 3.0 APPLE-12.0.38
-            // 예시3: 2.1 ATI-1.51.8
-            // 예시4: 4.0.0 - Build 10.18.10.4303
-            BOSS_TRACE("========================================");
-            BOSS_TRACE("OpenGLPrivate GetVersion()");
-            BOSS_TRACE("----------------------------------------");
-            BOSS_TRACE("Vendor: %s", VendorString);
-            BOSS_TRACE("Renderer: %s", RendererString);
-            BOSS_TRACE("Version: %s", VersionString);
-            BOSS_TRACE("========================================");
-
-            if(!boss_strncmp(VersionString, "OpenGL ES ", 10))
-            {
-                const uint32 VersionMajor = VersionString[10] - '0';
-                const uint32 VersionMinor = VersionString[12] - '0';
-                Version = ((VersionMajor & 0xF) << 4) | (VersionMinor & 0xF);
-            }
-            else Version = 0x00; // 데스크탑용 OpenGL
-            return Version;
-        }
-        static void TestGL(BOSS_DBG_PRM sint32 nouse)
-        {
-            QOpenGLContext* ctx = QOpenGLContext::currentContext();
-            QOpenGLFunctions* f = ctx->functions();
-            if(auto errorCode = f->glGetError())
-                BOSS_ASSERT_PRM(String::Format("TestGL(error:%d) is failed", errorCode), false);
-        }
-        static void TestShader(BOSS_DBG_PRM GLuint shader)
-        {
-            QOpenGLContext* ctx = QOpenGLContext::currentContext();
-            QOpenGLFunctions* f = ctx->functions();
-
-            GLint status;
-            f->glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
-            if(status == GL_FALSE)
-            {
-                GLchar log[4096];
-                GLsizei s;
-                f->glGetShaderInfoLog(shader, 4096, &s, log);
-                BOSS_ASSERT_PRM(String::Format("TestShader(%s) is failed", log), false);
-            }
-            else if(auto errorCode = f->glGetError())
-                BOSS_ASSERT_PRM(String::Format("TestShader(error:%d) is failed", errorCode), false);
-        }
-        static void TestProgram(BOSS_DBG_PRM GLuint program)
-        {
-            QOpenGLContext* ctx = QOpenGLContext::currentContext();
-            QOpenGLFunctions* f = ctx->functions();
-
-            GLint linked;
-            f->glGetProgramiv(program, GL_LINK_STATUS, &linked);
-            if(!linked)
-            {
-                int i32InfoLogLength, i32CharsWritten;
-                f->glGetProgramiv(program, GL_INFO_LOG_LENGTH, &i32InfoLogLength);
-                char* pszInfoLog = new char[i32InfoLogLength];
-                f->glGetProgramInfoLog(program, i32InfoLogLength, &i32CharsWritten, pszInfoLog);
-                BOSS_ASSERT_PRM(String::Format("TestProgram(%s) is failed", pszInfoLog), false);
-                delete [] pszInfoLog;
-            }
-            else if(auto errorCode = f->glGetError())
-                BOSS_ASSERT_PRM(String::Format("TestProgram(error:%d) is failed", errorCode), false);
-        }
-    private:
-        void LoadIdentity()
-        {
-            mM[0][0] = 1; mM[0][1] = 0; mM[0][2] = 0; mM[0][3] = 0;
-            mM[1][0] = 0; mM[1][1] = 1; mM[1][2] = 0; mM[1][3] = 0;
-            mM[2][0] = 0; mM[2][1] = 0; mM[2][2] = 1; mM[2][3] = 0;
-            mM[3][0] = 0; mM[3][1] = 0; mM[3][2] = 0; mM[3][3] = 1;
-        }
-        void Multiply(
-            const float m00, const float m01, const float m02, const float m03,
-            const float m10, const float m11, const float m12, const float m13,
-            const float m20, const float m21, const float m22, const float m23,
-            const float m30, const float m31, const float m32, const float m33)
-        {
-            GLfloat m[4][4];
-            Memory::Copy(&m[0][0], &mM[0][0], sizeof(GLfloat) * 16);
-            mM[0][0] = m[0][0] * m00 + m[0][1] * m10 + m[0][2] * m20 + m[0][3] * m30;
-            mM[0][1] = m[0][0] * m01 + m[0][1] * m11 + m[0][2] * m21 + m[0][3] * m31;
-            mM[0][2] = m[0][0] * m02 + m[0][1] * m12 + m[0][2] * m22 + m[0][3] * m32;
-            mM[0][3] = m[0][0] * m03 + m[0][1] * m13 + m[0][2] * m23 + m[0][3] * m33;
-            mM[1][0] = m[1][0] * m00 + m[1][1] * m10 + m[1][2] * m20 + m[1][3] * m30;
-            mM[1][1] = m[1][0] * m01 + m[1][1] * m11 + m[1][2] * m21 + m[1][3] * m31;
-            mM[1][2] = m[1][0] * m02 + m[1][1] * m12 + m[1][2] * m22 + m[1][3] * m32;
-            mM[1][3] = m[1][0] * m03 + m[1][1] * m13 + m[1][2] * m23 + m[1][3] * m33;
-            mM[2][0] = m[2][0] * m00 + m[2][1] * m10 + m[2][2] * m20 + m[2][3] * m30;
-            mM[2][1] = m[2][0] * m01 + m[2][1] * m11 + m[2][2] * m21 + m[2][3] * m31;
-            mM[2][2] = m[2][0] * m02 + m[2][1] * m12 + m[2][2] * m22 + m[2][3] * m32;
-            mM[2][3] = m[2][0] * m03 + m[2][1] * m13 + m[2][2] * m23 + m[2][3] * m33;
-            mM[3][0] = m[3][0] * m00 + m[3][1] * m10 + m[3][2] * m20 + m[3][3] * m30;
-            mM[3][1] = m[3][0] * m01 + m[3][1] * m11 + m[3][2] * m21 + m[3][3] * m31;
-            mM[3][2] = m[3][0] * m02 + m[3][1] * m12 + m[3][2] * m22 + m[3][3] * m32;
-            mM[3][3] = m[3][0] * m03 + m[3][1] * m13 + m[3][2] * m23 + m[3][3] * m33;
-        }
-
-    private:
-        GLuint mVShader[2];
-        GLuint mFShader[2];
-        GLuint mProgram[2];
-
-    private:
-        enum {VerticeID = 0, ColorID = 1, TexCoordsID = 2};
-        struct Attrib
-        {
-            GLfloat vertices[2];
-            union
-            {
-                GLubyte colors[4];
-                GLuint color32;
-            };
-            GLfloat texcoords[2];
-        };
-        Attrib mAttrib[4];
-        GLint mMatrix[2];
-        GLfloat mM[4][4];
-        GLint mTextureY;
-        GLint mTextureUV;
-    };
-
-    class TextureClass
-    {
-        BOSS_DECLARE_NONCOPYABLE_CLASS(TextureClass)
-
-    public:
-        TextureClass()
-        {
-            mRefCount = 1;
-            mNV21 = false;
-            mWidth = 0;
-            mHeight = 0;
-            mTexture[0] = mTexture[1] = 0;
-        }
-        ~TextureClass()
-        {
-            BOSS_ASSERT("잘못된 시나리오입니다", mRefCount == 0);
-            Remove();
-        }
-
-    public:
-        void Init(bool nv21, bool bitmapcache, sint32 width, sint32 height, const void* bits)
-        {
-            QOpenGLContext* ctx = QOpenGLContext::currentContext();
-            BOSS_ASSERT("OpenGL의 Context접근에 실패하였습니다", ctx);
-            if(ctx)
-            {
-                QOpenGLFunctions* f = ctx->functions();
-                mNV21 = nv21;
-                mWidth = width;
-                mHeight = height;
-                if(nv21)
-                {
-                    const sint32 Level[2] = {GL_LUMINANCE, GL_LUMINANCE_ALPHA};
-                    const sint32 Widths[2]  = {mWidth, mWidth / 2};
-                    const sint32 Heights[2] = {mHeight, mHeight / 2};
-                    const void* Bits[2] = {bits, (bits)? &((bytes) bits)[mWidth * mHeight] : nullptr};
-                    const sint32 BitsSizes[2] = {1 * Widths[0] * Heights[0], 2 * Widths[1] * Heights[1]};
-                    f->glGenTextures(2, mTexture);
-                    for(sint32 i = 0; i < 2; ++i)
-                    {
-                        f->glBindTexture(GL_TEXTURE_2D, mTexture[i]);
-                        f->glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-                        f->glTexImage2D(GL_TEXTURE_2D,
-                            0, Level[i], Widths[i], Heights[i],
-                            0, Level[i], GL_UNSIGNED_BYTE, Bits[i]);
-                        f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-                        f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-                        f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                        f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                        if(bitmapcache && Bits[i]) // CreateBitmap()을 위해 저장해 둠
-                            Memory::Copy(mBits[i].AtDumping(0, BitsSizes[i]), Bits[i], BitsSizes[i]);
-                    }
+                    f->glActiveTexture(GL_TEXTURE0);
+                    f->glBindTexture(GL_TEXTURE_2D, Platform::Graphics::GetTextureID(tex, 0));
+                    f->glUniform1i(mTextureY, 0);
+                    f->glActiveTexture(GL_TEXTURE1);
+                    f->glBindTexture(GL_TEXTURE_2D, Platform::Graphics::GetTextureID(tex, 1));
+                    f->glUniform1i(mTextureUV, 1);
                 }
                 else
                 {
-                    const sint32 BitsSize = 4 * mWidth * mHeight;
-                    f->glGenTextures(1, mTexture);
-                    f->glBindTexture(GL_TEXTURE_2D, mTexture[0]);
-                    f->glTexImage2D(GL_TEXTURE_2D,
-                        0, GL_RGBA8, mWidth, mHeight,
-                        0, GL_BGRA, GL_UNSIGNED_BYTE, bits);
+                    f->glActiveTexture(GL_TEXTURE0);
+                    f->glBindTexture(GL_TEXTURE_2D, Platform::Graphics::GetTextureID(tex));
+                }
+                if(antialiasing)
+                {
                     f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
                     f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
                     f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
                     f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                    if(bitmapcache && bits) // CreateBitmap()을 위해 저장해 둠
-                        Memory::Copy(mBits[0].AtDumping(0, BitsSize), bits, BitsSize);
                 }
-            }
-        }
-        void Remove()
-        {
-            QOpenGLContext* ctx = QOpenGLContext::currentContext();
-            if(ctx)
-            {
-                QOpenGLFunctions* f = ctx->functions();
-                for(sint32 i = 0; i < 2; ++i)
+                else
                 {
-                    if(mTexture[i])
+                    f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                    f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                    f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                    f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                }
+
+                const GLint SrcWidth = Platform::Graphics::GetTextureWidth(tex);
+                const GLint SrcHeight = Platform::Graphics::GetTextureHeight(tex);
+                const sint32 SelectedProgram = (IsNV21)? 1 : 0;
+                f->glUseProgram(mProgram[SelectedProgram]); TestGL(BOSS_DBG 0);
+
+                f->glBindBuffer(GL_ARRAY_BUFFER, 0); TestGL(BOSS_DBG 0);
+                f->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); TestGL(BOSS_DBG 0);
+                f->glEnableVertexAttribArray(VerticeID); TestGL(BOSS_DBG 0);
+                f->glEnableVertexAttribArray(ColorID); TestGL(BOSS_DBG 0);
+                f->glEnableVertexAttribArray(TexCoordsID); TestGL(BOSS_DBG 0);
+                f->glVertexAttribPointer(VerticeID, 2, GL_FLOAT, GL_FALSE, sizeof(Attrib), &mAttrib[0].vertices[0]); TestGL(BOSS_DBG 0);
+                f->glVertexAttribPointer(ColorID, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Attrib), &mAttrib[0].colors[0]); TestGL(BOSS_DBG 0);
+                f->glVertexAttribPointer(TexCoordsID, 2, GL_FLOAT, GL_FALSE, sizeof(Attrib), &mAttrib[0].texcoords[0]); TestGL(BOSS_DBG 0);
+                f->glUniformMatrix4fv(mMatrix[SelectedProgram], 1, GL_FALSE, (const GLfloat*) &mM[0][0]); TestGL(BOSS_DBG 0);
+
+                f->glDisable(GL_CULL_FACE); TestGL(BOSS_DBG 0);
+                f->glDisable(GL_DEPTH_TEST); TestGL(BOSS_DBG 0);
+                f->glDisable(GL_SCISSOR_TEST); TestGL(BOSS_DBG 0);
+                f->glEnable(GL_BLEND); TestGL(BOSS_DBG 0);
+                f->glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA); TestGL(BOSS_DBG 0);
+
+                mAttrib[0].vertices[0] = NewRect.l;
+                mAttrib[0].vertices[1] = NewRect.t;
+                mAttrib[0].color32 = 0xFFFFFFFF;
+                mAttrib[1].vertices[0] = NewRect.r;
+                mAttrib[1].vertices[1] = NewRect.t;
+                mAttrib[1].color32 = 0xFFFFFFFF;
+                mAttrib[2].vertices[0] = NewRect.l;
+                mAttrib[2].vertices[1] = NewRect.b;
+                mAttrib[2].color32 = 0xFFFFFFFF;
+                mAttrib[3].vertices[0] = NewRect.r;
+                mAttrib[3].vertices[1] = NewRect.b;
+                mAttrib[3].color32 = 0xFFFFFFFF;
+
+                sint32 UV[4] = {2, 3, 1, 0};
+                switch(ori)
+                {
+                case orientationtype_normal0: UV[0] = 2; UV[1] = 3; UV[2] = 1; UV[3] = 0; break;
+                case orientationtype_normal90: UV[0] = 0; UV[1] = 2; UV[2] = 3; UV[3] = 1; break;
+                case orientationtype_normal180: UV[0] = 1; UV[1] = 0; UV[2] = 2; UV[3] = 3; break;
+                case orientationtype_normal270: UV[0] = 3; UV[1] = 1; UV[2] = 0; UV[3] = 2; break;
+                case orientationtype_fliped0: UV[0] = 3; UV[1] = 2; UV[2] = 0; UV[3] = 1; break;
+                case orientationtype_fliped90: UV[0] = 2; UV[1] = 0; UV[2] = 1; UV[3] = 3; break;
+                case orientationtype_fliped180: UV[0] = 0; UV[1] = 1; UV[2] = 3; UV[3] = 2; break;
+                case orientationtype_fliped270: UV[0] = 1; UV[1] = 3; UV[2] = 2; UV[3] = 0; break;
+                }
+
+                mAttrib[UV[0]].texcoords[0] = texrect.l / SrcWidth; // 좌측상단
+                mAttrib[UV[0]].texcoords[1] = (SrcHeight - texrect.b) / SrcHeight;
+                mAttrib[UV[1]].texcoords[0] = texrect.r / SrcWidth; // 우측상단
+                mAttrib[UV[1]].texcoords[1] = (SrcHeight - texrect.b) / SrcHeight;
+                mAttrib[UV[2]].texcoords[0] = texrect.r / SrcWidth; // 우측하단
+                mAttrib[UV[2]].texcoords[1] = (SrcHeight - texrect.t) / SrcHeight;
+                mAttrib[UV[3]].texcoords[0] = texrect.l / SrcWidth; // 좌측하단
+                mAttrib[UV[3]].texcoords[1] = (SrcHeight - texrect.t) / SrcHeight;
+                f->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); TestGL(BOSS_DBG 0);
+            }
+
+        private:
+            void InitShader(chars vsource_rgb, chars fsource_rgb, chars vsource_nv21 = nullptr, chars fsource_nv21 = nullptr)
+            {
+                QOpenGLContext* ctx = QOpenGLContext::currentContext();
+                QOpenGLFunctions* f = ctx->functions();
+
+                chars VSources[2] = {vsource_rgb, vsource_nv21};
+                chars FSources[2] = {fsource_rgb, fsource_nv21};
+                for(sint32 i = 0, iend = (vsource_nv21 && fsource_nv21)? 2 : 1; i < iend; ++i)
+                {
+                    mVShader[i] = f->glCreateShader(GL_VERTEX_SHADER); TestGL(BOSS_DBG 0);
+                    f->glShaderSource(mVShader[i], 1, &VSources[i], NULL); TestGL(BOSS_DBG 0);
+                    f->glCompileShader(mVShader[i]); TestShader(BOSS_DBG mVShader[i]);
+
+                    mFShader[i] = f->glCreateShader(GL_FRAGMENT_SHADER); TestGL(BOSS_DBG 0);
+                    f->glShaderSource(mFShader[i], 1, &FSources[i], NULL); TestGL(BOSS_DBG 0);
+                    f->glCompileShader(mFShader[i]); TestShader(BOSS_DBG mFShader[i]);
+
+                    mProgram[i] = f->glCreateProgram(); TestGL(BOSS_DBG 0);
+                    f->glAttachShader(mProgram[i], mVShader[i]); TestShader(BOSS_DBG mVShader[i]);
+                    f->glAttachShader(mProgram[i], mFShader[i]); TestShader(BOSS_DBG mFShader[i]);
+
+                    f->glEnableVertexAttribArray(VerticeID); TestGL(BOSS_DBG 0);
+                    f->glEnableVertexAttribArray(ColorID); TestGL(BOSS_DBG 0);
+                    f->glBindAttribLocation(mProgram[i], VerticeID, "a_position"); TestGL(BOSS_DBG 0);
+                    f->glBindAttribLocation(mProgram[i], ColorID, "a_color"); TestGL(BOSS_DBG 0);
+                    f->glVertexAttribPointer(VerticeID, 2, GL_FLOAT, GL_FALSE, sizeof(Attrib), &mAttrib[0].vertices[0]); TestGL(BOSS_DBG 0);
+                    f->glVertexAttribPointer(ColorID, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Attrib), &mAttrib[0].colors[0]); TestGL(BOSS_DBG 0);
+
+                    f->glLinkProgram(mProgram[i]); TestProgram(BOSS_DBG mProgram[i]);
+                    f->glValidateProgram(mProgram[i]); TestProgram(BOSS_DBG mProgram[i]);
+
+                    LoadIdentity();
+                    f->glUseProgram(mProgram[i]); TestProgram(BOSS_DBG mProgram[i]);
+                    mMatrix[i] = f->glGetUniformLocation(mProgram[i], "u_matrix"); TestGL(BOSS_DBG 0);
+                    f->glUniformMatrix4fv(mMatrix[i], 1, GL_FALSE, (const GLfloat*) &mM[0][0]); TestGL(BOSS_DBG 0);
+                    if(i == 1)
                     {
-                        f->glDeleteTextures(1, &mTexture[i]);
-                        mTexture[i] = 0;
+                        mTextureY = f->glGetUniformLocation(mProgram[i], "u_texture_y"); TestGL(BOSS_DBG 0);
+                        mTextureUV = f->glGetUniformLocation(mProgram[i], "u_texture_uv"); TestGL(BOSS_DBG 0);
                     }
                 }
             }
-        }
-        id_bitmap CreateBitmapByGL() const
+            void InitShaderGLES20()
+            {
+                InitShader(
+                    "attribute highp vec2 a_position;\n"
+                    "attribute highp vec4 a_color;\n"
+                    "uniform highp mat4 u_matrix;\n"
+                    "varying mediump vec4 v_fragmentColor;\n"
+                    "\n"
+                    "void main()\n"
+                    "{\n"
+                    "    gl_Position = u_matrix * vec4(a_position.x, a_position.y, 0.0, 1.0);\n"
+                    "    v_fragmentColor = a_color;\n"
+                    "}",
+                    "uniform highp mat4 u_matrix;\n"
+                    "varying mediump vec4 v_fragmentColor;\n"
+                    "\n"
+                    "void main()\n"
+                    "{\n"
+                    "    gl_FragColor = v_fragmentColor;\n"
+                    "}");
+            }
+            void InitShaderGLES30()
+            {
+                InitShader(
+                    ////////////////////////////////////////////////////////////
+                    // RGB
+                    ////////////////////////////////////////////////////////////
+                    String::Format(
+                        "#version 300 es\n"
+                        "layout (location = %d) in highp vec2 a_position;\n"
+                        "layout (location = %d) in highp vec4 a_color;\n"
+                        "layout (location = %d) in highp vec2 a_texcoord;\n"
+                        "uniform highp mat4 u_matrix;\n"
+                        "out mediump vec4 v_fragmentColor;\n"
+                        "out mediump vec2 v_texCoord;\n"
+                        "\n"
+                        "void main()\n"
+                        "{\n"
+                        "    gl_Position = u_matrix * vec4(a_position.x, a_position.y, 0.0, 1.0);\n"
+                        "    v_fragmentColor = a_color;\n"
+                        "    v_texCoord = a_texcoord;\n"
+                        "}", VerticeID, ColorID, TexCoordsID),
+                    "#version 300 es\n"
+                    "layout (location = 0) out highp vec4 oColour;\n"
+                    "uniform highp mat4 u_matrix;\n"
+                    "uniform highp sampler2D u_texture;\n"
+                    "in mediump vec4 v_fragmentColor;\n"
+                    "in mediump vec2 v_texCoord;\n"
+                    "\n"
+                    "void main()\n"
+                    "{\n"
+                    "    oColour = v_fragmentColor * texture(u_texture, v_texCoord);\n"
+                    "}",
+                    ////////////////////////////////////////////////////////////
+                    // NV21
+                    ////////////////////////////////////////////////////////////
+                    String::Format(
+                        "#version 300 es\n"
+                        "layout (location = %d) in highp vec2 a_position;\n"
+                        "layout (location = %d) in highp vec4 a_color;\n"
+                        "layout (location = %d) in highp vec2 a_texcoord;\n"
+                        "uniform highp mat4 u_matrix;\n"
+                        "uniform highp sampler2D u_texture_y;\n"
+                        "uniform highp sampler2D u_texture_uv;\n"
+                        "out mediump vec4 v_fragmentColor;\n"
+                        "out mediump vec2 v_texCoord;\n"
+                        "\n"
+                        "void main()\n"
+                        "{\n"
+                        "    gl_Position = u_matrix * vec4(a_position.x, a_position.y, 0.0, 1.0);\n"
+                        "    v_fragmentColor = a_color;\n"
+                        "    v_texCoord = a_texcoord;\n"
+                        "}", VerticeID, ColorID, TexCoordsID),
+                    "#version 300 es\n"
+                    "layout (location = 0) out highp vec4 oColour;\n"
+                    "uniform highp mat4 u_matrix;\n"
+                    "uniform highp sampler2D u_texture_y;\n"
+                    "uniform highp sampler2D u_texture_uv;\n"
+                    "in mediump vec4 v_fragmentColor;\n"
+                    "in mediump vec2 v_texCoord;\n"
+                    "\n"
+                    "void main()\n"
+                    "{\n"
+                    "    highp float y = texture(u_texture_y, v_texCoord).r;\n"
+                    "    highp float u = texture(u_texture_uv, v_texCoord).a - 0.5;\n"
+                    "    highp float v = texture(u_texture_uv, v_texCoord).r - 0.5;\n"
+                    "    highp float r = y + 1.403 * v;\n"
+                    "    highp float g = y - 0.344 * u - 0.714 * v;\n"
+                    "    highp float b = y + 1.770 * u;\n"
+                    "    oColour = v_fragmentColor * vec4(r, g, b, 1.0);\n"
+                    "}");
+            }
+            void InitShaderGL()
+            {
+                InitShader(
+                    String::Format(
+                        "#version 330 core\n"
+                        "layout (location = %d) in highp vec2 a_position;\n"
+                        "layout (location = %d) in highp vec4 a_color;\n"
+                        "layout (location = %d) in highp vec2 a_texcoord;\n"
+                        "uniform highp mat4 u_matrix;\n"
+                        "out mediump vec4 v_fragmentColor;\n"
+                        "out mediump vec2 v_texCoord;\n"
+                        "\n"
+                        "void main()\n"
+                        "{\n"
+                        "    gl_Position = u_matrix * vec4(a_position.x, a_position.y, 0.0, 1.0);\n"
+                        "    v_fragmentColor = a_color;\n"
+                        "    v_texCoord = a_texcoord;\n"
+                        "}", VerticeID, ColorID, TexCoordsID),
+                    "#version 330 core\n"
+                    "layout (location = 0) out highp vec4 oColour;\n"
+                    "uniform highp mat4 u_matrix;\n"
+                    "uniform highp sampler2D u_texture;\n"
+                    "in mediump vec4 v_fragmentColor;\n"
+                    "in mediump vec2 v_texCoord;\n"
+                    "\n"
+                    "void main()\n"
+                    "{\n"
+                    "    oColour = v_fragmentColor * texture2D(u_texture, v_texCoord);\n"
+                    "}");
+            }
+            void TermShader()
+            {
+                if(QOpenGLContext* ctx = QOpenGLContext::currentContext())
+                {
+                    QOpenGLFunctions* f = ctx->functions();
+                    for(sint32 i = 0; i < 2; ++i)
+                    {
+                        if(mProgram[i]) {f->glDeleteProgram(mProgram[i]); TestGL(BOSS_DBG 0); mProgram[i] = 0;}
+                        if(mVShader[i]) {f->glDeleteShader(mVShader[i]); TestGL(BOSS_DBG 0); mVShader[i] = 0;}
+                        if(mFShader[i]) {f->glDeleteShader(mFShader[i]); TestGL(BOSS_DBG 0); mFShader[i] = 0;}
+                    }
+                }
+            }
+
+        public:
+            static uint08 GetVersionGLES()
+            {
+                static uint08 Version = 0xFF;
+                if(Version != 0xFF) return Version;
+
+                QOpenGLContext* ctx = QOpenGLContext::currentContext();
+                QOpenGLFunctions* f = ctx->functions();
+                chars VendorString = (chars) f->glGetString(GL_VENDOR);
+                chars RendererString = (chars) f->glGetString(GL_RENDERER);
+                chars VersionString = (chars) f->glGetString(GL_VERSION);
+                // 예시1: OpenGL ES 2.0 IMGSGX543-124.1
+                // 예시2: OpenGL ES 3.0 APPLE-12.0.38
+                // 예시3: 2.1 ATI-1.51.8
+                // 예시4: 4.0.0 - Build 10.18.10.4303
+                BOSS_TRACE("========================================");
+                BOSS_TRACE("OpenGLPrivate GetVersion()");
+                BOSS_TRACE("----------------------------------------");
+                BOSS_TRACE("Vendor: %s", VendorString);
+                BOSS_TRACE("Renderer: %s", RendererString);
+                BOSS_TRACE("Version: %s", VersionString);
+                BOSS_TRACE("========================================");
+
+                if(!boss_strncmp(VersionString, "OpenGL ES ", 10))
+                {
+                    const uint32 VersionMajor = VersionString[10] - '0';
+                    const uint32 VersionMinor = VersionString[12] - '0';
+                    Version = ((VersionMajor & 0xF) << 4) | (VersionMinor & 0xF);
+                }
+                else if(!boss_strcmp(VersionString, "3.0 Mesa 18.0.5"))
+                    Version = 0x30;
+                else Version = 0x00; // 데스크탑용 OpenGL
+                return Version;
+            }
+            static void TestGL(BOSS_DBG_PRM sint32 nouse)
+            {
+                QOpenGLContext* ctx = QOpenGLContext::currentContext();
+                QOpenGLFunctions* f = ctx->functions();
+                if(auto errorCode = f->glGetError())
+                    BOSS_ASSERT_PRM(String::Format("TestGL(error:%d) is failed", errorCode), false);
+            }
+            static void TestShader(BOSS_DBG_PRM GLuint shader)
+            {
+                QOpenGLContext* ctx = QOpenGLContext::currentContext();
+                QOpenGLFunctions* f = ctx->functions();
+
+                GLint status;
+                f->glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+                if(status == GL_FALSE)
+                {
+                    GLchar log[4096];
+                    GLsizei s;
+                    f->glGetShaderInfoLog(shader, 4096, &s, log);
+                    BOSS_ASSERT_PRM(String::Format("TestShader(%s) is failed", log), false);
+                }
+                else if(auto errorCode = f->glGetError())
+                    BOSS_ASSERT_PRM(String::Format("TestShader(error:%d) is failed", errorCode), false);
+            }
+            static void TestProgram(BOSS_DBG_PRM GLuint program)
+            {
+                QOpenGLContext* ctx = QOpenGLContext::currentContext();
+                QOpenGLFunctions* f = ctx->functions();
+
+                GLint linked;
+                f->glGetProgramiv(program, GL_LINK_STATUS, &linked);
+                if(!linked)
+                {
+                    int i32InfoLogLength, i32CharsWritten;
+                    f->glGetProgramiv(program, GL_INFO_LOG_LENGTH, &i32InfoLogLength);
+                    char* pszInfoLog = new char[i32InfoLogLength];
+                    f->glGetProgramInfoLog(program, i32InfoLogLength, &i32CharsWritten, pszInfoLog);
+                    BOSS_ASSERT_PRM(String::Format("TestProgram(%s) is failed", pszInfoLog), false);
+                    delete [] pszInfoLog;
+                }
+                else if(auto errorCode = f->glGetError())
+                    BOSS_ASSERT_PRM(String::Format("TestProgram(error:%d) is failed", errorCode), false);
+            }
+        private:
+            void LoadIdentity()
+            {
+                mM[0][0] = 1; mM[0][1] = 0; mM[0][2] = 0; mM[0][3] = 0;
+                mM[1][0] = 0; mM[1][1] = 1; mM[1][2] = 0; mM[1][3] = 0;
+                mM[2][0] = 0; mM[2][1] = 0; mM[2][2] = 1; mM[2][3] = 0;
+                mM[3][0] = 0; mM[3][1] = 0; mM[3][2] = 0; mM[3][3] = 1;
+            }
+            void Multiply(
+                const float m00, const float m01, const float m02, const float m03,
+                const float m10, const float m11, const float m12, const float m13,
+                const float m20, const float m21, const float m22, const float m23,
+                const float m30, const float m31, const float m32, const float m33)
+            {
+                GLfloat m[4][4];
+                Memory::Copy(&m[0][0], &mM[0][0], sizeof(GLfloat) * 16);
+                mM[0][0] = m[0][0] * m00 + m[0][1] * m10 + m[0][2] * m20 + m[0][3] * m30;
+                mM[0][1] = m[0][0] * m01 + m[0][1] * m11 + m[0][2] * m21 + m[0][3] * m31;
+                mM[0][2] = m[0][0] * m02 + m[0][1] * m12 + m[0][2] * m22 + m[0][3] * m32;
+                mM[0][3] = m[0][0] * m03 + m[0][1] * m13 + m[0][2] * m23 + m[0][3] * m33;
+                mM[1][0] = m[1][0] * m00 + m[1][1] * m10 + m[1][2] * m20 + m[1][3] * m30;
+                mM[1][1] = m[1][0] * m01 + m[1][1] * m11 + m[1][2] * m21 + m[1][3] * m31;
+                mM[1][2] = m[1][0] * m02 + m[1][1] * m12 + m[1][2] * m22 + m[1][3] * m32;
+                mM[1][3] = m[1][0] * m03 + m[1][1] * m13 + m[1][2] * m23 + m[1][3] * m33;
+                mM[2][0] = m[2][0] * m00 + m[2][1] * m10 + m[2][2] * m20 + m[2][3] * m30;
+                mM[2][1] = m[2][0] * m01 + m[2][1] * m11 + m[2][2] * m21 + m[2][3] * m31;
+                mM[2][2] = m[2][0] * m02 + m[2][1] * m12 + m[2][2] * m22 + m[2][3] * m32;
+                mM[2][3] = m[2][0] * m03 + m[2][1] * m13 + m[2][2] * m23 + m[2][3] * m33;
+                mM[3][0] = m[3][0] * m00 + m[3][1] * m10 + m[3][2] * m20 + m[3][3] * m30;
+                mM[3][1] = m[3][0] * m01 + m[3][1] * m11 + m[3][2] * m21 + m[3][3] * m31;
+                mM[3][2] = m[3][0] * m02 + m[3][1] * m12 + m[3][2] * m22 + m[3][3] * m32;
+                mM[3][3] = m[3][0] * m03 + m[3][1] * m13 + m[3][2] * m23 + m[3][3] * m33;
+            }
+
+        private:
+            GLuint mVShader[2];
+            GLuint mFShader[2];
+            GLuint mProgram[2];
+
+        private:
+            enum {VerticeID = 0, ColorID = 1, TexCoordsID = 2};
+            struct Attrib
+            {
+                GLfloat vertices[2];
+                union
+                {
+                    GLubyte colors[4];
+                    GLuint color32;
+                };
+                GLfloat texcoords[2];
+            };
+            Attrib mAttrib[4];
+            GLint mMatrix[2];
+            GLfloat mM[4][4];
+            GLint mTextureY;
+            GLint mTextureUV;
+        };
+
+        class TextureClass
         {
-            id_bitmap NewBitmap = nullptr;
-            if(mNV21)
-                BOSS_ASSERT("NV21방식은 CreateBitmapByGL를 지원하지 않습니다", false);
-            else
+            BOSS_DECLARE_NONCOPYABLE_CLASS(TextureClass)
+
+        public:
+            TextureClass()
+            {
+                mRefCount = 1;
+                mNV21 = false;
+                mWidth = 0;
+                mHeight = 0;
+                mTexture[0] = mTexture[1] = 0;
+            }
+            ~TextureClass()
+            {
+                BOSS_ASSERT("잘못된 시나리오입니다", mRefCount == 0);
+                Remove();
+            }
+
+        public:
+            void Init(bool nv21, bool bitmapcache, sint32 width, sint32 height, const void* bits)
+            {
+                QOpenGLContext* ctx = QOpenGLContext::currentContext();
+                BOSS_ASSERT("OpenGL의 Context접근에 실패하였습니다", ctx);
+                if(ctx)
+                {
+                    QOpenGLFunctions* f = ctx->functions();
+                    mNV21 = nv21;
+                    mWidth = width;
+                    mHeight = height;
+                    if(nv21)
+                    {
+                        const sint32 Level[2] = {GL_LUMINANCE, GL_LUMINANCE_ALPHA};
+                        const sint32 Widths[2]  = {mWidth, mWidth / 2};
+                        const sint32 Heights[2] = {mHeight, mHeight / 2};
+                        const void* Bits[2] = {bits, (bits)? &((bytes) bits)[mWidth * mHeight] : nullptr};
+                        const sint32 BitsSizes[2] = {1 * Widths[0] * Heights[0], 2 * Widths[1] * Heights[1]};
+                        f->glGenTextures(2, mTexture);
+                        for(sint32 i = 0; i < 2; ++i)
+                        {
+                            f->glBindTexture(GL_TEXTURE_2D, mTexture[i]);
+                            f->glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+                            f->glTexImage2D(GL_TEXTURE_2D,
+                                0, Level[i], Widths[i], Heights[i],
+                                0, Level[i], GL_UNSIGNED_BYTE, Bits[i]);
+                            f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                            f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                            f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                            f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                            if(bitmapcache && Bits[i]) // CreateBitmap()을 위해 저장해 둠
+                                Memory::Copy(mBits[i].AtDumping(0, BitsSizes[i]), Bits[i], BitsSizes[i]);
+                        }
+                    }
+                    else
+                    {
+                        const sint32 BitsSize = 4 * mWidth * mHeight;
+                        f->glGenTextures(1, mTexture);
+                        f->glBindTexture(GL_TEXTURE_2D, mTexture[0]);
+                        f->glTexImage2D(GL_TEXTURE_2D,
+                            0, GL_RGBA8, mWidth, mHeight,
+                            0, GL_BGRA, GL_UNSIGNED_BYTE, bits);
+                        f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                        f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                        f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                        f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                        if(bitmapcache && bits) // CreateBitmap()을 위해 저장해 둠
+                            Memory::Copy(mBits[0].AtDumping(0, BitsSize), bits, BitsSize);
+                    }
+                }
+            }
+            void Remove()
             {
                 QOpenGLContext* ctx = QOpenGLContext::currentContext();
                 if(ctx)
                 {
                     QOpenGLFunctions* f = ctx->functions();
-                    GLuint fbo = 0, prevFbo = 0;
-                    f->glGenFramebuffers(1, &fbo);
-                    f->glGetIntegerv(GL_FRAMEBUFFER_BINDING, (GLint*) &prevFbo);
-                    f->glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-                    NewBitmap = Bmp::Create(4, mWidth, mHeight);
-                    f->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mTexture[0], 0);
-                    f->glReadPixels(0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, Bmp::GetBits(NewBitmap));
-                    f->glBindFramebuffer(GL_FRAMEBUFFER, prevFbo);
-                    f->glDeleteFramebuffers(1, &fbo);
-                    Bmp::SwapRedBlue(NewBitmap);
+                    for(sint32 i = 0; i < 2; ++i)
+                    {
+                        if(mTexture[i])
+                        {
+                            f->glDeleteTextures(1, &mTexture[i]);
+                            mTexture[i] = 0;
+                        }
+                    }
                 }
-                else BOSS_ASSERT("OpenGL의 Context접근에 실패하였습니다", ctx);
             }
-            return NewBitmap;
-        }
-        id_bitmap CreateBitmapByCopy() const
-        {
-            id_bitmap NewBitmap = nullptr;
-            if(mNV21)
+            id_bitmap CreateBitmapByGL() const
             {
-                const sint32 Widths[2]  = {mWidth, mWidth / 2};
-                const sint32 Heights[2] = {mHeight, mHeight / 2};
-                const sint32 BitsSizes[2] = {1 * Widths[0] * Heights[0], 2 * Widths[1] * Heights[1]};
-                if(mBits[0].Count() == BitsSizes[0] && mBits[1].Count() == BitsSizes[1])
-                    NewBitmap = Bmp::CloneFromNV21(&mBits[0][0], (uv16s) &mBits[1][0], mWidth, mHeight);
-                else BOSS_ASSERT("미리 저장된 mBits가 없어서 CreateBitmapByCopy에 실패하였습니다", false);
-            }
-            else
-            {
-                const sint32 BitsSize = 4 * mWidth * mHeight;
-                if(mBits[0].Count() == BitsSize)
+                id_bitmap NewBitmap = nullptr;
+                if(mNV21)
+                    BOSS_ASSERT("NV21방식은 CreateBitmapByGL를 지원하지 않습니다", false);
+                else
                 {
-                    NewBitmap = Bmp::Create(4, mWidth, mHeight);
-                    Memory::Copy(Bmp::GetBits(NewBitmap), &mBits[0][0], BitsSize);
+                    QOpenGLContext* ctx = QOpenGLContext::currentContext();
+                    if(ctx)
+                    {
+                        QOpenGLFunctions* f = ctx->functions();
+                        GLuint fbo = 0, prevFbo = 0;
+                        f->glGenFramebuffers(1, &fbo);
+                        f->glGetIntegerv(GL_FRAMEBUFFER_BINDING, (GLint*) &prevFbo);
+                        f->glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+                        NewBitmap = Bmp::Create(4, mWidth, mHeight);
+                        f->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mTexture[0], 0);
+                        f->glReadPixels(0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, Bmp::GetBits(NewBitmap));
+                        f->glBindFramebuffer(GL_FRAMEBUFFER, prevFbo);
+                        f->glDeleteFramebuffers(1, &fbo);
+                        Bmp::SwapRedBlue(NewBitmap);
+                    }
+                    else BOSS_ASSERT("OpenGL의 Context접근에 실패하였습니다", ctx);
                 }
-                else BOSS_ASSERT("미리 저장된 mBits가 없어서 CreateBitmapByCopy에 실패하였습니다", false);
+                return NewBitmap;
             }
-            return NewBitmap;
-        }
-
-    public:
-        inline TextureClass* clone() {++mRefCount; return this;}
-        inline bool release() {return (--mRefCount == 0);}
-        inline bool nv21() const {return mNV21;}
-        inline sint32 width() const {return mWidth;}
-        inline sint32 height() const {return mHeight;}
-        inline uint32 id(sint32 i) const {return mTexture[i];}
-
-    public:
-        void ResetDirectly(uint32 texture, sint32 width, sint32 height)
-        {
-            mRefCount = 1;
-            mNV21 = false;
-            mWidth = width;
-            mHeight = height;
-            mTexture[0] = texture;
-        }
-        void ClearDirectly()
-        {
-            mRefCount = 0;
-            mTexture[0] = 0;
-        }
-
-    private:
-        sint32 mRefCount;
-        bool mNV21;
-        sint32 mWidth;
-        sint32 mHeight;
-        uint32 mTexture[2];
-        uint08s mBits[2];
-    };
-
-    class SurfaceClass
-    {
-    public:
-        SurfaceClass() : mFBO(0, 0, QOpenGLFramebufferObjectFormat()), mDevice(0, 0)
-        {
-            BOSS_ASSERT("잘못된 시나리오입니다", false);
-            mSavedSurface = nullptr;
-            mIsValidLastImage = false;
-        }
-        SurfaceClass(sint32 width, sint32 height, QOpenGLFramebufferObjectFormat* format)
-            : mFBO(width, height, *format), mDevice(width, height)
-        {
-            BOSS_ASSERT("FBO생성에 실패하였습니다", mFBO.isValid());
-            mSavedSurface = nullptr;
-            mIsValidLastImage = false;
-        }
-        ~SurfaceClass()
-        {
-            mFBO.release();
-            mLastTexture.ClearDirectly();
-        }
-
-    public:
-        SurfaceClass(const SurfaceClass& rhs) : mFBO(0, 0, QOpenGLFramebufferObjectFormat()), mDevice(0, 0)
-        {
-            operator=(rhs);
-        }
-        SurfaceClass& operator=(const SurfaceClass& rhs)
-        {
-            BOSS_ASSERT("잘못된 시나리오입니다", false);
-            return *this;
-        }
-
-    public:
-        inline uint32 fbo() const {return mFBO.handle();}
-        inline id_texture_read texture() const
-        {
-            mLastTexture.ResetDirectly(mFBO.texture(), mFBO.width(), mFBO.height());
-            return (id_texture_read) &mLastTexture;
-        }
-        inline sint32 width() const {return mFBO.width();}
-        inline sint32 height() const {return mFBO.height();}
-        inline QPainter* painter() {return &mCanvas.painter();}
-
-    public:
-        void BindGraphics()
-        {
-            BOSS_ASSERT("mSavedSurface는 nullptr이어야 합니다", !mSavedSurface);
-            mSavedSurface = ST();
-            mCanvas.Bind(&mDevice);
-            mFBO.bind();
-            ST() = this;
-        }
-        void UnbindGraphics()
-        {
-            BOSS_ASSERT("SurfaceClass는 스택식으로 해제해야 합니다", ST() == this);
-            mIsValidLastImage = false;
-            mCanvas.Unbind();
-            if(ST() = mSavedSurface)
+            id_bitmap CreateBitmapByCopy() const
             {
-                mSavedSurface->mFBO.bind();
+                id_bitmap NewBitmap = nullptr;
+                if(mNV21)
+                {
+                    const sint32 Widths[2]  = {mWidth, mWidth / 2};
+                    const sint32 Heights[2] = {mHeight, mHeight / 2};
+                    const sint32 BitsSizes[2] = {1 * Widths[0] * Heights[0], 2 * Widths[1] * Heights[1]};
+                    if(mBits[0].Count() == BitsSizes[0] && mBits[1].Count() == BitsSizes[1])
+                        NewBitmap = Bmp::CloneFromNV21(&mBits[0][0], (uv16s) &mBits[1][0], mWidth, mHeight);
+                    else BOSS_ASSERT("미리 저장된 mBits가 없어서 CreateBitmapByCopy에 실패하였습니다", false);
+                }
+                else
+                {
+                    const sint32 BitsSize = 4 * mWidth * mHeight;
+                    if(mBits[0].Count() == BitsSize)
+                    {
+                        NewBitmap = Bmp::Create(4, mWidth, mHeight);
+                        Memory::Copy(Bmp::GetBits(NewBitmap), &mBits[0][0], BitsSize);
+                    }
+                    else BOSS_ASSERT("미리 저장된 mBits가 없어서 CreateBitmapByCopy에 실패하였습니다", false);
+                }
+                return NewBitmap;
+            }
+
+        public:
+            inline TextureClass* clone() {++mRefCount; return this;}
+            inline bool release() {return (--mRefCount == 0);}
+            inline bool nv21() const {return mNV21;}
+            inline sint32 width() const {return mWidth;}
+            inline sint32 height() const {return mHeight;}
+            inline uint32 id(sint32 i) const {return mTexture[i];}
+
+        public:
+            void ResetDirectly(uint32 texture, sint32 width, sint32 height)
+            {
+                mRefCount = 1;
+                mNV21 = false;
+                mWidth = width;
+                mHeight = height;
+                mTexture[0] = texture;
+            }
+            void ClearDirectly()
+            {
+                mRefCount = 0;
+                mTexture[0] = 0;
+            }
+
+        private:
+            sint32 mRefCount;
+            bool mNV21;
+            sint32 mWidth;
+            sint32 mHeight;
+            uint32 mTexture[2];
+            uint08s mBits[2];
+        };
+
+        class SurfaceClass
+        {
+        public:
+            SurfaceClass() : mFBO(0, 0, QOpenGLFramebufferObjectFormat()), mDevice(0, 0)
+            {
+                BOSS_ASSERT("잘못된 시나리오입니다", false);
                 mSavedSurface = nullptr;
+                mIsValidLastImage = false;
             }
-        }
-        const QImage& GetLastImage() const
-        {
-            if(!mIsValidLastImage)
+            SurfaceClass(sint32 width, sint32 height, QOpenGLFramebufferObjectFormat* format)
+                : mFBO(width, height, *format), mDevice(width, height)
             {
-                mIsValidLastImage = true;
-                mLastImage = mFBO.toImage();
+                BOSS_ASSERT("FBO생성에 실패하였습니다", mFBO.isValid());
+                mSavedSurface = nullptr;
+                mIsValidLastImage = false;
             }
-            return mLastImage;
-        }
-
-    public:
-        static void LockForGL()
-        {
-            BOSS_ASSERT("STGL()는 nullptr이어야 합니다", !STGL());
-            STGL() = ST();
-            ST() = nullptr;
-        }
-        static void UnlockForGL()
-        {
-            BOSS_ASSERT("ST()는 nullptr이어야 합니다", !ST());
-            if(ST() = STGL())
+            ~SurfaceClass()
             {
-                STGL()->mFBO.bind();
-                STGL() = nullptr;
+                mFBO.release();
+                mLastTexture.ClearDirectly();
             }
-        }
 
-    private:
-        static inline SurfaceClass*& ST() {static SurfaceClass* _ = nullptr; return _;}
-        static inline SurfaceClass*& STGL() {static SurfaceClass* _ = nullptr; return _;}
+        public:
+            SurfaceClass(const SurfaceClass& rhs) : mFBO(0, 0, QOpenGLFramebufferObjectFormat()), mDevice(0, 0)
+            {
+                operator=(rhs);
+            }
+            SurfaceClass& operator=(const SurfaceClass& rhs)
+            {
+                BOSS_ASSERT("잘못된 시나리오입니다", false);
+                return *this;
+            }
 
-    private:
-        SurfaceClass* mSavedSurface;
-        QOpenGLFramebufferObject mFBO;
-        QOpenGLPaintDevice mDevice;
-        CanvasClass mCanvas;
+        public:
+            inline uint32 fbo() const {return mFBO.handle();}
+            inline id_texture_read texture() const
+            {
+                mLastTexture.ResetDirectly(mFBO.texture(), mFBO.width(), mFBO.height());
+                return (id_texture_read) &mLastTexture;
+            }
+            inline sint32 width() const {return mFBO.width();}
+            inline sint32 height() const {return mFBO.height();}
+            inline QPainter* painter() {return &mCanvas.painter();}
 
-    private:
-        mutable bool mIsValidLastImage;
-        mutable QImage mLastImage;
-        mutable TextureClass mLastTexture;
-    };
+        public:
+            void BindGraphics()
+            {
+                BOSS_ASSERT("mSavedSurface는 nullptr이어야 합니다", !mSavedSurface);
+                mSavedSurface = ST();
+                mCanvas.Bind(&mDevice);
+                mFBO.bind();
+                ST() = this;
+            }
+            void UnbindGraphics()
+            {
+                BOSS_ASSERT("SurfaceClass는 스택식으로 해제해야 합니다", ST() == this);
+                mIsValidLastImage = false;
+                mCanvas.Unbind();
+                if(ST() = mSavedSurface)
+                {
+                    mSavedSurface->mFBO.bind();
+                    mSavedSurface = nullptr;
+                }
+            }
+            const QImage& GetLastImage() const
+            {
+                if(!mIsValidLastImage)
+                {
+                    mIsValidLastImage = true;
+                    mLastImage = mFBO.toImage();
+                }
+                return mLastImage;
+            }
+
+        public:
+            static void LockForGL()
+            {
+                BOSS_ASSERT("STGL()는 nullptr이어야 합니다", !STGL());
+                STGL() = ST();
+                ST() = nullptr;
+            }
+            static void UnlockForGL()
+            {
+                BOSS_ASSERT("ST()는 nullptr이어야 합니다", !ST());
+                if(ST() = STGL())
+                {
+                    STGL()->mFBO.bind();
+                    STGL() = nullptr;
+                }
+            }
+
+        private:
+            static inline SurfaceClass*& ST() {static SurfaceClass* _ = nullptr; return _;}
+            static inline SurfaceClass*& STGL() {static SurfaceClass* _ = nullptr; return _;}
+
+        private:
+            SurfaceClass* mSavedSurface;
+            QOpenGLFramebufferObject mFBO;
+            QOpenGLPaintDevice mDevice;
+            CanvasClass mCanvas;
+
+        private:
+            mutable bool mIsValidLastImage;
+            mutable QImage mLastImage;
+            mutable TextureClass mLastTexture;
+        };
+    #endif
 
     class ThreadClass : public QThread
     {
@@ -3027,7 +3055,7 @@
         WebEnginePageForExtraDesktop* mPage;
     };
 
-    #ifdef QT_HAVE_WEBENGINEWIDGETS
+    #if defined(QT_HAVE_WEBENGINEWIDGETS) & defined(QT_HAVE_GRAPHICS)
         typedef QWebEnginePage WebEnginePageClass;
         typedef QWebEngineView WebEngineViewClass;
     #else
@@ -3164,7 +3192,7 @@
         payload mData;
     };
 
-    #ifdef QT_HAVE_WEBENGINEWIDGETS
+    #if defined(QT_HAVE_WEBENGINEWIDGETS) & defined(QT_HAVE_GRAPHICS)
         class WebPrivateForDesktop
         {
         public:
@@ -4316,32 +4344,34 @@
                             Result = true;
                         }
                     }
-                    // QVideoFrame::map함수의 버그에 따른 수동패치
-                    else if(QOpenGLContext* ctx = QOpenGLContext::currentContext())
-                    {
-                        QOpenGLFunctions* f = ctx->functions();
-                        GLuint textureId = frame.handle().toUInt();
-                        GLuint fbo = 0, prevFbo = 0;
-                        f->glGenFramebuffers(1, &fbo);
-                        f->glGetIntegerv(GL_FRAMEBUFFER_BINDING, (GLint*) &prevFbo);
-                        f->glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-                        f->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureId, 0);
-                        Mutex::Lock(mMutex);
+                    #ifdef QT_HAVE_GRAPHICS
+                        // QVideoFrame::map함수의 버그에 따른 수동패치
+                        else if(QOpenGLContext* ctx = QOpenGLContext::currentContext())
                         {
-                            mPixelFormat = frame.pixelFormat();
-                            mNeedFlip = false;
-                            mLastImage.SubtractionAll();
-                            mLastImageWidth = frame.width();
-                            mLastImageHeight = frame.height();
-                            f->glReadPixels(0, 0, mLastImageWidth, mLastImageHeight, GL_RGBA, GL_UNSIGNED_BYTE,
-                                mLastImage.AtDumpingAdded(4 * mLastImageWidth * mLastImageHeight));
+                            QOpenGLFunctions* f = ctx->functions();
+                            GLuint textureId = frame.handle().toUInt();
+                            GLuint fbo = 0, prevFbo = 0;
+                            f->glGenFramebuffers(1, &fbo);
+                            f->glGetIntegerv(GL_FRAMEBUFFER_BINDING, (GLint*) &prevFbo);
+                            f->glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+                            f->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureId, 0);
+                            Mutex::Lock(mMutex);
+                            {
+                                mPixelFormat = frame.pixelFormat();
+                                mNeedFlip = false;
+                                mLastImage.SubtractionAll();
+                                mLastImageWidth = frame.width();
+                                mLastImageHeight = frame.height();
+                                f->glReadPixels(0, 0, mLastImageWidth, mLastImageHeight, GL_RGBA, GL_UNSIGNED_BYTE,
+                                    mLastImage.AtDumpingAdded(4 * mLastImageWidth * mLastImageHeight));
+                            }
+                            Mutex::Unlock(mMutex);
+                            BufferFlush();
+                            f->glBindFramebuffer(GL_FRAMEBUFFER, prevFbo);
+                            f->glDeleteFramebuffers(1, &fbo);
+                            Result = true;
                         }
-                        Mutex::Unlock(mMutex);
-                        BufferFlush();
-                        f->glBindFramebuffer(GL_FRAMEBUFFER, prevFbo);
-                        f->glDeleteFramebuffers(1, &fbo);
-                        Result = true;
-                    }
+                    #endif
                 }
                 return Result;
             }

@@ -26,7 +26,17 @@
 #define BOSS_FAKEWIN_DECLSPEC_DLLIMPORT //__declspec(dllimport)
 #define BOSS_FAKEWIN_STDCALL            //__stdcall
 
-#if !BOSS_WINDOWS | BOSS_WINDOWS_MINGW
+#if BOSS_LINUX
+    #define alloca(N) boss_fakewin_alloca(N)
+    #define _alloca(N) boss_fakewin_alloca(N)
+    #ifdef __cplusplus
+        extern "C" {
+    #endif
+    void* boss_fakewin_alloca(boss_size_t size);
+    #ifdef __cplusplus
+        }
+    #endif
+#elif !BOSS_WINDOWS | BOSS_WINDOWS_MINGW
     #define _alloca(N) alloca(N)
 #endif
 
@@ -452,7 +462,6 @@
     #define CreateProcess CreateProcessA
     #define GetModuleHandle GetModuleHandleA
 
-    #define _alloca boss_fakewin_alloca
     #define _access boss_fakewin_access
     #define _waccess boss_fakewin_waccess
     #define _chmod boss_fakewin_chmod
@@ -627,7 +636,6 @@
     #ifdef __cplusplus
         extern "C" {
     #endif
-    void* boss_fakewin_alloca(size_t);
     int boss_fakewin_access(const char*,int);
     int boss_fakewin_waccess(const wchar_t*,int);
     int boss_fakewin_chmod(const char*,int);

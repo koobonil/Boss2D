@@ -1,18 +1,30 @@
+###########################################################
+# QT Components
+###########################################################
 QT += core
-QT += gui
+equals(QT_ENABLE_GRAPHICS, "ok"){
+    QT += gui
+    QT += opengl
+    QT += widgets
+    DEFINES += QT_HAVE_GRAPHICS
+} else {
+    QT -= gui
+    QT -= opengl
+    QT -= widgets
+}
 QT += network
-QT += opengl
-QT += widgets
 qtHaveModule(serialport){
     QT += serialport
     DEFINES += QT_HAVE_SERIALPORT
 }
 ios: QT += gui-private
 android: QT += androidextras
-qtHaveModule(webenginewidgets){
-    QT += webengine
-    QT += webenginewidgets
-    DEFINES += QT_HAVE_WEBENGINEWIDGETS
+equals(QT_ENABLE_GRAPHICS, "ok"){
+    qtHaveModule(webenginewidgets){
+        QT += webengine
+        QT += webenginewidgets
+        DEFINES += QT_HAVE_WEBENGINEWIDGETS
+    }
 }
 qtHaveModule(multimedia){
     QT += multimedia
@@ -23,6 +35,35 @@ qtHaveModule(purchasing){
     DEFINES += QT_HAVE_PURCHASING
 }
 
+###########################################################
+# QT Build Flags
+###########################################################
+equals(QT_ENABLE_GRAPHICS, "ok"){
+	message("QT_ENABLE_GRAPHICS : Included.")
+} else {
+    equals(QT_ENABLE_GRAPHICS, "no"){
+		message("QT_ENABLE_GRAPHICS : Excluded.")
+    } else {
+		error("QT_ENABLE_GRAPHICS flag is required.")
+    }
+}
+equals(QT_ADD_PLUGINS_FIREBASE, "ok"){
+	include(../../Boss2D_plugins/firebase_cpp_sdk_4.5.1/firebase_cpp_sdk.pri){
+        message("QT_ADD_PLUGINS_FIREBASE : The plug-in connected.")
+    } else {
+        message("QT_ADD_PLUGINS_FIREBASE : The plug-in is not ready and the module connection is canceled.")
+    }
+} else {
+    equals(QT_ADD_PLUGINS_FIREBASE, "no"){
+		message("QT_ADD_PLUGINS_FIREBASE : Excluded.")
+    } else {
+		error("QT_ADD_PLUGINS_FIREBASE flag is required.")
+    }
+}
+
+###########################################################
+# Native Build Options
+###########################################################
 CONFIG += c++11
 CONFIG += mobility
 CONFIG += warn_off
@@ -35,10 +76,11 @@ win32-g++: LIBS += -lwinmm
 android: LIBS += -landroid
 macx|ios: LIBS += -framework CoreFoundation
 linux-g++: CONFIG += link_pkgconfig
-linux-g++: PKGCONFIG += gtk+-3.0
-# sudo apt-get install build-essential libgtk-3-dev
-# sudo apt-get install build-essential libgl1-mesa-dev
-
+equals(QT_ENABLE_GRAPHICS, "ok"){
+    linux-g++: PKGCONFIG += gtk+-3.0
+    # sudo apt-get install build-essential libgtk-3-dev
+    # sudo apt-get install build-essential libgl1-mesa-dev
+}
 INCLUDEPATH += ../../Boss2D/core
 !android: INCLUDEPATH += ../../Boss2D/addon/trick_for_fakewin
 INCLUDEPATH += ../../Boss2D
@@ -47,16 +89,6 @@ CONFIG(debug, debug|release){
 }
 CONFIG(release, debug|release){
     DEFINES += BOSS_NDEBUG=1
-}
-
-equals(QT_ADD_PLUGINS_FIREBASE, "ok"){
-    include(../../Boss2D_plugins/firebase_cpp_sdk_4.5.1/firebase_cpp_sdk.pri){
-        message("BOSS_PLUGINS_FIREBASE : The plug-in connected.")
-    } else {
-        message("BOSS_PLUGINS_FIREBASE : The plug-in is not ready and the module connection is canceled.")
-    }
-} else {
-    message("BOSS_PLUGINS_FIREBASE : Excluded.")
 }
 
 ###########################################################

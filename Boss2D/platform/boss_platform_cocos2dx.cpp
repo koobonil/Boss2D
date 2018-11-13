@@ -57,7 +57,6 @@
     MainData* g_data = nullptr;
     MainWindow* g_window = nullptr;
     cocos2d::Node* g_view = nullptr;
-    dependency* g_func = nullptr;
 
     #if BOSS_ANDROID
         static JavaVM* g_jvm = nullptr;

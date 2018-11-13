@@ -582,6 +582,7 @@ extern "C" const char* boss_normalpath(const char* itemname, boss_drive* result)
     }
     jump(Drive == drive_assets) NormalPath = "assets:/";
     jump(Drive == drive_memory) NormalPath = "memory:/";
+    else NormalPath.Empty();
 
     // 노멀패스에 하위 항목을 붙임
     DirFocus = itemname;
@@ -591,7 +592,6 @@ extern "C" const char* boss_normalpath(const char* itemname, boss_drive* result)
         {
             branch;
             jump(item - DirFocus == 0) nothing;
-            jump(item - DirFocus == 1 && DirFocus[0] == '.') nothing;
             jump(item - DirFocus == 2 && DirFocus[0] == '.' && DirFocus[1] == '.')
             {
                 if(0 < NormalPath.Length()) NormalPath.Sub(1); // 끝 슬래시 제거후
@@ -1407,3 +1407,31 @@ extern "C" void boss_seterrno(int err)
         errno = err;
     #endif
 }
+
+#if !defined(BOSS_NEED_FORCED_FAKEWIN) || (BOSS_NEED_FORCED_FAKEWIN != 0 && BOSS_NEED_FORCED_FAKEWIN != 1)
+    #error BOSS_NEED_FORCED_FAKEWIN macro is invalid use
+#endif
+#if !defined(BOSS_NEED_FULLSCREEN) || (BOSS_NEED_FULLSCREEN != 0 && BOSS_NEED_FULLSCREEN != 1)
+    #error BOSS_NEED_FULLSCREEN macro is invalid use
+#endif
+#if !defined(BOSS_NEED_LOW_DEBUGING) || (BOSS_NEED_LOW_DEBUGING != 0 && BOSS_NEED_LOW_DEBUGING != 1)
+    #error BOSS_NEED_LOW_DEBUGING macro is invalid use
+#endif
+#if !defined(BOSS_NEED_MAIN) || (BOSS_NEED_MAIN != 0 && BOSS_NEED_MAIN != 1)
+    #error BOSS_NEED_MAIN macro is invalid use
+#endif
+#if !defined(BOSS_NEED_PLATFORM_FILE) || (BOSS_NEED_PLATFORM_FILE != 0 && BOSS_NEED_PLATFORM_FILE != 1)
+    #error BOSS_NEED_PLATFORM_FILE macro is invalid use
+#endif
+#if !defined(BOSS_NEED_PROFILE) || (BOSS_NEED_PROFILE != 0 && BOSS_NEED_PROFILE != 1)
+    #error BOSS_NEED_PROFILE macro is invalid use
+#endif
+#if !defined(BOSS_NEED_RELEASE_TRACE) || (BOSS_NEED_RELEASE_TRACE != 0 && BOSS_NEED_RELEASE_TRACE != 1)
+    #error BOSS_NEED_RELEASE_TRACE macro is invalid use
+#endif
+#if !defined(BOSS_NEED_NATIVE_OPENGL) || (BOSS_NEED_NATIVE_OPENGL != 0 && BOSS_NEED_NATIVE_OPENGL != 1)
+    #error BOSS_NEED_NATIVE_OPENGL macro is invalid use
+#endif
+#if !defined(BOSS_NEED_SILENT_NIGHT) || (BOSS_NEED_SILENT_NIGHT != 0 && BOSS_NEED_SILENT_NIGHT != 1)
+    #error BOSS_NEED_SILENT_NIGHT macro is invalid use
+#endif

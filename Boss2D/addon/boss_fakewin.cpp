@@ -8,11 +8,17 @@
 #endif
 
 #include <platform/boss_platform.hpp>
-
 #include "boss_fakewin.h"
 
-#undef GetCurrentDirectoryW
+#if BOSS_LINUX
+    extern "C" void* boss_fakewin_alloca(boss_size_t size)
+    {
+        static uint08s _;
+        return _.AtDumping(0, size);
+    }
+#endif
 
+#undef GetCurrentDirectoryW
 extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR lpBuffer)
 {
     static const WString& Root = Platform::File::GetFullPath((wchars) L"");

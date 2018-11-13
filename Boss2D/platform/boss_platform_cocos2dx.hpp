@@ -26,7 +26,6 @@
     extern MainData* g_data;
     extern MainWindow* g_window;
     extern cocos2d::Node* g_view;
-    extern dependency* g_func;
 
     class ViewAPI
     {

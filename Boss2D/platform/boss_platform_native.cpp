@@ -29,7 +29,6 @@
     dependency* g_data = nullptr;
     dependency* g_window = nullptr;
     ViewAPI* g_view = nullptr;
-    dependency* g_func = nullptr;
 
     #if BOSS_ANDROID
         static JavaVM* g_jvm = nullptr;
