@@ -21,8 +21,8 @@ namespace BOSS
     BOSS_DECLARE_ADDON_FUNCTION(H264, CreateDecoder, id_h264, void)
     BOSS_DECLARE_ADDON_FUNCTION(H264, Release, void, id_h264)
     BOSS_DECLARE_ADDON_FUNCTION(H264, EncodeOnce, void, id_h264, const uint32*, id_flash, uint64)
-    BOSS_DECLARE_ADDON_FUNCTION(H264, DecodeBitmapOnce, id_bitmap, id_h264, id_flash, uint64*)
-    BOSS_DECLARE_ADDON_FUNCTION(H264, DecodeTextureOnce, id_texture, id_h264, id_flash, uint64*)
+    BOSS_DECLARE_ADDON_FUNCTION(H264, DecodeBitmapOnce, id_bitmap, id_h264, id_flash, uint64, uint64*)
+    BOSS_DECLARE_ADDON_FUNCTION(H264, DecodeTextureOnce, id_texture, id_h264, id_flash, uint64, uint64*)
     BOSS_DECLARE_ADDON_FUNCTION(H264, DecodeSeek, void, id_h264, id_flash, uint64)
 
     static autorun Bind_AddOn_H264()
@@ -66,19 +66,19 @@ namespace BOSS
             CurEncoder->Encode(rgba, flash, timems);
     }
 
-    id_bitmap Customized_AddOn_H264_DecodeBitmapOnce(id_h264 h264, id_flash flash, uint64* timems)
+    id_bitmap Customized_AddOn_H264_DecodeBitmapOnce(id_h264 h264, id_flash flash, uint64 settimems, uint64* gettimems)
     {
         auto CurDecoder = H264DecoderPrivate::Test(h264);
         if(CurDecoder)
-            return CurDecoder->DecodeBitmap(flash, timems);
+            return CurDecoder->DecodeBitmap(flash, settimems, gettimems);
         return nullptr;
     }
 
-    id_texture Customized_AddOn_H264_DecodeTextureOnce(id_h264 h264, id_flash flash, uint64* timems)
+    id_texture Customized_AddOn_H264_DecodeTextureOnce(id_h264 h264, id_flash flash, uint64 settimems, uint64* gettimems)
     {
         auto CurDecoder = H264DecoderPrivate::Test(h264);
         if(CurDecoder)
-            return CurDecoder->DecodeTexture(flash, timems);
+            return CurDecoder->DecodeTexture(flash, settimems, gettimems);
         return nullptr;
     }
 
@@ -365,26 +365,40 @@ H264DecoderPrivate::~H264DecoderPrivate()
     }
 }
 
-id_bitmap H264DecoderPrivate::DecodeBitmap(id_flash flash, uint64* timems)
+id_bitmap H264DecoderPrivate::DecodeBitmap(id_flash flash, uint64 settimems, uint64* gettimems)
 {
     uint08 Type = 0;
     bytes Chunk = nullptr;
-    sint32 ChunkSize = 0;
-    sint32 ChunkMsec = 0;
+    sint32 ChunkSize = 0, ChunkMsec = 0;
     while(Type != 0x09)
     {
         Chunk = Flv::ReadChunk(flash, &Type, &ChunkSize, &ChunkMsec);
-        if(!Chunk) return nullptr;
+        if(!Chunk) break;
+        if(ChunkMsec < settimems)
+		{
+            const bool IsKeyFrame = !!(Chunk[0] & 0x10);
+            const bool IsNALU = !!(Chunk[1] & 0x01);
+            sint32 BsSize = 0;
+            CollectorType* Collector = nullptr;
+            bytes BsBuf = GetBsBuf(IsNALU, Chunk, ChunkSize, BsSize, Collector);
+            DecodeFrame(BsBuf, BsSize, settimems, ChunkMsec);
+            delete Collector;
+            Type = 0;
+        }
     }
 
-    const bool IsKeyFrame = !!(Chunk[0] & 0x10);
-    const bool IsNALU = !!(Chunk[1] & 0x01);
+    bytes BsBuf = nullptr;
     sint32 BsSize = 0;
     CollectorType* Collector = nullptr;
-    bytes BsBuf = GetBsBuf(IsNALU, Chunk, ChunkSize, BsSize, Collector);
+    if(Chunk)
+    {
+        const bool IsKeyFrame = !!(Chunk[0] & 0x10);
+        const bool IsNALU = !!(Chunk[1] & 0x01);
+        BsBuf = GetBsBuf(IsNALU, Chunk, ChunkSize, BsSize, Collector);
+    }
 
     id_bitmap Result = nullptr;
-    uint64 ResultMsec = DecodeFrame(BsBuf, BsSize, ChunkMsec,
+    const uint64 ResultMsec = DecodeFrame(BsBuf, BsSize, settimems, ChunkMsec,
         [](payload data, const Frame& frame)->void
         {
             id_bitmap& Result = *((id_bitmap*) data);
@@ -421,33 +435,45 @@ id_bitmap H264DecoderPrivate::DecodeBitmap(id_flash flash, uint64* timems)
         }, &Result);
     delete Collector;
 
-    if(!Result)
-        return DecodeBitmap(flash, timems);
-    if(timems) *timems = ResultMsec;
+    if(gettimems) *gettimems = ResultMsec;
     return Result;
 }
 
-id_texture H264DecoderPrivate::DecodeTexture(id_flash flash, uint64* timems)
+id_texture H264DecoderPrivate::DecodeTexture(id_flash flash, uint64 settimems, uint64* gettimems)
 {
     uint08 Type = 0;
     bytes Chunk = nullptr;
-    sint32 ChunkSize = 0;
-    sint32 ChunkMsec = 0;
+    sint32 ChunkSize = 0, ChunkMsec = 0;
     while(Type != 0x09)
     {
         Chunk = Flv::ReadChunk(flash, &Type, &ChunkSize, &ChunkMsec);
-        if(!Chunk) return nullptr;
+        if(!Chunk) break;
+		if(ChunkMsec < settimems)
+		{
+            const bool IsKeyFrame = !!(Chunk[0] & 0x10);
+            const bool IsNALU = !!(Chunk[1] & 0x01);
+            sint32 BsSize = 0;
+            CollectorType* Collector = nullptr;
+            bytes BsBuf = GetBsBuf(IsNALU, Chunk, ChunkSize, BsSize, Collector);
+            DecodeFrame(BsBuf, BsSize, settimems, ChunkMsec);
+            delete Collector;
+            Type = 0;
+        }
     }
 
-    const bool IsKeyFrame = !!(Chunk[0] & 0x10);
-    const bool IsNALU = !!(Chunk[1] & 0x01);
+    bytes BsBuf = nullptr;
     sint32 BsSize = 0;
     CollectorType* Collector = nullptr;
-    bytes BsBuf = GetBsBuf(IsNALU, Chunk, ChunkSize, BsSize, Collector);
+    if(Chunk)
+    {
+        const bool IsKeyFrame = !!(Chunk[0] & 0x10);
+        const bool IsNALU = !!(Chunk[1] & 0x01);
+        BsBuf = GetBsBuf(IsNALU, Chunk, ChunkSize, BsSize, Collector);
+    }
 
     id_texture Result = nullptr;
     void* Payload[2] = {this, &Result};
-    uint64 ResultMsec = DecodeFrame(BsBuf, BsSize, ChunkMsec,
+    const uint64 ResultMsec = DecodeFrame(BsBuf, BsSize, settimems, ChunkMsec,
         [](payload data, const Frame& frame)->void
         {
             auto& Self = *((H264DecoderPrivate*) ((void**) data)[0]);
@@ -480,9 +506,7 @@ id_texture H264DecoderPrivate::DecodeTexture(id_flash flash, uint64* timems)
         }, Payload);
     delete Collector;
 
-    if(!Result)
-        return DecodeTexture(flash, timems);
-    if(timems) *timems = ResultMsec;
+    if(gettimems) *gettimems = ResultMsec;
     return Result;
 }
 
@@ -507,21 +531,29 @@ void H264DecoderPrivate::Seek(id_flash flash, uint64 timems)
         bytes BsBuf = GetBsBuf(IsNALU, Chunk, ChunkSize, BsSize, Collector);
 
         if(IsKeyFrame || !IsNALU)
-            CurChunkMsec = (sint32) DecodeFrame(BsBuf, BsSize, CurChunkMsec);
+            CurChunkMsec = (sint32) DecodeFrame(BsBuf, BsSize, 0, CurChunkMsec);
 
         delete Collector;
     }
 }
 
-uint64 H264DecoderPrivate::DecodeFrame(bytes src, sint32 sliceSize, sint32 msec, OnDecodeFrame cb, payload data)
+uint64 H264DecoderPrivate::DecodeFrame(bytes src, sint32 sliceSize, sint32 setmsec, sint32 chunkmsec, OnDecodeFrame cb, payload data)
 {
     uint08* bufdata[3] = {};
     SBufferInfo bufInfo;
     memset(bufdata, 0, sizeof(bufdata));
     memset(&bufInfo, 0, sizeof(SBufferInfo));
-    bufInfo.uiInBsTimeStamp = msec / BSTIME_RATE;
-    DECODING_STATE rv = mDecoder->DecodeFrame2(src, sliceSize, bufdata, &bufInfo);
-    BOSS_ASSERT("DecodeFrame2가 실패하였습니다", rv == dsErrorFree);
+    bufInfo.uiInBsTimeStamp = ((setmsec == 0)? chunkmsec : setmsec) / BSTIME_RATE;
+    if(setmsec == 0) // 원하는 시각이 없을 경우, 원본과 동일하게 디코딩
+    {
+        DECODING_STATE rv = mDecoder->DecodeFrame2(src, sliceSize, bufdata, &bufInfo);
+        BOSS_ASSERT("DecodeFrame2가 실패하였습니다", rv == dsErrorFree);
+    }
+    else
+    {
+        DECODING_STATE rv = mDecoder->DecodeFrameNoDelay(src, sliceSize, bufdata, &bufInfo);
+        BOSS_ASSERT("DecodeFrameNoDelay가 실패하였습니다", rv == dsErrorFree);
+    }
 
     if(cb && bufInfo.iBufferStatus == 1)
     {

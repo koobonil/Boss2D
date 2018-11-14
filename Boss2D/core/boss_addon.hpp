@@ -96,8 +96,8 @@ namespace BOSS
             static id_h264 CreateDecoder(void);
             static void Release(id_h264 h264);
             static void EncodeOnce(id_h264 h264, const uint32* rgba, id_flash flash, uint64 timems);
-            static id_bitmap DecodeBitmapOnce(id_h264 h264, id_flash flash, uint64* timems = nullptr);
-            static id_texture DecodeTextureOnce(id_h264 h264, id_flash flash, uint64* timems = nullptr);
+            static id_bitmap DecodeBitmapOnce(id_h264 h264, id_flash flash, uint64 settimems = 0, uint64* gettimems = nullptr);
+            static id_texture DecodeTextureOnce(id_h264 h264, id_flash flash, uint64 settimems = 0, uint64* gettimems = nullptr);
             static void DecodeSeek(id_h264 h264, id_flash flash, uint64 timems);
         };
 

@@ -79,8 +79,8 @@ public:
     }
 
 public:
-    id_bitmap DecodeBitmap(id_flash flash, uint64* timems);
-    id_texture DecodeTexture(id_flash flash, uint64* timems);
+    id_bitmap DecodeBitmap(id_flash flash, uint64 settimems, uint64* gettimems);
+    id_texture DecodeTexture(id_flash flash, uint64 settimems, uint64* gettimems);
     void Seek(id_flash flash, uint64 timems);
 
 private:
@@ -98,7 +98,7 @@ private:
         Plane mV;
     };
     typedef void (*OnDecodeFrame)(payload data, const Frame& frame);
-    uint64 DecodeFrame(bytes src, sint32 sliceSize, sint32 msec, OnDecodeFrame cb = nullptr, payload data = nullptr);
+    uint64 DecodeFrame(bytes src, sint32 sliceSize, sint32 setmsec, sint32 chunkmsec, OnDecodeFrame cb = nullptr, payload data = nullptr);
 
     typedef Array<uint08, datatype_pod_canmemcpy, 256> CollectorType;
     bytes GetBsBuf(bool nalu, bytes chunk, sint32 chunksize, sint32& bssize, CollectorType*& collector);

@@ -176,8 +176,8 @@ namespace BOSS
     BOSS_DEFINE_ADDON_FUNCTION(H264, CreateDecoder, id_h264, return nullptr, void)
     BOSS_DEFINE_ADDON_FUNCTION(H264, Release, void, return, id_h264)
     BOSS_DEFINE_ADDON_FUNCTION(H264, EncodeOnce, void, return, id_h264, const uint32*, id_flash, uint64)
-    BOSS_DEFINE_ADDON_FUNCTION(H264, DecodeBitmapOnce, id_bitmap, return nullptr, id_h264, id_flash, uint64*)
-    BOSS_DEFINE_ADDON_FUNCTION(H264, DecodeTextureOnce, id_texture, return nullptr, id_h264, id_flash, uint64*)
+    BOSS_DEFINE_ADDON_FUNCTION(H264, DecodeBitmapOnce, id_bitmap, return nullptr, id_h264, id_flash, uint64, uint64*)
+    BOSS_DEFINE_ADDON_FUNCTION(H264, DecodeTextureOnce, id_texture, return nullptr, id_h264, id_flash, uint64, uint64*)
     BOSS_DEFINE_ADDON_FUNCTION(H264, DecodeSeek, void, return, id_h264, id_flash, uint64)
 
     id_h264 AddOn::H264::CreateEncoder(sint32 width, sint32 height, bool fastmode)
@@ -192,11 +192,11 @@ namespace BOSS
     void AddOn::H264::EncodeOnce(id_h264 h264, const uint32* rgba, id_flash flash, uint64 timems)
     {Core_AddOn_H264_EncodeOnce()(h264, rgba, flash, timems);}
 
-    id_bitmap AddOn::H264::DecodeBitmapOnce(id_h264 h264, id_flash flash, uint64* timems)
-    {return Core_AddOn_H264_DecodeBitmapOnce()(h264, flash, timems);}
+    id_bitmap AddOn::H264::DecodeBitmapOnce(id_h264 h264, id_flash flash, uint64 settimems, uint64* gettimems)
+    {return Core_AddOn_H264_DecodeBitmapOnce()(h264, flash, settimems, gettimems);}
 
-    id_texture AddOn::H264::DecodeTextureOnce(id_h264 h264, id_flash flash, uint64* timems)
-    {return Core_AddOn_H264_DecodeTextureOnce()(h264, flash, timems);}
+    id_texture AddOn::H264::DecodeTextureOnce(id_h264 h264, id_flash flash, uint64 settimems, uint64* gettimems)
+    {return Core_AddOn_H264_DecodeTextureOnce()(h264, flash, settimems, gettimems);}
 
     void AddOn::H264::DecodeSeek(id_h264 h264, id_flash flash, uint64 timems)
     {Core_AddOn_H264_DecodeSeek()(h264, flash, timems);}
