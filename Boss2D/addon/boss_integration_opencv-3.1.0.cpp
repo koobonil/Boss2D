@@ -5,8 +5,6 @@
 #include <functional>
 #include <cctype>
 
-// 도구준비
-#include <addon/boss_fakewin.h>
 #include "boss_integration_opencv-3.1.0.h"
 
 #undef LPSECURITY_ATTRIBUTES

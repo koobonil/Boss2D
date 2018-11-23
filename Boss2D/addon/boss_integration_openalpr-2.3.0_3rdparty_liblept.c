@@ -1,7 +1,6 @@
 ﻿#include <boss.h>
 #if BOSS_NEED_ADDON_ALPR | BOSS_NEED_ADDON_TESSERACT
 
-// 도구준비
 #include "boss_integration_openalpr-2.3.0_3rdparty_liblept.h"
 
 // define for tesseract

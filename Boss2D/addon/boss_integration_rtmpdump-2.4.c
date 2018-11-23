@@ -7,7 +7,6 @@
 
 #pragma warning(disable : 4090)
 
-// 도구준비
 #include "boss_integration_rtmpdump-2.4.h"
 
 #include <addon/rtmpdump-2.4_for_boss/librtmp/amf.c>

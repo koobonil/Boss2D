@@ -1,7 +1,6 @@
 ﻿#include <boss.h>
-#if BOSS_NEED_ADDON_CURL | BOSS_NEED_ADDON_GIT | BOSS_NEED_ADDON_SSL
+#if BOSS_NEED_ADDON_CURL | BOSS_NEED_ADDON_GIT | BOSS_NEED_ADDON_SSL | BOSS_NEED_ADDON_WEBRTC
 
-#include <addon/boss_fakewin.h>
 #include <addon/boss_integration_openssl-1.1.0c.h>
 
 #if BOSS_WINDOWS
@@ -18,9 +17,6 @@
 #else
     #define struct_stat_BOSS struct stat
 #endif
-
-// 선행포함
-#include <addon/openssl-1.1.0c_for_boss/crypto/bio/bio_lcl.h>
 
 #include <addon/openssl-1.1.0c_for_boss/crypto/ex_data.c>
 #include <addon/openssl-1.1.0c_for_boss/crypto/mem.c>

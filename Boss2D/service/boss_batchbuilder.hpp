@@ -17,9 +17,10 @@ namespace BOSS
 
     public:
         void Processing(chars filename);
-        static void Process_SearchCB(chars itemname, payload data);
+        static String MakeMacro(chars filename);
 
     protected:
+        static void Process_SearchCB(chars itemname, payload data);
         void Process_Replace(const String& command, sint32 pos, sint32 posend, chars prm);
         void Process_IncludeAlias(const String& command, sint32 pos, sint32 posend, chars prm);
         String Build_Replace(String source, const Strings& dsts, const Strings& srcs, chars comment);

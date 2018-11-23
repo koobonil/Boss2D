@@ -1,7 +1,6 @@
 ﻿#include <boss.h>
 #if BOSS_NEED_ADDON_GIT
 
-#include <addon/boss_fakewin.h>
 #include "boss_integration_libgit2-0.22.2.h"
 
 #if BOSS_WINDOWS

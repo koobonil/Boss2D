@@ -1,8 +1,6 @@
 ﻿#include <boss.h>
 #if BOSS_NEED_ADDON_H264
 
-// 도구준비
-#include <addon/boss_fakewin.h>
 #include "boss_integration_openh264-1.6.0.h"
 
 #include <addon/openh264-1.6.0_for_boss/codec/common/src/common_tables.cpp>

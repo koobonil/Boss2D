@@ -46,6 +46,22 @@ namespace BOSS
         Platform::File::Search(mDirName, Process_SearchCB, this, true);
     }
 
+    String BatchBuilder::MakeMacro(chars filename)
+    {
+        String Result = filename;
+        if(!Result.Right(2).CompareNoCase(".h"))
+            Result = Result.Left(Result.Length() - 2) + "_h";
+        else if(!Result.Right(4).CompareNoCase(".hpp"))
+            Result = Result.Left(Result.Length() - 4) + "_hpp";
+        else if(!Result.Right(4).CompareNoCase(".inc"))
+            Result = Result.Left(Result.Length() - 4) + "_inc";
+        Result.Replace("/", "__");
+        Result.Replace("\\", "__");
+        Result.Replace("-", "_M_");
+        Result.Replace(".", "_D_");
+        return Result;
+    }
+
     void BatchBuilder::Process_SearchCB(chars itemname, payload data)
     {
         if(Platform::File::ExistForDir(itemname))

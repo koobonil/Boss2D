@@ -14,6 +14,7 @@ namespace BOSS
     BOSS_DECLARE_ID(id_opencv);
     BOSS_DECLARE_ID(id_tesseract);
     BOSS_DECLARE_ID(id_tif);
+    BOSS_DECLARE_ID(id_webrtc);
     BOSS_DECLARE_ID(id_zip);
 
     //! \brief 애드온지원
@@ -169,6 +170,14 @@ namespace BOSS
             static id_tif Create(id_bitmap_read bmp);
             static void Release(id_tif tif);
             static id_bitmap ToBmp(bytes tif, sint32 length);
+        };
+
+        //! \brief 웹Rtc연동
+        class WebRtc
+        {
+        public:
+            static id_webrtc Open(sint32 port);
+            static void Close(id_webrtc webrtc);
         };
 
         //! \brief ZIP연동

@@ -9,8 +9,6 @@
     #pragma comment(lib, "ws2_32.lib")
 #endif
 
-// 도구준비
-#include <addon/boss_fakewin.h>
 #include "boss_integration_tesseract-3.05.02.h"
 
 #pragma warning(disable : 4566)

@@ -17,6 +17,7 @@ bool __LINK_ADDON_OPENCV__();
 bool __LINK_ADDON_SSL__();
 bool __LINK_ADDON_TESSERACT__();
 bool __LINK_ADDON_TIF__();
+bool __LINK_ADDON_WEBRTC__();
 bool __LINK_ADDON_ZIP__();
 static bool _ =
     __LINK_ADDON_AAC__() |
@@ -31,6 +32,7 @@ static bool _ =
     __LINK_ADDON_SSL__() |
     __LINK_ADDON_TESSERACT__() |
     __LINK_ADDON_TIF__() |
+    __LINK_ADDON_WEBRTC__() |
     __LINK_ADDON_ZIP__();
 
 namespace BOSS
@@ -318,6 +320,17 @@ namespace BOSS
 
     id_bitmap AddOn::Tif::ToBmp(bytes tif, sint32 length)
     {return Core_AddOn_Tif_ToBmp()(tif, length);}
+
+    ////////////////////////////////////////////////////////////////////////////////
+    static void WebRtc_Error() {BOSS_ASSERT("WebRtc애드온이 준비되지 않았습니다", false);}
+    BOSS_DEFINE_ADDON_FUNCTION(WebRtc, Open, id_webrtc, return nullptr, sint32)
+    BOSS_DEFINE_ADDON_FUNCTION(WebRtc, Close, void, return, id_webrtc)
+
+    id_webrtc AddOn::WebRtc::Open(sint32 port)
+    {return Core_AddOn_WebRtc_Open()(port);}
+
+    void AddOn::WebRtc::Close(id_webrtc webrtc)
+    {return Core_AddOn_WebRtc_Close()(webrtc);}
 
     ////////////////////////////////////////////////////////////////////////////////
     static void Zip_Error() {BOSS_ASSERT("Zip애드온이 준비되지 않았습니다", false);}

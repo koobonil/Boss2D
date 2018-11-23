@@ -5,7 +5,6 @@
     #define _M_ARM
 #endif
 
-// 도구준비
 #include "boss_integration_libvorbis-1.3.6.h"
 
 #include <addon/libvorbis-1.3.6_for_boss/lib/analysis.c>

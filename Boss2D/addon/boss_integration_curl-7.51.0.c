@@ -19,8 +19,9 @@
     #define struct_stat_BOSS struct stat
 #endif
 
-// 도구준비
 #include "boss_integration_curl-7.51.0.h"
+
+#define delay Sleep
 
 #include <addon/curl-7.51.0_for_boss/lib/amigaos.c>
 #include <addon/curl-7.51.0_for_boss/lib/asyn-ares.c>

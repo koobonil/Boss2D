@@ -312,6 +312,24 @@
     <ClCompile Include="..\service\boss_zayson.cpp">
       <Filter>Boss2D\service</Filter>
     </ClCompile>
+    <ClCompile Include="..\addon\boss_addon_webrtc.cpp">
+      <Filter>Boss2D\addon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\addon\boss_integration_libsrtp-2.2.0.c">
+      <Filter>Boss2D\addon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\addon\boss_integration_webrtc-jumpingyang001.cpp">
+      <Filter>Boss2D\addon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\addon\boss_integration_abseil-cpp-20180600.cpp">
+      <Filter>Boss2D\addon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\addon\boss_integration_jsoncpp-1.8.4.cpp">
+      <Filter>Boss2D\addon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\addon\boss_integration_rnnoise-chromium.cpp">
+      <Filter>Boss2D\addon</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\element\boss_clip.hpp">
@@ -592,6 +610,24 @@
     </ClInclude>
     <ClInclude Include="..\service\boss_zayson.hpp">
       <Filter>Boss2D\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\addon\boss_addon_webrtc.hpp">
+      <Filter>Boss2D\addon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\addon\boss_integration_libsrtp-2.2.0.h">
+      <Filter>Boss2D\addon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\addon\boss_integration_webrtc-jumpingyang001.h">
+      <Filter>Boss2D\addon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\addon\boss_integration_abseil-cpp-20180600.h">
+      <Filter>Boss2D\addon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\addon\boss_integration_jsoncpp-1.8.4.h">
+      <Filter>Boss2D\addon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\addon\boss_integration_rnnoise-chromium.h">
+      <Filter>Boss2D\addon</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

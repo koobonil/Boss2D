@@ -8,8 +8,6 @@
     #pragma comment(lib, "gdi32.lib")
 #endif
 
-// 도구준비
-#include <addon/boss_fakewin.h>
 #include "boss_integration_openalpr-2.3.0.h"
 
 #pragma warning(disable : 4305)

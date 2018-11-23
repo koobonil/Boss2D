@@ -1,8 +1,6 @@
 ﻿#include <boss.h>
 #if BOSS_NEED_ADDON_AAC
 
-// 도구준비
-#include <addon/boss_fakewin.h>
 #include "boss_integration_fdk-aac-0.1.4.h"
 
 #include <addon/fdk-aac-0.1.4_for_boss/libAACenc/src/aacenc.cpp>

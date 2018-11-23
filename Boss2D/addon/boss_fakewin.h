@@ -9,8 +9,8 @@
 #define WIN32
 #define _WIN32
 #define __WIN32__
-#define _WIN32_WCE 0x0501
-#define _WIN32_WINNT 0x0501
+#define _WIN32_WCE 0x0600
+#define _WIN32_WINNT 0x0600
 #define WINDOWS
 #define _WINDOWS
 #define NDEBUG
@@ -72,7 +72,6 @@
     #define BOSS_FAKEWIN_V_sys__timeb_h                    <sys/timeb.h>
 
     // 선행참조효과
-    #undef UNICODE
     #include <winsock2.h>
     #include <windows.h>
     #include <stdio.h>
@@ -453,14 +452,25 @@
     #define ldap_unbind_s boss_fakewin_ldap_unbind_s
 
     // 유니코드여부관련
-    #define DeleteFile DeleteFileA
-    #define GetTempPath GetTempPathA
-    #define FindFirstFile FindFirstFileA
-    #define FindNextFile FindNextFileA
-    #define CreateMutex CreateMutexA
-    #define CreateSemaphore CreateSemaphoreA
-    #define CreateProcess CreateProcessA
-    #define GetModuleHandle GetModuleHandleA
+    #ifdef UNICODE
+        #define DeleteFile DeleteFileW
+        #define GetTempPath GetTempPathW
+        #define FindFirstFile FindFirstFileW
+        #define FindNextFile FindNextFileW
+        #define CreateMutex CreateMutexW
+        #define CreateSemaphore CreateSemaphoreW
+        #define CreateProcess CreateProcessW
+        #define GetModuleHandle GetModuleHandleW
+    #else
+        #define DeleteFile DeleteFileA
+        #define GetTempPath GetTempPathA
+        #define FindFirstFile FindFirstFileA
+        #define FindNextFile FindNextFileA
+        #define CreateMutex CreateMutexA
+        #define CreateSemaphore CreateSemaphoreA
+        #define CreateProcess CreateProcessA
+        #define GetModuleHandle GetModuleHandleA
+    #endif
 
     #define _access boss_fakewin_access
     #define _waccess boss_fakewin_waccess

@@ -1,5 +1,8 @@
 ﻿#pragma once
 #include <boss.h>
+
+#define UNICODE
+#define _UNICODE
 #include <addon/boss_fakewin.h>
 #include <addon/boss_integration_openssl-1.1.0c.h>
 #include <addon/boss_integration_rtmpdump-2.4.h>
@@ -146,4 +149,5 @@
 #define BUILDING_CURL_SMB_C
 #define sprintf_was_used sprintf
 #define vsprintf_was_used vsprintf
+#define pollfd pollfd_curl
 #include <addon/curl-7.51.0_for_boss/include/curl/curl.h>
