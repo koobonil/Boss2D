@@ -12,7 +12,7 @@
 
 #include BOSS_WEBRTC_U_logging__rtc_event_log__events__rtc_event_audio_network_adaptation_h //original-code:"logging/rtc_event_log/events/rtc_event_audio_network_adaptation.h"
 #include "logging/rtc_event_log/mock/mock_rtc_event_log.h"
-#include "modules/audio_coding/audio_network_adaptor/event_log_writer.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__event_log_writer_h //original-code:"modules/audio_coding/audio_network_adaptor/event_log_writer.h"
 #include "test/gtest.h"
 
 namespace webrtc {

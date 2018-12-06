@@ -1,3 +1,5 @@
+// author BOSS
+
 /*
  *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
  *
@@ -18,7 +20,7 @@ namespace webrtc {
 
 namespace {
 
-using Packet = ForwardErrorCorrection::Packet;
+using ForwardErrorCorrection_Packet_BOSS = ForwardErrorCorrection::Packet; // modified by BOSS, original-code: Packet, replace-code: ForwardErrorCorrection_Packet_BOSS
 using ReceivedPacket = ForwardErrorCorrection::ReceivedPacket;
 
 // Minimum header size (in bytes) of a well-formed non-singular FlexFEC packet.
@@ -97,7 +99,7 @@ std::unique_ptr<ReceivedPacket> FlexfecReceiver::AddReceivedPacket(
     // Insert packet payload into erasure code.
     // TODO(brandtr): Remove this memcpy when the FEC packet classes
     // are using COW buffers internally.
-    received_packet->pkt = rtc::scoped_refptr<Packet>(new Packet());
+    received_packet->pkt = rtc::scoped_refptr<ForwardErrorCorrection_Packet_BOSS>(new ForwardErrorCorrection_Packet_BOSS()); // modified by BOSS, original-code: Packet, replace-code: ForwardErrorCorrection_Packet_BOSS
     auto payload = packet.payload();
     memcpy(received_packet->pkt->data, payload.data(), payload.size());
     received_packet->pkt->length = payload.size();
@@ -111,7 +113,7 @@ std::unique_ptr<ReceivedPacket> FlexfecReceiver::AddReceivedPacket(
 
     // Insert entire packet into erasure code.
     // TODO(brandtr): Remove this memcpy too.
-    received_packet->pkt = rtc::scoped_refptr<Packet>(new Packet());
+    received_packet->pkt = rtc::scoped_refptr<ForwardErrorCorrection_Packet_BOSS>(new ForwardErrorCorrection_Packet_BOSS()); // modified by BOSS, original-code: Packet, replace-code: ForwardErrorCorrection_Packet_BOSS
     memcpy(received_packet->pkt->data, packet.data(), packet.size());
     received_packet->pkt->length = packet.size();
   }

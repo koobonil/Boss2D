@@ -8,11 +8,11 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-#include "modules/audio_coding/acm2/codec_manager.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__acm2__codec_manager_h //original-code:"modules/audio_coding/acm2/codec_manager.h"
 
 #include BOSS_WEBRTC_U_rtc_base__checks_h //original-code:"rtc_base/checks.h"
 //#include BOSS_WEBRTC_U_rtc_base__format_macros_h //original-code:"rtc_base/format_macros.h"
-#include "modules/audio_coding/acm2/rent_a_codec.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__acm2__rent_a_codec_h //original-code:"modules/audio_coding/acm2/rent_a_codec.h"
 #include BOSS_WEBRTC_U_rtc_base__logging_h //original-code:"rtc_base/logging.h"
 
 namespace webrtc {

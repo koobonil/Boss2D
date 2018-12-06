@@ -8,19 +8,19 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-#include "modules/audio_coding/audio_network_adaptor/controller_manager.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__controller_manager_h //original-code:"modules/audio_coding/audio_network_adaptor/controller_manager.h"
 
 #include <cmath>
 #include <utility>
 
-#include "modules/audio_coding/audio_network_adaptor/bitrate_controller.h"
-#include "modules/audio_coding/audio_network_adaptor/channel_controller.h"
-#include "modules/audio_coding/audio_network_adaptor/debug_dump_writer.h"
-#include "modules/audio_coding/audio_network_adaptor/dtx_controller.h"
-#include "modules/audio_coding/audio_network_adaptor/fec_controller_plr_based.h"
-#include "modules/audio_coding/audio_network_adaptor/fec_controller_rplr_based.h"
-#include "modules/audio_coding/audio_network_adaptor/frame_length_controller.h"
-#include "modules/audio_coding/audio_network_adaptor/util/threshold_curve.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__bitrate_controller_h //original-code:"modules/audio_coding/audio_network_adaptor/bitrate_controller.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__channel_controller_h //original-code:"modules/audio_coding/audio_network_adaptor/channel_controller.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__debug_dump_writer_h //original-code:"modules/audio_coding/audio_network_adaptor/debug_dump_writer.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__dtx_controller_h //original-code:"modules/audio_coding/audio_network_adaptor/dtx_controller.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__fec_controller_plr_based_h //original-code:"modules/audio_coding/audio_network_adaptor/fec_controller_plr_based.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__fec_controller_rplr_based_h //original-code:"modules/audio_coding/audio_network_adaptor/fec_controller_rplr_based.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__frame_length_controller_h //original-code:"modules/audio_coding/audio_network_adaptor/frame_length_controller.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__util__threshold_curve_h //original-code:"modules/audio_coding/audio_network_adaptor/util/threshold_curve.h"
 #include BOSS_WEBRTC_U_rtc_base__ignore_wundef_h //original-code:"rtc_base/ignore_wundef.h"
 #include BOSS_WEBRTC_U_rtc_base__timeutils_h //original-code:"rtc_base/timeutils.h"
 

@@ -8,13 +8,13 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-#include "modules/audio_coding/acm2/acm_receiver.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__acm2__acm_receiver_h //original-code:"modules/audio_coding/acm2/acm_receiver.h"
 
 #include <algorithm>  // std::min
 #include <memory>
 
 #include BOSS_WEBRTC_U_api__audio_codecs__builtin_audio_decoder_factory_h //original-code:"api/audio_codecs/builtin_audio_decoder_factory.h"
-#include "modules/audio_coding/acm2/rent_a_codec.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__acm2__rent_a_codec_h //original-code:"modules/audio_coding/acm2/rent_a_codec.h"
 #include BOSS_WEBRTC_U_modules__audio_coding__include__audio_coding_module_h //original-code:"modules/audio_coding/include/audio_coding_module.h"
 #include "modules/audio_coding/neteq/tools/rtp_generator.h"
 #include BOSS_WEBRTC_U_modules__include__module_common_types_h //original-code:"modules/include/module_common_types.h"

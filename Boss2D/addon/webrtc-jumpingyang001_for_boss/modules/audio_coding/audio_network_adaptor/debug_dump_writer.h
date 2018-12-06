@@ -13,7 +13,7 @@
 
 #include <memory>
 
-#include "modules/audio_coding/audio_network_adaptor/controller.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__controller_h //original-code:"modules/audio_coding/audio_network_adaptor/controller.h"
 #include BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__include__audio_network_adaptor_h //original-code:"modules/audio_coding/audio_network_adaptor/include/audio_network_adaptor.h"
 #include BOSS_WEBRTC_U_rtc_base__constructormagic_h //original-code:"rtc_base/constructormagic.h"
 #include BOSS_WEBRTC_U_rtc_base__ignore_wundef_h //original-code:"rtc_base/ignore_wundef.h"

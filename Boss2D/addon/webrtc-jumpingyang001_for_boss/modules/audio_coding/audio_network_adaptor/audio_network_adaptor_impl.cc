@@ -8,7 +8,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-#include "modules/audio_coding/audio_network_adaptor/audio_network_adaptor_impl.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__audio_network_adaptor_impl_h //original-code:"modules/audio_coding/audio_network_adaptor/audio_network_adaptor_impl.h"
 
 #include <utility>
 

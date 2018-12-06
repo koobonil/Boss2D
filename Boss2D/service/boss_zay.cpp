@@ -3,7 +3,7 @@
 
 ZAY_DECLARE_VIEW("_defaultview_")
 ZAY_VIEW_API OnCommand(CommandType, chars, id_share, id_cloned_share*) {}
-ZAY_VIEW_API OnNotify(chars, chars, id_share, id_cloned_share*) {}
+ZAY_VIEW_API OnNotify(NotifyType, chars, id_share, id_cloned_share*) {}
 ZAY_VIEW_API OnGesture(GestureType, sint32, sint32) {}
 ZAY_VIEW_API OnRender(ZayPanel& panel)
 {ZAY_RGB(panel, 0x80, 0x80, 0x80) panel.fill();}
@@ -1084,11 +1084,11 @@ namespace BOSS
         return m_class;
     }
 
-    void ZayView::SendNotify(chars sender, chars topic, id_share in, id_cloned_share* out)
+    void ZayView::SendNotify(NotifyType type, chars topic, id_share in, id_cloned_share* out)
     {
-        m_ref_func->m_bind(m_class);
-        m_ref_func->m_notify(sender, topic, in, out);
-        m_ref_func->m_bind(nullptr);
+        auto LockID = m_ref_func->m_lock(m_class);
+        m_ref_func->m_notify(type, topic, in, out);
+        m_ref_func->m_unlock(LockID);
     }
 
     void ZayView::SetCallback(UpdaterCB cb, payload data)
@@ -1108,21 +1108,21 @@ namespace BOSS
     void ZayView::OnCreate()
     {
         BOSS_ASSERT("브로드캐스트 등록에 실패하였습니다", m_class);
-        View::Search(m_viewclass, SC_Create, m_class->m_view);
+        View::Regist(m_viewclass, m_class->m_view);
 
-        m_ref_func->m_bind(m_class);
+        auto LockID = m_ref_func->m_lock(m_class);
         m_ref_func->m_command(CT_Create, "", nullptr, nullptr);
-        m_ref_func->m_bind(nullptr);
+        m_ref_func->m_unlock(LockID);
     }
 
     bool ZayView::OnCanQuit()
     {
         if(!m_agreed_quit)
         {
-            m_ref_func->m_bind(m_class);
+            auto LockID = m_ref_func->m_lock(m_class);
             id_cloned_share out = nullptr;
             m_ref_func->m_command(CT_CanQuit, "(Can you quit?)", nullptr, &out);
-            m_ref_func->m_bind(nullptr);
+            m_ref_func->m_unlock(LockID);
 
             bool Result = true;
             if(out)
@@ -1137,12 +1137,12 @@ namespace BOSS
 
     void ZayView::OnDestroy()
     {
-        m_ref_func->m_bind(m_class);
+        auto LockID = m_ref_func->m_lock(m_class);
         m_ref_func->m_command(CT_Destroy, "", nullptr, nullptr);
-        m_ref_func->m_bind(nullptr);
+        m_ref_func->m_unlock(LockID);
 
         BOSS_ASSERT("브로드캐스트 해제에 실패하였습니다", m_class);
-        View::Search(m_viewclass, SC_Destroy, m_class->m_view);
+        View::Unregist(m_viewclass, m_class->m_view);
     }
 
     void ZayView::OnSize(sint32 w, sint32 h)
@@ -1151,16 +1151,16 @@ namespace BOSS
         WH.AtAdding() = w;
         WH.AtAdding() = h;
 
-        m_ref_func->m_bind(m_class);
+        auto LockID = m_ref_func->m_lock(m_class);
         m_ref_func->m_command(CT_Size, "", WH, nullptr);
-        m_ref_func->m_bind(nullptr);
+        m_ref_func->m_unlock(LockID);
     }
 
     void ZayView::OnTick()
     {
-        m_ref_func->m_bind(m_class);
+        auto LockID = m_ref_func->m_lock(m_class);
         m_ref_func->m_command(CT_Tick, "", nullptr, nullptr);
-        m_ref_func->m_bind(nullptr);
+        m_ref_func->m_unlock(LockID);
 
         ((ZayController*) m_class)->wakeUpCheck();
     }
@@ -1171,9 +1171,9 @@ namespace BOSS
         ZAY_LTRB_SCISSOR(NewPanel, l, t, r, b)
         ZAY_XYWH(NewPanel, -l, -t, r, b)
         {
-            m_ref_func->m_bind(m_class);
+            auto LockID = m_ref_func->m_lock(m_class);
             m_ref_func->m_render(NewPanel);
-            m_ref_func->m_bind(nullptr);
+            m_ref_func->m_unlock(LockID);
         }
         ((ZayController*) m_class)->nextFrame();
 
@@ -1199,7 +1199,7 @@ namespace BOSS
         {
             if(CurElement.m_cb)
             {
-                m_ref_func->m_bind(m_class);
+                auto LockID = m_ref_func->m_lock(m_class);
                 const bool IsSameElement = (&CurElement == PressElement);
                 switch(type)
                 {
@@ -1229,7 +1229,7 @@ namespace BOSS
                     CurElement.m_cb(this, &CurElement, GT_LongPressed, x, y);
                     break;
                 }
-                m_ref_func->m_bind(nullptr);
+                m_ref_func->m_unlock(LockID);
             }
 
             if(SavedType != GT_Null)
@@ -1238,9 +1238,9 @@ namespace BOSS
                 {
                     if(OldMover->m_cb)
                     {
-                        m_ref_func->m_bind(m_class);
+                        auto LockID = m_ref_func->m_lock(m_class);
                         OldMover->m_cb(this, OldMover, GT_MovingLosed, x, y);
-                        m_ref_func->m_bind(nullptr);
+                        m_ref_func->m_unlock(LockID);
                     }
                 }
 
@@ -1248,9 +1248,9 @@ namespace BOSS
                 {
                     if(OldDropper->m_cb)
                     {
-                        m_ref_func->m_bind(m_class);
+                        auto LockID = m_ref_func->m_lock(m_class);
                         OldDropper->m_cb(this, OldDropper, GT_DroppingLosed, x, y);
-                        m_ref_func->m_bind(nullptr);
+                        m_ref_func->m_unlock(LockID);
                     }
                 }
             }
@@ -1262,24 +1262,21 @@ namespace BOSS
 
     void ZayView::OnKey(sint32 code, chars text, bool pressed)
     {
-        m_ref_func->m_bind(m_class);
-        pointers in;
-        in.AtAdding() = (void*) &code;
-        in.AtAdding() = (void*) text;
-        m_ref_func->m_command(CT_Signal, (pressed)? "KeyPress" : "KeyRelease", in, nullptr);
-        m_ref_func->m_bind(nullptr);
+        auto LockID = m_ref_func->m_lock(m_class);
+        if(pressed)
+            m_ref_func->m_notify(NT_KeyPress, text, sint32o(code), nullptr);
+        else m_ref_func->m_notify(NT_KeyRelease, text, sint32o(code), nullptr);
+        m_ref_func->m_unlock(LockID);
     }
 
     void ZayView::_gesture(GestureType type, sint32 x, sint32 y)
     {
-        m_ref_func->m_bind(m_class);
         m_ref_func->m_gesture(type, x, y);
-        m_ref_func->m_bind(nullptr);
     }
 
     autorun ZayView::_makefunc(bool isnative, chars viewclass,
         ZayObject::CommandCB c, ZayObject::NotifyCB n, ZayPanel::GestureCB g, ZayPanel::RenderCB r,
-        ZayObject::BindCB b, ZayObject::AllocCB a, ZayObject::FreeCB f)
+        ZayObject::LockCB l, ZayObject::UnlockCB u, ZayObject::AllocCB a, ZayObject::FreeCB f)
     {
         BOSS_ASSERT("중복된 이름의 뷰가 존재합니다", !_accessfunc(viewclass, false));
         Function* NewFunction = _accessfunc(viewclass, true);
@@ -1289,7 +1286,8 @@ namespace BOSS
         NewFunction->m_notify = n;
         NewFunction->m_gesture = g;
         NewFunction->m_render = r;
-        NewFunction->m_bind = b;
+        NewFunction->m_lock = l;
+        NewFunction->m_unlock = u;
         NewFunction->m_alloc = a;
         NewFunction->m_free = f;
         return true;
@@ -1440,7 +1438,7 @@ namespace BOSS
         m_element.m_rect.t = 0;
         m_element.m_rect.r = width;
         m_element.m_rect.b = height;
-        m_element.m_cb = OnGesture;
+        m_element.m_cb = GestureCB;
     }
 
     void ZayView::Touch::update(chars uiname, float l, float t, float r, float b,
@@ -1458,7 +1456,7 @@ namespace BOSS
         CurElement.m_rect.r = (sint32) (r * zoom);
         CurElement.m_rect.b = (sint32) (b * zoom);
         CurElement.m_zoom = zoom;
-        CurElement.m_cb = OnSubGesture;
+        CurElement.m_cb = SubGestureCB;
         CurElement.m_subcb = cb;
         CurElement.m_hoverpass = hoverpass;
 
@@ -1593,14 +1591,14 @@ namespace BOSS
         return nullptr;
     }
 
-    void ZayView::Touch::OnGesture(ZayView* manager, const Element* data, GestureType type, sint32 x, sint32 y)
+    void ZayView::Touch::GestureCB(ZayView* manager, const Element* data, GestureType type, sint32 x, sint32 y)
     {
         manager->_gesture(type, x, y);
         data->m_saved_xy.x = x;
         data->m_saved_xy.y = y;
     }
 
-    void ZayView::Touch::OnSubGesture(ZayView* manager, const Element* data, GestureType type, sint32 x, sint32 y)
+    void ZayView::Touch::SubGestureCB(ZayView* manager, const Element* data, GestureType type, sint32 x, sint32 y)
     {
         if(data->m_subcb)
         {
@@ -1617,7 +1615,8 @@ namespace BOSS
         m_notify = nullptr;
         m_gesture = nullptr;
         m_render = nullptr;
-        m_bind = nullptr;
+        m_lock = nullptr;
+        m_unlock = nullptr;
         m_alloc = nullptr;
         m_free = nullptr;
     }

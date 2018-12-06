@@ -13,7 +13,7 @@
 
 #include <vector>
 
-#include "modules/audio_coding/audio_network_adaptor/controller_manager.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__controller_manager_h //original-code:"modules/audio_coding/audio_network_adaptor/controller_manager.h"
 #include "test/gmock.h"
 
 namespace webrtc {

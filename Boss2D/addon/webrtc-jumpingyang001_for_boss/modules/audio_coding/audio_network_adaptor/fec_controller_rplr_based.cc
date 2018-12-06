@@ -8,7 +8,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-#include "modules/audio_coding/audio_network_adaptor/fec_controller_rplr_based.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__fec_controller_rplr_based_h //original-code:"modules/audio_coding/audio_network_adaptor/fec_controller_rplr_based.h"
 
 #include <limits>
 #include <utility>

@@ -11,7 +11,7 @@
 #include <utility>
 
 #include "common_audio/mocks/mock_smoothing_filter.h"
-#include "modules/audio_coding/audio_network_adaptor/fec_controller_plr_based.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__fec_controller_plr_based_h //original-code:"modules/audio_coding/audio_network_adaptor/fec_controller_plr_based.h"
 #include "test/gtest.h"
 
 namespace webrtc {

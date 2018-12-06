@@ -10,7 +10,7 @@
 
 #include <memory>
 
-#include "modules/audio_coding/audio_network_adaptor/dtx_controller.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__dtx_controller_h //original-code:"modules/audio_coding/audio_network_adaptor/dtx_controller.h"
 #include "test/gtest.h"
 
 namespace webrtc {

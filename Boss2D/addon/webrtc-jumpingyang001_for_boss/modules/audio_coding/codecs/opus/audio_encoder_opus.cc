@@ -16,8 +16,8 @@
 
 #include BOSS_ABSEILCPP_U_absl__memory__memory_h //original-code:"absl/memory/memory.h"
 #include BOSS_WEBRTC_U_common_types_h //original-code:"common_types.h"  // NOLINT(build/include)
-#include "modules/audio_coding/audio_network_adaptor/audio_network_adaptor_impl.h"
-#include "modules/audio_coding/audio_network_adaptor/controller_manager.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__audio_network_adaptor_impl_h //original-code:"modules/audio_coding/audio_network_adaptor/audio_network_adaptor_impl.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__controller_manager_h //original-code:"modules/audio_coding/audio_network_adaptor/controller_manager.h"
 #include BOSS_WEBRTC_U_modules__audio_coding__codecs__opus__opus_interface_h //original-code:"modules/audio_coding/codecs/opus/opus_interface.h"
 #include BOSS_WEBRTC_U_rtc_base__arraysize_h //original-code:"rtc_base/arraysize.h"
 #include BOSS_WEBRTC_U_rtc_base__checks_h //original-code:"rtc_base/checks.h"

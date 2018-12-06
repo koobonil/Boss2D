@@ -8,7 +8,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-#include "modules/audio_coding/acm2/rent_a_codec.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__acm2__rent_a_codec_h //original-code:"modules/audio_coding/acm2/rent_a_codec.h"
 
 #include <memory>
 #include <utility>
@@ -35,7 +35,7 @@
 #ifdef WEBRTC_CODEC_RED
 #include BOSS_WEBRTC_U_modules__audio_coding__codecs__red__audio_encoder_copy_red_h //original-code:"modules/audio_coding/codecs/red/audio_encoder_copy_red.h"
 #endif
-#include "modules/audio_coding/acm2/acm_codec_database.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__acm2__acm_codec_database_h //original-code:"modules/audio_coding/acm2/acm_codec_database.h"
 
 #if defined(WEBRTC_CODEC_ISACFX) || defined(WEBRTC_CODEC_ISAC)
 #include BOSS_WEBRTC_U_modules__audio_coding__codecs__isac__locked_bandwidth_info_h //original-code:"modules/audio_coding/codecs/isac/locked_bandwidth_info.h"

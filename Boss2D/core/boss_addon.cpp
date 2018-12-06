@@ -323,14 +323,30 @@ namespace BOSS
 
     ////////////////////////////////////////////////////////////////////////////////
     static void WebRtc_Error() {BOSS_ASSERT("WebRtc애드온이 준비되지 않았습니다", false);}
-    BOSS_DEFINE_ADDON_FUNCTION(WebRtc, Open, id_webrtc, return nullptr, sint32)
-    BOSS_DEFINE_ADDON_FUNCTION(WebRtc, Close, void, return, id_webrtc)
+    BOSS_DEFINE_ADDON_FUNCTION(WebRtc, OpenForOffer, id_webrtc, return nullptr, void)
+    BOSS_DEFINE_ADDON_FUNCTION(WebRtc, OpenForAnswer, id_webrtc_read, return nullptr, chars)
+    BOSS_DEFINE_ADDON_FUNCTION(WebRtc, Close, void, return, id_webrtc_read)
+    BOSS_DEFINE_ADDON_FUNCTION(WebRtc, Bind, bool, return false, id_webrtc, chars)
+    BOSS_DEFINE_ADDON_FUNCTION(WebRtc, AddIce, bool, return false, id_webrtc_read, chars)
+    BOSS_DEFINE_ADDON_FUNCTION(WebRtc, Send, void, return, id_webrtc_read, bytes, sint32)
 
-    id_webrtc AddOn::WebRtc::Open(sint32 port)
-    {return Core_AddOn_WebRtc_Open()(port);}
+    id_webrtc AddOn::WebRtc::OpenForOffer(void)
+    {return Core_AddOn_WebRtc_OpenForOffer()();}
 
-    void AddOn::WebRtc::Close(id_webrtc webrtc)
-    {return Core_AddOn_WebRtc_Close()(webrtc);}
+    id_webrtc_read AddOn::WebRtc::OpenForAnswer(chars offer_sdp)
+    {return Core_AddOn_WebRtc_OpenForAnswer()(offer_sdp);}
+
+    void AddOn::WebRtc::Close(id_webrtc_read webrtc)
+    {Core_AddOn_WebRtc_Close()(webrtc);}
+
+    bool AddOn::WebRtc::Bind(id_webrtc webrtc, chars answer_sdp)
+    {return Core_AddOn_WebRtc_Bind()(webrtc, answer_sdp);}
+
+    bool AddOn::WebRtc::AddIce(id_webrtc_read webrtc, chars your_sdp)
+    {return Core_AddOn_WebRtc_AddIce()(webrtc, your_sdp);}
+
+    void AddOn::WebRtc::Send(id_webrtc_read webrtc, bytes data, sint32 len)
+    {Core_AddOn_WebRtc_Send()(webrtc, data, len);}
 
     ////////////////////////////////////////////////////////////////////////////////
     static void Zip_Error() {BOSS_ASSERT("Zip애드온이 준비되지 않았습니다", false);}

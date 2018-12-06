@@ -1,3 +1,5 @@
+// author BOSS
+
 /*
  * SpanDSP - a series of DSP components for telephony
  *
@@ -34,7 +36,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "modules/third_party/g722/g722_enc_dec.h"
+#include BOSS_WEBRTC_U_modules__third_party__g722__g722_enc_dec_h //original-code:"modules/third_party/g722/g722_enc_dec.h"
 
 #if !defined(FALSE)
 #define FALSE 0
@@ -152,7 +154,7 @@ static void block4(G722DecoderState *s, int band, int d)
 G722DecoderState* WebRtc_g722_decode_init(G722DecoderState* s,
                                           int rate,
                                           int options) {
-    s = s ? s : malloc(sizeof(*s));
+    s = s ? s : (G722DecoderState*) malloc(sizeof(*s)); // modified by BOSS, added-code: (G722DecoderState*)
     memset(s, 0, sizeof(*s));
     if (rate == 48000)
         s->bits_per_sample = 6;

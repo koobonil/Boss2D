@@ -56,6 +56,7 @@
     <ClCompile Include="..\addon\boss_integration_rtmpdump-2.4.c" />
     <ClCompile Include="..\addon\boss_integration_tensorflow-1.2.1.cpp" />
     <ClCompile Include="..\addon\boss_integration_tesseract-3.05.02.cpp" />
+    <ClCompile Include="..\addon\boss_integration_usrsctp-0.9.3.0.c" />
     <ClCompile Include="..\addon\boss_integration_webrtc-jumpingyang001.cpp" />
     <ClCompile Include="..\core\boss.cpp" />
     <ClCompile Include="..\core\boss_addon.cpp" />
@@ -157,6 +158,7 @@
     <ClInclude Include="..\addon\boss_integration_rtmpdump-2.4.h" />
     <ClInclude Include="..\addon\boss_integration_tensorflow-1.2.1.h" />
     <ClInclude Include="..\addon\boss_integration_tesseract-3.05.02.h" />
+    <ClInclude Include="..\addon\boss_integration_usrsctp-0.9.3.0.h" />
     <ClInclude Include="..\addon\boss_integration_webrtc-jumpingyang001.h" />
     <ClInclude Include="..\core\boss.h" />
     <ClInclude Include="..\core\boss.hpp" />

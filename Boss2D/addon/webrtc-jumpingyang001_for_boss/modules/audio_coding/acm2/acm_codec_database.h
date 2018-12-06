@@ -17,7 +17,7 @@
 #define MODULES_AUDIO_CODING_ACM2_ACM_CODEC_DATABASE_H_
 
 #include BOSS_WEBRTC_U_common_types_h //original-code:"common_types.h"  // NOLINT(build/include)
-#include "modules/audio_coding/acm2/rent_a_codec.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__acm2__rent_a_codec_h //original-code:"modules/audio_coding/acm2/rent_a_codec.h"
 
 namespace webrtc {
 

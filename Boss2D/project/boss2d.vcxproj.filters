@@ -330,6 +330,9 @@
     <ClCompile Include="..\addon\boss_integration_rnnoise-chromium.cpp">
       <Filter>Boss2D\addon</Filter>
     </ClCompile>
+    <ClCompile Include="..\addon\boss_integration_usrsctp-0.9.3.0.c">
+      <Filter>Boss2D\addon</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\element\boss_clip.hpp">
@@ -627,6 +630,9 @@
       <Filter>Boss2D\addon</Filter>
     </ClInclude>
     <ClInclude Include="..\addon\boss_integration_rnnoise-chromium.h">
+      <Filter>Boss2D\addon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\addon\boss_integration_usrsctp-0.9.3.0.h">
       <Filter>Boss2D\addon</Filter>
     </ClInclude>
   </ItemGroup>

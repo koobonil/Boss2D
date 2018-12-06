@@ -13,7 +13,9 @@
 #define _WIN32_WINNT 0x0600
 #define WINDOWS
 #define _WINDOWS
-#define NDEBUG
+#if BOSS_NDEBUG
+    #define NDEBUG
+#endif
 #if !BOSS_WINDOWS
     #define _MSC_VER 1900
     #undef __linux__

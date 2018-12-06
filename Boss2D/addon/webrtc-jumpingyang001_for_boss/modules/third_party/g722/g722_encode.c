@@ -34,7 +34,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "modules/third_party/g722/g722_enc_dec.h"
+#include BOSS_WEBRTC_U_modules__third_party__g722__g722_enc_dec_h //original-code:"modules/third_party/g722/g722_enc_dec.h"
 
 #if !defined(FALSE)
 #define FALSE 0

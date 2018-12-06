@@ -382,11 +382,11 @@
             }
         }
 
-        inline void sendNotify(chars topic, id_share in, id_cloned_share* out) const
+        inline void sendNotify(NotifyType type, chars topic, id_share in, id_cloned_share* out) const
         {
             BOSS_ASSERT("잘못된 시나리오입니다", m_view_manager);
             g_view = getWidget();
-            m_view_manager->SendNotify("(platform)", topic, in, out);
+            m_view_manager->SendNotify(type, topic, in, out);
         }
 
         inline bool isInputEnabled() const

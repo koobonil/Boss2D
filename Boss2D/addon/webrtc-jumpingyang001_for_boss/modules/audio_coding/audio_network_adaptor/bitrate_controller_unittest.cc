@@ -8,7 +8,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-#include "modules/audio_coding/audio_network_adaptor/bitrate_controller.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__bitrate_controller_h //original-code:"modules/audio_coding/audio_network_adaptor/bitrate_controller.h"
 #include BOSS_WEBRTC_U_rtc_base__numerics__safe_conversions_h //original-code:"rtc_base/numerics/safe_conversions.h"
 #include "test/field_trial.h"
 #include "test/gtest.h"

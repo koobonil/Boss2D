@@ -39,7 +39,7 @@ enum PreservedErrno {
 #include BOSS_WEBRTC_U_rtc_base__stringutils_h //original-code:"rtc_base/stringutils.h"
 #include BOSS_WEBRTC_U_rtc_base__thread_checker_h //original-code:"rtc_base/thread_checker.h"
 #include BOSS_WEBRTC_U_rtc_base__trace_event_h //original-code:"rtc_base/trace_event.h"
-#include "usrsctplib/usrsctp.h"
+#include BOSS_USRSCTP_U_usrsctplib__usrsctp_h //original-code:"usrsctplib/usrsctp.h"
 
 namespace {
 

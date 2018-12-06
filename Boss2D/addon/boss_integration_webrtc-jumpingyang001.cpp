@@ -234,6 +234,8 @@
 //#include <addon/webrtc-jumpingyang001_for_boss/api/audio_codecs/opus/audio_encoder_opus.cc>
 //#include <addon/webrtc-jumpingyang001_for_boss/api/audio_codecs/opus/audio_encoder_opus_config.cc>
 
+#include <addon/webrtc-jumpingyang001_for_boss/api/call/transport.cc>
+
 #include <addon/webrtc-jumpingyang001_for_boss/api/video/color_space.cc>
 #include <addon/webrtc-jumpingyang001_for_boss/api/video/encoded_frame.cc>
 //#include <addon/webrtc-jumpingyang001_for_boss/api/video/i010_buffer.cc> libyuv필요!
@@ -302,6 +304,7 @@
 #include <addon/webrtc-jumpingyang001_for_boss/call/rtp_demuxer.cc>
 #include <addon/webrtc-jumpingyang001_for_boss/call/rtp_payload_params.cc>
 #include <addon/webrtc-jumpingyang001_for_boss/call/rtp_rtcp_demuxer_helper.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/call/rtp_stream_receiver_controller.cc>
 
 #define kRetransmitWindowSizeMs kRetransmitWindowSizeMs_rtp_transport_controller_send_BOSS
 #include <addon/webrtc-jumpingyang001_for_boss/call/rtp_transport_controller_send.cc>
@@ -550,6 +553,7 @@ extern "C"
 #include <addon/webrtc-jumpingyang001_for_boss/p2p/base/portallocator.cc>
 #include <addon/webrtc-jumpingyang001_for_boss/p2p/base/portinterface.cc>
 #include <addon/webrtc-jumpingyang001_for_boss/p2p/base/pseudotcp.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/p2p/base/regatheringcontroller.cc>
 #include <addon/webrtc-jumpingyang001_for_boss/p2p/base/relayport.cc>
 #include <addon/webrtc-jumpingyang001_for_boss/p2p/base/relayserver.cc>
 #include <addon/webrtc-jumpingyang001_for_boss/p2p/base/stun.cc>
@@ -569,6 +573,9 @@ extern "C"
 #undef IsTurnChannelData
 
 #include <addon/webrtc-jumpingyang001_for_boss/p2p/base/udptransport.cc>
+
+#include <addon/webrtc-jumpingyang001_for_boss/p2p/client/basicportallocator.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/p2p/client/turnportfactory.cc>
 
 #include <addon/webrtc-jumpingyang001_for_boss/media/base/adaptedvideotracksource.cc>
 #include <addon/webrtc-jumpingyang001_for_boss/media/base/codec.cc>
@@ -619,8 +626,60 @@ extern "C"
 //#include <addon/webrtc-jumpingyang001_for_boss/media/engine/webrtcvideoengine.cc>
 #include <addon/webrtc-jumpingyang001_for_boss/media/engine/webrtcvoiceengine.cc>
 
+#include <addon/webrtc-jumpingyang001_for_boss/media/sctp/noop.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/media/sctp/sctptransport.cc>
+
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/acm2/acm_codec_database.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/acm2/acm_receiver.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/acm2/acm_resampler.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/acm2/audio_coding_module.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/acm2/call_statistics.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/acm2/codec_manager.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/acm2/rent_a_codec.cc>
+
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/audio_network_adaptor/audio_network_adaptor_config.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/audio_network_adaptor/audio_network_adaptor_impl.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/audio_network_adaptor/bitrate_controller.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/audio_network_adaptor/channel_controller.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/audio_network_adaptor/controller.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/audio_network_adaptor/controller_manager.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/audio_network_adaptor/debug_dump_writer.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/audio_network_adaptor/dtx_controller.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/audio_network_adaptor/event_log_writer.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/audio_network_adaptor/fec_controller_plr_based.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/audio_network_adaptor/fec_controller_rplr_based.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/audio_network_adaptor/frame_length_controller.cc>
+
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/codecs/audio_format_conversion.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/codecs/legacy_encoded_audio_frame.cc>
+
 #include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/codecs/cng/audio_encoder_cng.cc>
 #include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/codecs/cng/webrtc_cng.cc>
+
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/codecs/g711/audio_decoder_pcm.cc>
+
+#define CreateConfig CreateConfig_audio_encoder_pcm_BOSS
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/codecs/g711/audio_encoder_pcm.cc>
+#undef CreateConfig
+
+extern "C"
+{
+    #include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/codecs/g711/g711_interface.c>
+}
+
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/codecs/g722/audio_decoder_g722.cc>
+
+#define CreateConfig CreateConfig_audio_encoder_g722_BOSS
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/codecs/g722/audio_encoder_g722.cc>
+#undef CreateConfig
+
+extern "C"
+{
+    #include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/codecs/g722/g722_interface.c>
+}
+
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/codecs/isac/empty.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/codecs/isac/locked_bandwidth_info.cc>
 
 #define PreFiltBankstr PreFiltBankstr_fix_source_BOSS
 #define PostFiltBankstr PostFiltBankstr_fix_source_BOSS
@@ -771,6 +830,50 @@ extern "C"
     #include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/codecs/isac/main/source/transform.c>
 }
 
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/codecs/pcm16b/audio_decoder_pcm16b.cc>
+
+#define CreateConfig CreateConfig_audio_encoder_pcm16b_BOSS
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/codecs/pcm16b/audio_encoder_pcm16b.cc>
+#undef CreateConfig
+
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/codecs/pcm16b/pcm16b.c>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/codecs/pcm16b/pcm16b_common.cc>
+
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/accelerate.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/audio_multi_vector.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/audio_vector.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/background_noise.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/buffer_level_filter.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/comfort_noise.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/cross_correlation.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/decision_logic.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/decoder_database.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/delay_manager.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/delay_peak_detector.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/dsp_helper.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/dtmf_buffer.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/dtmf_tone_generator.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/expand.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/expand_uma_logger.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/merge.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/nack_tracker.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/neteq.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/neteq_decoder_enum.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/neteq_impl.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/normal.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/packet.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/packet_buffer.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/post_decode_vad.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/preemptive_expand.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/random_vector.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/red_payload_splitter.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/rtcp.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/statistics_calculator.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/sync_buffer.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/tick_timer.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/time_stretch.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/neteq/timestamp_scaler.cc>
+
 #include <addon/webrtc-jumpingyang001_for_boss/modules/audio_device/audio_device_buffer.cc>
 #include <addon/webrtc-jumpingyang001_for_boss/modules/audio_device/audio_device_data_observer.cc>
 #include <addon/webrtc-jumpingyang001_for_boss/modules/audio_device/audio_device_generic.cc>
@@ -837,6 +940,8 @@ extern "C"
 
 #include <addon/webrtc-jumpingyang001_for_boss/modules/audio_processing/aec/aec_resampler.cc>
 #include <addon/webrtc-jumpingyang001_for_boss/modules/audio_processing/aec/echo_cancellation.cc>
+
+#include <addon/webrtc-jumpingyang001_for_boss/modules/audio_processing/aec_dump/null_aec_dump_factory.cc>
 
 #include <addon/webrtc-jumpingyang001_for_boss/modules/audio_processing/aecm/aecm_core.cc>
 #include <addon/webrtc-jumpingyang001_for_boss/modules/audio_processing/aecm/aecm_core_c.cc>
@@ -1214,6 +1319,25 @@ extern "C"
     #include <addon/webrtc-jumpingyang001_for_boss/modules/third_party/fft/fft.c>
 }
 
+extern "C"
+{
+    #define saturate saturate_g722_decode_BOSS
+    #define block4 block4_g722_decode_BOSS
+    #include <addon/webrtc-jumpingyang001_for_boss/modules/third_party/g722/g722_decode.c>
+    #undef saturate
+    #undef block4
+
+    #define saturate saturate_g722_encode_BOSS
+    #define block4 block4_g722_encode_BOSS
+    #include <addon/webrtc-jumpingyang001_for_boss/modules/third_party/g722/g722_encode.c>
+    #undef saturate
+    #undef block4
+}
+
+//#include <addon/webrtc-jumpingyang001_for_boss/modules/utility/source/helpers_android.cc>
+//#include <addon/webrtc-jumpingyang001_for_boss/modules/utility/source/jvm_android.cc>
+#include <addon/webrtc-jumpingyang001_for_boss/modules/utility/source/process_thread_impl.cc>
+
 #include <addon/webrtc-jumpingyang001_for_boss/modules/video_coding/codec_timer.cc>
 #include <addon/webrtc-jumpingyang001_for_boss/modules/video_coding/decoder_database.cc>
 #include <addon/webrtc-jumpingyang001_for_boss/modules/video_coding/decoding_state.cc>
@@ -1312,6 +1436,8 @@ extern "C"
 #include <addon/webrtc-jumpingyang001_for_boss/logging/rtc_event_log/events/rtc_event_video_receive_stream_config.cc>
 #include <addon/webrtc-jumpingyang001_for_boss/logging/rtc_event_log/events/rtc_event_video_send_stream_config.cc>
 
+#include <addon/webrtc-jumpingyang001_for_boss/logging/rtc_event_log/output/rtc_event_log_output_file.cc>
+
 #include <addon/webrtc-jumpingyang001_for_boss/system_wrappers/source/clock.cc>
 #include <addon/webrtc-jumpingyang001_for_boss/system_wrappers/source/cpu_features.cc>
 //#include <addon/webrtc-jumpingyang001_for_boss/system_wrappers/source/cpu_features_android.c>
@@ -1366,65 +1492,6 @@ extern "C"
 
 namespace webrtc
 {
-    AudioEncoderRuntimeConfig::AudioEncoderRuntimeConfig(AudioEncoderRuntimeConfig const&) {_void_;}
-    AudioEncoderRuntimeConfig::~AudioEncoderRuntimeConfig() {_void_;}
-
-    void AudioDecoderPcmU::Reset() {_void_;}
-    std::vector<AudioDecoder::ParseResult, std::allocator<AudioDecoder::ParseResult> > AudioDecoderPcmU::ParsePayload(rtc::BufferT<unsigned char, 0>&&, unsigned int)
-    {_void_; return std::vector<AudioDecoder::ParseResult, std::allocator<AudioDecoder::ParseResult> >();}
-    int AudioDecoderPcmU::PacketDuration(const unsigned char*, unsigned __int64) const {_int_;}
-    int AudioDecoderPcmU::SampleRateHz() const {_int_;}
-    unsigned __int64 AudioDecoderPcmU::Channels() const {_int_;}
-    int AudioDecoderPcmU::DecodeInternal(const unsigned char*, unsigned __int64, int, short*, AudioDecoder::SpeechType*) {_int_;}
-
-    void AudioDecoderPcmA::Reset() {_void_;}
-    std::vector<AudioDecoder::ParseResult, std::allocator<AudioDecoder::ParseResult> > AudioDecoderPcmA::ParsePayload(rtc::BufferT<unsigned char, 0>&&, unsigned int)
-    {_void_; return std::vector<AudioDecoder::ParseResult, std::allocator<AudioDecoder::ParseResult> >();}
-    int AudioDecoderPcmA::PacketDuration(const unsigned char*, unsigned __int64) const {_int_;}
-    int AudioDecoderPcmA::SampleRateHz() const {_int_;}
-    unsigned __int64 AudioDecoderPcmA::Channels() const {_int_;}
-    int AudioDecoderPcmA::DecodeInternal(const unsigned char*, unsigned __int64, int, short*, AudioDecoder::SpeechType*) {_int_;}
-
-    AudioEncoderPcm::~AudioEncoderPcm() {_void_;}
-    int AudioEncoderPcm::SampleRateHz() const {_int_;}
-    unsigned __int64 AudioEncoderPcm::NumChannels() const {_int_;}
-    unsigned __int64 AudioEncoderPcm::Num10MsFramesInNextPacket() const {_int_;}
-    unsigned __int64 AudioEncoderPcm::Max10MsFramesInAPacket() const {_int_;}
-    int AudioEncoderPcm::GetTargetBitrate() const {_int_;}
-    void AudioEncoderPcm::Reset() {_void_;}
-    AudioEncoderPcm::AudioEncoderPcm(const AudioEncoderPcm::Config&, int) :
-        sample_rate_hz_(0),
-        num_channels_(0),
-        payload_type_(0),
-        num_10ms_frames_per_packet_(0),
-        full_frame_samples_(0),
-        first_timestamp_in_buffer_(0) {_void_;}
-    AudioEncoder::EncodedInfo AudioEncoderPcm::EncodeImpl(unsigned int, rtc::ArrayView<short const , -4711>, rtc::BufferT<unsigned char, 0>*)
-    {_void_; return AudioEncoder::EncodedInfo();}
-    unsigned __int64 AudioEncoderPcmA::EncodeCall(const short*, unsigned __int64, unsigned char*) {_int_;}
-    unsigned __int64 AudioEncoderPcmA::BytesPerSample() const {_int_;}
-    AudioEncoder::CodecType AudioEncoderPcmA::GetCodecType() const
-    {_void_; return AudioEncoder::CodecType();}
-
-    unsigned __int64 AudioEncoderPcmU::EncodeCall(const short*, unsigned __int64, unsigned char*) {_int_;}
-    unsigned __int64 AudioEncoderPcmU::BytesPerSample() const {_int_;}
-    AudioEncoder::CodecType AudioEncoderPcmU::GetCodecType() const
-    {_void_; return AudioEncoder::CodecType();}
-
-    AudioDecoderG722Impl::AudioDecoderG722Impl() {_void_;}
-    AudioEncoderG722Impl::AudioEncoderG722Impl(const AudioEncoderG722Config&, int) :
-        num_channels_(0),
-        payload_type_(0),
-        num_10ms_frames_per_packet_(0),
-        num_10ms_frames_buffered_(0),
-        first_timestamp_in_buffer_(0),
-        encoders_(nullptr),
-        interleave_buffer_(0) {_void_;}
-    AudioDecoderG722Impl::~AudioDecoderG722Impl() {_void_;}
-
-    AudioDecoderG722StereoImpl::AudioDecoderG722StereoImpl() {_void_;}
-    AudioDecoderG722StereoImpl::~AudioDecoderG722StereoImpl() {_void_;}
-
     AudioDecoderIlbcImpl::AudioDecoderIlbcImpl() {_void_;}
     AudioEncoderIlbcImpl::AudioEncoderIlbcImpl(const AudioEncoderIlbcConfig&, int) :
         frame_size_ms_(0),
@@ -1433,64 +1500,10 @@ namespace webrtc
         encoder_(nullptr) {_void_;}
     AudioDecoderIlbcImpl::~AudioDecoderIlbcImpl() {_void_;}
 
-    LockedIsacBandwidthInfo::~LockedIsacBandwidthInfo() {_void_;}
-
-    AudioDecoderPcm16B::AudioDecoderPcm16B(int, unsigned __int64) :
-        sample_rate_hz_(0),
-        num_channels_(0) {_void_;}
-    unsigned __int64 AudioEncoderPcm16B::EncodeCall(const short*, unsigned __int64, unsigned char*) {_int_;}
-    unsigned __int64 AudioEncoderPcm16B::BytesPerSample() const {_int_;}
-    AudioEncoder::CodecType AudioEncoderPcm16B::GetCodecType() const
-    {_void_; return AudioEncoder::CodecType();}
-
-    void Pcm16BAppendSupportedCodecSpecs(std::vector<AudioCodecSpec, std::allocator<AudioCodecSpec> >*) {_void_;}
-
-    BasicRegatheringController::Config::Config(const absl::lts_2018_06_20::optional<rtc::IntervalRange>&, int) {_void_;}
-    BasicRegatheringController::Config::~Config() {_void_;}
-    BasicRegatheringController::BasicRegatheringController(const BasicRegatheringController::Config& config, cricket::IceTransportInternal* ice_transport, rtc::Thread* thread) :
-        config_(config),
-        ice_transport_(ice_transport),
-        thread_(thread),
-        rand_(0) {_void_;}
-    void BasicRegatheringController::Start() {_void_;}
-    void BasicRegatheringController::SetConfig(const BasicRegatheringController::Config&) {_void_;}
-
-    RtcEventLogOutputFile::RtcEventLogOutputFile(void*, unsigned __int64) :
-        max_size_bytes_(0) {_void_;}
-    RtcEventLogOutputFile::~RtcEventLogOutputFile() {_void_;}
-
     rtc::scoped_refptr<I420Buffer> I420Buffer::Create(int, int) {_ptr_;}
     rtc::scoped_refptr<I420Buffer> I420Buffer::Rotate(const I420BufferInterface&, VideoRotation) {_ptr_;}
     void I420Buffer::SetBlack(I420Buffer*) {_void_;}
     void I420Buffer::InitializeData() {_void_;}
-
-    bool AudioDecoderG722Impl::HasDecodePlc() const {_bool_;}
-    void AudioDecoderG722Impl::Reset() {_void_;}
-    std::vector<AudioDecoder::ParseResult, std::allocator<AudioDecoder::ParseResult> > AudioDecoderG722Impl::ParsePayload(rtc::BufferT<unsigned char, 0> &&, unsigned int)
-    {_void_; return std::vector<AudioDecoder::ParseResult, std::allocator<AudioDecoder::ParseResult> >();}
-    int AudioDecoderG722Impl::PacketDuration(const unsigned char*, unsigned __int64) const {_int_;}
-    int AudioDecoderG722Impl::SampleRateHz() const {_int_;}
-    unsigned __int64 AudioDecoderG722Impl::Channels() const {_int_;}
-    int AudioDecoderG722Impl::DecodeInternal(const unsigned char*, unsigned __int64, int, short*, AudioDecoder::SpeechType*) {_int_;}
-
-    void AudioDecoderG722StereoImpl::Reset() {_void_;}
-    std::vector<AudioDecoder::ParseResult, std::allocator<AudioDecoder::ParseResult> > AudioDecoderG722StereoImpl::ParsePayload(rtc::BufferT<unsigned char, 0> &&, unsigned int)
-    {_void_; return std::vector<AudioDecoder::ParseResult, std::allocator<AudioDecoder::ParseResult> >();}
-    int AudioDecoderG722StereoImpl::SampleRateHz() const {_int_;}
-    unsigned __int64 AudioDecoderG722StereoImpl::Channels() const {_int_;}
-    int AudioDecoderG722StereoImpl::DecodeInternal(const unsigned char*, unsigned __int64, int, short*, AudioDecoder::SpeechType*) {_int_;}
-
-    AudioEncoderG722Impl::~AudioEncoderG722Impl() {_void_;}
-    int AudioEncoderG722Impl::SampleRateHz() const {_int_;}
-    unsigned __int64 AudioEncoderG722Impl::NumChannels() const {_int_;}
-    int AudioEncoderG722Impl::RtpTimestampRateHz() const {_int_;}
-    unsigned __int64 AudioEncoderG722Impl::Num10MsFramesInNextPacket() const {_int_;}
-    unsigned __int64 AudioEncoderG722Impl::Max10MsFramesInAPacket() const {_int_;}
-    int AudioEncoderG722Impl::GetTargetBitrate() const {_int_;}
-    void AudioEncoderG722Impl::Reset() {_void_;}
-    AudioEncoder::EncodedInfo AudioEncoderG722Impl::EncodeImpl(unsigned int, rtc::ArrayView<short const , -4711>, rtc::BufferT<unsigned char, 0>*)
-    {_void_; return AudioEncoder::EncodedInfo();}
-    AudioEncoderG722Impl::EncoderState::~EncoderState() {_void_;}
 
     bool AudioDecoderIlbcImpl::HasDecodePlc() const {_bool_;}
     unsigned __int64 AudioDecoderIlbcImpl::DecodePlc(unsigned __int64, short*) {_int_;}
@@ -1511,49 +1524,8 @@ namespace webrtc
     {_void_; return AudioEncoder::EncodedInfo();}
     void AudioEncoderIlbcImpl::Reset() {_void_;}
 
-    void AudioDecoderPcm16B::Reset() {_void_;}
-    std::vector<AudioDecoder::ParseResult, std::allocator<AudioDecoder::ParseResult> > AudioDecoderPcm16B::ParsePayload(rtc::BufferT<unsigned char, 0> &&, unsigned int)
-    {_void_; return std::vector<AudioDecoder::ParseResult, std::allocator<AudioDecoder::ParseResult> >();}
-    int AudioDecoderPcm16B::PacketDuration(const unsigned char*, unsigned __int64) const {_int_;}
-    int AudioDecoderPcm16B::SampleRateHz() const {_int_;}
-    unsigned __int64 AudioDecoderPcm16B::Channels() const {_int_;}
-    int AudioDecoderPcm16B::DecodeInternal(const unsigned char*, unsigned __int64, int, short*, AudioDecoder::SpeechType*) {_int_;}
-
-    BasicRegatheringController::Config::Config(const BasicRegatheringController::Config&) {_void_;}
-    BasicRegatheringController::~BasicRegatheringController() {_void_;}
-
-    bool RtcEventLogOutputFile::IsActive() const {_bool_;}
-    bool RtcEventLogOutputFile::Write(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const &) {_bool_;}
-
     VideoCodecType PayloadStringToCodecType(std::basic_string<char, std::char_traits<char>, const std::allocator<char> >&)
     {_void_; return VideoCodecType();}
-
-    PacketOptions::PacketOptions() {_void_;}
-    PacketOptions::PacketOptions(const PacketOptions&) {_void_;}
-    PacketOptions::~PacketOptions() {_void_;}
-
-    AudioCodingModule::Config::Config(rtc::scoped_refptr<AudioDecoderFactory>) {_void_;}
-    AudioCodingModule::Config::~Config() {_void_;}
-    AudioCodingModule* AudioCodingModule::Create(const AudioCodingModule::Config&) {_ptr_;}
-
-    std::unique_ptr<ProcessThread, std::default_delete<ProcessThread> > ProcessThread::Create(const char*) {_ptr_;}
-
-    RtpStreamReceiverController::RtpStreamReceiverController() {_void_;}
-    RtpStreamReceiverController::~RtpStreamReceiverController() {_void_;}
-    bool RtpStreamReceiverController::OnRtpPacket(const RtpPacketReceived&) {_bool_;}
-
-    std::unique_ptr<AecDump, std::default_delete<AecDump> > AecDumpFactory::Create(void*, __int64, rtc::TaskQueue*) {_ptr_;}
-    std::unique_ptr<AecDump, std::default_delete<AecDump> > AecDumpFactory::Create(std::basic_string<char, std::char_traits<char>, std::allocator<char> >, __int64, rtc::TaskQueue*) {_ptr_;}
-
-    NetEq::Config::Config() {_void_;}
-    NetEq::Config::~Config() {_void_;}
-
-    SdpAudioFormat CodecInstToSdp(const CodecInst&)
-    {_void_; return SdpAudioFormat("", 0, 0);}
-
-    std::unique_ptr<RtpStreamReceiverInterface, std::default_delete<RtpStreamReceiverInterface> > RtpStreamReceiverController::CreateReceiver(unsigned int, RtpPacketSinkInterface*) {_ptr_;}
-    bool RtpStreamReceiverController::AddSink(unsigned int, RtpPacketSinkInterface*) {_bool_;}
-    unsigned __int64 RtpStreamReceiverController::RemoveSink(const RtpPacketSinkInterface*) {_int_;}
 
     class VideoStreamEncoder::VideoSourceProxy {};
     VideoStreamEncoder::VideoStreamEncoder(
@@ -1658,16 +1630,6 @@ namespace webrtc
             SendSideBweFeedback::~SendSideBweFeedback() {_void_;}
         }
     }
-}
-
-namespace cricket
-{
-    BasicPortAllocator::BasicPortAllocator(rtc::NetworkManager* network_manager, rtc::PacketSocketFactory* socket_factory, webrtc::TurnCustomizer* customizer, RelayPortFactoryInterface* relay_port_factory) :
-        network_manager_(network_manager), socket_factory_(socket_factory) {_void_;}
-    BasicPortAllocator::~BasicPortAllocator() {_void_;}
-    void BasicPortAllocator::SetNetworkIgnoreMask(int) {_void_;}
-    PortAllocatorSession* BasicPortAllocator::CreateSessionInternal(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const &, int, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const &, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const &)
-    {_ptr_;}
 }
 
 namespace rtc

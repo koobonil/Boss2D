@@ -15,7 +15,7 @@
 
 // TODO(tlegrand): Change constant input pointers in all functions to constant
 // references, where appropriate.
-#include "modules/audio_coding/acm2/acm_codec_database.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__acm2__acm_codec_database_h //original-code:"modules/audio_coding/acm2/acm_codec_database.h"
 
 #include <assert.h>
 

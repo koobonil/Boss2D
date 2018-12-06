@@ -5,6 +5,7 @@
 namespace BOSS
 {
     BOSS_DECLARE_HANDLE(h_view);
+    enum NotifyType {NT_Normal, NT_KeyPress, NT_KeyRelease, NT_SocketReceive, NT_CameraCapture, NT_AddOn};
     enum TouchType {TT_Null,
         // 일반
         TT_Moving, TT_Press, TT_Dragging, TT_Release,
@@ -14,7 +15,6 @@ namespace BOSS
         TT_ExtendPress, TT_ExtendDragging, TT_ExtendRelease,
         // 특수
         TT_ToolTip, TT_LongPress, TT_Render};
-    enum SearchCommand {SC_Search, SC_Create, SC_Destroy};
 
     //! \brief 뷰지원
     class View
@@ -30,13 +30,16 @@ namespace BOSS
 
     public:
         static View* Creator(chars viewclass);
-        static const Map<h_view>* Search(chars viewclass, SearchCommand command, h_view view = h_view::null());
+        static void Regist(chars viewclass, h_view view);
+        static void Unregist(chars viewclass, h_view view);
+        static const Map<h_view>* SearchBegin(chars viewclass);
+        static void SearchEnd();
 
     public:
         virtual h_view SetView(h_view view);
         virtual bool IsNative();
         virtual void* GetClass();
-        virtual void SendNotify(chars sender, chars topic, id_share in, id_cloned_share* out);
+        virtual void SendNotify(NotifyType type, chars topic, id_share in, id_cloned_share* out);
         virtual void SetCallback(UpdaterCB cb, payload data);
         virtual void DirtyAllSurfaces();
 

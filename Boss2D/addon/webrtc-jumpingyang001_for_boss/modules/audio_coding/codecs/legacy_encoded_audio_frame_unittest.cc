@@ -10,7 +10,7 @@
 
 #include BOSS_WEBRTC_U_modules__audio_coding__codecs__legacy_encoded_audio_frame_h //original-code:"modules/audio_coding/codecs/legacy_encoded_audio_frame.h"
 
-#include "modules/audio_coding/acm2/rent_a_codec.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__acm2__rent_a_codec_h //original-code:"modules/audio_coding/acm2/rent_a_codec.h"
 #include BOSS_WEBRTC_U_rtc_base__numerics__safe_conversions_h //original-code:"rtc_base/numerics/safe_conversions.h"
 #include "test/gtest.h"
 

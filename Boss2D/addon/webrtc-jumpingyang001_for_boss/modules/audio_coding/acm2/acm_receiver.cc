@@ -8,7 +8,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-#include "modules/audio_coding/acm2/acm_receiver.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__acm2__acm_receiver_h //original-code:"modules/audio_coding/acm2/acm_receiver.h"
 
 #include <stdlib.h>  // malloc
 
@@ -18,9 +18,9 @@
 #include BOSS_WEBRTC_U_api__audio_codecs__audio_decoder_h //original-code:"api/audio_codecs/audio_decoder.h"
 #include BOSS_WEBRTC_U_common_audio__signal_processing__include__signal_processing_library_h //original-code:"common_audio/signal_processing/include/signal_processing_library.h"
 #include BOSS_WEBRTC_U_common_types_h //original-code:"common_types.h"  // NOLINT(build/include)
-#include "modules/audio_coding/acm2/acm_resampler.h"
-#include "modules/audio_coding/acm2/call_statistics.h"
-#include "modules/audio_coding/acm2/rent_a_codec.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__acm2__acm_resampler_h //original-code:"modules/audio_coding/acm2/acm_resampler.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__acm2__call_statistics_h //original-code:"modules/audio_coding/acm2/call_statistics.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__acm2__rent_a_codec_h //original-code:"modules/audio_coding/acm2/rent_a_codec.h"
 #include BOSS_WEBRTC_U_modules__audio_coding__neteq__include__neteq_h //original-code:"modules/audio_coding/neteq/include/neteq.h"
 #include BOSS_WEBRTC_U_modules__include__module_common_types_h //original-code:"modules/include/module_common_types.h"
 #include BOSS_WEBRTC_U_rtc_base__checks_h //original-code:"rtc_base/checks.h"

@@ -176,8 +176,12 @@ namespace BOSS
         class WebRtc
         {
         public:
-            static id_webrtc Open(sint32 port);
-            static void Close(id_webrtc webrtc);
+            static id_webrtc OpenForOffer(void);
+            static id_webrtc_read OpenForAnswer(chars offer_sdp);
+            static void Close(id_webrtc_read webrtc);
+            static bool Bind(id_webrtc webrtc, chars answer_sdp);
+            static bool AddIce(id_webrtc_read webrtc, chars your_sdp);
+            static void Send(id_webrtc_read webrtc, bytes data, sint32 len);
         };
 
         //! \brief ZIP연동

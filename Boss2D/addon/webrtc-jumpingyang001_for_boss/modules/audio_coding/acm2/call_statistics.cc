@@ -8,7 +8,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-#include "modules/audio_coding/acm2/call_statistics.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__acm2__call_statistics_h //original-code:"modules/audio_coding/acm2/call_statistics.h"
 
 #include BOSS_WEBRTC_U_rtc_base__checks_h //original-code:"rtc_base/checks.h"
 

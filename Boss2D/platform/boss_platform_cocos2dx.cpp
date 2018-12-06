@@ -427,16 +427,16 @@
             return nullptr;
         }
 
-        void Platform::BroadcastNotify(chars topic, id_share in, chars viewclass)
+        void Platform::BroadcastNotify(chars topic, id_share in, NotifyType type, chars viewclass)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
             if(auto Views = View::Search(viewclass, SC_Search))
             {
-                struct Payload {chars topic; id_share in;} Param = {topic, in};
+                struct Payload {chars topic; id_share in; NotifyType type;} Param = {topic, in, type};
                 Views->AccessByCallback([](const MapPath*, const h_view* view, payload param)->void
                 {
                     const Payload* Param = (const Payload*) param;
-                    ((ViewAPI*) view->get())->sendNotify(Param->topic, Param->in, nullptr);
+                    ((ViewAPI*) view->get())->sendNotify(Param->type, Param->topic, Param->in, nullptr);
                 }, &Param);
             }
         }

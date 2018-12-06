@@ -10,7 +10,7 @@
 
 #include <utility>
 
-#include "modules/audio_coding/audio_network_adaptor/controller_manager.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__controller_manager_h //original-code:"modules/audio_coding/audio_network_adaptor/controller_manager.h"
 #include "modules/audio_coding/audio_network_adaptor/mock/mock_controller.h"
 #include "modules/audio_coding/audio_network_adaptor/mock/mock_debug_dump_writer.h"
 #include BOSS_WEBRTC_U_rtc_base__fakeclock_h //original-code:"rtc_base/fakeclock.h"

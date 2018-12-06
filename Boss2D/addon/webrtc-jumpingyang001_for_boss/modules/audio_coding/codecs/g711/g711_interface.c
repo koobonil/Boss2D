@@ -10,7 +10,7 @@
 
 #include <string.h>
 
-#include "modules/third_party/g711/g711.h"
+#include BOSS_WEBRTC_U_modules__third_party__g711__g711_h //original-code:"modules/third_party/g711/g711.h"
 #include BOSS_WEBRTC_U_modules__audio_coding__codecs__g711__g711_interface_h //original-code:"modules/audio_coding/codecs/g711/g711_interface.h"
 
 size_t WebRtcG711_EncodeA(const int16_t* speechIn,

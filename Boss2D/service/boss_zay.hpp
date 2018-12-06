@@ -131,26 +131,28 @@
 #define ZAY_DECLARE_VIEW(NAME) ZAY_DECLARE_VIEW_CLASS(NAME, ZayObject)
 #define ZAY_DECLARE_VIEW_CLASS(NAME, CLASS) \
     ZAY_VIEW_API OnCommand(CommandType, chars, id_share, id_cloned_share*); \
-    ZAY_VIEW_API OnNotify(chars, chars, id_share, id_cloned_share*); \
+    ZAY_VIEW_API OnNotify(NotifyType, chars, id_share, id_cloned_share*); \
     ZAY_VIEW_API OnGesture(GestureType, sint32, sint32); \
     ZAY_VIEW_API OnRender(ZayPanel&); \
     static ZayInstance<CLASS> m; \
-    static void _Bind(ZayObject* ptr) {m._bind((CLASS*) ptr);} \
+    static uint64 _Lock(ZayObject* ptr) {return m._lock((CLASS*) ptr);} \
+    static void _Unlock(uint64 lockid) {m._unlock(lockid);} \
     static ZayObject* _Alloc() {return (ZayObject*) Buffer::Alloc<CLASS>(BOSS_DBG 1);} \
     static void _Free(ZayObject* ptr) {Buffer::Free((buffer) ptr);} \
     static autorun _ = ZayView::_makefunc(false, "" NAME, OnCommand, OnNotify, \
-        OnGesture, OnRender, _Bind, _Alloc, _Free);
+        OnGesture, OnRender, _Lock, _Unlock, _Alloc, _Free);
 #define ZAY_DECLARE_VIEW_NATIVE(NAME, CLASS) \
     ZAY_VIEW_API OnCommand(CommandType, chars, id_share, id_cloned_share*); \
-    ZAY_VIEW_API OnNotify(chars, chars, id_share, id_cloned_share*); \
+    ZAY_VIEW_API OnNotify(NotifyType, chars, id_share, id_cloned_share*); \
     ZAY_VIEW_API OnGesture(GestureType, sint32, sint32) {BOSS_ASSERT("This function should not be called directly.", false);} \
     ZAY_VIEW_API OnRender(ZayPanel&) {BOSS_ASSERT("This function should not be called directly.", false);} \
     static ZayInstance<CLASS> m; \
-    static void _Bind(ZayObject* ptr) {m._bind((CLASS*) ptr);} \
+    static uint64 _Lock(ZayObject* ptr) {return m._lock((CLASS*) ptr);} \
+    static void _Unlock(uint64 lockid) {m._unlock(lockid);} \
     static ZayObject* _Alloc() {return (ZayObject*) new CLASS;} \
     static void _Free(ZayObject* ptr) {delete (CLASS*) ptr;} \
     static autorun _ = ZayView::_makefunc(true, "" NAME, OnCommand, OnNotify, \
-        OnGesture, OnRender, _Bind, _Alloc, _Free);
+        OnGesture, OnRender, _Lock, _Unlock, _Alloc, _Free);
 
 // UI 제스처/랜더 콜백함수
 #define ZAY_GESTURE_T(TYPE, ...)                       [__VA_ARGS__](ZayObject*, chars, GestureType TYPE, sint32, sint32)->void
@@ -163,7 +165,7 @@
 
 namespace BOSS
 {
-    enum CommandType {CT_Create, CT_CanQuit, CT_Destroy, CT_Size, CT_Tick, CT_Signal};
+    enum CommandType {CT_Create, CT_CanQuit, CT_Destroy, CT_Size, CT_Tick};
     enum GestureType {
         // 일반
         GT_Null, GT_Moving, GT_MovingLosed, GT_Pressed,
@@ -195,8 +197,9 @@ namespace BOSS
 
     public:
         typedef void (*CommandCB)(CommandType, chars, id_share, id_cloned_share*);
-        typedef void (*NotifyCB)(chars, chars, id_share, id_cloned_share*);
-        typedef void (*BindCB)(ZayObject*);
+        typedef void (*NotifyCB)(NotifyType, chars, id_share, id_cloned_share*);
+        typedef uint64 (*LockCB)(ZayObject*);
+        typedef void (*UnlockCB)(uint64);
         typedef ZayObject* (*AllocCB)();
         typedef void (*FreeCB)(ZayObject*);
 
@@ -398,9 +401,11 @@ namespace BOSS
         ZayInstance()
         {
             m_ref_data_last = nullptr;
+            m_mutex = Mutex::Open();
         }
         ~ZayInstance()
         {
+            Mutex::Close(m_mutex);
         }
 
     public:
@@ -414,25 +419,43 @@ namespace BOSS
             BOSS_ASSERT("현재 위치에서는 m이 사용될 수 없습니다", m_ref_data_last);
             return *m_ref_data_last;
         }
-        inline void _bind(TYPE* ptr)
+        inline uint64 _lock(TYPE* ptr)
         {
-            if(ptr)
+            BOSS_ASSERT("ptr값은 nullptr가 될 수 없습니다", ptr);
+
+            uint64 LockID = oxFFFFFFFFFFFFFFFF;
+            const uint64 CurThreadID = Platform::Utility::CurrentThreadID();
+            auto& CurLocker = m_lockmap[CurThreadID];
+            if(!CurLocker)
             {
-                m_ref_datas.AtAdding() = ptr;
-                m_ref_data_last = ptr;
+                LockID = CurThreadID;
+                Mutex::Lock(m_mutex);
+                CurLocker = ptr;
             }
-            else
+
+            m_ref_datas.AtAdding() = ptr;
+            m_ref_data_last = ptr;
+            return LockID;
+        }
+        inline void _unlock(uint64 lockid)
+        {
+            m_ref_datas.SubtractionOne();
+            if(0 < m_ref_datas.Count())
+                m_ref_data_last = m_ref_datas[-1];
+            else m_ref_data_last = nullptr;
+
+            if(lockid != oxFFFFFFFFFFFFFFFF)
             {
-                m_ref_datas.SubtractionOne();
-                if(0 < m_ref_datas.Count())
-                    m_ref_data_last = m_ref_datas[-1];
-                else m_ref_data_last = nullptr;
+                m_lockmap[lockid] = nullptr;
+                Mutex::Unlock(m_mutex);
             }
         }
 
     private:
         Array<TYPE*, datatype_pod_canmemcpy> m_ref_datas;
         TYPE* m_ref_data_last;
+        id_mutex m_mutex;
+        Map<void*> m_lockmap;
     };
 
     //! \brief 제이뷰
@@ -550,8 +573,8 @@ namespace BOSS
             }
 
         private:
-            static void OnGesture(ZayView* manager, const Element* data, GestureType type, sint32 x, sint32 y);
-            static void OnSubGesture(ZayView* manager, const Element* data, GestureType type, sint32 x, sint32 y);
+            static void GestureCB(ZayView* manager, const Element* data, GestureType type, sint32 x, sint32 y);
+            static void SubGestureCB(ZayView* manager, const Element* data, GestureType type, sint32 x, sint32 y);
 
         private:
             sint32 m_updateid;
@@ -584,7 +607,8 @@ namespace BOSS
             ZayObject::NotifyCB m_notify;
             ZayPanel::GestureCB m_gesture;
             ZayPanel::RenderCB m_render;
-            ZayObject::BindCB m_bind;
+            ZayObject::LockCB m_lock;
+            ZayObject::UnlockCB m_unlock;
             ZayObject::AllocCB m_alloc;
             ZayObject::FreeCB m_free;
         };
@@ -601,7 +625,7 @@ namespace BOSS
         h_view SetView(h_view view) override;
         bool IsNative() override;
         void* GetClass() override;
-        void SendNotify(chars sender, chars topic, id_share in, id_cloned_share* out) override;
+        void SendNotify(NotifyType type, chars topic, id_share in, id_cloned_share* out) override;
         void SetCallback(UpdaterCB cb, payload data) override;
         void DirtyAllSurfaces() override;
 
@@ -621,7 +645,7 @@ namespace BOSS
     public:
         static autorun _makefunc(bool isnative, chars viewclass,
             ZayObject::CommandCB c, ZayObject::NotifyCB n, ZayPanel::GestureCB g, ZayPanel::RenderCB r,
-            ZayObject::BindCB b, ZayObject::AllocCB a, ZayObject::FreeCB f);
+            ZayObject::LockCB l, ZayObject::UnlockCB u, ZayObject::AllocCB a, ZayObject::FreeCB f);
         static Function* _accessfunc(chars viewclass, bool creatable);
 
     private:

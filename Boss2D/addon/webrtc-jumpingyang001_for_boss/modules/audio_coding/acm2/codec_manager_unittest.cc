@@ -10,8 +10,8 @@
 
 #include <memory>
 
-#include "modules/audio_coding/acm2/codec_manager.h"
-#include "modules/audio_coding/acm2/rent_a_codec.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__acm2__codec_manager_h //original-code:"modules/audio_coding/acm2/codec_manager.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__acm2__rent_a_codec_h //original-code:"modules/audio_coding/acm2/rent_a_codec.h"
 #include "test/gtest.h"
 #include "test/mock_audio_encoder.h"
 

@@ -11,7 +11,7 @@
 #ifndef MODULES_AUDIO_CODING_AUDIO_NETWORK_ADAPTOR_MOCK_MOCK_DEBUG_DUMP_WRITER_H_
 #define MODULES_AUDIO_CODING_AUDIO_NETWORK_ADAPTOR_MOCK_MOCK_DEBUG_DUMP_WRITER_H_
 
-#include "modules/audio_coding/audio_network_adaptor/debug_dump_writer.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__debug_dump_writer_h //original-code:"modules/audio_coding/audio_network_adaptor/debug_dump_writer.h"
 #include "test/gmock.h"
 
 namespace webrtc {

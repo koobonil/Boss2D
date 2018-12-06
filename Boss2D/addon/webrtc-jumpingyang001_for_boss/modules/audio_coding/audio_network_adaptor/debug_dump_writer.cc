@@ -8,7 +8,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-#include "modules/audio_coding/audio_network_adaptor/debug_dump_writer.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__debug_dump_writer_h //original-code:"modules/audio_coding/audio_network_adaptor/debug_dump_writer.h"
 
 #include BOSS_WEBRTC_U_rtc_base__checks_h //original-code:"rtc_base/checks.h"
 #include BOSS_WEBRTC_U_rtc_base__ignore_wundef_h //original-code:"rtc_base/ignore_wundef.h"

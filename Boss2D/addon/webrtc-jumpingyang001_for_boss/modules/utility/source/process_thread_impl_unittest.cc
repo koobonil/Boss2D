@@ -12,7 +12,7 @@
 #include <utility>
 
 #include BOSS_WEBRTC_U_modules__include__module_h //original-code:"modules/include/module.h"
-#include "modules/utility/source/process_thread_impl.h"
+#include BOSS_WEBRTC_U_modules__utility__source__process_thread_impl_h //original-code:"modules/utility/source/process_thread_impl.h"
 #include BOSS_WEBRTC_U_rtc_base__location_h //original-code:"rtc_base/location.h"
 #include BOSS_WEBRTC_U_rtc_base__task_queue_h //original-code:"rtc_base/task_queue.h"
 #include BOSS_WEBRTC_U_rtc_base__timeutils_h //original-code:"rtc_base/timeutils.h"

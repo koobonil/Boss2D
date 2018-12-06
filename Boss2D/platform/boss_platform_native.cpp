@@ -405,7 +405,7 @@
             return nullptr;
         }
 
-        void Platform::BroadcastNotify(chars topic, id_share in, chars viewclass)
+        void Platform::BroadcastNotify(chars topic, id_share in, NotifyType type, chars viewclass)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
 

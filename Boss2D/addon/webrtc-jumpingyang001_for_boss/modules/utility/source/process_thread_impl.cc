@@ -8,7 +8,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-#include "modules/utility/source/process_thread_impl.h"
+#include BOSS_WEBRTC_U_modules__utility__source__process_thread_impl_h //original-code:"modules/utility/source/process_thread_impl.h"
 
 #include BOSS_WEBRTC_U_modules__include__module_h //original-code:"modules/include/module.h"
 #include BOSS_WEBRTC_U_rtc_base__checks_h //original-code:"rtc_base/checks.h"

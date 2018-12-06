@@ -11,7 +11,7 @@
 #include <memory>
 #include <utility>
 
-#include "modules/audio_coding/audio_network_adaptor/frame_length_controller.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__frame_length_controller_h //original-code:"modules/audio_coding/audio_network_adaptor/frame_length_controller.h"
 #include "test/gtest.h"
 
 namespace webrtc {

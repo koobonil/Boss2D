@@ -11,7 +11,7 @@
 #include <memory>
 
 #include BOSS_WEBRTC_U_common_types_h //original-code:"common_types.h"
-#include "modules/audio_coding/acm2/rent_a_codec.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__acm2__rent_a_codec_h //original-code:"modules/audio_coding/acm2/rent_a_codec.h"
 #include BOSS_WEBRTC_U_rtc_base__arraysize_h //original-code:"rtc_base/arraysize.h"
 #include "test/gtest.h"
 #include "test/mock_audio_encoder.h"

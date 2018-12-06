@@ -12,10 +12,10 @@
 
 #include <algorithm>
 
-#include "modules/audio_coding/acm2/acm_receiver.h"
-#include "modules/audio_coding/acm2/acm_resampler.h"
-#include "modules/audio_coding/acm2/codec_manager.h"
-#include "modules/audio_coding/acm2/rent_a_codec.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__acm2__acm_receiver_h //original-code:"modules/audio_coding/acm2/acm_receiver.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__acm2__acm_resampler_h //original-code:"modules/audio_coding/acm2/acm_resampler.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__acm2__codec_manager_h //original-code:"modules/audio_coding/acm2/codec_manager.h"
+#include BOSS_WEBRTC_U_modules__audio_coding__acm2__rent_a_codec_h //original-code:"modules/audio_coding/acm2/rent_a_codec.h"
 #include BOSS_WEBRTC_U_modules__include__module_common_types_h //original-code:"modules/include/module_common_types.h"
 #include BOSS_WEBRTC_U_rtc_base__checks_h //original-code:"rtc_base/checks.h"
 #include BOSS_WEBRTC_U_rtc_base__logging_h //original-code:"rtc_base/logging.h"

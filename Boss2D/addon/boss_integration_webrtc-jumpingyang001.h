@@ -9,6 +9,7 @@
 #include <addon/boss_integration_abseil-cpp-20180600.h>
 #include <addon/boss_integration_jsoncpp-1.8.4.h>
 #include <addon/boss_integration_rnnoise-chromium.h>
+#include <addon/boss_integration_usrsctp-0.9.3.0.h>
 
 // openssl의 e_os.h의 뒷처리
 #undef socket
@@ -32,6 +33,7 @@
 #define USE_BUILTIN_SW_CODECS
 #define RTC_DISABLE_VP9
 #define HAVE_WEBRTC_VOICE
+#define HAVE_SCTP
 
 #undef max
 #undef min
@@ -706,6 +708,26 @@
 
 #define BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__include__audio_network_adaptor_h         "addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/audio_network_adaptor/include/audio_network_adaptor.h"
 #define BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__include__audio_network_adaptor_config_h  "addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/audio_network_adaptor/include/audio_network_adaptor_config.h"
+#define BOSS_WEBRTC_U_modules__audio_coding__acm2__acm_codec_database_h                                      "addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/acm2/acm_codec_database.h"
+#define BOSS_WEBRTC_U_modules__audio_coding__acm2__acm_receive_test_h                                        "addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/acm2/acm_receive_test.h"
+#define BOSS_WEBRTC_U_modules__audio_coding__acm2__acm_receiver_h                                            "addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/acm2/acm_receiver.h"
+#define BOSS_WEBRTC_U_modules__audio_coding__acm2__acm_resampler_h                                           "addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/acm2/acm_resampler.h"
+#define BOSS_WEBRTC_U_modules__audio_coding__acm2__acm_send_test_h                                           "addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/acm2/acm_send_test.h"
+#define BOSS_WEBRTC_U_modules__audio_coding__acm2__call_statistics_h                                         "addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/acm2/call_statistics.h"
+#define BOSS_WEBRTC_U_modules__audio_coding__acm2__codec_manager_h                                           "addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/acm2/codec_manager.h"
+#define BOSS_WEBRTC_U_modules__audio_coding__acm2__rent_a_codec_h                                            "addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/acm2/rent_a_codec.h"
+#define BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__audio_network_adaptor_impl_h             "addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/audio_network_adaptor/audio_network_adaptor_impl.h"
+#define BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__bitrate_controller_h                     "addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/audio_network_adaptor/bitrate_controller.h"
+#define BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__channel_controller_h                     "addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/audio_network_adaptor/channel_controller.h"
+#define BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__controller_h                             "addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/audio_network_adaptor/controller.h"
+#define BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__controller_manager_h                     "addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/audio_network_adaptor/controller_manager.h"
+#define BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__debug_dump_writer_h                      "addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/audio_network_adaptor/debug_dump_writer.h"
+#define BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__dtx_controller_h                         "addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/audio_network_adaptor/dtx_controller.h"
+#define BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__event_log_writer_h                       "addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/audio_network_adaptor/event_log_writer.h"
+#define BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__fec_controller_plr_based_h               "addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/audio_network_adaptor/fec_controller_plr_based.h"
+#define BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__fec_controller_rplr_based_h              "addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/audio_network_adaptor/fec_controller_rplr_based.h"
+#define BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__frame_length_controller_h                "addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/audio_network_adaptor/frame_length_controller.h"
+#define BOSS_WEBRTC_U_modules__audio_coding__audio_network_adaptor__util__threshold_curve_h                  "addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/audio_network_adaptor/util/threshold_curve.h"
 #define BOSS_WEBRTC_U_modules__audio_coding__codecs__audio_decoder_h                                         "addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/codecs/audio_decoder.h"
 #define BOSS_WEBRTC_U_modules__audio_coding__codecs__audio_encoder_h                                         "addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/codecs/audio_encoder.h"
 #define BOSS_WEBRTC_U_modules__audio_coding__codecs__audio_format_conversion_h                               "addon/webrtc-jumpingyang001_for_boss/modules/audio_coding/codecs/audio_format_conversion.h"
@@ -1167,6 +1189,8 @@
 #define BOSS_WEBRTC_U_modules__remote_bitrate_estimator__remote_bitrate_estimator_unittest_helper_h          "addon/webrtc-jumpingyang001_for_boss/modules/remote_bitrate_estimator/remote_bitrate_estimator_unittest_helper.h"
 #define BOSS_WEBRTC_U_modules__remote_bitrate_estimator__remote_estimator_proxy_h                            "addon/webrtc-jumpingyang001_for_boss/modules/remote_bitrate_estimator/remote_estimator_proxy.h"
 #define BOSS_WEBRTC_U_modules__third_party__fft__fft_h                                                       "addon/webrtc-jumpingyang001_for_boss/modules/third_party/fft/fft.h"
+#define BOSS_WEBRTC_U_modules__third_party__g711__g711_h                                                     "addon/webrtc-jumpingyang001_for_boss/modules/third_party/g711/g711.h"
+#define BOSS_WEBRTC_U_modules__third_party__g722__g722_enc_dec_h                                             "addon/webrtc-jumpingyang001_for_boss/modules/third_party/g722/g722_enc_dec.h"
 #define BOSS_WEBRTC_U_modules__video_capture__device_info_impl_h                                             "addon/webrtc-jumpingyang001_for_boss/modules/video_capture/device_info_impl.h"
 #define BOSS_WEBRTC_U_modules__video_capture__video_capture_h                                                "addon/webrtc-jumpingyang001_for_boss/modules/video_capture/video_capture.h"
 #define BOSS_WEBRTC_U_modules__video_capture__video_capture_config_h                                         "addon/webrtc-jumpingyang001_for_boss/modules/video_capture/video_capture_config.h"
@@ -1362,6 +1386,7 @@
 #define BOSS_WEBRTC_U_modules__utility__include__helpers_android_h                                           "addon/webrtc-jumpingyang001_for_boss/modules/utility/include/helpers_android.h"
 #define BOSS_WEBRTC_U_modules__utility__include__jvm_android_h                                               "addon/webrtc-jumpingyang001_for_boss/modules/utility/include/jvm_android.h"
 #define BOSS_WEBRTC_U_modules__utility__include__process_thread_h                                            "addon/webrtc-jumpingyang001_for_boss/modules/utility/include/process_thread.h"
+#define BOSS_WEBRTC_U_modules__utility__source__process_thread_impl_h                                        "addon/webrtc-jumpingyang001_for_boss/modules/utility/source/process_thread_impl.h"
 
 #define BOSS_WEBRTC_U_system_wrappers__include__aligned_array_h                                              "addon/webrtc-jumpingyang001_for_boss/system_wrappers/include/aligned_array.h"
 #define BOSS_WEBRTC_U_system_wrappers__include__aligned_malloc_h                                             "addon/webrtc-jumpingyang001_for_boss/system_wrappers/include/aligned_malloc.h"

@@ -1,3 +1,5 @@
+// auther BOSS
+
 /*
  *  Copyright 2018 The WebRTC Project Authors. All rights reserved.
  *
@@ -12,9 +14,9 @@
 
 namespace webrtc {
 
-using Config = BasicRegatheringController::Config;
+using BasicRegatheringController_Config_BOSS = BasicRegatheringController::Config; // modified by BOSS, original-code: Config, replace-code: BasicRegatheringController_Config_BOSS
 
-Config::Config(const absl::optional<rtc::IntervalRange>&
+BasicRegatheringController_Config_BOSS::Config(const absl::optional<rtc::IntervalRange>& // modified by BOSS, original-code: Config, replace-code: BasicRegatheringController_Config_BOSS
                    regather_on_all_networks_interval_range,
                int regather_on_failed_networks_interval)
     : regather_on_all_networks_interval_range(
@@ -22,13 +24,13 @@ Config::Config(const absl::optional<rtc::IntervalRange>&
       regather_on_failed_networks_interval(
           regather_on_failed_networks_interval) {}
 
-Config::Config(const Config& other) = default;
+BasicRegatheringController_Config_BOSS::Config(const BasicRegatheringController_Config_BOSS& other) = default; // modified by BOSS, original-code: Config, replace-code: BasicRegatheringController_Config_BOSS
 
-Config::~Config() = default;
-Config& Config::operator=(const Config& other) = default;
+BasicRegatheringController_Config_BOSS::~BasicRegatheringController_Config_BOSS() = default; // modified by BOSS, original-code: Config, replace-code: BasicRegatheringController_Config_BOSS
+BasicRegatheringController_Config_BOSS& BasicRegatheringController_Config_BOSS::operator=(const BasicRegatheringController_Config_BOSS& other) = default; // modified by BOSS, original-code: Config, replace-code: BasicRegatheringController_Config_BOSS
 
 BasicRegatheringController::BasicRegatheringController(
-    const Config& config,
+    const BasicRegatheringController_Config_BOSS& config, // modified by BOSS, original-code: Config, replace-code: BasicRegatheringController_Config_BOSS
     cricket::IceTransportInternal* ice_transport,
     rtc::Thread* thread)
     : config_(config),
@@ -56,7 +58,7 @@ void BasicRegatheringController::Start() {
   }
 }
 
-void BasicRegatheringController::SetConfig(const Config& config) {
+void BasicRegatheringController::SetConfig(const BasicRegatheringController_Config_BOSS& config) { // modified by BOSS, original-code: Config, replace-code: BasicRegatheringController_Config_BOSS
   bool need_cancel_on_all_networks =
       has_recurring_schedule_on_all_networks_ &&
       (config_.regather_on_all_networks_interval_range !=

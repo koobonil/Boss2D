@@ -574,32 +574,33 @@
             if(needout)
             {
                 id_cloned_share Result;
-                ((ViewAPI*) view.get())->sendNotify(topic, in, &Result);
+                ((ViewAPI*) view.get())->sendNotify(NT_Normal, topic, in, &Result);
                 return Result;
             }
-            ((ViewAPI*) view.get())->sendNotify(topic, in, nullptr);
+            ((ViewAPI*) view.get())->sendNotify(NT_Normal, topic, in, nullptr);
             return nullptr;
         }
 
-        void Platform::BroadcastNotify(chars topic, id_share in, chars viewclass)
+        void Platform::BroadcastNotify(chars topic, id_share in, NotifyType type, chars viewclass)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
-            if(auto Views = View::Search(viewclass, SC_Search))
+            auto Views = View::SearchBegin(viewclass);
             {
-                struct Payload {chars topic; id_share in;} Param = {topic, in};
+                struct Payload {chars topic; id_share in; NotifyType type;} Param = {topic, in, type};
                 Views->AccessByCallback([](const MapPath*, h_view* view, payload param)->void
                 {
                     const Payload* Param = (const Payload*) param;
-                    ((ViewAPI*) view->get())->sendNotify(Param->topic, Param->in, nullptr);
+                    ((ViewAPI*) view->get())->sendNotify(Param->type, Param->topic, Param->in, nullptr);
                 }, &Param);
             }
+            View::SearchEnd();
         }
 
         void Platform::PassAllViews(PassCB cb, payload data)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
             BOSS_ASSERT("콜백함수가 nullptr입니다", cb);
-            if(auto Views = View::Search(nullptr, SC_Search))
+            auto Views = View::SearchBegin(nullptr);
             {
                 struct Payload {PassCB cb; payload data; bool canceled;} Param = {cb, data, false};
                 Views->AccessByCallback([](const MapPath*, h_view* view, payload param)->void
@@ -609,18 +610,20 @@
                     Param->canceled = Param->cb(view->get(), Param->data);
                 }, &Param);
             }
+            View::SearchEnd();
         }
 
         void Platform::UpdateAllViews()
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
-            if(auto Views = View::Search(nullptr, SC_Search))
+            auto Views = View::SearchBegin(nullptr);
             {
                 Views->AccessByCallback([](const MapPath*, h_view* view, payload param)->void
                 {
                     ((ViewAPI*) view->get())->dirtyAndUpdate();
                 }, nullptr);
             }
+            View::SearchEnd();
         }
 
         ////////////////////////////////////////////////////////////////////////////////

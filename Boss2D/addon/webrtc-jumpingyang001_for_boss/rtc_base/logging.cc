@@ -1,3 +1,5 @@
+// author BOSS
+
 /*
  *  Copyright 2004 The WebRTC Project Authors. All rights reserved.
  *
@@ -248,7 +250,7 @@ std::ostream& LogMessage::stream() {
 }
 
 bool LogMessage::Loggable(LoggingSeverity sev) {
-  return sev >= g_min_sev;
+    return sev >= g_min_sev;
 }
 
 int LogMessage::GetMinLogSeverity() {
@@ -407,7 +409,15 @@ void LogMessage::OutputToDebug(const std::string& str,
 #if defined(WEBRTC_WIN)
   // Always log to the debugger.
   // Perhaps stderr should be controlled by a preference, as on Mac?
-  OutputDebugStringA(str.c_str());
+
+  // removed by BOSS: OutputDebugStringA(str.c_str());
+  char symbol = '?'; // added by BOSS
+  switch(severity) // added by BOSS
+  {case LS_INFO: symbol = 'i'; break; // added by BOSS
+  case LS_WARNING: symbol = 'w'; break; // added by BOSS
+  case LS_ERROR: symbol = 'e'; break;} // added by BOSS
+  BOSS_TRACE("[%c] %s", symbol, str.c_str()); // added by BOSS
+
   if (log_to_stderr) {
     // This handles dynamically allocated consoles, too.
     if (HANDLE error_handle = ::GetStdHandle(STD_ERROR_HANDLE)) {
