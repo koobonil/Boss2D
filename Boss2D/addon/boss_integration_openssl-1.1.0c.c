@@ -1,5 +1,5 @@
 ﻿#include <boss.h>
-#if BOSS_NEED_ADDON_CURL | BOSS_NEED_ADDON_GIT | BOSS_NEED_ADDON_SSL | BOSS_NEED_ADDON_WEBRTC
+#if BOSS_NEED_ADDON_CURL | BOSS_NEED_ADDON_GIT | BOSS_NEED_ADDON_SSL | BOSS_NEED_ADDON_WEBRTC | BOSS_NEED_ADDON_WEBSOCKET
 
 #include <addon/boss_integration_openssl-1.1.0c.h>
 
@@ -44,6 +44,7 @@
 #include <addon/openssl-1.1.0c_for_boss/crypto/err/err_prn.c>
 #include <addon/openssl-1.1.0c_for_boss/crypto/err/err_all.c>
 #include <addon/openssl-1.1.0c_for_boss/crypto/bio/bio_lib.c>
+#include <addon/openssl-1.1.0c_for_boss/crypto/bio/bss_bio.c>
 #include <addon/openssl-1.1.0c_for_boss/crypto/bio/bss_file.c>
 #include <addon/openssl-1.1.0c_for_boss/crypto/bio/bss_null.c>
 #include <addon/openssl-1.1.0c_for_boss/crypto/bio/bss_mem.c>

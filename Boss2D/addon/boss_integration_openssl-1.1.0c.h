@@ -182,13 +182,15 @@
 #define BOSS_OPENSSL_U_modes_lcl_h                    "addon/openssl-1.1.0c_for_boss/crypto/modes/modes_lcl.h"
 #define BOSS_OPENSSL_U_ui_locl_h                      "addon/openssl-1.1.0c_for_boss/crypto/ui/ui_locl.h"
 
-#ifdef __cplusplus
-    extern "C" {
-#endif
-    #include <addon/openssl-1.1.0c_for_boss/crypto/bio/bio_lcl.h>
-    #include <addon/openssl-1.1.0c_for_boss/include/openssl/evp.h>
-    #include <addon/openssl-1.1.0c_for_boss/crypto/evp/evp_locl.h>
-    #include <addon/openssl-1.1.0c_for_boss/include/openssl/srtp.h>
-#ifdef __cplusplus
-    }
+#ifndef BOSS_OPENSSL_ONLY_MACRO
+    #ifdef __cplusplus
+        extern "C" {
+    #endif
+        #include <addon/openssl-1.1.0c_for_boss/crypto/bio/bio_lcl.h>
+        #include <addon/openssl-1.1.0c_for_boss/include/openssl/evp.h>
+        #include <addon/openssl-1.1.0c_for_boss/crypto/evp/evp_locl.h>
+        #include <addon/openssl-1.1.0c_for_boss/include/openssl/srtp.h>
+    #ifdef __cplusplus
+        }
+    #endif
 #endif

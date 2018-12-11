@@ -18,6 +18,7 @@ bool __LINK_ADDON_SSL__();
 bool __LINK_ADDON_TESSERACT__();
 bool __LINK_ADDON_TIF__();
 bool __LINK_ADDON_WEBRTC__();
+bool __LINK_ADDON_WEBSOCKET__();
 bool __LINK_ADDON_ZIP__();
 static bool _ =
     __LINK_ADDON_AAC__() |
@@ -33,6 +34,7 @@ static bool _ =
     __LINK_ADDON_TESSERACT__() |
     __LINK_ADDON_TIF__() |
     __LINK_ADDON_WEBRTC__() |
+    __LINK_ADDON_WEBSOCKET__() |
     __LINK_ADDON_ZIP__();
 
 namespace BOSS
@@ -323,30 +325,61 @@ namespace BOSS
 
     ////////////////////////////////////////////////////////////////////////////////
     static void WebRtc_Error() {BOSS_ASSERT("WebRtc애드온이 준비되지 않았습니다", false);}
-    BOSS_DEFINE_ADDON_FUNCTION(WebRtc, OpenForOffer, id_webrtc, return nullptr, void)
-    BOSS_DEFINE_ADDON_FUNCTION(WebRtc, OpenForAnswer, id_webrtc_read, return nullptr, chars)
-    BOSS_DEFINE_ADDON_FUNCTION(WebRtc, Close, void, return, id_webrtc_read)
-    BOSS_DEFINE_ADDON_FUNCTION(WebRtc, Bind, bool, return false, id_webrtc, chars)
-    BOSS_DEFINE_ADDON_FUNCTION(WebRtc, AddIce, bool, return false, id_webrtc_read, chars)
-    BOSS_DEFINE_ADDON_FUNCTION(WebRtc, Send, void, return, id_webrtc_read, bytes, sint32)
+    BOSS_DEFINE_ADDON_FUNCTION(WebRtc, OpenForOffer, id_webrtc, return nullptr, bool, bool)
+    BOSS_DEFINE_ADDON_FUNCTION(WebRtc, OpenForAnswer, id_webrtc, return nullptr, chars)
+    BOSS_DEFINE_ADDON_FUNCTION(WebRtc, BindWithAnswer, bool, return false, id_webrtc, chars)
+    BOSS_DEFINE_ADDON_FUNCTION(WebRtc, Close, void, return, id_webrtc)
+    BOSS_DEFINE_ADDON_FUNCTION(WebRtc, SetMute, void, return, id_webrtc, bool)
+    BOSS_DEFINE_ADDON_FUNCTION(WebRtc, SendData, void, return, id_webrtc, bytes, sint32)
 
-    id_webrtc AddOn::WebRtc::OpenForOffer(void)
-    {return Core_AddOn_WebRtc_OpenForOffer()();}
+    id_webrtc AddOn::WebRtc::OpenForOffer(bool audio, bool data)
+    {return Core_AddOn_WebRtc_OpenForOffer()(audio, data);}
 
-    id_webrtc_read AddOn::WebRtc::OpenForAnswer(chars offer_sdp)
+    id_webrtc AddOn::WebRtc::OpenForAnswer(chars offer_sdp)
     {return Core_AddOn_WebRtc_OpenForAnswer()(offer_sdp);}
 
-    void AddOn::WebRtc::Close(id_webrtc_read webrtc)
+    bool AddOn::WebRtc::BindWithAnswer(id_webrtc offer_webrtc, chars answer_sdp)
+    {return Core_AddOn_WebRtc_BindWithAnswer()(offer_webrtc, answer_sdp);}
+
+    void AddOn::WebRtc::Close(id_webrtc webrtc)
     {Core_AddOn_WebRtc_Close()(webrtc);}
 
-    bool AddOn::WebRtc::Bind(id_webrtc webrtc, chars answer_sdp)
-    {return Core_AddOn_WebRtc_Bind()(webrtc, answer_sdp);}
+    void AddOn::WebRtc::SetMute(id_webrtc answer_webrtc, bool on)
+    {Core_AddOn_WebRtc_SetMute()(answer_webrtc, on);}
 
-    bool AddOn::WebRtc::AddIce(id_webrtc_read webrtc, chars your_sdp)
-    {return Core_AddOn_WebRtc_AddIce()(webrtc, your_sdp);}
+    void AddOn::WebRtc::SendData(id_webrtc webrtc, bytes data, sint32 len)
+    {Core_AddOn_WebRtc_SendData()(webrtc, data, len);}
 
-    void AddOn::WebRtc::Send(id_webrtc_read webrtc, bytes data, sint32 len)
-    {Core_AddOn_WebRtc_Send()(webrtc, data, len);}
+    ////////////////////////////////////////////////////////////////////////////////
+    static void WebSocket_Error() {BOSS_ASSERT("WebSocket애드온이 준비되지 않았습니다", false);}
+    BOSS_DEFINE_ADDON_FUNCTION(WebSocket, Create, id_websocket, return nullptr, chars)
+    BOSS_DEFINE_ADDON_FUNCTION(WebSocket, Release, void, return, id_websocket)
+    BOSS_DEFINE_ADDON_FUNCTION(WebSocket, IsConnected, bool, return false, id_websocket)
+    BOSS_DEFINE_ADDON_FUNCTION(WebSocket, SendString, void, return, id_websocket, chars)
+    BOSS_DEFINE_ADDON_FUNCTION(WebSocket, SendBinary, void, return, id_websocket, bytes, sint32)
+    BOSS_DEFINE_ADDON_FUNCTION(WebSocket, GetRecvCount, sint32, return 0, id_websocket)
+    BOSS_DEFINE_ADDON_FUNCTION(WebSocket, RecvStringOnce, chars, return nullptr, id_websocket)
+
+    id_websocket AddOn::WebSocket::Create(chars url)
+    {return Core_AddOn_WebSocket_Create()(url);}
+
+    void AddOn::WebSocket::Release(id_websocket websocket)
+    {Core_AddOn_WebSocket_Release()(websocket);}
+
+    bool AddOn::WebSocket::IsConnected(id_websocket websocket)
+    {return Core_AddOn_WebSocket_IsConnected()(websocket);}
+
+    void AddOn::WebSocket::SendString(id_websocket websocket, chars text)
+    {Core_AddOn_WebSocket_SendString()(websocket, text);}
+
+    void AddOn::WebSocket::SendBinary(id_websocket websocket, bytes data, sint32 len)
+    {Core_AddOn_WebSocket_SendBinary()(websocket, data, len);}
+
+    sint32 AddOn::WebSocket::GetRecvCount(id_websocket websocket)
+    {return Core_AddOn_WebSocket_GetRecvCount()(websocket);}
+
+    chars AddOn::WebSocket::RecvStringOnce(id_websocket websocket)
+    {return Core_AddOn_WebSocket_RecvStringOnce()(websocket);}
 
     ////////////////////////////////////////////////////////////////////////////////
     static void Zip_Error() {BOSS_ASSERT("Zip애드온이 준비되지 않았습니다", false);}

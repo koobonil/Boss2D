@@ -15,6 +15,7 @@ namespace BOSS
     BOSS_DECLARE_ID(id_tesseract);
     BOSS_DECLARE_ID(id_tif);
     BOSS_DECLARE_ID(id_webrtc);
+    BOSS_DECLARE_ID(id_websocket);
     BOSS_DECLARE_ID(id_zip);
 
     //! \brief 애드온지원
@@ -172,16 +173,29 @@ namespace BOSS
             static id_bitmap ToBmp(bytes tif, sint32 length);
         };
 
-        //! \brief 웹Rtc연동
+        //! \brief WEBRTC연동
         class WebRtc
         {
         public:
-            static id_webrtc OpenForOffer(void);
-            static id_webrtc_read OpenForAnswer(chars offer_sdp);
-            static void Close(id_webrtc_read webrtc);
-            static bool Bind(id_webrtc webrtc, chars answer_sdp);
-            static bool AddIce(id_webrtc_read webrtc, chars your_sdp);
-            static void Send(id_webrtc_read webrtc, bytes data, sint32 len);
+            static id_webrtc OpenForOffer(bool audio, bool data);
+            static id_webrtc OpenForAnswer(chars offer_sdp);
+            static bool BindWithAnswer(id_webrtc offer_webrtc, chars answer_sdp);
+            static void Close(id_webrtc webrtc);
+            static void SetMute(id_webrtc answer_webrtc, bool on);
+            static void SendData(id_webrtc webrtc, bytes data, sint32 len);
+        };
+
+        //! \brief WEBSOCKET연동
+        class WebSocket
+        {
+        public:
+            static id_websocket Create(chars url);
+            static void Release(id_websocket websocket);
+            static bool IsConnected(id_websocket websocket);
+            static void SendString(id_websocket websocket, chars text);
+            static void SendBinary(id_websocket websocket, bytes data, sint32 len);
+            static sint32 GetRecvCount(id_websocket websocket);
+            static chars RecvStringOnce(id_websocket websocket);
         };
 
         //! \brief ZIP연동

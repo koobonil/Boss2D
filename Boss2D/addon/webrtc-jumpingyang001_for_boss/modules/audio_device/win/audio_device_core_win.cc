@@ -1,3 +1,5 @@
+// author BOSS
+
 /*
  *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
@@ -3397,6 +3399,11 @@ int32_t AudioDeviceWindowsCore::EnableBuiltInAEC(bool enable) {
   }
 
   _builtInAecEnabled = enable;
+
+  #if BOSS_WEBRTC_FORCE_DISABLE_DMO // added by BOSS
+    _builtInAecEnabled = false; // added by BOSS
+  #endif // added by BOSS
+
   return 0;
 }
 

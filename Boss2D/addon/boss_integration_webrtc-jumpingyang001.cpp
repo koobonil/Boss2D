@@ -3,6 +3,8 @@
 
 #include "boss_integration_webrtc-jumpingyang001.h"
 
+#define BOSS_WEBRTC_FORCE_DISABLE_DMO 1
+
 #include <boss.hpp>
 
 #if BOSS_WINDOWS

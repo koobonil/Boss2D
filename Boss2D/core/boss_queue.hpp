@@ -46,7 +46,7 @@ namespace BOSS
         \brief 현재 큐에 적재된 데이터수량
         \return 데이터수량
         */
-        sint32 Count()
+        sint32 Count() const
         {
             sint32 Result = 0;
             if(FORTHREAD) Mutex::Lock(DataMutex);
@@ -133,6 +133,6 @@ namespace BOSS
     private:
         QueueElement Head;
         sint32 DataCount;
-        id_mutex DataMutex;
+        mutable id_mutex DataMutex;
     };
 }

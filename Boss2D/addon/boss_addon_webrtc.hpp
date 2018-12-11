@@ -26,7 +26,7 @@ public:
     ~WebRtcConnector();
 
 public:
-    void Release();
+    void SetMute(bool on);
 
 private:
     class PCO : public PeerConnectionObserver
@@ -93,8 +93,24 @@ private:
         void OnFailure(const std::string& error) override;
     };
 
+private:
+    class ATSI : public AudioTrackSinkInterface
+    {
+    public:
+        ATSI(WebRtcConnector& parent);
+        ~ATSI();
+    private:
+        WebRtcConnector& mParent;
+        id_sound mSound;
+
+    public:
+        void OnData(const void* audio_data, int bits_per_sample, int sample_rate,
+            size_t number_of_channels, size_t number_of_frames) override;
+    };
+
 public:
     rtc::scoped_refptr<PeerConnectionInterface> mPeerConnection;
+    rtc::scoped_refptr<MediaStreamInterface> mMediaStream;
     rtc::scoped_refptr<DataChannelInterface> mDataChannel;
     Context mSessionInfo;
 
@@ -103,6 +119,7 @@ public:
     DCO mDCO;
     rtc::scoped_refptr<CSDO> mCSDO;
     rtc::scoped_refptr<SSDO> mSSDO;
+    ATSI mATSI;
 };
 
 class WebRtcManager
@@ -112,16 +129,12 @@ public:
     ~WebRtcManager();
 
 public:
-    bool CreateOffer();
-    bool CreateAnswer(const Context& sdp);
-    bool Bind(const Context& sdp);
-    bool AddIce(const Context& sdp);
+    bool CreateOffer(bool audio, bool data);
+    bool CreateAnswer(const Context& offer_sdp);
+    bool BindSdp(const Context& answer_sdp);
+    bool AddIce(const Context& offer_sdp);
+    void SetMute(bool on);
     void Send(bytes data, sint32 len);
-
-private:
-    bool CreateDataChannel(chars channel);
-    bool SendToDataChannel(chars data);
-    bool SetRemoteDescription(chars type, chars sdp);
 
 private:
     class FactoryRunnable : public rtc::Runnable
@@ -143,5 +156,5 @@ private:
 
     rtc::scoped_refptr<PeerConnectionFactoryInterface> mConnectionFactory;
     PeerConnectionInterface::RTCConfiguration mConnectionConfig;
-    WebRtcConnector mConnector;
+    std::unique_ptr<WebRtcConnector> mConnector;
 };
