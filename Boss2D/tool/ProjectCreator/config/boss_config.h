@@ -23,6 +23,8 @@
 #define BOSS_NEED_ADDON_TENSORFLOW 0
 #define BOSS_NEED_ADDON_TESSERACT  0
 #define BOSS_NEED_ADDON_TIF        0
+#define BOSS_NEED_ADDON_WEBRTC     0
+#define BOSS_NEED_ADDON_WEBSOCKET  0
 #define BOSS_NEED_ADDON_ZIP        1
 
 ////////////////////////////////////////

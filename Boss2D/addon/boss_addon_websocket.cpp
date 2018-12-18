@@ -94,9 +94,9 @@ namespace BOSS
         const String* LastString = CurWebSocket->RecvStringOnce();
         if(LastString)
         {
-            CurWebSocket->mTempString = *LastString;
+            CurWebSocket->mTempForRecv = *LastString;
             delete LastString;
-            return (chars) CurWebSocket->mTempString;
+            return (chars) CurWebSocket->mTempForRecv;
         }
         return nullptr;
     }

@@ -8,7 +8,7 @@
     #pragma comment(lib, "ole32.lib")
     #pragma comment(lib, "shell32.lib")
 #elif BOSS_LINUX
-    #ifdef QT_HAVE_GRAPHICS
+    #ifndef BOSS_SILENT_NIGHT_IS_ENABLED
         #include <gtk/gtk.h>
     #endif
 #elif BOSS_IPHONE
@@ -378,7 +378,7 @@ namespace BOSS
                         if(shortpath) *shortpath = String::FromWChars(Platform::File::GetShortName(ResultPath));
                     }
                     CoUninitialize();
-                #elif BOSS_LINUX & defined(QT_HAVE_GRAPHICS)
+                #elif BOSS_LINUX & !defined(BOSS_SILENT_NIGHT_IS_ENABLED)
                     auto NewDialog = gtk_file_chooser_dialog_new(title, nullptr,
                         (isdir)? GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER : GTK_FILE_CHOOSER_ACTION_SAVE,
                         "_Cancel", GTK_RESPONSE_CANCEL, "_OK", GTK_RESPONSE_ACCEPT, nullptr);
@@ -402,7 +402,7 @@ namespace BOSS
 
             sint32 Popup_MessageDialog(chars title, chars text, DialogButtonType type)
             {
-                #if BOSS_LINUX & defined(QT_HAVE_GRAPHICS)
+                #if BOSS_LINUX & !defined(BOSS_SILENT_NIGHT_IS_ENABLED)
                     GtkMessageType MessageType = GTK_MESSAGE_INFO; // DBT_Ok
                     GtkButtonsType ButtonsType = GTK_BUTTONS_OK;
                     switch(type)

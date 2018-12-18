@@ -73,34 +73,12 @@ namespace BOSS
         return preverified;
     }
 
-    class HdlClass
-    {
-    public:
-        connection_hdl mHdl;
-    };
-
-    static void OnMessage(WebSocketPrivate* c, connection_hdl hdl, ClientType::message_ptr msg)
-    {
-        const String* NewMessage = new String(msg->get_payload().c_str());
-        Platform::BroadcastNotify("WebSocket:OnMessage", *NewMessage, NT_AddOn);
-
-        ((HdlClass*) c->mHdlClass)->mHdl = hdl;
-        c->mRecvStrings.Enqueue(NewMessage);
-    }
-
-    static void OnMessageTls(WebSocketPrivate* c, connection_hdl hdl, TlsClientType::message_ptr msg)
-    {
-        const String* NewMessage = new String(msg->get_payload().c_str());
-        Platform::BroadcastNotify("WebSocket:OnMessage", *NewMessage, NT_AddOn);
-
-        ((HdlClass*) c->mHdlClass)->mHdl = hdl;
-        c->mRecvStrings.Enqueue(NewMessage);
-    }
-
     static void OnOpen(WebSocketPrivate* c, connection_hdl hdl)
     {
         c->mState = WebSocketPrivate::State_Connected;
-        ((HdlClass*) c->mHdlClass)->mHdl = hdl;
+        if(c->mIsTls)
+            ((TlsClientType*) c->mClient)->interrupt(hdl);
+        else ((ClientType*) c->mClient)->interrupt(hdl);
     }
 
     static void OnFail(WebSocketPrivate* c, connection_hdl hdl)
@@ -111,6 +89,46 @@ namespace BOSS
     static void OnClose(WebSocketPrivate* c, connection_hdl hdl)
     {
         c->mState = WebSocketPrivate::State_Disconnected;
+    }
+
+    static void OnMessage(WebSocketPrivate* c, connection_hdl hdl, ClientType::message_ptr msg)
+    {
+        const String* NewMessage = new String(msg->get_payload().c_str());
+        Platform::BroadcastNotify("WebSocket:OnMessage", *NewMessage, NT_AddOn);
+        c->mRecvQueue.Enqueue(NewMessage);
+    }
+
+    static void OnMessageTls(WebSocketPrivate* c, connection_hdl hdl, TlsClientType::message_ptr msg)
+    {
+        const String* NewMessage = new String(msg->get_payload().c_str());
+        Platform::BroadcastNotify("WebSocket:OnMessage", *NewMessage, NT_AddOn);
+        c->mRecvQueue.Enqueue(NewMessage);
+    }
+
+    static void OnInterrupt(WebSocketPrivate* c, connection_hdl hdl)
+    {
+        if(c->mState == WebSocketPrivate::State_Connected)
+        {
+            while(auto CurData = c->mSendQueue.Dequeue())
+            {
+                if(CurData->mText)
+                {
+                    if(c->mIsTls)
+                        ((TlsClientType*) c->mClient)->send(hdl, (chars) *CurData->mText, frame::opcode::text);
+                    else ((ClientType*) c->mClient)->send(hdl, (chars) *CurData->mText, frame::opcode::text);
+                }
+                else
+                {
+                    if(c->mIsTls)
+                        ((TlsClientType*) c->mClient)->send(hdl, &(*CurData->mData)[0], CurData->mData->Count(), frame::opcode::binary);
+                    else ((ClientType*) c->mClient)->send(hdl, &(*CurData->mData)[0], CurData->mData->Count(), frame::opcode::binary);
+                }
+                delete CurData;
+            }
+            if(c->mIsTls)
+                ((TlsClientType*) c->mClient)->interrupt(hdl);
+            else ((ClientType*) c->mClient)->interrupt(hdl);
+        }
     }
 
     static ContextPtr OnInitTls(const char* hostname, connection_hdl hdl)
@@ -143,16 +161,22 @@ namespace BOSS
         mState = State_Null;
         mIsTls = false;
         mClient = nullptr;
-        mHdlClass = new HdlClass();
     }
 
     WebSocketPrivate::~WebSocketPrivate()
     {
-        if(mIsTls) delete (TlsClientType*) mClient;
-        else delete (ClientType*) mClient;
-        delete (HdlClass*) mHdlClass;
-        while(0 < mRecvStrings.Count())
-            delete mRecvStrings.Dequeue();
+        if(mClient)
+        {
+            while(mState == State_Connection)
+                Platform::Utility::Sleep(0, false, true);
+            if(mIsTls)
+                ((TlsClientType*) mClient)->stop();
+            else ((ClientType*) mClient)->stop();
+            while(mClient)
+                Platform::Utility::Sleep(0, false, true);
+        }
+        while(auto OldData = mSendQueue.Dequeue()) delete OldData;
+        while(auto OldData = mRecvQueue.Dequeue()) delete OldData;
     }
 
     bool WebSocketPrivate::Connect(chars url)
@@ -171,6 +195,7 @@ namespace BOSS
                 CurClient->set_fail_handler(lib::bind(&OnFail, this, lib::placeholders::_1));
                 CurClient->set_close_handler(lib::bind(&OnClose, this, lib::placeholders::_1));
                 CurClient->set_message_handler(lib::bind(&OnMessageTls, this, lib::placeholders::_1, lib::placeholders::_2));
+                CurClient->set_interrupt_handler(lib::bind(&OnInterrupt, this, lib::placeholders::_1));
 
                 String HostName(url + 6);
                 const sint32 FindPos1 = HostName.Find(0, ":");
@@ -196,9 +221,16 @@ namespace BOSS
                 Platform::Utility::Threading(
                     [](void* data)->void
                     {
-                        ((TlsClientType*) data)->run();
-                    },
-                    CurClient);
+                        try
+                        {
+                            auto This = (WebSocketPrivate*) data;
+                            auto CurClient = (TlsClientType*) This->mClient;
+                            CurClient->run();
+                            This->mClient = nullptr;
+                            delete CurClient;
+                        }
+                        catch (exception const& e) {}
+                    }, this);
             }
             else
             {
@@ -211,6 +243,7 @@ namespace BOSS
                 CurClient->set_fail_handler(lib::bind(&OnFail, this, lib::placeholders::_1));
                 CurClient->set_close_handler(lib::bind(&OnClose, this, lib::placeholders::_1));
                 CurClient->set_message_handler(lib::bind(&OnMessage, this, lib::placeholders::_1, lib::placeholders::_2));
+                CurClient->set_interrupt_handler(lib::bind(&OnInterrupt, this, lib::placeholders::_1));
 
                 lib::error_code ErrorCode;
                 ClientType::connection_ptr Connection = CurClient->get_connection(url, ErrorCode);
@@ -222,22 +255,30 @@ namespace BOSS
                 }
 
                 mState = State_Connection;
-                mIsTls = true;
+                mIsTls = false;
                 mClient = CurClient;
 
                 CurClient->connect(Connection);
                 Platform::Utility::Threading(
                     [](void* data)->void
                     {
-                        ((ClientType*) data)->run();
-                    },
-                    CurClient);
+                        try
+                        {
+                            auto This = (WebSocketPrivate*) data;
+                            auto CurClient = (ClientType*) This->mClient;
+                            CurClient->run();
+                            This->mClient = nullptr;
+                            delete CurClient;
+                        }
+                        catch (exception const& e) {}
+                    }, this);
             }
         }
         catch (exception const& e)
         {
             BOSS_ASSERT(String::Format("Connect가 실패하였습니다(%s)", e.what()), false);
-            if(mIsTls) delete (TlsClientType*) mClient;
+            if(mIsTls)
+                delete (TlsClientType*) mClient;
             else delete (ClientType*) mClient;
             mClient = nullptr;
             return false;
@@ -252,26 +293,24 @@ namespace BOSS
 
     void WebSocketPrivate::SendString(chars text)
     {
-        if(mIsTls)
-            ((TlsClientType*) mClient)->send(((HdlClass*) mHdlClass)->mHdl, text, frame::opcode::text);
-        else ((ClientType*) mClient)->send(((HdlClass*) mHdlClass)->mHdl, text, frame::opcode::text);
+        if(mState == State_Connected)
+            mSendQueue.Enqueue(new SendData(text));
     }
 
     void WebSocketPrivate::SendBinary(bytes data, sint32 len)
     {
-        if(mIsTls)
-            ((TlsClientType*) mClient)->send(((HdlClass*) mHdlClass)->mHdl, data, len, frame::opcode::binary);
-        else ((ClientType*) mClient)->send(((HdlClass*) mHdlClass)->mHdl, data, len, frame::opcode::binary);
+        if(mState == State_Connected)
+            mSendQueue.Enqueue(new SendData(data, len));
     }
 
     sint32 WebSocketPrivate::GetRecvCount() const
     {
-        return mRecvStrings.Count();
+        return mRecvQueue.Count();
     }
 
     const String* WebSocketPrivate::RecvStringOnce()
     {
-        return mRecvStrings.Dequeue();
+        return mRecvQueue.Dequeue();
     }
 }
 
@@ -298,7 +337,7 @@ namespace boost
         class fake_error_category : public error_category
         {
         public:
-            const char* name() const noexcept override {return nullptr;}
+            const char* name() const noexcept override {return "";}
 	        std::string message(int _Errval) const override {return "";}
         };
 

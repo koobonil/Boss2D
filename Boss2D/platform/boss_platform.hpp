@@ -4,6 +4,12 @@
 #include <element/boss_point.hpp>
 #include <element/boss_vector.hpp>
 
+#if BOSS_NEED_SILENT_NIGHT
+    #define BOSS_SILENT_NIGHT_IS_ENABLED
+#elif defined(BOSS_PLATFORM_QT5) && !defined(QT_HAVE_GRAPHICS)
+    #define BOSS_SILENT_NIGHT_IS_ENABLED
+#endif
+
 namespace BOSS
 {
     enum WindowEvent {WE_Tick, WE_Max};

@@ -9,7 +9,7 @@ ZAY_VIEW_API OnCommand(CommandType type, chars topic, id_share in, id_cloned_sha
 {
 }
 
-ZAY_VIEW_API OnNotify(chars sender, chars topic, id_share in, id_cloned_share* out)
+ZAY_VIEW_API OnNotify(NotifyType type, chars topic, id_share in, id_cloned_share* out)
 {
 }
 

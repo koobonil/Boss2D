@@ -9,27 +9,43 @@
 
     #include <QTimer>
     #include <QElapsedTimer>
-    #include <QEvent>
-    #include <QCloseEvent>
-    #include <QMouseEvent>
-    #include <QWheelEvent>
-    #include <QKeyEvent>
-    #include <QResizeEvent>
-    #include <QPaintEvent>
     #include <QFile>
     #include <QFileInfo>
     #include <QDir>
     #include <QThread>
     #include <QEventLoop>
+    #include <QEvent>
     #include <QSettings>
-    #include <QAction>
-    #include <QStyle>
-    #include <QToolTip>
+    #include <QCoreApplication>
+    #include <QStandardPaths>
+    #include <QDateTime>
+    #include <QPoint>
+    #include <QSize>
+    #include <QRect>
+    #include <QUrl>
 
     #ifdef QT_HAVE_GRAPHICS
         #include <QtWidgets>
         #include <QMainWindow>
         #include <QSystemTrayIcon>
+        #include <QAction>
+        #include <QStyle>
+        #include <QToolTip>
+        #include <QFont>
+        #include <QFontMetrics>
+        #include <QPalette>
+        #include <QCursor>
+        #include <QCloseEvent>
+        #include <QResizeEvent>
+        #include <QPaintEvent>
+        #include <QMouseEvent>
+        #include <QWheelEvent>
+        #include <QKeyEvent>
+        #include <QDesktopServices>
+        #include <QGLWidget>
+        #include <QGLFunctions>
+        #include <QGLShaderProgram>
+        #include <QGLFramebufferObject>
     #endif
 
     #include <QBuffer>
@@ -38,13 +54,6 @@
     #include <QUdpSocket>
     #include <QTcpServer>
     #include <QNetworkInterface>
-
-    #ifdef QT_HAVE_GRAPHICS
-        #include <QGLWidget>
-        #include <QGLFunctions>
-        #include <QGLShaderProgram>
-        #include <QGLFramebufferObject>
-    #endif
 
     #ifdef QT_HAVE_PURCHASING
         #include <QtPurchasing>
@@ -71,7 +80,6 @@
         #include <QAudioDeviceInfo>
     #endif
 
-    #include <QDesktopServices>
     #include <QLocalSocket>
     #include <QLocalServer>
     #include <QSharedMemory>
@@ -101,12 +109,1205 @@
 
     #define USER_FRAMECOUNT (60)
 
+    #ifndef BOSS_SILENT_NIGHT_IS_ENABLED
+        typedef WId WIdPrivate;
+        typedef QColor ColorPrivate;
+        typedef QMatrix MatrixPrivate;
+        typedef QFocusEvent FocusEventPrivate;
+        typedef QCloseEvent CloseEventPrivate;
+        typedef QResizeEvent ResizeEventPrivate;
+        typedef QPaintEvent PaintEventPrivate;
+        typedef QInputEvent InputEventPrivate;
+        typedef QMouseEvent MouseEventPrivate;
+        typedef QWheelEvent WheelEventPrivate;
+        typedef QKeyEvent KeyEventPrivate;
+        typedef QDesktopServices DesktopServicesPrivate;
+        typedef QFont FontPrivate;
+        typedef QFontMetrics FontMetricsPrivate;
+        typedef QPalette PalettePrivate;
+        typedef QCursor CursorPrivate;
+        typedef QPaintDevice PaintDevicePrivate;
+        typedef QPainter PainterPrivate;
+        typedef QPainterPath PainterPathPrivate;
+        typedef QImage ImagePrivate;
+        typedef QBitmap BitmapPrivate;
+        typedef QPixmap PixmapPrivate;
+        typedef QStyle StylePrivate;
+        typedef QScreen ScreenForPrivate;
+        typedef QIcon IconPrivate;
+        typedef QAction ActionPrivate;
+        typedef QWindow WindowPrivate;
+        typedef QList<QWindow*> WindowListPrivate;
+        typedef QWidget WidgetPrivate;
+        typedef QList<QWidget*> WidgetListPrivate;
+        typedef QDesktopWidget DesktopWidgetPrivate;
+        typedef QGuiApplication GuiApplicationPrivate;
+        typedef QApplication ApplicationPrivate;
+        typedef QFrame FramePrivate;
+        typedef QMenu MenuPrivate;
+        typedef QMenuBar MenuBarPrivate;
+        typedef QStatusBar StatusBarPrivate;
+        typedef QToolBar ToolBarPrivate;
+        typedef QDockWidget DockWidgetPrivate;
+        typedef QMainWindow MainWindowPrivate;
+        typedef QAbstractScrollArea AbstractScrollAreaPrivate;
+        typedef QMdiArea MdiAreaPrivate;
+        typedef QValidator ValidatorPrivate;
+        typedef QIntValidator IntValidatorPrivate;
+        typedef QDoubleValidator DoubleValidatorPrivate;
+        typedef QSystemTrayIcon SystemTrayIconPrivate;
+        typedef QHBoxLayout HBoxLayoutPrivate;
+        typedef QLineEdit LineEditPrivate;
+        typedef QListWidgetItem ListWidgetItemPrivate;
+        typedef QListWidget ListWidgetPrivate;
+        typedef QInputDialog InputDialogPrivate;
+        typedef QColorDialog ColorDialogPrivate;
+        typedef QGLWidget GLWidgetPrivate;
+    #else
+        class WIdForEmpty;
+        typedef WIdForEmpty WIdPrivate;
+        class ColorForEmpty;
+        typedef ColorForEmpty ColorPrivate;
+        class MatrixForEmpty;
+        typedef MatrixForEmpty MatrixPrivate;
+        class FocusEventForEmpty;
+        typedef FocusEventForEmpty FocusEventPrivate;
+        class CloseEventForEmpty;
+        typedef CloseEventForEmpty CloseEventPrivate;
+        class ResizeEventForEmpty;
+        typedef ResizeEventForEmpty ResizeEventPrivate;
+        class PaintEventForEmpty;
+        typedef PaintEventForEmpty PaintEventPrivate;
+        class InputEventForEmpty;
+        typedef InputEventForEmpty InputEventPrivate;
+        class MouseEventForEmpty;
+        typedef MouseEventForEmpty MouseEventPrivate;
+        class WheelEventForEmpty;
+        typedef WheelEventForEmpty WheelEventPrivate;
+        class KeyEventForEmpty;
+        typedef KeyEventForEmpty KeyEventPrivate;
+        class DesktopServicesForEmpty;
+        typedef DesktopServicesForEmpty DesktopServicesPrivate;
+        class FontForEmpty;
+        typedef FontForEmpty FontPrivate;
+        class FontMetricsForEmpty;
+        typedef FontMetricsForEmpty FontMetricsPrivate;
+        class PaletteForEmpty;
+        typedef PaletteForEmpty PalettePrivate;
+        class CursorForEmpty;
+        typedef CursorForEmpty CursorPrivate;
+        class PaintDeviceForEmpty;
+        typedef PaintDeviceForEmpty PaintDevicePrivate;
+        class PainterForEmpty;
+        typedef PainterForEmpty PainterPrivate;
+        class PainterPathForEmpty;
+        typedef PainterPathForEmpty PainterPathPrivate;
+        class ImageForEmpty;
+        typedef ImageForEmpty ImagePrivate;
+        class BitmapForEmpty;
+        typedef BitmapForEmpty BitmapPrivate;
+        class PixmapForEmpty;
+        typedef PixmapForEmpty PixmapPrivate;
+        class StyleForEmpty;
+        typedef StyleForEmpty StylePrivate;
+        class ScreenForEmpty;
+        typedef ScreenForEmpty ScreenForPrivate;
+        class IconForEmpty;
+        typedef IconForEmpty IconPrivate;
+        class ActionForEmpty;
+        typedef ActionForEmpty ActionPrivate;
+        class WindowForEmpty;
+        typedef WindowForEmpty WindowPrivate;
+        typedef QList<WindowPrivate*> WindowListPrivate;
+        class WidgetForEmpty;
+        typedef WidgetForEmpty WidgetPrivate;
+        typedef QList<WidgetPrivate*> WidgetListPrivate;
+        class DesktopWidgetForEmpty;
+        typedef DesktopWidgetForEmpty DesktopWidgetPrivate;
+        class GuiApplicationForEmpty;
+        typedef GuiApplicationForEmpty GuiApplicationPrivate;
+        class ApplicationForEmpty;
+        typedef ApplicationForEmpty ApplicationPrivate;
+        class FrameForEmpty;
+        typedef FrameForEmpty FramePrivate;
+        class MenuForEmpty;
+        typedef MenuForEmpty MenuPrivate;
+        class MenuBarForEmpty;
+        typedef MenuBarForEmpty MenuBarPrivate;
+        class StatusBarForEmpty;
+        typedef StatusBarForEmpty StatusBarPrivate;
+        class ToolBarForEmpty;
+        typedef ToolBarForEmpty ToolBarPrivate;
+        class DockWidgetForEmpty;
+        typedef DockWidgetForEmpty DockWidgetPrivate;
+        class MainWindowForEmpty;
+        typedef MainWindowForEmpty MainWindowPrivate;
+        class AbstractScrollAreaForEmpty;
+        typedef AbstractScrollAreaForEmpty AbstractScrollAreaPrivate;
+        class MdiAreaForEmpty;
+        typedef MdiAreaForEmpty MdiAreaPrivate;
+        class ValidatorForEmpty;
+        typedef ValidatorForEmpty ValidatorPrivate;
+        class IntValidatorForEmpty;
+        typedef IntValidatorForEmpty IntValidatorPrivate;
+        class DoubleValidatorForEmpty;
+        typedef DoubleValidatorForEmpty DoubleValidatorPrivate;
+        class SystemTrayIconForEmpty;
+        typedef SystemTrayIconForEmpty SystemTrayIconPrivate;
+        class HBoxLayoutForEmpty;
+        typedef HBoxLayoutForEmpty HBoxLayoutPrivate;
+        class LineEditForEmpty;
+        typedef LineEditForEmpty LineEditPrivate;
+        class ListWidgetItemForEmpty;
+        typedef ListWidgetItemForEmpty ListWidgetItemPrivate;
+        class ListWidgetForEmpty;
+        typedef ListWidgetForEmpty ListWidgetPrivate;
+        class InputDialogForEmpty;
+        typedef InputDialogForEmpty InputDialogPrivate;
+        class ColorDialogForEmpty;
+        typedef ColorDialogForEmpty ColorDialogPrivate;
+        class GLWidgetForEmpty;
+        typedef GLWidgetForEmpty GLWidgetPrivate;
+    #endif
+
+    class WIdForEmpty
+    {
+    public:
+        WIdForEmpty() {}
+        WIdForEmpty(ublock wid) {mWId = wid;}
+        ~WIdForEmpty() {}
+
+    public:
+        operator ublock() {return mWId;}
+
+    public:
+        ublock mWId;
+    };
+
+    class ColorForEmpty
+    {
+    public:
+        ColorForEmpty() {}
+        ColorForEmpty(Qt::GlobalColor color) {}
+        ColorForEmpty(int r, int g, int b, int a = 255) {}
+        ~ColorForEmpty() {}
+
+    public:
+        int alpha() const {return 0;}
+        int red() const {return 0;}
+        int green() const {return 0;}
+        int blue() const {return 0;}
+        void setRgb(int r, int g, int b, int a = 255) {}
+        bool isValid() const {return false;}
+    };
+
+    class MatrixForEmpty
+    {
+    public:
+        MatrixForEmpty() {}
+        MatrixForEmpty(qreal m11, qreal m12, qreal m21, qreal m22, qreal dx, qreal dy) {}
+        ~MatrixForEmpty() {}
+
+    public:
+        MatrixForEmpty& translate(qreal dx, qreal dy) {return *this;}
+        MatrixForEmpty& scale(qreal sx, qreal sy) {return *this;}
+        MatrixForEmpty& shear(qreal sh, qreal sv) {return *this;}
+        MatrixForEmpty& rotate(qreal a) {return *this;}
+        qreal m11() const {return 0;}
+        qreal m12() const {return 0;}
+        qreal m21() const {return 0;}
+        qreal m22() const {return 0;}
+        qreal dx() const {return 0;}
+        qreal dy() const {return 0;}
+    };
+
+    class FocusEventForEmpty : public QEvent
+    {
+        Q_GADGET
+
+    public:
+        FocusEventForEmpty(Type type) : QEvent(type) {}
+        ~FocusEventForEmpty() {}
+    };
+
+    class CloseEventForEmpty : public QEvent
+    {
+        Q_GADGET
+
+    public:
+        CloseEventForEmpty(Type type) : QEvent(type) {}
+        ~CloseEventForEmpty() {}
+    };
+
+    class ResizeEventForEmpty : public QEvent
+    {
+        Q_GADGET
+
+    public:
+        ResizeEventForEmpty(Type type) : QEvent(type) {}
+        ~ResizeEventForEmpty() {}
+
+    public:
+        const QSize& size() const {return mSize;}
+
+    public:
+        QSize mSize;
+    };
+
+    class PaintEventForEmpty : public QEvent
+    {
+        Q_GADGET
+
+    public:
+        PaintEventForEmpty(Type type) : QEvent(type) {}
+        ~PaintEventForEmpty() {}
+    };
+
+    class InputEventForEmpty : public QEvent
+    {
+        Q_GADGET
+
+    public:
+        InputEventForEmpty(Type type) : QEvent(type) {}
+        ~InputEventForEmpty() {}
+    };
+
+    class MouseEventForEmpty : public InputEventForEmpty
+    {
+        Q_GADGET
+
+    public:
+        MouseEventForEmpty(Type type) : InputEventForEmpty(type) {}
+        ~MouseEventForEmpty() {}
+
+    public:
+        Qt::MouseButton button() const {return Qt::MouseButton();}
+        Qt::MouseButtons buttons() const {return Qt::MouseButtons();}
+        QPoint pos() const {return QPoint();}
+        int x() const {return 0;}
+        int y() const {return 0;}
+    };
+
+    class WheelEventForEmpty : public InputEventForEmpty
+    {
+        Q_GADGET
+
+    public:
+        WheelEventForEmpty(Type type) : InputEventForEmpty(type) {}
+        ~WheelEventForEmpty() {}
+    public:
+        int delta() const {return 0;}
+        QPoint pos() const {return QPoint();}
+        int x() const {return 0;}
+        int y() const {return 0;}
+    };
+
+    class KeyEventForEmpty : public InputEventForEmpty
+    {
+        Q_GADGET
+
+    public:
+        KeyEventForEmpty(Type type) : InputEventForEmpty(type) {}
+        ~KeyEventForEmpty() {}
+
+    public:
+        int key() const {return 0;}
+        QString text() const {return QString();}
+        bool isAutoRepeat() const {return false;}
+    };
+
+    class DesktopServicesForEmpty
+    {
+    public:
+        DesktopServicesForEmpty() {}
+        ~DesktopServicesForEmpty() {}
+
+    public:
+        static bool openUrl(const QUrl& url) {return false;}
+    };
+
+    class FontForEmpty
+    {
+    public:
+        FontForEmpty() {}
+        FontForEmpty(const FontForEmpty&) {}
+        FontForEmpty(const QString& family, int pointSize = -1, int weight = -1, bool italic = false) {}
+        ~FontForEmpty() {}
+
+    public:
+        FontForEmpty& operator=(const FontForEmpty&) {return *this;}
+    };
+
+    class FontMetricsForEmpty
+    {
+    public:
+        FontMetricsForEmpty(const FontPrivate&) {}
+        ~FontMetricsForEmpty() {}
+
+    public:
+        int ascent() const {return 0;}
+        int width(const QString&, int len = -1) const {return 0;}
+        int height() const {return 0;}
+    };
+
+    class PaletteForEmpty
+    {
+        Q_GADGET
+
+    public:
+        enum ColorGroup { Active, Disabled, Inactive, NColorGroups, Current, All, Normal = Active };
+        Q_ENUM(ColorGroup)
+        enum ColorRole { WindowText, Button, Light, Midlight, Dark, Mid,
+            Text, BrightText, ButtonText, Base, Window, Shadow,
+            Highlight, HighlightedText,
+            Link, LinkVisited,
+            AlternateBase,
+            NoRole,
+            ToolTipBase, ToolTipText,
+            NColorRoles = ToolTipText + 1,
+            Foreground = WindowText, Background = Window };
+        Q_ENUM(ColorRole)
+
+    public:
+        PaletteForEmpty() {}
+        ~PaletteForEmpty() {}
+
+    public:
+        void setColor(ColorRole cr, const ColorPrivate& color) {}
+    };
+
+    class CursorForEmpty
+    {
+    public:
+        CursorForEmpty() {}
+        ~CursorForEmpty() {}
+
+    public:
+        static QPoint pos() {return QPoint();}
+    };
+
+    class PaintDeviceForEmpty : public QObject
+    {
+        Q_OBJECT
+
+    public:
+        PaintDeviceForEmpty() {}
+        ~PaintDeviceForEmpty() {}
+    };
+
+    class PainterForEmpty : public QObject
+    {
+        Q_OBJECT
+
+    public:
+        enum CompositionMode
+        {
+            CompositionMode_SourceOver,
+            CompositionMode_DestinationOver,
+            CompositionMode_Clear,
+            CompositionMode_Source,
+            CompositionMode_Destination,
+            CompositionMode_SourceIn,
+            CompositionMode_DestinationIn,
+            CompositionMode_SourceOut,
+            CompositionMode_DestinationOut,
+            CompositionMode_SourceAtop,
+            CompositionMode_DestinationAtop,
+            CompositionMode_Xor,
+            //svg 1.2 blend modes
+            CompositionMode_Plus,
+            CompositionMode_Multiply,
+            CompositionMode_Screen,
+            CompositionMode_Overlay,
+            CompositionMode_Darken,
+            CompositionMode_Lighten,
+            CompositionMode_ColorDodge,
+            CompositionMode_ColorBurn,
+            CompositionMode_HardLight,
+            CompositionMode_SoftLight,
+            CompositionMode_Difference,
+            CompositionMode_Exclusion,
+            // ROPs
+            RasterOp_SourceOrDestination,
+            RasterOp_SourceAndDestination,
+            RasterOp_SourceXorDestination,
+            RasterOp_NotSourceAndNotDestination,
+            RasterOp_NotSourceOrNotDestination,
+            RasterOp_NotSourceXorDestination,
+            RasterOp_NotSource,
+            RasterOp_NotSourceAndDestination,
+            RasterOp_SourceAndNotDestination,
+            RasterOp_NotSourceOrDestination,
+            RasterOp_SourceOrNotDestination,
+            RasterOp_ClearDestination,
+            RasterOp_SetDestination,
+            RasterOp_NotDestination
+        };
+        enum RenderHint
+        {
+            Antialiasing = 0x01,
+            TextAntialiasing = 0x02,
+            SmoothPixmapTransform = 0x04,
+            HighQualityAntialiasing = 0x08,
+            NonCosmeticDefaultPen = 0x10,
+            Qt4CompatiblePainting = 0x20
+        };
+        Q_FLAG(RenderHint)
+
+        Q_DECLARE_FLAGS(RenderHints, RenderHint)
+        Q_FLAG(RenderHints)
+
+    public:
+        PainterForEmpty() : mFontMetrics(mFont) {}
+        ~PainterForEmpty() {}
+
+    public:
+        PaintDevicePrivate* device() const {return nullptr;}
+        bool begin(PaintDevicePrivate*) {return false;}
+        bool end() {return false;}
+        void setRenderHint(RenderHint hint, bool on = true) {}
+        void setRenderHints(RenderHints hints, bool on = true) {}
+        void setMatrix(const MatrixPrivate& matrix, bool combine = false) {mMatrix = matrix;}
+        const MatrixPrivate& matrix() const {return mMatrix;}
+        void setClipRect(const QRectF&) {}
+        QRectF clipBoundingRect() const {return QRectF();}
+        const FontPrivate& font() const {return mFont;}
+        void setFont(const FontPrivate& f) {mFont = f;}
+        FontMetricsPrivate fontMetrics() const {return mFontMetrics;}
+
+    public:
+        MatrixPrivate mMatrix;
+        FontPrivate mFont;
+        FontMetricsPrivate mFontMetrics;
+    };
+    Q_DECLARE_OPERATORS_FOR_FLAGS(PainterForEmpty::RenderHints)
+
+    class PainterPathForEmpty : public QObject
+    {
+        Q_OBJECT
+
+    public:
+        PainterPathForEmpty() {}
+        ~PainterPathForEmpty() {}
+    };
+
+    class ImageForEmpty : public PaintDeviceForEmpty
+    {
+        Q_OBJECT
+
+    public:
+        enum Format {
+            Format_Invalid,
+            Format_Mono,
+            Format_MonoLSB,
+            Format_Indexed8,
+            Format_RGB32,
+            Format_ARGB32,
+            Format_ARGB32_Premultiplied,
+            Format_RGB16,
+            Format_ARGB8565_Premultiplied,
+            Format_RGB666,
+            Format_ARGB6666_Premultiplied,
+            Format_RGB555,
+            Format_ARGB8555_Premultiplied,
+            Format_RGB888,
+            Format_RGB444,
+            Format_ARGB4444_Premultiplied,
+            Format_RGBX8888,
+            Format_RGBA8888,
+            Format_RGBA8888_Premultiplied,
+            Format_BGR30,
+            Format_A2BGR30_Premultiplied,
+            Format_RGB30,
+            Format_A2RGB30_Premultiplied,
+            Format_Alpha8,
+            Format_Grayscale8,
+            #if 0
+                // reserved for future use
+                Format_Grayscale16,
+            #endif
+            #ifndef Q_QDOC
+                NImageFormats
+            #endif
+        };
+
+    public:
+        ImageForEmpty() {}
+        ImageForEmpty(const ImageForEmpty&) {}
+        ImageForEmpty(int width, int height, Format format) {}
+        ImageForEmpty(bytes data, int width, int height, Format format) {}
+        ~ImageForEmpty() {}
+
+    public:
+        uint08* bits() {return nullptr;}
+        bytes bits() const {return nullptr;}
+        bytes constBits() const {return nullptr;}
+        int bitPlaneCount() const {return 0;}
+        int	width() const {return 0;}
+        int	height() const {return 0;}
+        ImageForEmpty scaled(int w, int h) const {return ImageForEmpty();}
+        ImageForEmpty transformed(const MatrixPrivate& matrix) const {return ImageForEmpty();}
+        ImageForEmpty convertToFormat(Format f) const {return ImageForEmpty();}
+
+    public:
+        ImageForEmpty& operator=(const ImageForEmpty&) {return *this;}
+    };
+
+    class BitmapForEmpty : public PaintDeviceForEmpty
+    {
+        Q_OBJECT
+
+    public:
+        BitmapForEmpty() {}
+        BitmapForEmpty(const BitmapForEmpty&) {}
+        ~BitmapForEmpty() {}
+    };
+
+    class PixmapForEmpty : public PaintDeviceForEmpty
+    {
+        Q_OBJECT
+
+    public:
+        PixmapForEmpty() {}
+        PixmapForEmpty(const PixmapForEmpty&) {}
+        ~PixmapForEmpty() {}
+
+    public:
+        static PixmapForEmpty fromImage(const ImagePrivate& image) {return PixmapForEmpty();}
+        bool convertFromImage(const ImagePrivate& img) {return false;}
+        int	width() const {return 0;}
+        int	height() const {return 0;}
+        ImagePrivate toImage() const {return ImagePrivate();}
+        BitmapPrivate mask() const {return BitmapPrivate();}
+
+    public:
+        PixmapForEmpty& operator=(const PixmapForEmpty&) {return *this;}
+    };
+
+    class StyleForEmpty : public QObject
+    {
+        Q_OBJECT
+
+    public:
+        enum PixelMetric {
+            PM_ButtonMargin,
+            PM_ButtonDefaultIndicator,
+            PM_MenuButtonIndicator,
+            PM_ButtonShiftHorizontal,
+            PM_ButtonShiftVertical,
+            PM_DefaultFrameWidth,
+            PM_SpinBoxFrameWidth,
+            PM_ComboBoxFrameWidth,
+            PM_MaximumDragDistance,
+            PM_ScrollBarExtent,
+            PM_ScrollBarSliderMin,
+            PM_SliderThickness,             // total slider thickness
+            PM_SliderControlThickness,      // thickness of the business part
+            PM_SliderLength,                // total length of slider
+            PM_SliderTickmarkOffset,        //
+            PM_SliderSpaceAvailable,        // available space for slider to move
+            PM_DockWidgetSeparatorExtent,
+            PM_DockWidgetHandleExtent,
+            PM_DockWidgetFrameWidth,
+            PM_TabBarTabOverlap,
+            PM_TabBarTabHSpace,
+            PM_TabBarTabVSpace,
+            PM_TabBarBaseHeight,
+            PM_TabBarBaseOverlap,
+            PM_ProgressBarChunkWidth,
+            PM_SplitterWidth,
+            PM_TitleBarHeight,
+            PM_MenuScrollerHeight,
+            PM_MenuHMargin,
+            PM_MenuVMargin,
+            PM_MenuPanelWidth,
+            PM_MenuTearoffHeight,
+            PM_MenuDesktopFrameWidth,
+            PM_MenuBarPanelWidth,
+            PM_MenuBarItemSpacing,
+            PM_MenuBarVMargin,
+            PM_MenuBarHMargin,
+            PM_IndicatorWidth,
+            PM_IndicatorHeight,
+            PM_ExclusiveIndicatorWidth,
+            PM_ExclusiveIndicatorHeight,
+            PM_DialogButtonsSeparator,
+            PM_DialogButtonsButtonWidth,
+            PM_DialogButtonsButtonHeight,
+            PM_MdiSubWindowFrameWidth,
+            PM_MDIFrameWidth = PM_MdiSubWindowFrameWidth,         // ### Qt 6: remove
+            PM_MdiSubWindowMinimizedWidth,
+            PM_MDIMinimizedWidth = PM_MdiSubWindowMinimizedWidth, // ### Qt 6: remove
+            PM_HeaderMargin,
+            PM_HeaderMarkSize,
+            PM_HeaderGripMargin,
+            PM_TabBarTabShiftHorizontal,
+            PM_TabBarTabShiftVertical,
+            PM_TabBarScrollButtonWidth,
+            PM_ToolBarFrameWidth,
+            PM_ToolBarHandleExtent,
+            PM_ToolBarItemSpacing,
+            PM_ToolBarItemMargin,
+            PM_ToolBarSeparatorExtent,
+            PM_ToolBarExtensionExtent,
+            PM_SpinBoxSliderHeight,
+            PM_DefaultTopLevelMargin, // ### Qt 6: remove
+            PM_DefaultChildMargin,    // ### Qt 6: remove
+            PM_DefaultLayoutSpacing,  // ### Qt 6: remove
+            PM_ToolBarIconSize,
+            PM_ListViewIconSize,
+            PM_IconViewIconSize,
+            PM_SmallIconSize,
+            PM_LargeIconSize,
+            PM_FocusFrameVMargin,
+            PM_FocusFrameHMargin,
+            PM_ToolTipLabelFrameWidth,
+            PM_CheckBoxLabelSpacing,
+            PM_TabBarIconSize,
+            PM_SizeGripSize,
+            PM_DockWidgetTitleMargin,
+            PM_MessageBoxIconSize,
+            PM_ButtonIconSize,
+            PM_DockWidgetTitleBarButtonMargin,
+            PM_RadioButtonLabelSpacing,
+            PM_LayoutLeftMargin,
+            PM_LayoutTopMargin,
+            PM_LayoutRightMargin,
+            PM_LayoutBottomMargin,
+            PM_LayoutHorizontalSpacing,
+            PM_LayoutVerticalSpacing,
+            PM_TabBar_ScrollButtonOverlap,
+            PM_TextCursorWidth,
+            PM_TabCloseIndicatorWidth,
+            PM_TabCloseIndicatorHeight,
+            PM_ScrollView_ScrollBarSpacing,
+            PM_ScrollView_ScrollBarOverlap,
+            PM_SubMenuOverlap,
+            PM_TreeViewIndentation,
+            PM_HeaderDefaultSectionSizeHorizontal,
+            PM_HeaderDefaultSectionSizeVertical,
+            PM_TitleBarButtonIconSize,
+            PM_TitleBarButtonSize,
+            // do not add any values below/greater than this
+            PM_CustomBase = 0xf0000000
+        };
+        Q_ENUM(PixelMetric)
+
+    public:
+        StyleForEmpty() {}
+        ~StyleForEmpty() {}
+
+    public:
+        int pixelMetric(PixelMetric metric) const {return 0;}
+    };
+
+    class ScreenForEmpty : public QObject
+    {
+        Q_OBJECT
+
+    public:
+        ScreenForEmpty() {}
+        ~ScreenForEmpty() {}
+
+    public:
+        PixmapPrivate grabWindow(WIdPrivate window, int x = 0, int y = 0, int w = -1, int h = -1) {return PixmapPrivate();}
+    };
+
+    class IconForEmpty
+    {
+    public:
+        IconForEmpty() {}
+        IconForEmpty(const QString& fileName) {}
+        ~IconForEmpty() {}
+    };
+
+    class ActionForEmpty : public QObject
+    {
+        Q_OBJECT
+
+    public:
+        ActionForEmpty(QObject* parent = nullptr) {}
+        ActionForEmpty(const QString& text, QObject* parent = nullptr) {}
+        ActionForEmpty(const IconPrivate& icon, const QString& text, QObject* parent = nullptr) {}
+        ~ActionForEmpty() {}
+
+    public:
+        void setStatusTip(const QString& statusTip) {}
+    };
+
+    class WindowForEmpty : public QObject
+    {
+        Q_OBJECT
+
+    public:
+        WindowForEmpty(WindowForEmpty* parent = nullptr) {}
+        ~WindowForEmpty() {}
+
+    public Q_SLOTS:
+        void alert(int msec) {}
+        bool close() {return true;}
+        void hide() {}
+        void lower() {}
+        void raise() {}
+        void requestActivate() {}
+        void requestUpdate() {}
+        void setGeometry(int posx, int posy, int w, int h) {}
+        void setGeometry(const QRect& rect) {}
+        void setHeight(int arg) {}
+        void setMaximumHeight(int h) {}
+        void setMaximumWidth(int w) {}
+        void setMinimumHeight(int h) {}
+        void setMinimumWidth(int w) {}
+        void setTitle(const QString&) {}
+        void setVisible(bool visible) {}
+        void setWidth(int arg) {}
+        void setX(int arg) {}
+        void setY(int arg) {}
+        void show() {}
+        void showFullScreen() {}
+        void showMaximized() {}
+        void showMinimized() {}
+        void showNormal() {}
+    };
+
+    class WidgetForEmpty : public PaintDeviceForEmpty
+    {
+        Q_OBJECT
+
+    public:
+        WidgetForEmpty(WidgetForEmpty* parent = nullptr) {}
+        ~WidgetForEmpty() {}
+
+    public:
+        void activateWindow() {}
+        void move(int x, int y) {}
+        void resize(const QSize&) {}
+        void resize(int w, int h) {}
+        bool isHidden() const {return false;}
+        void setAttribute(Qt::WidgetAttribute attribute, bool on = true) {}
+        void setAutoFillBackground(bool enabled) {}
+        void setFocusPolicy(Qt::FocusPolicy policy) {}
+        void setLayout(WidgetForEmpty*) {}
+        void setMouseTracking(bool enable) {}
+        void setMask(const BitmapPrivate&) {}
+        void clearMask() {}
+        void setMinimumSize(int minw, int minh) {}
+        void setMaximumSize(int maxw, int maxh) {}
+        void addAction(ActionPrivate* action) {}
+        void setWindowFlags(Qt::WindowFlags type) {}
+        Qt::WindowFlags windowFlags() const {return Qt::WindowFlags();}
+        void setWindowModality(Qt::WindowModality windowModality) {}
+        void setWindowOpacity(qreal level) {}
+        const PalettePrivate& palette() const {return mPalette;}
+        void setPalette(const PalettePrivate&) {}
+        QPoint mapToGlobal(const QPoint& pos) const {return QPoint();}
+        int	minimumWidth() const {return 0;}
+        int	minimumHeight() const {return 0;}
+        int	maximumWidth() const {return 0;}
+        int	maximumHeight() const {return 0;}
+        QPoint pos() const {return QPoint();}
+        QSize size() const {return QSize();}
+        WindowPrivate* windowHandle() const {return nullptr;}
+        Qt::WindowType windowType() const {return Qt::Widget;}
+        WIdPrivate winId() const {return WIdPrivate();}
+        int	x() const {return 0;}
+        int	y() const {return 0;}
+        int	width() const {return 0;}
+        int	height() const {return 0;}
+
+    public Q_SLOTS:
+        bool close() {return true;}
+        void hide() {}
+        void lower() {}
+        void raise() {}
+        void repaint() {}
+        void setDisabled(bool disable) {}
+        void setEnabled(bool) {}
+        void setFocus() {}
+        void setHidden(bool hidden) {}
+        void setStyleSheet(const QString& styleSheet) {}
+        virtual void setVisible(bool visible) {}
+        void setWindowModified(bool) {}
+        void setWindowTitle(const QString& name)
+        {
+            BOSS_TRACE("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            BOSS_TRACE("┃ %s", name.toUtf8().constData());
+            BOSS_TRACE("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        }
+        void setWindowIcon(const IconPrivate& icon) {}
+        void show() {}
+        void showFullScreen() {}
+        void showMaximized() {}
+        void showMinimized() {}
+        void showNormal() {}
+        void update() {}
+
+    protected:
+        virtual void changeEvent(QEvent* event) {}
+        virtual void closeEvent(CloseEventPrivate* event) {}
+                void create(WIdPrivate window = 0, bool initializeWindow = true, bool destroyOldWindow = true) {}
+                void destroy(bool destroyWindow = true, bool destroySubWindows = true) {}
+        virtual void enterEvent(QEvent* event) {}
+        virtual void focusInEvent(FocusEventPrivate* event) {}
+                bool focusNextChild() {return false;}
+        virtual bool focusNextPrevChild(bool next) {return false;}
+        virtual void focusOutEvent(FocusEventPrivate* event) {}
+                bool focusPreviousChild() {return false;}
+        virtual void keyPressEvent(KeyEventPrivate* event) {}
+        virtual void keyReleaseEvent(KeyEventPrivate* event) {}
+        virtual void leaveEvent(QEvent* event) {}
+        virtual void mouseDoubleClickEvent(MouseEventPrivate* event) {}
+        virtual void mouseMoveEvent(MouseEventPrivate* event) {}
+        virtual void mousePressEvent(MouseEventPrivate* event) {}
+        virtual void mouseReleaseEvent(MouseEventPrivate* event) {}
+        virtual bool nativeEvent(const QByteArray &eventType, void *message, long *result) {return false;}
+        virtual void paintEvent(PaintEventPrivate* event) {}
+        virtual void resizeEvent(ResizeEventPrivate* event) {}
+        virtual void wheelEvent(WheelEventPrivate* event) {}
+
+    protected:
+        PalettePrivate mPalette;
+    };
+
+    class DesktopWidgetForEmpty : public WidgetForEmpty
+    {
+        Q_OBJECT
+
+    public:
+        DesktopWidgetForEmpty(WidgetPrivate* parent = nullptr) {}
+        ~DesktopWidgetForEmpty() {}
+
+    public:
+        const QRect availableGeometry(int screen = -1) const {return QRect();}
+        const QRect availableGeometry(const WidgetPrivate* widget) const {return QRect();}
+        const QRect screenGeometry(int screen = -1) const {return QRect();}
+        const QRect screenGeometry(const WidgetPrivate* widget) const {return QRect();}
+        const QRect screenGeometry(const QPoint& point) const {return QRect();}
+        int numScreens() const {return 1;}
+        int screenNumber(const WidgetPrivate* widget = nullptr) const {return 0;}
+    };
+
+    class GuiApplicationForEmpty : public QCoreApplication
+    {
+        Q_OBJECT
+
+    public:
+        GuiApplicationForEmpty(int& argc, char** argv) : QCoreApplication(argc, argv) {}
+        ~GuiApplicationForEmpty() {}
+
+    public:
+        static ScreenForPrivate* primaryScreen() {return nullptr;}
+    };
+
+    class ApplicationForEmpty : public GuiApplicationForEmpty
+    {
+        Q_OBJECT
+
+    public:
+        ApplicationForEmpty(int& argc, char** argv) : GuiApplicationForEmpty(argc, argv) {}
+        ~ApplicationForEmpty() {}
+
+    public:
+        static WidgetPrivate* activeModalWidget() {return nullptr;}
+        static WidgetListPrivate topLevelWidgets() {return WidgetListPrivate();}
+        static DesktopWidgetPrivate* desktop() {return nullptr;}
+        static StylePrivate* style() {return nullptr;}
+    };
+
+    class FrameForEmpty : public WidgetForEmpty
+    {
+        Q_OBJECT
+
+    public:
+        FrameForEmpty(WidgetPrivate* parent = nullptr) {}
+        ~FrameForEmpty() {}
+    };
+
+    class MenuForEmpty : public WidgetForEmpty
+    {
+    public:
+        MenuForEmpty() {}
+        ~MenuForEmpty() {}
+
+    public:
+        ActionPrivate* addSeparator() {return nullptr;}
+    };
+
+    class MenuBarForEmpty : public WidgetForEmpty
+    {
+        Q_OBJECT
+
+    public:
+        MenuBarForEmpty(WidgetPrivate* parent = nullptr) {}
+        ~MenuBarForEmpty() {}
+
+    public:
+        MenuPrivate* addMenu(const QString& title) {return nullptr;}
+    };
+
+    class StatusBarForEmpty : public WidgetForEmpty
+    {
+        Q_OBJECT
+
+    public:
+        StatusBarForEmpty(WidgetPrivate* parent = nullptr) {}
+        ~StatusBarForEmpty() {}
+
+    public:
+        void showMessage(const QString& text, int timeout = 0) {}
+    };
+
+    class ToolBarForEmpty : public WidgetForEmpty
+    {
+        Q_OBJECT
+
+    public:
+        ToolBarForEmpty(WidgetPrivate* parent = nullptr) {}
+        ~ToolBarForEmpty() {}
+
+    public:
+        ActionPrivate* addSeparator() {return nullptr;}
+    };
+
+    class DockWidgetForEmpty : public WidgetForEmpty
+    {
+        Q_OBJECT
+
+    public:
+        DockWidgetForEmpty(WidgetPrivate* parent = nullptr) {}
+        DockWidgetForEmpty(const QString& title, WidgetPrivate* parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags()) {}
+        ~DockWidgetForEmpty() {}
+
+    public:
+        void setWidget(WidgetPrivate* widget) {}
+        void setAllowedAreas(Qt::DockWidgetAreas areas) {}
+        ActionPrivate* toggleViewAction() const {return nullptr;}
+    };
+
+    class MainWindowForEmpty : public WidgetForEmpty
+    {
+        Q_OBJECT
+
+    public:
+        MainWindowForEmpty(WidgetPrivate* parent = nullptr) {}
+        ~MainWindowForEmpty() {}
+
+    public:
+        MenuBarPrivate* menuBar() const {return nullptr;}
+        StatusBarPrivate* statusBar() const {return nullptr;}
+        ToolBarPrivate* addToolBar(const QString& title) {return nullptr;}
+        void addDockWidget(Qt::DockWidgetArea area, DockWidgetPrivate* dockwidget) {}
+        void setUnifiedTitleAndToolBarOnMac(bool set) {}
+        void setCentralWidget(WidgetPrivate* widget) {}
+        int logicalDpiX() const {return 0;}
+        int logicalDpiY() const {return 0;}
+        int devicePixelRatio() const {return 0;}
+        int depth() const {return 0;}
+    };
+
+    class AbstractScrollAreaForEmpty : public FrameForEmpty
+    {
+        Q_OBJECT
+
+    public:
+        AbstractScrollAreaForEmpty(WidgetPrivate* parent = nullptr) {}
+        ~AbstractScrollAreaForEmpty() {}
+
+    public:
+        WidgetPrivate* viewport() const {return nullptr;}
+    };
+
+    class MdiAreaForEmpty : public AbstractScrollAreaForEmpty
+    {
+        Q_OBJECT
+
+    public:
+        MdiAreaForEmpty(WidgetPrivate* parent = nullptr) {}
+        ~MdiAreaForEmpty() {}
+
+    public:
+        WidgetPrivate* currentSubWindow() const {return nullptr;}
+        WidgetPrivate* addSubWindow(WidgetPrivate* widget) {return nullptr;}
+
+    public Q_SLOTS:
+        void closeAllSubWindows() {}
+    };
+
+    class ValidatorForEmpty
+    {
+    public:
+        ValidatorForEmpty() {}
+        virtual ~ValidatorForEmpty() {}
+    };
+
+    class IntValidatorForEmpty : public ValidatorForEmpty
+    {
+    public:
+        IntValidatorForEmpty(QObject*) {}
+        ~IntValidatorForEmpty() {}
+    };
+
+    class DoubleValidatorForEmpty : public ValidatorForEmpty
+    {
+    public:
+        DoubleValidatorForEmpty(QObject*) {}
+        ~DoubleValidatorForEmpty() {}
+    };
+
+    class SystemTrayIconForEmpty : public QObject
+    {
+        Q_OBJECT
+
+    public:
+        enum ActivationReason
+        {Unknown, Context, DoubleClick, Trigger, MiddleClick};
+
+    public:
+        SystemTrayIconForEmpty(QObject* parent = nullptr) {}
+        ~SystemTrayIconForEmpty() {}
+
+    public:
+        void setIcon(const IconPrivate& icon) {}
+
+    public Q_SLOTS:
+        void show() {}
+    };
+
+    class HBoxLayoutForEmpty : public WidgetForEmpty
+    {
+        Q_OBJECT
+
+    public:
+        HBoxLayoutForEmpty(WidgetPrivate* parent = nullptr) {}
+        ~HBoxLayoutForEmpty() {}
+
+    public:
+        void setMargin(int) {}
+        void addWidget(WidgetPrivate*) {}
+    };
+
+    class LineEditForEmpty : public WidgetForEmpty
+    {
+        Q_OBJECT
+
+    public:
+        enum EchoMode {Normal, NoEcho, Password, PasswordEchoOnEdit};
+        Q_ENUM(EchoMode)
+
+    public:
+        LineEditForEmpty(const QString& contents, WidgetPrivate* parent = nullptr) {}
+        ~LineEditForEmpty() {}
+
+    public:
+        void setFrame(bool) {}
+        void setValidator(const ValidatorPrivate*) {}
+        QString text() const {return QString();}
+
+    public Q_SLOTS:
+        void clear() {}
+        void copy() const {}
+        void cut() {}
+        void paste() {}
+        void redo() {}
+        void selectAll() {}
+        void setText(const QString&) {}
+        void undo() {}
+    };
+
+    class ListWidgetItemForEmpty : public QObject
+    {
+        Q_OBJECT
+
+    public:
+        enum ItemType {Type = 0, UserType = 1000};
+
+    public:
+        ListWidgetItemForEmpty(const QString& text, WidgetPrivate* parent = nullptr, int type = Type) {}
+        ~ListWidgetItemForEmpty() {}
+
+    public:
+        void setTextAlignment(int alignment) {}
+    };
+
+    class ListWidgetForEmpty : public WidgetForEmpty
+    {
+        Q_OBJECT
+
+    public:
+        ListWidgetForEmpty(WidgetPrivate* parent = nullptr) {}
+        ~ListWidgetForEmpty() {}
+
+    public:
+        void addItem(ListWidgetItemPrivate* item) {}
+        int row(const ListWidgetItemPrivate* item) const {return 0;}
+    };
+
+    class InputDialogForEmpty : public QObject
+    {
+        Q_OBJECT
+
+    public:
+        InputDialogForEmpty(WidgetPrivate* parent = nullptr) {}
+        ~InputDialogForEmpty() {}
+
+    public:
+        static QString getText(WidgetPrivate* parent, const QString& title, const QString& label,
+            LineEditPrivate::EchoMode echo = LineEditPrivate::Normal,
+            const QString& text = QString(), bool* ok = nullptr,
+            Qt::WindowFlags flags = Qt::WindowFlags(),
+            Qt::InputMethodHints inputMethodHints = Qt::ImhNone) {return QString();}
+    };
+
+    class ColorDialogForEmpty : public QObject
+    {
+        Q_OBJECT
+
+    public:
+        enum ColorDialogOption {
+            ShowAlphaChannel    = 0x00000001,
+            NoButtons           = 0x00000002,
+            DontUseNativeDialog = 0x00000004
+        };
+        Q_ENUM(ColorDialogOption)
+
+        Q_DECLARE_FLAGS(ColorDialogOptions, ColorDialogOption)
+
+    public:
+        ColorDialogForEmpty(WidgetPrivate* parent = nullptr) {}
+        ~ColorDialogForEmpty() {}
+
+    public:
+        static ColorPrivate getColor(const ColorPrivate& initial = Qt::white,
+            WidgetPrivate* parent = nullptr,
+            const QString& title = QString(),
+            ColorDialogOptions options = ColorDialogOptions()) {return initial;}
+    };
+
+    class GLWidgetForEmpty : public WidgetForEmpty
+    {
+        Q_OBJECT
+
+    public:
+        GLWidgetForEmpty(WidgetForEmpty* parent = nullptr) {}
+        ~GLWidgetForEmpty() {}
+
+    public:
+        void makeCurrent() {}
+        void swapBuffers() {}
+
+    protected:
+        virtual void initializeGL() {}
+        virtual void paintGL() {}
+        virtual void resizeGL(int width, int height) {}
+
+    protected:
+        void setAutoBufferSwap(bool on) {}
+    };
+
     class MainData;
-    class QMainWindow;
     extern MainData* g_data;
-    extern QMainWindow* g_window;
-    extern QWidget* g_view;
-    extern QGLFunctions* g_func;
+    extern MainWindowPrivate* g_window;
+    extern WidgetPrivate* g_view;
     extern sint32 g_argc;
     extern char** g_argv;
 
@@ -126,22 +1327,22 @@
     {
     public:
         CanvasClass();
-        CanvasClass(QPaintDevice* device);
+        CanvasClass(PaintDevicePrivate* device);
         ~CanvasClass();
     public:
-        void Bind(QPaintDevice* device);
+        void Bind(PaintDevicePrivate* device);
         void Unbind();
     private:
-        void BindCore(QPaintDevice* device);
+        void BindCore(PaintDevicePrivate* device);
         void UnbindCore();
     public:
         static inline CanvasClass* get() {return ST();}
-        inline QPainter& painter() {return mPainter;}
-        inline const QColor& color() const {return mColor;}
+        inline PainterPrivate& painter() {return mPainter;}
+        inline const ColorPrivate& color() const {return mColor;}
         inline void SetColor(uint08 r, uint08 g, uint08 b, uint08 a)
         {mColor.setRgb(r, g, b, a);}
-        inline const QPainter::CompositionMode& mask() const {return mMask;}
-        inline void SetMask(QPainter::CompositionMode mask)
+        inline const PainterPrivate::CompositionMode& mask() const {return mMask;}
+        inline void SetMask(PainterPrivate::CompositionMode mask)
         {mMask = mask;}
     private:
         static inline CanvasClass*& ST() {static CanvasClass* _ = nullptr; return _;}
@@ -150,11 +1351,11 @@
         bool mIsSurfaceBinded;
         CanvasClass* mSavedCanvas;
         float mSavedZoom;
-        QFont mSavedFont;
+        FontPrivate mSavedFont;
         QRectF mSavedClipRect;
-        QPainter mPainter;
-        QColor mColor;
-        QPainter::CompositionMode mMask;
+        PainterPrivate mPainter;
+        ColorPrivate mColor;
+        PainterPrivate::CompositionMode mMask;
     };
 
     class ViewAPI : public QObject
@@ -166,7 +1367,7 @@
         enum WidgetRequest {WR_Null, WR_NeedExit = -1, WR_NeedHide = -2};
 
     public:
-        ViewAPI(ParentType type, buffer buf, View* manager, View::UpdaterCB cb, QWidget* data, QWidget* device)
+        ViewAPI(ParentType type, buffer buf, View* manager, View::UpdaterCB cb, WidgetPrivate* data, WidgetPrivate* device)
         {
             m_parent_type = type;
             m_parent_buf = buf;
@@ -275,7 +1476,7 @@
             update(1);
         }
 
-        inline void changeViewData(QWidget* data)
+        inline void changeViewData(WidgetPrivate* data)
         {
             m_view_data = data;
             if(m_view_manager)
@@ -287,19 +1488,19 @@
             return (ViewClass*) m_view_manager->GetClass();
         }
 
-        inline QWidget* getWidget() const
+        inline WidgetPrivate* getWidget() const
         {
             if(m_view_manager)
             {
                 if(m_view_data)
                     return m_view_data;
                 if(m_view_manager->IsNative())
-                    return (QWidget*) m_view_manager->GetClass();
+                    return (WidgetPrivate*) m_view_manager->GetClass();
             }
-            return (QWidget*) getParent();
+            return (WidgetPrivate*) getParent();
         }
 
-        inline QWidget* getWidgetForPaint() const
+        inline WidgetPrivate* getWidgetForPaint() const
         {
             if(m_paint_device)
                 return m_paint_device;
@@ -441,7 +1642,7 @@
             }
         }
 
-        bool closeEvent(QCloseEvent* event)
+        bool closeEvent(CloseEventPrivate* event)
         {
             if(canQuit())
             {
@@ -452,7 +1653,7 @@
             return false;
         }
 
-        void mousePressEvent(QMouseEvent* event)
+        void mousePressEvent(MouseEventPrivate* event)
         {
             if(!m_input_enabled)
             {
@@ -475,7 +1676,7 @@
             m_tooltip_timer.stop();
         }
 
-        void mouseMoveEvent(QMouseEvent* event)
+        void mouseMoveEvent(MouseEventPrivate* event)
         {
             if(!m_input_enabled)
             {
@@ -505,7 +1706,7 @@
                 m_longpress_timer.stop();
         }
 
-        void mouseReleaseEvent(QMouseEvent* event)
+        void mouseReleaseEvent(MouseEventPrivate* event)
         {
             if(!m_input_enabled)
             {
@@ -523,7 +1724,7 @@
             m_longpress_timer.stop();
         }
 
-        void wheelEvent(QWheelEvent* event)
+        void wheelEvent(WheelEventPrivate* event)
         {
             if(!m_input_enabled)
             {
@@ -544,7 +1745,7 @@
             }
         }
 
-        void keyPressEvent(QKeyEvent* event)
+        void keyPressEvent(KeyEventPrivate* event)
         {
             if(!m_input_enabled)
             {
@@ -555,7 +1756,7 @@
                 key(event->key(), event->text().toUtf8().constData(), true);
         }
 
-        void keyReleaseEvent(QKeyEvent* event)
+        void keyReleaseEvent(KeyEventPrivate* event)
         {
             if(!m_input_enabled)
             {
@@ -607,8 +1808,8 @@
         View* m_view_manager;
         View* m_next_manager;
         View::UpdaterCB m_view_cb;
-        QWidget* m_view_data;
-        QWidget* m_paint_device;
+        WidgetPrivate* m_view_data;
+        WidgetPrivate* m_paint_device;
 
     private:
         bool m_input_enabled;
@@ -626,12 +1827,12 @@
         QTimer m_longpress_timer;
     };
 
-    class GenericView : public QFrame
+    class GenericView : public FramePrivate
     {
         Q_OBJECT
 
     public:
-        GenericView(QWidget* parent = nullptr) : QFrame(parent)
+        GenericView(WidgetPrivate* parent = nullptr) : FramePrivate(parent)
         {
             m_api = nullptr;
             setMouseTracking(true);
@@ -676,32 +1877,32 @@
         GenericView& operator=(const GenericView& rhs) {BOSS_ASSERT("사용금지", false); return *this;}
 
     protected:
-        void resizeEvent(QResizeEvent* event) Q_DECL_OVERRIDE
+        void resizeEvent(ResizeEventPrivate* event) Q_DECL_OVERRIDE
         {
             m_api->resize(event->size().width(), event->size().height());
         }
 
-        void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE
+        void paintEvent(PaintEventPrivate* event) Q_DECL_OVERRIDE
         {
             if(m_api->hasViewManager())
                 m_api->paint();
-            else QFrame::paintEvent(event);
+            else FramePrivate::paintEvent(event);
             m_api->nextPaint();
         }
 
     protected:
-        void closeEvent(QCloseEvent* event) Q_DECL_OVERRIDE
+        void closeEvent(CloseEventPrivate* event) Q_DECL_OVERRIDE
         {
             if(m_api->closeEvent(event))
                 m_window.set_buf(nullptr);
         }
-        void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE {m_api->mousePressEvent(event);}
-        void mouseDoubleClickEvent(QMouseEvent* event) Q_DECL_OVERRIDE {m_api->mousePressEvent(event);}
-        void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE {m_api->mouseMoveEvent(event);}
-        void mouseReleaseEvent(QMouseEvent* event) Q_DECL_OVERRIDE {m_api->mouseReleaseEvent(event);}
-        void wheelEvent(QWheelEvent* event) Q_DECL_OVERRIDE {m_api->wheelEvent(event);}
-        void keyPressEvent(QKeyEvent* event) Q_DECL_OVERRIDE {m_api->keyPressEvent(event);}
-        void keyReleaseEvent(QKeyEvent* event) Q_DECL_OVERRIDE {m_api->keyReleaseEvent(event);}
+        void mousePressEvent(MouseEventPrivate* event) Q_DECL_OVERRIDE {m_api->mousePressEvent(event);}
+        void mouseDoubleClickEvent(MouseEventPrivate* event) Q_DECL_OVERRIDE {m_api->mousePressEvent(event);}
+        void mouseMoveEvent(MouseEventPrivate* event) Q_DECL_OVERRIDE {m_api->mouseMoveEvent(event);}
+        void mouseReleaseEvent(MouseEventPrivate* event) Q_DECL_OVERRIDE {m_api->mouseReleaseEvent(event);}
+        void wheelEvent(WheelEventPrivate* event) Q_DECL_OVERRIDE {m_api->wheelEvent(event);}
+        void keyPressEvent(KeyEventPrivate* event) Q_DECL_OVERRIDE {m_api->keyPressEvent(event);}
+        void keyReleaseEvent(KeyEventPrivate* event) Q_DECL_OVERRIDE {m_api->keyReleaseEvent(event);}
         static void updater(void* data, sint32 count)
         {((GenericView*) data)->m_api->update(count);}
 
@@ -751,20 +1952,20 @@
     public:
         static bool CloseAllWindows()
         {
-            QWindowList processedWindows;
-            while(auto w = QApplication::activeModalWidget())
+            WindowListPrivate processedWindows;
+            while(auto w = ApplicationPrivate::activeModalWidget())
             {
-                if(QWindow* window = w->windowHandle())
+                if(WindowPrivate* window = w->windowHandle())
                 {
                     if(!window->close()) return false;
                     processedWindows.append(window);
                 }
             }
-            for(auto w : QApplication::topLevelWidgets())
+            for(auto w : ApplicationPrivate::topLevelWidgets())
             {
                 if(w->windowType() == Qt::Desktop)
                     continue;
-                if(QWindow* window = w->windowHandle())
+                if(WindowPrivate* window = w->windowHandle())
                 {
                     if(!window->close()) return false;
                     processedWindows.append(window);
@@ -783,131 +1984,197 @@
         h_window m_window;
     };
 
-    class MainViewGL : public QGLWidget
-    {
-        Q_OBJECT
-
-    public:
-        MainViewGL(QWidget* parent) : QGLWidget(parent)
+    #ifndef BOSS_SILENT_NIGHT_IS_ENABLED
+        class MainViewGL : public GLWidgetPrivate
         {
-            BOSS_DECLARE_BUFFERED_CLASS(BufferedViewAPI, ViewAPI, PT_Null, nullptr, nullptr, nullptr, nullptr, nullptr);
-            buffer NewAPI = Buffer::AllocNoConstructorOnce<BufferedViewAPI>(BOSS_DBG 1);
-            BOSS_CONSTRUCTOR(NewAPI, 0, ViewAPI, ViewAPI::PT_MainViewGL, (buffer) this, nullptr, updater, this, nullptr);
-            m_api = (ViewAPI*) NewAPI;
+            Q_OBJECT
 
-            m_fbo_update = true;
-            m_fbo = 0;
-            m_fbo_render = 0;
-            m_fbo_width = 0;
-            m_fbo_height = 0;
-
-            setAttribute(Qt::WA_PaintOnScreen);
-            setAttribute(Qt::WA_NoSystemBackground);
-            setAttribute(Qt::WA_AcceptTouchEvents);
-            setMouseTracking(true);
-            setFocusPolicy(Qt::ClickFocus);
-            setAutoBufferSwap(false);
-            setAutoFillBackground(false);
-        }
-
-        virtual ~MainViewGL()
-        {
-            if(m_api->parentIsPtr())
-                Buffer::Free((buffer) m_api);
-
-            if(g_func)
+        public:
+            MainViewGL(WidgetPrivate* parent) : GLWidgetPrivate(parent)
             {
-                g_func->glDeleteFramebuffers(1, &m_fbo);
-                g_func->glDeleteRenderbuffers(1, &m_fbo_render);
-                delete g_func;
-                g_func = nullptr;
+                BOSS_DECLARE_BUFFERED_CLASS(BufferedViewAPI, ViewAPI, PT_Null, nullptr, nullptr, nullptr, nullptr, nullptr);
+                buffer NewAPI = Buffer::AllocNoConstructorOnce<BufferedViewAPI>(BOSS_DBG 1);
+                BOSS_CONSTRUCTOR(NewAPI, 0, ViewAPI, ViewAPI::PT_MainViewGL, (buffer) this, nullptr, updater, this, nullptr);
+                m_api = (ViewAPI*) NewAPI;
+
+                m_fbo_update = true;
+                m_fbo = 0;
+                m_fbo_render = 0;
+                m_fbo_width = 0;
+                m_fbo_height = 0;
+
+                setAttribute(Qt::WA_PaintOnScreen);
+                setAttribute(Qt::WA_NoSystemBackground);
+                setAttribute(Qt::WA_AcceptTouchEvents);
+                setMouseTracking(true);
+                setFocusPolicy(Qt::ClickFocus);
+                setAutoBufferSwap(false);
+                setAutoFillBackground(false);
             }
-        }
 
-        MainViewGL(const MainViewGL* rhs) {BOSS_ASSERT("사용금지", false);}
-        MainViewGL& operator=(const MainViewGL& rhs) {BOSS_ASSERT("사용금지", false); return *this;}
-
-    public:
-        void onCloseEvent(QCloseEvent* event)
-        {
-            if(m_api->closeEvent(event))
-                GenericView::CloseAllWindows();
-        }
-
-    protected:
-        void initializeGL() Q_DECL_OVERRIDE
-        {
-            if(!g_func)
-                g_func = new QGLFunctions(context());
-        }
-
-        void resizeGL(int width, int height) Q_DECL_OVERRIDE
-        {
-            m_fbo_update = true;
-            m_fbo_width = geometry().width();
-            m_fbo_height = geometry().height();
-            m_api->resize(m_fbo_width, m_fbo_height);
-        }
-
-        void paintGL() Q_DECL_OVERRIDE
-        {
-            if(m_api->hasViewManager())
+            virtual ~MainViewGL()
             {
-                if(m_fbo_update)
+                if(m_api->parentIsPtr())
+                    Buffer::Free((buffer) m_api);
+
+                if(QOpenGLContext* ctx = QOpenGLContext::currentContext())
                 {
-                    m_fbo_update = false;
-                    if(m_fbo) g_func->glDeleteFramebuffers(1, &m_fbo);
-                    if(m_fbo_render) g_func->glDeleteRenderbuffers(1, &m_fbo_render);
-
-                    g_func->glGenRenderbuffers(1, &m_fbo_render);
-                    g_func->glBindRenderbuffer(GL_RENDERBUFFER, m_fbo_render);
-                    g_func->glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, m_fbo_width, m_fbo_height);
-                    g_func->glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-                    g_func->glGenFramebuffers(1, &m_fbo);
-                    g_func->glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
-                    g_func->glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, m_fbo_render);
-                    GLenum status = g_func->glCheckFramebufferStatus(GL_FRAMEBUFFER);
-                    BOSS_ASSERT("프레임버퍼의 생성에 실패하였습니다", status == GL_FRAMEBUFFER_COMPLETE);
-                    g_func->glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                    QOpenGLFunctions* f = ctx->functions();
+                    f->glDeleteFramebuffers(1, &m_fbo);
+                    f->glDeleteRenderbuffers(1, &m_fbo_render);
                 }
-
-                m_api->paint();
-                swapBuffers();
             }
-            else QGLWidget::paintGL();
-            m_api->nextPaint();
-        }
 
-    protected:
-        void closeEvent(QCloseEvent* event) Q_DECL_OVERRIDE {m_api->closeEvent(event);}
-        void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE {m_api->mousePressEvent(event);}
-        void mouseDoubleClickEvent(QMouseEvent* event) Q_DECL_OVERRIDE {m_api->mousePressEvent(event);}
-        void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE {m_api->mouseMoveEvent(event);}
-        void mouseReleaseEvent(QMouseEvent* event) Q_DECL_OVERRIDE {m_api->mouseReleaseEvent(event);}
-        void wheelEvent(QWheelEvent* event) Q_DECL_OVERRIDE {m_api->wheelEvent(event);}
-        void keyPressEvent(QKeyEvent* event) Q_DECL_OVERRIDE {m_api->keyPressEvent(event);}
-        void keyReleaseEvent(QKeyEvent* event) Q_DECL_OVERRIDE {m_api->keyReleaseEvent(event);}
-        static void updater(void* data, sint32 count)
-        {((MainViewGL*) data)->m_api->update(count);}
+            MainViewGL(const MainViewGL* rhs) {BOSS_ASSERT("사용금지", false);}
+            MainViewGL& operator=(const MainViewGL& rhs) {BOSS_ASSERT("사용금지", false); return *this;}
 
-    public:
-        ViewAPI* m_api;
+        public:
+            void onCloseEvent(CloseEventPrivate* event)
+            {
+                if(m_api->closeEvent(event))
+                    GenericView::CloseAllWindows();
+            }
 
-    private:
-        bool m_fbo_update;
-        GLuint m_fbo;
-        GLuint m_fbo_render;
-        sint32 m_fbo_width;
-        sint32 m_fbo_height;
-    };
+        protected:
+            void initializeGL() Q_DECL_OVERRIDE
+            {
+            }
 
-    class MainViewMDI : public QMdiArea
+            void resizeGL(int width, int height) Q_DECL_OVERRIDE
+            {
+                m_fbo_update = true;
+                m_fbo_width = geometry().width();
+                m_fbo_height = geometry().height();
+                m_api->resize(m_fbo_width, m_fbo_height);
+            }
+
+            void paintGL() Q_DECL_OVERRIDE
+            {
+                if(m_api->hasViewManager())
+                {
+                    if(m_fbo_update)
+                    {
+                        m_fbo_update = false;
+                        if(QOpenGLContext* ctx = QOpenGLContext::currentContext())
+                        {
+                            QOpenGLFunctions* f = ctx->functions();
+                            if(m_fbo) f->glDeleteFramebuffers(1, &m_fbo);
+                            if(m_fbo_render) f->glDeleteRenderbuffers(1, &m_fbo_render);
+
+                            f->glGenRenderbuffers(1, &m_fbo_render);
+                            f->glBindRenderbuffer(GL_RENDERBUFFER, m_fbo_render);
+                            f->glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, m_fbo_width, m_fbo_height);
+                            f->glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+                            f->glGenFramebuffers(1, &m_fbo);
+                            f->glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+                            f->glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, m_fbo_render);
+                            GLenum status = f->glCheckFramebufferStatus(GL_FRAMEBUFFER);
+                            BOSS_ASSERT("프레임버퍼의 생성에 실패하였습니다", status == GL_FRAMEBUFFER_COMPLETE);
+                            f->glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                        }
+                    }
+                    m_api->paint();
+                    swapBuffers();
+                }
+                else GLWidgetPrivate::paintGL();
+                m_api->nextPaint();
+            }
+
+        protected:
+            void closeEvent(CloseEventPrivate* event) Q_DECL_OVERRIDE {m_api->closeEvent(event);}
+            void mousePressEvent(MouseEventPrivate* event) Q_DECL_OVERRIDE {m_api->mousePressEvent(event);}
+            void mouseDoubleClickEvent(MouseEventPrivate* event) Q_DECL_OVERRIDE {m_api->mousePressEvent(event);}
+            void mouseMoveEvent(MouseEventPrivate* event) Q_DECL_OVERRIDE {m_api->mouseMoveEvent(event);}
+            void mouseReleaseEvent(MouseEventPrivate* event) Q_DECL_OVERRIDE {m_api->mouseReleaseEvent(event);}
+            void wheelEvent(WheelEventPrivate* event) Q_DECL_OVERRIDE {m_api->wheelEvent(event);}
+            void keyPressEvent(KeyEventPrivate* event) Q_DECL_OVERRIDE {m_api->keyPressEvent(event);}
+            void keyReleaseEvent(KeyEventPrivate* event) Q_DECL_OVERRIDE {m_api->keyReleaseEvent(event);}
+            static void updater(void* data, sint32 count)
+            {((MainViewGL*) data)->m_api->update(count);}
+
+        public:
+            ViewAPI* m_api;
+
+        private:
+            bool m_fbo_update;
+            GLuint m_fbo;
+            GLuint m_fbo_render;
+            sint32 m_fbo_width;
+            sint32 m_fbo_height;
+        };
+    #else
+        class MainViewGL : public GLWidgetPrivate
+        {
+            Q_OBJECT
+
+        public:
+            MainViewGL(WidgetPrivate* parent) : GLWidgetPrivate(parent)
+            {
+                BOSS_DECLARE_BUFFERED_CLASS(BufferedViewAPI, ViewAPI, PT_Null, nullptr, nullptr, nullptr, nullptr, nullptr);
+                buffer NewAPI = Buffer::AllocNoConstructorOnce<BufferedViewAPI>(BOSS_DBG 1);
+                BOSS_CONSTRUCTOR(NewAPI, 0, ViewAPI, ViewAPI::PT_MainViewGL, (buffer) this, nullptr, updater, this, nullptr);
+                m_api = (ViewAPI*) NewAPI;
+            }
+            virtual ~MainViewGL()
+            {
+                if(m_api->parentIsPtr())
+                    Buffer::Free((buffer) m_api);
+            }
+            MainViewGL(const MainViewGL* rhs) {BOSS_ASSERT("사용금지", false);}
+            MainViewGL& operator=(const MainViewGL& rhs) {BOSS_ASSERT("사용금지", false); return *this;}
+
+        public:
+            void onCloseEvent(CloseEventPrivate* event)
+            {
+                if(m_api->closeEvent(event))
+                    GenericView::CloseAllWindows();
+            }
+
+        protected:
+            void initializeGL() Q_DECL_OVERRIDE
+            {
+            }
+
+            void resizeGL(int width, int height) Q_DECL_OVERRIDE
+            {
+                m_api->resize(width, height);
+            }
+
+            void paintGL() Q_DECL_OVERRIDE
+            {
+                if(m_api->hasViewManager())
+                {
+                    m_api->paint();
+                    swapBuffers();
+                }
+                else GLWidgetPrivate::paintGL();
+                m_api->nextPaint();
+            }
+
+        protected:
+            void closeEvent(CloseEventPrivate* event) Q_DECL_OVERRIDE {m_api->closeEvent(event);}
+            void mousePressEvent(MouseEventPrivate* event) Q_DECL_OVERRIDE {m_api->mousePressEvent(event);}
+            void mouseDoubleClickEvent(MouseEventPrivate* event) Q_DECL_OVERRIDE {m_api->mousePressEvent(event);}
+            void mouseMoveEvent(MouseEventPrivate* event) Q_DECL_OVERRIDE {m_api->mouseMoveEvent(event);}
+            void mouseReleaseEvent(MouseEventPrivate* event) Q_DECL_OVERRIDE {m_api->mouseReleaseEvent(event);}
+            void wheelEvent(WheelEventPrivate* event) Q_DECL_OVERRIDE {m_api->wheelEvent(event);}
+            void keyPressEvent(KeyEventPrivate* event) Q_DECL_OVERRIDE {m_api->keyPressEvent(event);}
+            void keyReleaseEvent(KeyEventPrivate* event) Q_DECL_OVERRIDE {m_api->keyReleaseEvent(event);}
+            static void updater(void* data, sint32 count)
+            {((MainViewGL*) data)->m_api->update(count);}
+
+        public:
+            ViewAPI* m_api;
+        };
+    #endif
+
+    class MainViewMDI : public MdiAreaPrivate
     {
         Q_OBJECT
 
     public:
-        MainViewMDI(QWidget* parent) : QMdiArea(parent)
+        MainViewMDI(WidgetPrivate* parent) : MdiAreaPrivate(parent)
         {
             BOSS_DECLARE_BUFFERED_CLASS(BufferedViewAPI, ViewAPI, PT_Null, nullptr, nullptr, nullptr, nullptr, nullptr);
             buffer NewAPI = Buffer::AllocNoConstructorOnce<BufferedViewAPI>(BOSS_DBG 1);
@@ -935,37 +2202,37 @@
         MainViewMDI& operator=(const MainViewMDI& rhs) {BOSS_ASSERT("사용금지", false); return *this;}
 
     public:
-        void onCloseEvent(QCloseEvent* event)
+        void onCloseEvent(CloseEventPrivate* event)
         {
             if(m_api->closeEvent(event))
                 GenericView::CloseAllWindows();
         }
 
     protected:
-        void resizeEvent(QResizeEvent* event) Q_DECL_OVERRIDE
+        void resizeEvent(ResizeEventPrivate* event) Q_DECL_OVERRIDE
         {
             m_width = event->size().width();
             m_height = event->size().height();
             m_api->resize(m_width, m_height);
         }
 
-        void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE
+        void paintEvent(PaintEventPrivate* event) Q_DECL_OVERRIDE
         {
             if(m_api->hasViewManager())
                 m_api->paint();
-            else QMdiArea::paintEvent(event);
+            else MdiAreaPrivate::paintEvent(event);
             m_api->nextPaint();
         }
 
     protected:
-        void closeEvent(QCloseEvent* event) Q_DECL_OVERRIDE {m_api->closeEvent(event);}
-        void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE {m_api->mousePressEvent(event);}
-        void mouseDoubleClickEvent(QMouseEvent* event) Q_DECL_OVERRIDE {m_api->mousePressEvent(event);}
-        void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE {m_api->mouseMoveEvent(event);}
-        void mouseReleaseEvent(QMouseEvent* event) Q_DECL_OVERRIDE {m_api->mouseReleaseEvent(event);}
-        void wheelEvent(QWheelEvent* event) Q_DECL_OVERRIDE {m_api->wheelEvent(event);}
-        void keyPressEvent(QKeyEvent* event) Q_DECL_OVERRIDE {m_api->keyPressEvent(event);}
-        void keyReleaseEvent(QKeyEvent* event) Q_DECL_OVERRIDE {m_api->keyReleaseEvent(event);}
+        void closeEvent(CloseEventPrivate* event) Q_DECL_OVERRIDE {m_api->closeEvent(event);}
+        void mousePressEvent(MouseEventPrivate* event) Q_DECL_OVERRIDE {m_api->mousePressEvent(event);}
+        void mouseDoubleClickEvent(MouseEventPrivate* event) Q_DECL_OVERRIDE {m_api->mousePressEvent(event);}
+        void mouseMoveEvent(MouseEventPrivate* event) Q_DECL_OVERRIDE {m_api->mouseMoveEvent(event);}
+        void mouseReleaseEvent(MouseEventPrivate* event) Q_DECL_OVERRIDE {m_api->mouseReleaseEvent(event);}
+        void wheelEvent(WheelEventPrivate* event) Q_DECL_OVERRIDE {m_api->wheelEvent(event);}
+        void keyPressEvent(KeyEventPrivate* event) Q_DECL_OVERRIDE {m_api->keyPressEvent(event);}
+        void keyReleaseEvent(KeyEventPrivate* event) Q_DECL_OVERRIDE {m_api->keyReleaseEvent(event);}
         static void updater(void* data, sint32 count)
         {((MainViewMDI*) data)->m_api->update(count);}
 
@@ -990,7 +2257,7 @@
             delete m_view;
         }
 
-        void setWidget(GenericView* view, QWidget* widget)
+        void setWidget(GenericView* view, WidgetPrivate* widget)
         {
             m_view = view;
             m_widget = widget;
@@ -998,15 +2265,15 @@
 
     private:
         GenericView* m_view;
-        QWidget* m_widget;
+        WidgetPrivate* m_widget;
     };
 
-    class TrayIcon : public QSystemTrayIcon
+    class TrayIcon : public SystemTrayIconPrivate
     {
         Q_OBJECT
 
     public:
-        TrayIcon(QWidget* menu)
+        TrayIcon(WidgetPrivate* menu)
         {
             m_ref_menu = menu;
             Qt::WindowFlags TypeCollector = Qt::Dialog;
@@ -1014,25 +2281,25 @@
             TypeCollector |= Qt::WindowStaysOnTopHint;
             m_ref_menu->setWindowFlags(TypeCollector);
             m_ref_menu->installEventFilter(this);
-            connect(this, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
-                this, SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
+            connect(this, SIGNAL(activated(SystemTrayIconPrivate::ActivationReason)),
+                this, SLOT(iconActivated(SystemTrayIconPrivate::ActivationReason)));
         }
         ~TrayIcon()
         {
         }
 
     private slots:
-        void iconActivated(QSystemTrayIcon::ActivationReason reason)
+        void iconActivated(SystemTrayIconPrivate::ActivationReason reason)
         {
             switch(reason)
             {
-            case QSystemTrayIcon::Context: // R버튼 클릭
-            case QSystemTrayIcon::Trigger: // L버튼 클릭
-            case QSystemTrayIcon::MiddleClick: // 휠버튼 클릭
+            case SystemTrayIconPrivate::Context: // R버튼 클릭
+            case SystemTrayIconPrivate::Trigger: // L버튼 클릭
+            case SystemTrayIconPrivate::MiddleClick: // 휠버튼 클릭
                 {
-                    const QPoint ClickPos = QCursor::pos();
+                    const QPoint ClickPos = CursorPrivate::pos();
                     const QSize MenuSize = m_ref_menu->size();
-                    const QRect GeometryRect = QApplication::desktop()->screenGeometry(ClickPos);
+                    const QRect GeometryRect = ApplicationPrivate::desktop()->screenGeometry(ClickPos);
                     const float PosX = (GeometryRect.right() < ClickPos.x() + MenuSize.width())?
                         ClickPos.x() - MenuSize.width() : ClickPos.x();
                     const float PosY = (GeometryRect.bottom() < ClickPos.y() + MenuSize.height())?
@@ -1043,7 +2310,7 @@
                     m_ref_menu->raise(); // 부모기준 첫번째 자식으로 올림
                 }
                 break;
-            case QSystemTrayIcon::DoubleClick: // L버튼 더블클릭된 순간
+            case SystemTrayIconPrivate::DoubleClick: // L버튼 더블클릭된 순간
                 break;
             default:
                 break;
@@ -1062,7 +2329,7 @@
         }
 
     private:
-        QWidget* m_ref_menu;
+        WidgetPrivate* m_ref_menu;
     };
 
     class TrayBox
@@ -1078,10 +2345,10 @@
             delete m_tray;
         }
 
-        void setWidget(GenericView* view, QIcon* icon)
+        void setWidget(GenericView* view, IconPrivate* icon)
         {
             m_ref_view = view;
-            QWidget* OldWidget = m_ref_view->m_api->getWidget();
+            WidgetPrivate* OldWidget = m_ref_view->m_api->getWidget();
             OldWidget->resize(m_ref_view->getFirstSize());
             m_tray = new TrayIcon(OldWidget);
             if(icon) m_tray->setIcon(*icon);
@@ -1096,7 +2363,7 @@
     class MainData
     {
     public:
-        MainData(QMainWindow* parent)
+        MainData(MainWindowPrivate* parent)
         {
             m_parent = parent;
             m_viewGL = nullptr;
@@ -1105,7 +2372,7 @@
         ~MainData() {}
 
     public:
-        void onCloseEvent(QCloseEvent* event)
+        void onCloseEvent(CloseEventPrivate* event)
         {
             if(m_viewGL)
                 m_viewGL->onCloseEvent(event);
@@ -1125,8 +2392,8 @@
             m_viewGL->m_api->renewParent(m_viewGL);
             // Qt5.9.1부터는 m_parent->setCentralWidget(m_viewGL)식의 접합은
             // 윈도우즈OS에서 다중 모니터상황에서 레이아웃의 정렬불량 문제가 발생
-            QWidget* MainWidget = new QWidget();
-            QHBoxLayout* MainLayout = new QHBoxLayout();
+            WidgetPrivate* MainWidget = new WidgetPrivate();
+            HBoxLayoutPrivate* MainLayout = new HBoxLayoutPrivate();
             MainLayout->setMargin(0);
             MainLayout->addWidget(m_viewGL);
             MainWidget->setLayout(MainLayout);
@@ -1175,17 +2442,17 @@
             return m_viewMDI->m_api;
         }
 
-        QWidget* getMainWindow()
+        WidgetPrivate* getMainWindow()
         {
             return m_parent;
         }
 
-        QGLWidget* getGLWidget()
+        GLWidgetPrivate* getGLWidget()
         {
             return m_viewGL;
         }
 
-        QWidget* bindWidget(GenericView* view)
+        WidgetPrivate* bindWidget(GenericView* view)
         {
             BOSS_ASSERT("GL/MDI의 초기화가 되어있지 않습니다", m_viewGL || m_viewMDI);
             if(m_viewGL) return view->m_api->getWidget();
@@ -1193,9 +2460,9 @@
         }
 
     public:
-        QMenu* getMenu(chars name)
+        MenuPrivate* getMenu(chars name)
         {
-            QMenu** Result = m_menuMap.Access(name);
+            MenuPrivate** Result = m_menuMap.Access(name);
             if(!Result)
             {
                 m_menuMap(name) = g_window->menuBar()->addMenu(QString::fromUtf8(name));
@@ -1204,9 +2471,9 @@
             return *Result;
         }
 
-        QToolBar* getToolbar(chars name)
+        ToolBarPrivate* getToolbar(chars name)
         {
-            QToolBar** Result = m_toolbarMap.Access(name);
+            ToolBarPrivate** Result = m_toolbarMap.Access(name);
             if(!Result)
             {
                 m_toolbarMap(name) = g_window->addToolBar(QString::fromUtf8(name));
@@ -1216,14 +2483,14 @@
         }
 
     private:
-        QMainWindow* m_parent;
+        MainWindowPrivate* m_parent;
         MainViewGL* m_viewGL;
         MainViewMDI* m_viewMDI;
-        Map<QMenu*> m_menuMap;
-        Map<QToolBar*> m_toolbarMap;
+        Map<MenuPrivate*> m_menuMap;
+        Map<ToolBarPrivate*> m_toolbarMap;
     };
 
-    class MainWindow : public QMainWindow
+    class MainWindow : public MainWindowPrivate
     {
         Q_OBJECT
 
@@ -1252,7 +2519,7 @@
         bool firstVisible() const {return m_first_visible;}
 
     protected:
-        void closeEvent(QCloseEvent* event) Q_DECL_OVERRIDE
+        void closeEvent(CloseEventPrivate* event) Q_DECL_OVERRIDE
         {
             g_data->onCloseEvent(event);
         }
@@ -1329,7 +2596,7 @@
         typedef void (*ExitCB)(void*);
 
     public:
-        Tracker(QWidget* parent, ExitCB exit, void* data)
+        Tracker(WidgetPrivate* parent, ExitCB exit, void* data)
         {
             m_parent = parent;
             m_exit = exit;
@@ -1356,7 +2623,7 @@
             m_loop.quit();
         }
 
-        static void CloseAll(QWidget* parent)
+        static void CloseAll(WidgetPrivate* parent)
         {
             Tracker* CurNode = Top().m_next;
             while(CurNode)
@@ -1371,7 +2638,7 @@
             }
         }
 
-        static bool HasAnyone(QWidget* parent)
+        static bool HasAnyone(WidgetPrivate* parent)
         {
             Tracker* CurNode = Top().m_next;
             while(CurNode)
@@ -1409,20 +2676,20 @@
         {static Tracker _(nullptr, nullptr, nullptr); return _;}
 
     private:
-        QWidget* m_parent;
+        WidgetPrivate* m_parent;
         QEventLoop m_loop;
         ExitCB m_exit;
         void* m_data;
         Tracker* m_next;
     };
 
-    class EditTracker : public QLineEdit
+    class EditTracker : public LineEditPrivate
     {
         Q_OBJECT
 
     public:
-        EditTracker(UIEditType type, const QString& contents, QWidget* parent)
-            : QLineEdit(contents, nullptr), m_tracker(parent, OnExit, this)
+        EditTracker(UIEditType type, const QString& contents, WidgetPrivate* parent)
+            : LineEditPrivate(contents, nullptr), m_tracker(parent, OnExit, this)
         {
             if(parent)
                 m_parentpos = parent->mapToGlobal(QPoint(0, 0));
@@ -1437,12 +2704,12 @@
 
             switch(type)
             {
-            case UIET_Int: setValidator(new QIntValidator(this)); break;
-            case UIET_Float: setValidator(new QDoubleValidator(this)); break;
+            case UIET_Int: setValidator(new IntValidatorPrivate(this)); break;
+            case UIET_Float: setValidator(new DoubleValidatorPrivate(this)); break;
             }
 
-            QPalette Palette = palette();
-            Palette.setColor(QPalette::Base, QColor(255, 255, 255));
+            PalettePrivate Palette = palette();
+            Palette.setColor(PalettePrivate::Base, ColorPrivate(255, 255, 255));
             setPalette(Palette);
         }
 
@@ -1469,13 +2736,13 @@
         }
 
     private:
-        void focusOutEvent(QFocusEvent* event) Q_DECL_OVERRIDE
+        void focusOutEvent(FocusEventPrivate* event) Q_DECL_OVERRIDE
         {
             close();
             m_tracker.Unlock();
         }
 
-        void keyPressEvent(QKeyEvent* event) Q_DECL_OVERRIDE
+        void keyPressEvent(KeyEventPrivate* event) Q_DECL_OVERRIDE
         {
             if(event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter)
             {
@@ -1488,7 +2755,7 @@
                 close();
                 m_tracker.Unlock();
             }
-            else QLineEdit::keyPressEvent(event);
+            else LineEditPrivate::keyPressEvent(event);
         }
 
     private:
@@ -1497,17 +2764,17 @@
         QPoint m_parentpos;
     };
 
-    class ListTracker : public QListWidget
+    class ListTracker : public ListWidgetPrivate
     {
         Q_OBJECT
 
     public:
-        ListTracker(const Strings& strings, QWidget* parent)
-            : QListWidget(nullptr), m_tracker(parent, OnExit, this)
+        ListTracker(const Strings& strings, WidgetPrivate* parent)
+            : ListWidgetPrivate(nullptr), m_tracker(parent, OnExit, this)
         {
             for(sint32 i = 0, iend = strings.Count(); i < iend; ++i)
             {
-                QListWidgetItem* NewItem = new QListWidgetItem(QString::fromUtf8(strings[i]), this);
+                ListWidgetItemPrivate* NewItem = new ListWidgetItemPrivate(QString::fromUtf8(strings[i]), this);
                 NewItem->setTextAlignment(Qt::AlignCenter);
                 addItem(NewItem);
             }
@@ -1547,14 +2814,14 @@
         }
 
     private:
-        void focusOutEvent(QFocusEvent* event) Q_DECL_OVERRIDE
+        void focusOutEvent(FocusEventPrivate* event) Q_DECL_OVERRIDE
         {
             close();
             m_tracker.Unlock();
         }
 
     private slots:
-        void onItemPressed(QListWidgetItem* item)
+        void onItemPressed(ListWidgetItemPrivate* item)
         {
             m_select = row(item);
             close();
@@ -1567,7 +2834,7 @@
         QPoint m_parentpos;
     };
 
-    #ifdef QT_HAVE_GRAPHICS
+    #ifndef BOSS_SILENT_NIGHT_IS_ENABLED
         class OpenGLPrivate
         {
         private:
@@ -2153,6 +3420,7 @@
             void Remove()
             {
                 QOpenGLContext* ctx = QOpenGLContext::currentContext();
+                BOSS_ASSERT("OpenGL의 Context접근에 실패하였습니다", ctx);
                 if(ctx)
                 {
                     QOpenGLFunctions* f = ctx->functions();
@@ -2291,7 +3559,7 @@
             }
             inline sint32 width() const {return mFBO.width();}
             inline sint32 height() const {return mFBO.height();}
-            inline QPainter* painter() {return &mCanvas.painter();}
+            inline PainterPrivate* painter() {return &mCanvas.painter();}
 
         public:
             void BindGraphics()
@@ -2313,7 +3581,7 @@
                     mSavedSurface = nullptr;
                 }
             }
-            const QImage& GetLastImage() const
+            const ImagePrivate& GetLastImage() const
             {
                 if(!mIsValidLastImage)
                 {
@@ -2352,7 +3620,7 @@
 
         private:
             mutable bool mIsValidLastImage;
-            mutable QImage mLastImage;
+            mutable ImagePrivate mLastImage;
             mutable TextureClass mLastTexture;
         };
     #endif
@@ -3032,7 +4300,7 @@
         Q_OBJECT
 
     public:
-        WebEngineViewForExtraDesktop(QWidget* parent = nullptr)
+        WebEngineViewForExtraDesktop(WidgetPrivate* parent = nullptr)
         {
             mPage = new WebEnginePageForExtraDesktop(this);
         }
@@ -3049,13 +4317,13 @@
         }
         WebEnginePageForExtraDesktop* page() const {return mPage;}
         void setMouseTracking(...) {}
-        virtual void closeEvent(QCloseEvent* event) {}
+        virtual void closeEvent(CloseEventPrivate* event) {}
 
     public:
         WebEnginePageForExtraDesktop* mPage;
     };
 
-    #if defined(QT_HAVE_WEBENGINEWIDGETS) & defined(QT_HAVE_GRAPHICS)
+    #if defined(QT_HAVE_WEBENGINEWIDGETS) & !defined(BOSS_SILENT_NIGHT_IS_ENABLED)
         typedef QWebEnginePage WebEnginePageClass;
         typedef QWebEngineView WebEngineViewClass;
     #else
@@ -3099,7 +4367,7 @@
         Q_OBJECT
 
     public:
-        WebViewPrivate(QWidget* parent = nullptr) : WebEngineViewClass(parent), mHandle(h_web::null())
+        WebViewPrivate(WidgetPrivate* parent = nullptr) : WebEngineViewClass(parent), mHandle(h_web::null())
         {
             mNowLoading = false;
             mLoadingProgress = 100;
@@ -3146,7 +4414,7 @@
         }
 
     protected:
-        void closeEvent(QCloseEvent* event) Q_DECL_OVERRIDE
+        void closeEvent(CloseEventPrivate* event) Q_DECL_OVERRIDE
         {
             event->accept();
             mHandle.set_buf(nullptr);
@@ -3192,7 +4460,7 @@
         payload mData;
     };
 
-    #if defined(QT_HAVE_WEBENGINEWIDGETS) & defined(QT_HAVE_GRAPHICS)
+    #if defined(QT_HAVE_WEBENGINEWIDGETS) & !defined(BOSS_SILENT_NIGHT_IS_ENABLED)
         class WebPrivateForDesktop
         {
         public:
@@ -3239,7 +4507,7 @@
                 if(width != mLastImage.width() || height != mLastImage.height())
                 {
                     mView.resize(width, height);
-                    mLastImage = QImage(width, height, QImage::Format_ARGB32);
+                    mLastImage = ImagePrivate(width, height, ImagePrivate::Format_ARGB32);
                     return true;
                 }
                 return false;
@@ -3250,28 +4518,28 @@
             }
             void SendTouchEvent(TouchType type, sint32 x, sint32 y)
             {
-                QMouseEvent::Type CurType = QMouseEvent::None;
+                MouseEventPrivate::Type CurType = MouseEventPrivate::None;
                 switch(type)
                 {
-                case TT_Moving: CurType = QMouseEvent::MouseMove; break;
-                case TT_Press: CurType = QMouseEvent::MouseButtonPress; break;
-                case TT_Dragging: CurType = QMouseEvent::MouseMove; break;
-                case TT_Release: CurType = QMouseEvent::MouseButtonRelease; break;
+                case TT_Moving: CurType = MouseEventPrivate::MouseMove; break;
+                case TT_Press: CurType = MouseEventPrivate::MouseButtonPress; break;
+                case TT_Dragging: CurType = MouseEventPrivate::MouseMove; break;
+                case TT_Release: CurType = MouseEventPrivate::MouseButtonRelease; break;
                 default: BOSS_ASSERT("해당 case가 준비되지 않았습니다", false);
                 }
-                QMouseEvent NewEvent(CurType, QPoint(x, y), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+                MouseEventPrivate NewEvent(CurType, QPoint(x, y), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
                 Q_FOREACH(QObject* obj, mView.page()->view()->children())
                 {
-                    if(qobject_cast<QWidget*>(obj))
-                        QApplication::sendEvent(obj, &NewEvent);
+                    if(qobject_cast<WidgetPrivate*>(obj))
+                        ApplicationPrivate::sendEvent(obj, &NewEvent);
                 }
             }
             void SendKeyEvent(sint32 code, chars text, bool pressed)
             {
                 if(auto CurWidget = mView.focusProxy())
                 {
-                    QKeyEvent NewEvent((pressed)? QKeyEvent::KeyPress : QKeyEvent::KeyRelease, code, Qt::NoModifier, text);
-                    QApplication::sendEvent(CurWidget, &NewEvent);
+                    KeyEventPrivate NewEvent((pressed)? KeyEventPrivate::KeyPress : KeyEventPrivate::KeyRelease, code, Qt::NoModifier, text);
+                    ApplicationPrivate::sendEvent(CurWidget, &NewEvent);
                 }
             }
             void CallJSFunction(chars script, sint32 matchid)
@@ -3285,11 +4553,11 @@
                 mLastTexture.ResetDirectly(mLastTextureGL->textureId(), mLastTextureGL->width(), mLastTextureGL->height());
                 return (id_texture_read) &mLastTexture;
             }
-            const QPixmap GetPixmap()
+            const PixmapPrivate GetPixmap()
             {
-                return QPixmap::fromImage(GetImage());
+                return PixmapPrivate::fromImage(GetImage());
             }
-            const QImage& GetImage()
+            const ImagePrivate& GetImage()
             {
                 CanvasClass CurCanvas(&mLastImage);
                 mView.update();
@@ -3301,7 +4569,7 @@
             WebViewPrivate mView;
             QGraphicsProxyWidget* mProxy;
             QGraphicsScene mScene;
-            QImage mLastImage;
+            ImagePrivate mLastImage;
             TextureClass mLastTexture;
             QOpenGLTexture* mLastTextureGL;
         };
@@ -3340,7 +4608,7 @@
             {
                 if(width != mLastImage.width() || height != mLastImage.height())
                 {
-                    mLastImage = QImage(width, height, QImage::Format_ARGB32);
+                    mLastImage = ImagePrivate(width, height, ImagePrivate::Format_ARGB32);
                     return true;
                 }
                 return false;
@@ -3361,11 +4629,11 @@
             {
                 return nullptr;
             }
-            const QPixmap GetPixmap()
+            const PixmapPrivate GetPixmap()
             {
-                return QPixmap::fromImage(GetImage());
+                return PixmapPrivate::fromImage(GetImage());
             }
-            const QImage& GetImage()
+            const ImagePrivate& GetImage()
             {
                 CanvasClass CurCanvas(&mLastImage);
                 const QRect CurRect(0, 0, mLastImage.width(), mLastImage.height());
@@ -3373,7 +4641,7 @@
             }
 
         private:
-            QImage mLastImage;
+            ImagePrivate mLastImage;
         };
         typedef WebPrivateForExtraDesktop WebPrivate;
     #endif
@@ -3384,7 +4652,7 @@
             Q_OBJECT
 
         public:
-            PurchasePrivate(QWidget* parent = nullptr) : QInAppStore(parent)
+            PurchasePrivate(WidgetPrivate* parent = nullptr) : QInAppStore(parent)
             {
                 mProduct = nullptr;
                 connect(this, SIGNAL(productRegistered(QInAppProduct*)), SLOT(onProductRegistered(QInAppProduct*)));
@@ -4344,7 +5612,7 @@
                             Result = true;
                         }
                     }
-                    #ifdef QT_HAVE_GRAPHICS
+                    #ifndef BOSS_SILENT_NIGHT_IS_ENABLED
                         // QVideoFrame::map함수의 버그에 따른 수동패치
                         else if(QOpenGLContext* ctx = QOpenGLContext::currentContext())
                         {
@@ -4785,7 +6053,7 @@
                 Mutex::Unlock(mMutex);
                 return Result;
             }
-            void GetCapturedImage(QPixmap& pixmap, sint32 maxwidth, sint32 maxheight, sint32 rotate)
+            void GetCapturedImage(PixmapPrivate& pixmap, sint32 maxwidth, sint32 maxheight, sint32 rotate)
             {
                 Mutex::Lock(mMutex);
                 {
@@ -4802,7 +6070,7 @@
                     {
                         mUpdateForImage = false;
                         if(mUpdateForBitmap) DecodeImage(mDecodedWidth, mDecodedHeight, mDecodedBits);
-                        QImage NewImage(&mDecodedBits[0], mDecodedWidth, mDecodedHeight, QImage::Format_ARGB32);
+                        ImagePrivate NewImage(&mDecodedBits[0], mDecodedWidth, mDecodedHeight, ImagePrivate::Format_ARGB32);
 
                         if(maxwidth == -1 && maxheight == -1)
                         {maxwidth = mDecodedWidth; maxheight = mDecodedHeight;}
@@ -4816,7 +6084,7 @@
                         // 회전
                         if(0 < rotate)
                         {
-                            QMatrix NewMatrix;
+                            MatrixPrivate NewMatrix;
                             NewMatrix.translate(mDecodedWidth / 2, mDecodedHeight / 2);
                             NewMatrix.rotate(rotate);
                             NewImage = NewImage.transformed(NewMatrix);
@@ -4888,7 +6156,7 @@
             sint32 mRefCount;
             QCameraInfo mCameraInfo;
             CameraService* mCameraService;
-            QPixmap mLastPixmap;
+            PixmapPrivate mLastPixmap;
             id_bitmap mLastBitmap;
 
         public:

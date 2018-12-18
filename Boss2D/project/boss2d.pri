@@ -11,6 +11,8 @@ equals(QT_ENABLE_GRAPHICS, "ok"){
     QT -= gui
     QT -= opengl
     QT -= widgets
+    CONFIG += console
+    CONFIG -= app_bundle
 }
 QT += network
 qtHaveModule(serialport){
@@ -107,6 +109,7 @@ HEADERS += ../../Boss2D/addon/boss_addon_ssl.hpp
 HEADERS += ../../Boss2D/addon/boss_addon_tesseract.hpp
 HEADERS += ../../Boss2D/addon/boss_addon_tif.hpp
 HEADERS += ../../Boss2D/addon/boss_addon_webrtc.hpp
+HEADERS += ../../Boss2D/addon/boss_addon_websocket.hpp
 HEADERS += ../../Boss2D/addon/boss_addon_zip.hpp
 HEADERS += ../../Boss2D/addon/boss_fakewin.h
 HEADERS += ../../Boss2D/addon/boss_integration_abseil-cpp-20180600.h
@@ -125,9 +128,12 @@ HEADERS += ../../Boss2D/addon/boss_integration_opencv-3.1.0.h
 HEADERS += ../../Boss2D/addon/boss_integration_opencv-3.1.0_3rdparty_libjpeg.h
 HEADERS += ../../Boss2D/addon/boss_integration_openh264-1.6.0.h
 HEADERS += ../../Boss2D/addon/boss_integration_openssl-1.1.0c.h
+HEADERS += ../../Boss2D/addon/boss_integration_rnnoise-chromium.h
 HEADERS += ../../Boss2D/addon/boss_integration_rtmpdump-2.4.h
 HEADERS += ../../Boss2D/addon/boss_integration_tesseract-3.05.02.h
+HEADERS += ../../Boss2D/addon/boss_integration_usrsctp-0.9.3.0.h
 HEADERS += ../../Boss2D/addon/boss_integration_webrtc-jumpingyang001.h
+HEADERS += ../../Boss2D/addon/boss_integration_websocketpp-0.8.1.h
 SOURCES += ../../Boss2D/addon/boss_addon_aac.cpp
 SOURCES += ../../Boss2D/addon/boss_addon_alpr.cpp
 SOURCES += ../../Boss2D/addon/boss_addon_curl.cpp
@@ -141,6 +147,7 @@ SOURCES += ../../Boss2D/addon/boss_addon_ssl.cpp
 SOURCES += ../../Boss2D/addon/boss_addon_tesseract.cpp
 SOURCES += ../../Boss2D/addon/boss_addon_tif.cpp
 SOURCES += ../../Boss2D/addon/boss_addon_webrtc.cpp
+SOURCES += ../../Boss2D/addon/boss_addon_websocket.cpp
 SOURCES += ../../Boss2D/addon/boss_addon_zip.cpp
 SOURCES += ../../Boss2D/addon/boss_fakewin.cpp
 SOURCES += ../../Boss2D/addon/boss_integration_abseil-cpp-20180600.cpp
@@ -161,9 +168,12 @@ SOURCES += ../../Boss2D/addon/boss_integration_openh264-1.6.0.cpp
 SOURCES += ../../Boss2D/addon/boss_integration_openh264-1.6.0_for_decoder.cpp
 SOURCES += ../../Boss2D/addon/boss_integration_openh264-1.6.0_for_encoder.cpp
 SOURCES += ../../Boss2D/addon/boss_integration_openssl-1.1.0c.c
+SOURCES += ../../Boss2D/addon/boss_integration_rnnoise-chromium.cpp
 SOURCES += ../../Boss2D/addon/boss_integration_rtmpdump-2.4.c
 SOURCES += ../../Boss2D/addon/boss_integration_tesseract-3.05.02.cpp
+SOURCES += ../../Boss2D/addon/boss_integration_usrsctp-0.9.3.0.c
 SOURCES += ../../Boss2D/addon/boss_integration_webrtc-jumpingyang001.cpp
+SOURCES += ../../Boss2D/addon/boss_integration_websocketpp-0.8.1.cpp
 
 ###########################################################
 # CORE

@@ -29,14 +29,33 @@ namespace BOSS
 
     public:
         enum State {State_Null, State_Connection, State_Connected, State_Disconnected};
+        class SendData
+        {
+        public:
+            SendData(chars text)
+            {
+                mText = new String(text);
+                mData = nullptr;
+            }
+            SendData(bytes data, sint32 len)
+            {
+                mText = nullptr;
+                mData = new uint08s();
+                Memory::Copy(mData->AtDumpingAdded(len), data, len);
+            }
+            ~SendData() {delete mText; delete mData;}
+        public:
+            String* mText;
+            uint08s* mData;
+        };
 
     public:
         State mState;
         bool mIsTls;
         void* mClient;
-        void* mHdlClass;
-        Queue<const String*> mRecvStrings;
-        String mTempString;
+        Queue<const SendData*> mSendQueue;
+        Queue<const String*> mRecvQueue;
+        String mTempForRecv;
     };
 }
 
