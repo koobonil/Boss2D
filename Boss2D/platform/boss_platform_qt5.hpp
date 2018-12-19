@@ -107,8 +107,6 @@
         extern JNIEnv* GetAndroidJNIEnv();
     #endif
 
-    #define USER_FRAMECOUNT (60)
-
     #ifndef BOSS_SILENT_NIGHT_IS_ENABLED
         typedef WId WIdPrivate;
         typedef QColor ColorPrivate;
@@ -1303,6 +1301,8 @@
     protected:
         void setAutoBufferSwap(bool on) {}
     };
+
+    #define USER_FRAMECOUNT (60)
 
     class MainData;
     extern MainData* g_data;

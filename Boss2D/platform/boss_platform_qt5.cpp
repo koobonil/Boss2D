@@ -12,6 +12,13 @@
     char** g_argv = nullptr;
     static bool g_isBeginGL = false;
 
+    // 외부지원
+    QGLFunctions* g_currentGLFunctions()
+    {
+        static QGLFunctions func(g_data->getGLWidget()->context());
+        return &func;
+    }
+
     SizePolicy::SizePolicy()
     {
         m_minwidth = 0;
