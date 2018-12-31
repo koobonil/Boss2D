@@ -2407,6 +2407,13 @@
                 #elif BOSS_WINDOWS | BOSS_LINUX
                     TypeCollector |= Qt::FramelessWindowHint;
                 #endif
+                // Frameless에서의 그림자기능 연구중!
+                //MainWidget->setAttribute(Qt::WA_TranslucentBackground);
+                //MainWidget->layout()->setMargin(9);
+                //QGraphicsDropShadowEffect* NewEffect = new QGraphicsDropShadowEffect();
+                //NewEffect->setBlurRadius(9);
+                //NewEffect->setOffset(4);
+                //MainWidget->setGraphicsEffect(NewEffect);
             }
             if(topmost)
                 TypeCollector |= Qt::WindowStaysOnTopHint;
