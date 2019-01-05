@@ -66,6 +66,22 @@ private:
 class H264DecoderPrivate : public H264Private
 {
 public:
+    struct Plane
+    {
+        bytes mData;
+        sint32 mWidth;
+        sint32 mHeight;
+        sint32 mStride;
+    };
+    struct Frame
+    {
+        Plane mY;
+        Plane mU;
+        Plane mV;
+    };
+    typedef void (*OnDecodeFrame)(payload data, const Frame& frame);
+
+public:
     H264DecoderPrivate();
     ~H264DecoderPrivate() override;
 
@@ -81,23 +97,10 @@ public:
 public:
     id_bitmap DecodeBitmap(id_flash flash, uint64 settimems, uint64* gettimems);
     id_texture DecodeTexture(id_flash flash, uint64 settimems, uint64* gettimems);
+    uint64 DecodeCore(id_flash flash, uint64 settimems, OnDecodeFrame cb, payload data);
     void Seek(id_flash flash, uint64 timems);
 
 private:
-    struct Plane
-    {
-        bytes mData;
-        sint32 mWidth;
-        sint32 mHeight;
-        sint32 mStride;
-    };
-    struct Frame
-    {
-        Plane mY;
-        Plane mU;
-        Plane mV;
-    };
-    typedef void (*OnDecodeFrame)(payload data, const Frame& frame);
     uint64 DecodeFrame(bytes src, sint32 sliceSize, sint32 setmsec, sint32 chunkmsec, OnDecodeFrame cb = nullptr, payload data = nullptr);
 
     typedef Array<uint08, datatype_pod_canmemcpy, 256> CollectorType;

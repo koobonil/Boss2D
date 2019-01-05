@@ -9,7 +9,7 @@ public:
     typedef Array<uint08, datatype_pod_canmemcpy, 256> FlvBits;
 
 public:
-    FlvPrivate() {mReadFocus = 0;}
+    FlvPrivate() {mReadFocus = 0; mReadTimeStamp = 0;}
     ~FlvPrivate() {}
 
 public:
@@ -55,6 +55,7 @@ private:
 public:
     FlvBits mBits;
     sint32 mReadFocus;
+    sint32 mReadTimeStamp;
     uint32 mTempBE2;
     uint32 mTempBE3;
     uint32 mTempBE4;
@@ -77,6 +78,7 @@ namespace BOSS
 
         // ReadFocus가 flv header를 스킵함
         NewFlash->mReadFocus += 3 + 1 + 1 + 4 + 4;
+        NewFlash->mReadTimeStamp = 0;
 
         // metaData
         FlvPrivate::FlvBits NewBits;
@@ -126,6 +128,7 @@ namespace BOSS
                 if(Dst[0] == 'F' && Dst[1] == 'L' && Dst[2] == 'V')
                 {
                     NewFlash->mReadFocus += 3 + 1 + 1 + 4 + 4;
+                    NewFlash->mReadTimeStamp = 0;
                     return (id_flash) NewFlash;
                 }
             }
@@ -149,10 +152,13 @@ namespace BOSS
 
         bytes Chunk = &Src[SrcFocus + 1 + 3 + 3 + 1 + 3];
         const sint32 ChunkLength = FromBE3(&Src[SrcFocus + 1]);
+        const sint32 ChunkTimeStamp = FromBE3(&Src[SrcFocus + 1 + 3]) | ((Src[SrcFocus + 1 + 3 + 3] & 0xFF) << 24);
+        ((FlvPrivate*) flash)->mReadFocus += 1 + 3 + 3 + 1 + 3 + ChunkLength + 4;
+        ((FlvPrivate*) flash)->mReadTimeStamp = ChunkTimeStamp;
+
         if(type) *type = Src[SrcFocus];
         if(length) *length = ChunkLength;
-        if(timestamp) *timestamp = FromBE3(&Src[SrcFocus + 1 + 3]) | ((Src[SrcFocus + 1 + 3 + 3] & 0xFF) << 24);
-        ((FlvPrivate*) flash)->mReadFocus += 1 + 3 + 3 + 1 + 3 + ChunkLength + 4;
+        if(timestamp) *timestamp = ChunkTimeStamp;
         return Chunk;
     }
 
@@ -170,11 +176,18 @@ namespace BOSS
         Memory::Copy(Dst.AtDumpingAdded(4), ToBE4(flash, length + 11), 4); // chunk size match
     }
 
+    sint32 Flv::TimeStampForReadFocus(id_flash flash)
+    {
+        if(!flash) return 0;
+        return ((FlvPrivate*) flash)->mReadTimeStamp;
+    }
+
     void Flv::Empty(id_flash flash)
     {
         if(!flash) return;
         ((FlvPrivate*) flash)->mBits.SubtractionAll();
         ((FlvPrivate*) flash)->mReadFocus = 0;
+        ((FlvPrivate*) flash)->mReadTimeStamp = 0;
     }
 
     bytes Flv::GetBits(id_flash_read flash, sint32* length)

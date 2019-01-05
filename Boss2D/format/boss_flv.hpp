@@ -14,6 +14,7 @@ namespace BOSS
     public:
         static bytes ReadChunk(id_flash flash, uint08* type = nullptr, sint32* length = nullptr, sint32* timestamp = nullptr);
         static void WriteChunk(id_flash flash, uint08 type, bytes chunk, sint32 length, sint32 timestamp = 0);
+        static sint32 TimeStampForReadFocus(id_flash flash);
 
     public:
         static void Empty(id_flash flash);
