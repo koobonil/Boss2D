@@ -76,6 +76,8 @@ namespace BOSS
     static void OnOpen(WebSocketPrivate* c, connection_hdl hdl)
     {
         c->mState = WebSocketPrivate::State_Connected;
+        Platform::BroadcastNotify("WebSocket:OnConnected", nullptr, NT_AddOn);
+
         if(c->mIsTls)
             ((TlsClientType*) c->mClient)->interrupt(hdl);
         else ((ClientType*) c->mClient)->interrupt(hdl);
@@ -84,11 +86,13 @@ namespace BOSS
     static void OnFail(WebSocketPrivate* c, connection_hdl hdl)
     {
         c->mState = WebSocketPrivate::State_Disconnected;
+        Platform::BroadcastNotify("WebSocket:OnDisconnected", nullptr, NT_AddOn);
     }
 
     static void OnClose(WebSocketPrivate* c, connection_hdl hdl)
     {
         c->mState = WebSocketPrivate::State_Disconnected;
+        Platform::BroadcastNotify("WebSocket:OnDisconnected", nullptr, NT_AddOn);
     }
 
     static void OnMessage(WebSocketPrivate* c, connection_hdl hdl, ClientType::message_ptr msg)
@@ -161,20 +165,11 @@ namespace BOSS
         mState = State_Null;
         mIsTls = false;
         mClient = nullptr;
+        mDestroyCB = nullptr;
     }
 
     WebSocketPrivate::~WebSocketPrivate()
     {
-        if(mClient)
-        {
-            while(mState == State_Connection)
-                Platform::Utility::Sleep(0, false, true);
-            if(mIsTls)
-                ((TlsClientType*) mClient)->stop();
-            else ((ClientType*) mClient)->stop();
-            while(mClient)
-                Platform::Utility::Sleep(0, false, true);
-        }
         while(auto OldData = mSendQueue.Dequeue()) delete OldData;
         while(auto OldData = mRecvQueue.Dequeue()) delete OldData;
     }
@@ -213,7 +208,7 @@ namespace BOSS
                     return false;
                 }
 
-                mState = State_Connection;
+                mState = State_Connecting;
                 mIsTls = true;
                 mClient = CurClient;
 
@@ -228,6 +223,8 @@ namespace BOSS
                             CurClient->run();
                             This->mClient = nullptr;
                             delete CurClient;
+                            if(This->mDestroyCB)
+                                This->mDestroyCB(This);
                         }
                         catch (exception const& e) {}
                     }, this);
@@ -254,7 +251,7 @@ namespace BOSS
                     return false;
                 }
 
-                mState = State_Connection;
+                mState = State_Connecting;
                 mIsTls = false;
                 mClient = CurClient;
 
@@ -269,6 +266,8 @@ namespace BOSS
                             CurClient->run();
                             This->mClient = nullptr;
                             delete CurClient;
+                            if(This->mDestroyCB)
+                                This->mDestroyCB(This);
                         }
                         catch (exception const& e) {}
                     }, this);
@@ -291,15 +290,30 @@ namespace BOSS
         return (mState == State_Connected);
     }
 
+    void WebSocketPrivate::DestroyMe(DestroyCB cb)
+    {
+        // 이미 통신스레드가 죽었기에 즉시 삭제
+        if(!mClient)
+        {
+            cb(this);
+            return;
+        }
+
+        // 통신스레드에 삭제 요청
+        mDestroyCB = cb;
+        if(mIsTls) ((TlsClientType*) mClient)->stop();
+        else ((ClientType*) mClient)->stop();
+    }
+
     void WebSocketPrivate::SendString(chars text)
     {
-        if(mState == State_Connected)
+        if(mState == State_Connecting || mState == State_Connected)
             mSendQueue.Enqueue(new SendData(text));
     }
 
     void WebSocketPrivate::SendBinary(bytes data, sint32 len)
     {
-        if(mState == State_Connected)
+        if(mState == State_Connecting || mState == State_Connected)
             mSendQueue.Enqueue(new SendData(data, len));
     }
 

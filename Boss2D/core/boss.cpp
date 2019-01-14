@@ -594,9 +594,9 @@ extern "C" const char* boss_normalpath(const char* itemname, boss_drive* result)
             jump(item - DirFocus == 0) nothing;
             jump(item - DirFocus == 2 && DirFocus[0] == '.' && DirFocus[1] == '.')
             {
-                if(0 < NormalPath.Length()) NormalPath.Sub(1); // 끝 슬래시 제거후
+                if(0 < NormalPath.Length()) NormalPath.SubTail(1); // 끝 슬래시 제거후
                 while(0 < NormalPath.Length() && NormalPath[-2] != '/')
-                    NormalPath.Sub(1); // 가능한한 슬래시를 만나기 전까지 제거
+                    NormalPath.SubTail(1); // 가능한한 슬래시를 만나기 전까지 제거
             }
             else
             {

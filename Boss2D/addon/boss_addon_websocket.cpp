@@ -52,7 +52,9 @@ namespace BOSS
 
     void Customized_AddOn_WebSocket_Release(id_websocket websocket)
     {
-        Buffer::Free((buffer) websocket);
+        if(websocket)
+            ((WebSocketPrivate*) websocket)->DestroyMe([](void* me)
+                {Buffer::Free((buffer) me);});
     }
 
     bool Customized_AddOn_WebSocket_IsConnected(id_websocket websocket)

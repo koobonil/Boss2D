@@ -20,7 +20,7 @@ namespace BOSS
         return m_indexableChild.AtAdding();
     }
 
-    void Context::Set(chars value, sint32 length)
+    void Context::Set(chars value, sint32 length, bool need_quotation)
     {
         ClearCache();
         if(value)
@@ -28,11 +28,13 @@ namespace BOSS
             sint32 Length = (length == -1)? boss_strlen(value) : length;
             m_source.Clear();
             m_source.SharedValue().InitString(SO_NeedCopy, value, Length);
+            m_valueNeedQuotation = need_quotation;
             m_valueOffset = m_source->GetString();
             m_valueLength = Length;
         }
         else
         {
+            m_valueNeedQuotation = need_quotation;
             m_valueOffset = nullptr;
             m_valueLength = 0;
         }
@@ -271,6 +273,7 @@ namespace BOSS
 
     Context::Context()
     {
+        m_valueNeedQuotation = false;
         m_valueOffset = nullptr;
         m_valueLength = 0;
         m_parsedString = nullptr;
@@ -280,6 +283,7 @@ namespace BOSS
 
     Context::Context(const Context& rhs)
     {
+        m_valueNeedQuotation = false;
         m_valueOffset = nullptr;
         m_valueLength = 0;
         m_parsedString = nullptr;
@@ -291,6 +295,7 @@ namespace BOSS
 
     Context::Context(Context&& rhs)
     {
+        m_valueNeedQuotation = false;
         m_valueOffset = nullptr;
         m_valueLength = 0;
         m_parsedString = nullptr;
@@ -302,6 +307,7 @@ namespace BOSS
 
     Context::Context(bytes src)
     {
+        m_valueNeedQuotation = false;
         m_valueOffset = nullptr;
         m_valueLength = 0;
         m_parsedString = nullptr;
@@ -313,6 +319,7 @@ namespace BOSS
 
     Context::Context(ScriptType type, buffer src)
     {
+        m_valueNeedQuotation = false;
         m_valueOffset = nullptr;
         m_valueLength = 0;
         m_parsedString = nullptr;
@@ -328,6 +335,7 @@ namespace BOSS
 
     Context::Context(ScriptType type, ScriptOption option, chars src, sint32 length)
     {
+        m_valueNeedQuotation = false;
         m_valueOffset = nullptr;
         m_valueLength = 0;
         m_parsedString = nullptr;
@@ -352,6 +360,7 @@ namespace BOSS
         m_source = rhs.m_source;
         m_namableChild = rhs.m_namableChild;
         m_indexableChild = rhs.m_indexableChild;
+        m_valueNeedQuotation = rhs.m_valueNeedQuotation;
         m_valueOffset = rhs.m_valueOffset;
         m_valueLength = rhs.m_valueLength;
         return *this;
@@ -363,6 +372,7 @@ namespace BOSS
         m_source = ToReference(rhs.m_source);
         m_namableChild = ToReference(rhs.m_namableChild);
         m_indexableChild = ToReference(rhs.m_indexableChild);
+        m_valueNeedQuotation = rhs.m_valueNeedQuotation; rhs.m_valueNeedQuotation = false;
         m_valueOffset = rhs.m_valueOffset; rhs.m_valueOffset = nullptr;
         m_valueLength = rhs.m_valueLength; rhs.m_valueLength = 0;
         return *this;
@@ -378,10 +388,11 @@ namespace BOSS
         return *BOSS_STORAGE_SYS(Context);
     }
 
-    void Context::SetValue(chars value, sint32 length)
+    void Context::SetValueForSource(chars value, sint32 length)
     {
         if(m_valueOffset)
             ClearCache();
+        m_valueNeedQuotation = true;
         m_valueOffset = value;
         m_valueLength = length;
     }
@@ -493,13 +504,13 @@ namespace BOSS
             if(0 < LastLength)
             {
                 Context* LastObject = CurStack[-1].Object;
-                LastObject->SetValue(LastOffset, LastLength);
+                LastObject->SetValueForSource(LastOffset, LastLength);
                 LastLength = 0;
             }
-            else if(0 < EtcString.Length() && !!String::Compare(EtcString, "null"))
+            else if(0 < EtcString.Length())
             {
                 Context* LastObject = CurStack[-1].Object;
-                LastObject->Set(EtcString, EtcString.Length());
+                LastObject->Set(EtcString, EtcString.Length(), false);
                 EtcString.Empty();
             }
 
@@ -564,32 +575,49 @@ namespace BOSS
         if(!indexable)
         {
             for(sint32 i = 0; i < tab; ++i)
-                dst += '\t';
-            dst += '\"';
+                dst += "\t";
+            dst += "\"";
             dst += name;
             dst += "\":";
             if(!HasChild)
             {
-                dst += "\"";
-                if(m_valueOffset)
-                    dst.Add(m_valueOffset, m_valueLength);
-                dst += (lastchild)? "\"" : "\",";
+                if(m_valueNeedQuotation)
+                {
+                    dst += "\"";
+                    if(m_valueOffset)
+                        dst.AddTail(m_valueOffset, m_valueLength);
+                    dst += (lastchild)? "\"" : "\",";
+                }
+                else
+                {
+                    if(m_valueOffset)
+                        dst.AddTail(m_valueOffset, m_valueLength);
+                    if(!lastchild) dst += ",";
+                }
             }
             dst += "\r\n";
         }
         else if(m_valueOffset && *m_valueOffset)
         {
             for(sint32 i = 0; i < tab; ++i)
-                dst += '\t';
-            dst += '\"';
-            dst.Add(m_valueOffset, m_valueLength);
-            dst += (lastchild)? "\"" : "\",";
+                dst += "\t";
+            if(m_valueNeedQuotation)
+            {
+                dst += "\"";
+                dst.AddTail(m_valueOffset, m_valueLength);
+                dst += (lastchild)? "\"" : "\",";
+            }
+            else
+            {
+                dst.AddTail(m_valueOffset, m_valueLength);
+                if(!lastchild) dst += ",";
+            }
             dst += "\r\n";
         }
         else if(!HasChild)
         {
             for(sint32 i = 0; i < tab; ++i)
-                dst += '\t';
+                dst += "\t";
             dst += (lastchild)? "{}" : "{},";
             dst += "\r\n";
         }
@@ -597,7 +625,7 @@ namespace BOSS
         if(HasNamableChild)
         {
             for(sint32 i = 0; i < tab; ++i)
-                dst += '\t';
+                dst += "\t";
             dst += "{\r\n";
 
             sint32 count = m_namableChild.Count();
@@ -605,13 +633,13 @@ namespace BOSS
             m_namableChild.AccessByCallback(SaveJsonCoreCB, param);
 
             for(sint32 i = 0; i < tab; ++i)
-                dst += '\t';
+                dst += "\t";
             dst += (lastchild && !HasIndexableChild)? "}\r\n" : "},\r\n";
         }
         if(HasIndexableChild)
         {
             for(sint32 i = 0; i < tab; ++i)
-                dst += '\t';
+                dst += "\t";
             dst += "[\r\n";
 
             for(sint32 i = 0, iend = m_indexableChild.Count(); i < iend; ++i)
@@ -621,7 +649,7 @@ namespace BOSS
             }
 
             for(sint32 i = 0; i < tab; ++i)
-                dst += '\t';
+                dst += "\t";
             dst += (lastchild)? "]\r\n" : "],\r\n";
         }
     }
@@ -650,7 +678,7 @@ namespace BOSS
             else if(stack[-1]->LengthOfIndexable() == 0)
             {
                 stack[-2]->m_namableChild.Remove("~tree");
-                if(0 < offset) stack[-2]->At("~value").InitSource(this)->SetValue(value, offset);
+                if(0 < offset) stack[-2]->At("~value").InitSource(this)->SetValueForSource(value, offset);
             }
             stack.SubtractionOne();
             stack.SubtractionOne();
@@ -692,14 +720,14 @@ namespace BOSS
                     Context* NewChild = CurStack[-1]->m_indexableChild.AtAdding().InitSource(this);
                     if(src[+1] == '!' && src[+2] == '-' && src[+3] == '-')
                     {
-                        NewChild->At("@name").InitSource(this)->SetValue(src + 1, 3);
+                        NewChild->At("@name").InitSource(this)->SetValueForSource(src + 1, 3);
                         chars CommentBegin = (src = SkipBlank(src + 4, false));
                         src = FindMark(src, '>');
 
                         if(*src == '>' && src[-1] == '-' && src[-2] == '-')
                         {
                             chars CommentEnd = SkipBlankReverse(src - 2);
-                            NewChild->At("~value").InitSource(this)->SetValue(CommentBegin, CommentEnd - CommentBegin);
+                            NewChild->At("~value").InitSource(this)->SetValueForSource(CommentBegin, CommentEnd - CommentBegin);
                         }
                         else return AssertError("주석엘리먼트를 완료하는데 실패하였습니다");
                     }
@@ -711,7 +739,7 @@ namespace BOSS
 
                         const bool HasClosing = (*src == '>');
                         const bool IsChildless = (HasClosing && (src[-1] == '/' || src[-1] == '?'));
-                        NewChild->At("@name").InitSource(this)->SetValue(NameBegin, src - NameBegin - IsChildless);
+                        NewChild->At("@name").InitSource(this)->SetValueForSource(NameBegin, src - NameBegin - IsChildless);
 
                         if(!HasClosing) ElementMode = true;
                         if(!IsChildless)
@@ -754,7 +782,7 @@ namespace BOSS
                 }
                 else while(*src && *src != '>' && *src != '/' && *src != '?' && *src != ' ' && *src != '\t' && *src != '\r' && *src != '\n')
                     src++;
-                NewChild->SetValue(NameBegin + IsQuotes, src - NameBegin - IsQuotes * 2);
+                NewChild->SetValueForSource(NameBegin + IsQuotes, src - NameBegin - IsQuotes * 2);
 
                 if(*src == '>') src--;
                 else LastSrc = src = SkipBlank(src, true);
@@ -783,7 +811,7 @@ namespace BOSS
         {
             sint32 ValueLength = 0;
             chars_endless Value = NameOption->GetStringFast(ValueLength);
-            Name.Add(Value, ValueLength);
+            Name.AddTail(Value, ValueLength);
         }
         dst += Name;
 
@@ -803,7 +831,7 @@ namespace BOSS
             }
             sint32 ValueLength = 0;
             chars_endless Value = ValueOption->GetStringFast(ValueLength);
-            dst.Add(Value, ValueLength);
+            dst.AddTail(Value, ValueLength);
         }
         // 자식 엘리먼트(~tree)
         if(Context* TreeOption = m_namableChild.Access("~tree"))
@@ -846,7 +874,7 @@ namespace BOSS
             dst += "=\"";
             sint32 ValueLength = 0;
             chars_endless Value = data->GetStringFast(ValueLength);
-            dst.Add(Value, ValueLength);
+            dst.AddTail(Value, ValueLength);
             dst += '\"';
         }
     }
@@ -990,7 +1018,7 @@ namespace BOSS
             Memory::Set(TabString, ' ', 4 * tab);
             TabString[4 * tab] = '\0';
             BOSS_TRACE(String::Format((indexable)? ">>>> %s[%s] " : ">>>> %s<%s> ", TabString, (chars) name)
-                .Add(m_valueOffset, m_valueLength));
+                .AddTail(m_valueOffset, m_valueLength));
             delete[] TabString;
 
             m_namableChild.AccessByCallback(DebugPrintCoreCB, &tab);

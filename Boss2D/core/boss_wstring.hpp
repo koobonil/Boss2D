@@ -196,19 +196,19 @@ namespace BOSS
         sint32 Length() const;
 
         /*!
-        \brief 추가(네이티브 와이드스트링으로부터)
+        \brief 후방추가(네이티브 와이드스트링으로부터)
         \param other : 네이티브 와이드스트링
         \param length : 적용할 길이(-1이면 자동설정)
         \return 자기 객체
         */
-        WString& Add(wchars other, sint32 length = -1);
+        WString& AddTail(wchars other, sint32 length = -1);
 
         /*!
-        \brief 감소
+        \brief 후방감소
         \param length : 감소할 길이
         \return 자기 객체
         */
-        WString& Sub(sint32 length);
+        WString& SubTail(sint32 length);
 
         /*!
         \brief CP949형 스트링으로 컨버팅하여 반환
@@ -268,6 +268,13 @@ namespace BOSS
         \return 비교결과(0-같음)
         */
         static sint32 CompareNoCase(wchars text, wchars other, sint32 maxlength = -1);
+
+        /*!
+        \brief 첫 글자의 길이
+        \param text : 조사할 스트링
+        \return 길이(char단위)
+        */
+        static sint32 GetLengthOfFirstLetter(wchars text);
 
     private:
         static const wchararray& NullString();

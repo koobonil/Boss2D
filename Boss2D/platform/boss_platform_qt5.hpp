@@ -2695,6 +2695,9 @@
         Q_OBJECT
 
     public:
+        enum TrackerClosingType {TCT_Null, TCT_Enter, TCT_Escape, TCT_FocusOut, TCT_ForcedExit};
+
+    public:
         EditTracker(UIEditType type, const QString& contents, WidgetPrivate* parent)
             : LineEditPrivate(contents, nullptr), m_tracker(parent, OnExit, this)
         {
@@ -2702,7 +2705,7 @@
                 m_parentpos = parent->mapToGlobal(QPoint(0, 0));
             else m_parentpos = QPoint(0, 0);
 
-            m_canceled = false;
+            m_closing = TCT_Null;
             setWindowFlags(Qt::SplashScreen);
             setWindowModality(Qt::WindowModal);
             setFocus();
@@ -2724,20 +2727,21 @@
         {
         }
 
-        bool Popup(sint32 x, sint32 y, sint32 w, sint32 h)
+        TrackerClosingType Popup(sint32 x, sint32 y, sint32 w, sint32 h)
         {
             move(m_parentpos.x() + x, m_parentpos.y() + y);
             resize(w, h);
             show();
             m_tracker.Lock();
-            return !m_canceled;
+            return m_closing;
         }
 
     protected:
         static void OnExit(void* data)
         {
             EditTracker* This = (EditTracker*) data;
-            This->m_canceled = true;
+            if(This->m_closing == TCT_Null)
+                This->m_closing = TCT_ForcedExit;
             This->close();
             This->m_tracker.Unlock();
         }
@@ -2745,6 +2749,8 @@
     private:
         void focusOutEvent(FocusEventPrivate* event) Q_DECL_OVERRIDE
         {
+            if(m_closing == TCT_Null)
+                m_closing = TCT_FocusOut;
             close();
             m_tracker.Unlock();
         }
@@ -2753,12 +2759,15 @@
         {
             if(event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter)
             {
+                if(m_closing == TCT_Null)
+                    m_closing = TCT_Enter;
                 close();
                 m_tracker.Unlock();
             }
             else if(event->key() == Qt::Key_Escape)
             {
-                m_canceled = true;
+                if(m_closing == TCT_Null)
+                    m_closing = TCT_Escape;
                 close();
                 m_tracker.Unlock();
             }
@@ -2767,7 +2776,7 @@
 
     private:
         Tracker m_tracker;
-        bool m_canceled;
+        TrackerClosingType m_closing;
         QPoint m_parentpos;
     };
 

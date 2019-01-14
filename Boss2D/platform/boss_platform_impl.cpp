@@ -502,7 +502,7 @@ namespace BOSS
                     String ItemnameUTF8 = String::FromWChars(itemname);
                     ItemnameUTF8.Replace(badslash, goodslash);
                     if(ItemnameUTF8[-2] == goodslash)
-                        ItemnameUTF8.Sub(1);
+                        ItemnameUTF8.SubTail(1);
 
                     if(Platform::File::ExistForDir(ItemnameUTF8))
                         return WString::FromChars(ItemnameUTF8);
@@ -520,7 +520,7 @@ namespace BOSS
                 {
                     String ItemnameUTF8 = String::FromWChars(itemname);
                     if(ItemnameUTF8[-2] == L'/' || ItemnameUTF8[-2] == L'\\')
-                        ItemnameUTF8.Sub(1);
+                        ItemnameUTF8.SubTail(1);
 
                     for(sint32 i = ItemnameUTF8.Length() - 1; 0 <= i; --i)
                         if(ItemnameUTF8[i] == L'/' || ItemnameUTF8[i] == L'\\')

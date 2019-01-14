@@ -20,15 +20,19 @@ namespace BOSS
         ~WebSocketPrivate();
 
     public:
+        typedef void (*DestroyCB)(void* me);
+
+    public:
         bool Connect(chars url);
         bool IsConnected() const;
+        void DestroyMe(DestroyCB cb);
         void SendString(chars text);
         void SendBinary(bytes data, sint32 len);
         sint32 GetRecvCount() const;
         const String* RecvStringOnce();
 
     public:
-        enum State {State_Null, State_Connection, State_Connected, State_Disconnected};
+        enum State {State_Null, State_Connecting, State_Connected, State_Disconnected};
         class SendData
         {
         public:
@@ -53,6 +57,7 @@ namespace BOSS
         State mState;
         bool mIsTls;
         void* mClient;
+        DestroyCB mDestroyCB;
         Queue<const SendData*> mSendQueue;
         Queue<const String*> mRecvQueue;
         String mTempForRecv;

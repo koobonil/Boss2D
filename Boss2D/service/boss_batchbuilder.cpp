@@ -246,7 +246,7 @@ namespace BOSS
                     && Front != '_' && Rear != '_')
                     {
                         // 지연시킨 복사수행
-                        Result.Add(&SourcePtr[CopyFocus], FindFocus - CopyFocus);
+                        Result.AddTail(&SourcePtr[CopyFocus], FindFocus - CopyFocus);
                         CopyFocus = (FindFocus += dsts[i].Length());
                         // 변경목록 수정안을 복사
                         Result += srcs[i];
@@ -257,9 +257,9 @@ namespace BOSS
                             if(-1 < NewLineFocus)
                             {
                                 if(SourcePtr[NewLineFocus - 1] == '\r') NewLineFocus--;
-                                Result.Add(&SourcePtr[CopyFocus], NewLineFocus - CopyFocus);
+                                Result.AddTail(&SourcePtr[CopyFocus], NewLineFocus - CopyFocus);
                                 Result += comment;
-                                Result.Add(&SourcePtr[CopyFocus - dsts[i].Length()], NewLineFocus - (CopyFocus - dsts[i].Length()));
+                                Result.AddTail(&SourcePtr[CopyFocus - dsts[i].Length()], NewLineFocus - (CopyFocus - dsts[i].Length()));
                                 CopyFocus = FindFocus = NewLineFocus;
                             }
                         }
@@ -269,7 +269,7 @@ namespace BOSS
             }
             if(0 < Result.Length())
             {
-                Result.Add(&SourcePtr[CopyFocus], source.Length() - CopyFocus);
+                Result.AddTail(&SourcePtr[CopyFocus], source.Length() - CopyFocus);
                 ResultCode = Result;
                 source = Result;
             }
@@ -340,7 +340,7 @@ namespace BOSS
                     if(!dsts[i].Compare(IncludePath))
                     {
                         // 지연시킨 복사수행
-                        ResultCode.Add(&SourcePtr[CopyFocus], FindFocus - CopyFocus);
+                        ResultCode.AddTail(&SourcePtr[CopyFocus], FindFocus - CopyFocus);
                         CopyFocus = FindEnd + 1;
                         // 변경목록 수정안을 복사
                         ResultCode += srcs[i];
@@ -348,7 +348,7 @@ namespace BOSS
                         if(comment && *comment)
                         {
                             ResultCode += comment;
-                            ResultCode.Add(&SourcePtr[FindFocus], FindEnd - FindFocus + 1);
+                            ResultCode.AddTail(&SourcePtr[FindFocus], FindEnd - FindFocus + 1);
                         }
                         break;
                     }
@@ -356,7 +356,7 @@ namespace BOSS
             }
         }
         if(0 < ResultCode.Length())
-            ResultCode.Add(&SourcePtr[CopyFocus], source.Length() - CopyFocus);
+            ResultCode.AddTail(&SourcePtr[CopyFocus], source.Length() - CopyFocus);
         return ResultCode;
     }
 

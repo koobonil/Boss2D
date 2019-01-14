@@ -690,16 +690,28 @@
             return PlatformImpl::Wrap::Popup_ProgramDialog(exepath, args, admin);
         }
 
-        bool Platform::Popup::OpenEditTracker(String& text, UIEditType type, sint32 l, sint32 t, sint32 r, sint32 b)
+        bool Platform::Popup::OpenEditTracker(String& text, UIEditType type, sint32 l, sint32 t, sint32 r, sint32 b, bool* enter)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_view);
             if(r <= l || b <= t) return false;
 
             EditTracker* NewTracker = new EditTracker(type, QString::fromUtf8(text), g_view);
-            const bool Result = NewTracker->Popup(l, t, r - l, b - t);
-            if(Result) text = NewTracker->text().toUtf8().constData();
+            switch(NewTracker->Popup(l, t, r - l, b - t))
+            {
+            case EditTracker::TCT_Enter:
+                if(enter) *enter = true;
+                break;
+            case EditTracker::TCT_Escape:
+            case EditTracker::TCT_ForcedExit:
+                delete NewTracker;
+                return false;
+            case EditTracker::TCT_FocusOut:
+                break;
+            }
+
+            text = NewTracker->text().toUtf8().constData();
             delete NewTracker;
-            return Result;
+            return true;
         }
 
         sint32 Platform::Popup::OpenListTracker(Strings textes, sint32 l, sint32 t, sint32 r, sint32 b)
@@ -1721,6 +1733,36 @@
             return false;
         }
 
+        sint32 Platform::Graphics::GetLengthOfString(chars string, sint32 clipping_width)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
+            chars StringFocus = string;
+            while(*StringFocus)
+            {
+                const sint32 CurLetterLength = String::GetLengthOfFirstLetter(StringFocus);
+                const QString CurLetter = QString::fromUtf8(StringFocus, CurLetterLength);
+                clipping_width -= CanvasClass::get()->painter().fontMetrics().width(CurLetter);
+                if(clipping_width < 0) break;
+                StringFocus += CurLetterLength;
+            }
+            return StringFocus - string;
+        }
+
+        sint32 Platform::Graphics::GetLengthOfStringW(wchars string, sint32 clipping_width)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
+            wchars StringFocus = string;
+            while(*StringFocus)
+            {
+                const sint32 CurLetterLength = WString::GetLengthOfFirstLetter(StringFocus);
+                const QString CurLetter = QString::fromWCharArray(StringFocus, CurLetterLength);
+                clipping_width -= CanvasClass::get()->painter().fontMetrics().width(CurLetter);
+                if(clipping_width < 0) break;
+                StringFocus += CurLetterLength;
+            }
+            return StringFocus - string;
+        }
+
         sint32 Platform::Graphics::GetStringWidth(chars string)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
@@ -2106,7 +2148,7 @@
         {
             String ParsedDirname = dirname;
             if(!ParsedDirname.Right(2).Compare("/*") || !ParsedDirname.Right(2).Compare("\\*"))
-                ParsedDirname.Sub(2);
+                ParsedDirname.SubTail(2);
 
             const String PathUTF8 = PlatformImpl::Core::NormalPath(ParsedDirname);
             QString PathQ = QString::fromUtf8(PathUTF8);
@@ -2122,11 +2164,11 @@
             }
             else
             {
-                TargetDir = String(RootForAssets()).Sub(1) + PathQ.mid(7);
+                TargetDir = String(RootForAssets()).SubTail(1) + PathQ.mid(7);
                 Exists = TargetDir.exists();
                 if(!Exists)
                 {
-                    TargetDir = String(RootForAssetsRem()).Sub(1) + PathQ.mid(7);
+                    TargetDir = String(RootForAssetsRem()).SubTail(1) + PathQ.mid(7);
                     Exists = TargetDir.exists();
                 }
             }
@@ -2181,7 +2223,7 @@
             QFileInfo CurInfo(QString::fromUtf8(BOSS::Platform::File::RootForAssetsRem() + ItemnameUTF8));
             String AbsoluteName = CurInfo.absoluteFilePath().toUtf8().constData();
             if(AbsoluteName[-2] == '/' || AbsoluteName[-2] == '\\')
-                AbsoluteName.Sub(1);
+                AbsoluteName.SubTail(1);
 
             #if BOSS_WINDOWS
                 return WString::FromChars(AbsoluteName);

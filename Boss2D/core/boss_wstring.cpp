@@ -368,7 +368,7 @@ namespace BOSS
         return m_words.Count() - 1;
     }
 
-    WString& WString::Add(wchars other, sint32 length)
+    WString& WString::AddTail(wchars other, sint32 length)
     {
         if(length == -1)
             operator+=(other);
@@ -383,7 +383,7 @@ namespace BOSS
         return *this;
     }
 
-    WString& WString::Sub(sint32 length)
+    WString& WString::SubTail(sint32 length)
     {
         if(0 < length)
         {
@@ -484,14 +484,7 @@ namespace BOSS
                 }
                 else if(sizeof(wchar_t) == 4)
                 {
-                    sint32 BytesToRead = 1;
-                    const uint08 FirstByte = *text & 0xFF;
-                    if(0xFC <= FirstByte) BytesToRead = 6;
-                    else if(0xF8 <= FirstByte) BytesToRead = 5;
-                    else if(0xF0 <= FirstByte) BytesToRead = 4;
-                    else if(0xE0 <= FirstByte) BytesToRead = 3;
-                    else if(0xC0 <= FirstByte) BytesToRead = 2;
-
+                    sint32 BytesToRead = String::GetLengthOfFirstLetter(text);
                     wchar_t NewValue = 0;
                     switch(6 - BytesToRead)
                     {
@@ -782,6 +775,24 @@ namespace BOSS
         if(maxlength == -1)
             return boss_wcsicmp(text, other);
         return boss_wcsnicmp(text, other, maxlength);
+    }
+
+    sint32 WString::GetLengthOfFirstLetter(wchars text)
+    {
+        if(sizeof(wchar_t) == 2)
+        {
+            const uint16& OneWChar = ((const uint16*) text)[0];
+            const uint16& TwoWChar = ((const uint16*) text)[1];
+            if((OneWChar & 0xFF80) == 0x0000) // Ascii
+                return 1;
+            else if((OneWChar & 0xF800) == 0x0000) // 2Bytes-Less
+                return 1;
+            else if((OneWChar & 0xFC00) != 0xD800 || (TwoWChar & 0xFC00) != 0xDC00) // 2Bytes-Full
+                return 1;
+            else // 4Bytes
+                return 2;
+        }
+        return 1;
     }
 
     const wchararray& WString::NullString()

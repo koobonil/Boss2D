@@ -236,19 +236,19 @@ namespace BOSS
         String& Replace(chars oldtext, chars newtext);
 
         /*!
-        \brief 추가(네이티브 스트링으로부터)
+        \brief 후방추가(네이티브 스트링으로부터)
         \param other : 네이티브 스트링
         \param length : 적용할 길이(-1이면 자동설정)
         \return 자기 객체
         */
-        String& Add(chars other, sint32 length = -1);
+        String& AddTail(chars other, sint32 length = -1);
 
         /*!
-        \brief 감소
+        \brief 후방감소
         \param length : 감소할 길이
         \return 자기 객체
         */
-        String& Sub(sint32 length);
+        String& SubTail(sint32 length);
 
         /*!
         \brief 부분생성(Left)
@@ -263,6 +263,20 @@ namespace BOSS
         \return 새로운 객체
         */
         String Right(sint32 length) const;
+
+        /*!
+        \brief 부분생성(Middle)
+        \param index : 복사할 시작인덱스
+        \param length : 복사할 길이
+        \return 새로운 객체
+        */
+        String Middle(sint32 index, sint32 length) const;
+
+        /*!
+        \brief 부분생성(Trim)
+        \return 새로운 객체
+        */
+        String Trim() const;
 
         /*!
         \brief 어셋으로 저장
@@ -350,6 +364,13 @@ namespace BOSS
         \return 비교결과(0-같음)
         */
         static sint32 CompareNoCase(chars text, chars other, sint32 maxlength = -1);
+
+        /*!
+        \brief 첫 글자의 길이
+        \param text : 조사할 스트링
+        \return 길이(char단위)
+        */
+        static sint32 GetLengthOfFirstLetter(chars text);
 
     private:
         static const chararray& NullString();

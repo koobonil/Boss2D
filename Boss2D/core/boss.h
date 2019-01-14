@@ -4,6 +4,7 @@
 \section information 목적
     - Qt기반 2D앱엔진
 \section advanced 소개
+    - addon그룹: 오픈소스연동
     - core그룹: 코어라이브러리
     - element그룹: 단위모델지원
     - format그룹: 파일포맷지원

@@ -433,7 +433,7 @@
             return PlatformImpl::Wrap::Popup_ProgramDialog(exepath, args, admin);
         }
 
-        bool Platform::Popup::OpenEditTracker(String& text, UIEditType type, sint32 l, sint32 t, sint32 r, sint32 b)
+        bool Platform::Popup::OpenEditTracker(String& text, UIEditType type, sint32 l, sint32 t, sint32 r, sint32 b, bool* enter)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_view);
             if(r <= l || b <= t) return false;
@@ -926,6 +926,22 @@
 
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
             return false;
+        }
+
+        sint32 Platform::Graphics::GetLengthOfString(chars string, sint32 clipping_width)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
+
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+            return 0;
+        }
+
+        sint32 Platform::Graphics::GetLengthOfStringW(wchars string, sint32 clipping_width)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
+
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+            return 0;
         }
 
         sint32 Platform::Graphics::GetStringWidth(chars string)

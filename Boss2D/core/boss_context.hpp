@@ -40,8 +40,9 @@ namespace BOSS
         \brief 자신의 값 설정
         \param value : 문자열값
         \param length : 길이(-1은 자동측정)
+        #param need_quotation : 인용부호 필요여부
         */
-        void Set(chars value, sint32 length = -1);
+        void Set(chars value, sint32 length = -1, bool need_quotation = true);
 
         /*!
         \brief 초기화
@@ -281,7 +282,7 @@ namespace BOSS
 
     private:
         const Context& NullChild() const;
-        void SetValue(chars value, sint32 length);
+        void SetValueForSource(chars value, sint32 length);
         void ClearCache();
         static chars FindMark(chars value, const char mark);
         static chars SkipBlank(chars value, bool exclude_nullzero);
@@ -333,6 +334,7 @@ namespace BOSS
         Map<Context> m_indexableChild;
 
         // 자기데이터
+        bool m_valueNeedQuotation;
         chars m_valueOffset;
         sint32 m_valueLength;
 

@@ -259,7 +259,7 @@ namespace BOSS
         return *this;
     }
 
-    String& String::Add(chars other, sint32 length)
+    String& String::AddTail(chars other, sint32 length)
     {
         if(length == -1)
             operator+=(other);
@@ -275,7 +275,7 @@ namespace BOSS
         return *this;
     }
 
-    String& String::Sub(sint32 length)
+    String& String::SubTail(sint32 length)
     {
         if(0 < length)
         {
@@ -290,14 +290,42 @@ namespace BOSS
 
     String String::Left(sint32 length) const
     {
-        if(Length() < length) length = Length();
-        return String(&m_words[0], length);
+        const sint32 CalcedLength = Math::Min(length, Length());
+        return String(&m_words[0], CalcedLength);
     }
 
     String String::Right(sint32 length) const
     {
-        if(Length() < length) length = Length();
-        return String(&m_words[-length - 1], length);
+        const sint32 CalcedLength = Math::Min(length, Length());
+        return String(&m_words[Length() - CalcedLength], CalcedLength);
+    }
+
+    String String::Middle(sint32 index, sint32 length) const
+    {
+        const sint32 CalcedIndex = Math::Max(0, index);
+        const sint32 CalcedLength = Math::Min(index + length, Length()) - CalcedIndex;
+        return String(&m_words[CalcedIndex], CalcedLength);
+    }
+
+    String String::Trim() const
+    {
+        sint32 BeginPos = 0;
+        sint32 EndPos = Length();
+        while(BeginPos < EndPos)
+        {
+            const char OneChar = m_words[BeginPos];
+            if(OneChar == ' ' || OneChar == '\t' || OneChar == '\r' || OneChar == '\n')
+                BeginPos++;
+            else break;
+        }
+        while(BeginPos < EndPos)
+        {
+            const char OneChar = m_words[EndPos - 1];
+            if(OneChar == ' ' || OneChar == '\t' || OneChar == '\r' || OneChar == '\n')
+                EndPos--;
+            else break;
+        }
+        return String(&m_words[BeginPos], EndPos - BeginPos);
     }
 
     bool String::ToAsset(chars filename, bool bom) const
@@ -426,9 +454,9 @@ namespace BOSS
         if(text)
         {
             wchars textend = text + (length & 0x00FFFFFF);
-            while((*text != L'\0') & (text < textend))
+            if(sizeof(wchar_t) == 2)
             {
-                if(sizeof(wchar_t) == 2)
+                while((*text != L'\0') & (text < textend))
                 {
                     const uint16& OneWChar = ((const uint16*) text)[0];
                     const uint16& TwoWChar = ((const uint16*) text)[1];
@@ -460,26 +488,26 @@ namespace BOSS
                         text += 2;
                     }
                 }
-                else if(sizeof(wchar_t) == 4)
+            }
+            else if(sizeof(wchar_t) == 4)
+            {
+                while((*text != L'\0') & (text < textend))
                 {
                     const uint32& OneWChar = ((const uint32*) text)[0];
                     if(OneWChar < 0x80) // Ascii
                     {
                         NewWords.AtAdding() = 0x00 | ((OneWChar >>  0) & 0xFF);
-                        text += 1;
                     }
                     else if(OneWChar < 0x800) // 2Bytes
                     {
                         NewWords.AtAdding() = 0xC0 | ((OneWChar >>  6) & 0xFF);
                         NewWords.AtAdding() = 0x80 | ((OneWChar >>  0) & 0x3F);
-                        text += 1;
                     }
                     else if(OneWChar < 0x10000 || 0x0010FFFF < OneWChar) // 3Bytes
                     {
                         NewWords.AtAdding() = 0xE0 | ((OneWChar >> 12) & 0xFF);
                         NewWords.AtAdding() = 0x80 | ((OneWChar >>  6) & 0x3F);
                         NewWords.AtAdding() = 0x80 | ((OneWChar >>  0) & 0x3F);
-                        text += 1;
                     }
                     else // 4Bytes
                     {
@@ -487,11 +515,11 @@ namespace BOSS
                         NewWords.AtAdding() = 0x80 | ((OneWChar >> 12) & 0x3F);
                         NewWords.AtAdding() = 0x80 | ((OneWChar >>  6) & 0x3F);
                         NewWords.AtAdding() = 0x80 | ((OneWChar >>  0) & 0x3F);
-                        text += 1;
                     }
+                    text += 1;
                 }
-                else BOSS_ASSERT("지원되지 않는 wchar_t입니다", false);
             }
+            else BOSS_ASSERT("지원되지 않는 wchar_t입니다", false);
         }
         NewWords.AtAdding() = '\0';
         return String(NewWords);
@@ -565,6 +593,17 @@ namespace BOSS
         if(maxlength == -1)
             return boss_stricmp(text, other);
         return boss_strnicmp(text, other, maxlength);
+    }
+
+    sint32 String::GetLengthOfFirstLetter(chars text)
+    {
+        const uint08 FirstLetter = *text & 0xFF;
+        if(0xFC <= FirstLetter) return 6;
+        else if(0xF8 <= FirstLetter) return 5;
+        else if(0xF0 <= FirstLetter) return 4;
+        else if(0xE0 <= FirstLetter) return 3;
+        else if(0xC0 <= FirstLetter) return 2;
+        return 1;
     }
 
     const chararray& String::NullString()

@@ -357,9 +357,10 @@ namespace BOSS
             \param t : 상단위치(px)
             \param r : 우측길이(px)
             \param b : 하단길이(px)
+            \param enter : 종료시 엔터가 눌러졌는지 여부
             \return 유효성(Esc로 종료되었다면 무효)
             */
-            static bool OpenEditTracker(String& text, UIEditType type, sint32 l, sint32 t, sint32 r, sint32 b);
+            static bool OpenEditTracker(String& text, UIEditType type, sint32 l, sint32 t, sint32 r, sint32 b, bool* enter = nullptr);
 
             /*!
             \brief 텍스트선택 트래커 열기
@@ -952,6 +953,22 @@ namespace BOSS
             \return 실제로 생략이 되었는지의 여부
             */
             static bool DrawStringW(float x, float y, float w, float h, wchars string, UIFontAlign align, UIFontElide elide = UIFE_None);
+
+            /*!
+            \brief 특정 가로길이 공간에 잘려진 문자열 수량얻기
+            \param string : 문자열
+            \param width : 가로길이(px)
+            \return 잘린 문자열의 수량
+            */
+            static sint32 GetLengthOfString(chars string, sint32 clipping_width);
+
+            /*!
+            \brief 특정 가로길이 공간에 잘려진 문자열 수량얻기(UTF16)
+            \param string : 문자열
+            \param width : 가로길이(px)
+            \return 잘린 문자열의 수량
+            */
+            static sint32 GetLengthOfStringW(wchars string, sint32 clipping_width);
 
             /*!
             \brief 폰트의 가로길이 얻기
