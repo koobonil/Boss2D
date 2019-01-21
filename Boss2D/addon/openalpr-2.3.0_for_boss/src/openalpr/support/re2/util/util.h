@@ -55,7 +55,7 @@ using std::tr1::unordered_set;
 #else
 
 #include <unordered_set>
-#if defined(_WIN32)
+#if BOSS_WINDOWS // modified by BOSS, original-code: #if defined(_WIN32)
 using std::tr1::unordered_set;
 #else
 using std::unordered_set;
