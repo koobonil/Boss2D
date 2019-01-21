@@ -67,8 +67,15 @@ namespace BOSS
         GlueCB mGlueCB;
     };
 
+    class ZaySonInterface
+    {
+    public:
+        virtual void AddComponent(chars name, ZayExtend::ComponentCB cb) = 0;
+        virtual void AddGlue(chars name, ZayExtend::GlueCB cb) = 0;
+    };
+
     //! \brief 뷰의 스크립트운영
-    class ZaySon
+    class ZaySon : public ZaySonInterface
     {
         BOSS_DECLARE_NONCOPYABLE_CLASS(ZaySon)
     public:
@@ -81,8 +88,8 @@ namespace BOSS
         void SetUIName(chars uiname);
         inline const String& UIName() const {return mUIName;}
         void Load(const Context& context);
-        ZaySon& AddComponent(chars name, ZayExtend::ComponentCB cb);
-        ZaySon& AddGlue(chars name, ZayExtend::GlueCB cb);
+        void AddComponent(chars name, ZayExtend::ComponentCB cb) override;
+        void AddGlue(chars name, ZayExtend::GlueCB cb) override;
         const ZayExtend* FindComponent(chars name) const;
         const ZayExtend* FindGlue(chars name) const;
         sint32 Render(ZayPanel& panel, sint32 compmax = 0x7FFFFFFF);

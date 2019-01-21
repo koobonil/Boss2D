@@ -789,18 +789,16 @@ namespace BOSS
         mUIElement = NewView;
     }
 
-    ZaySon& ZaySon::AddComponent(chars name, ZayExtend::ComponentCB cb)
+    void ZaySon::AddComponent(chars name, ZayExtend::ComponentCB cb)
     {
         auto& NewFunction = mExtendMap(name);
         NewFunction.ResetForComponent(cb);
-        return *this;
     }
 
-    ZaySon& ZaySon::AddGlue(chars name, ZayExtend::GlueCB cb)
+    void ZaySon::AddGlue(chars name, ZayExtend::GlueCB cb)
     {
         auto& NewFunction = mExtendMap(name);
         NewFunction.ResetForGlue(cb);
-        return *this;
     }
 
     const ZayExtend* ZaySon::FindComponent(chars name) const
