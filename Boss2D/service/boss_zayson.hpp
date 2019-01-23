@@ -70,7 +70,10 @@ namespace BOSS
     class ZaySonInterface
     {
     public:
-        virtual void AddComponent(chars name, ZayExtend::ComponentCB cb) = 0;
+        enum class ComponentType {Null, Content, Layout};
+
+    public:
+        virtual void AddComponent(ComponentType type, chars name, ZayExtend::ComponentCB cb) = 0;
         virtual void AddGlue(chars name, ZayExtend::GlueCB cb) = 0;
     };
 
@@ -88,7 +91,7 @@ namespace BOSS
         void SetUIName(chars uiname);
         inline const String& UIName() const {return mUIName;}
         void Load(const Context& context);
-        void AddComponent(chars name, ZayExtend::ComponentCB cb) override;
+        void AddComponent(ComponentType type, chars name, ZayExtend::ComponentCB cb) override;
         void AddGlue(chars name, ZayExtend::GlueCB cb) override;
         const ZayExtend* FindComponent(chars name) const;
         const ZayExtend* FindGlue(chars name) const;
