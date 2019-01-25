@@ -16,6 +16,7 @@ namespace BOSS
         class Payload;
         typedef std::function<ZayPanel::StackBinder(ZayPanel& panel, const Payload& params)> ComponentCB;
         typedef std::function<void(const Payload& params)> GlueCB;
+
     public:
         ZayExtend(ComponentCB ccb = nullptr, GlueCB gcb = nullptr);
         ~ZayExtend();
