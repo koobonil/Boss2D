@@ -71,7 +71,7 @@ namespace BOSS
     class ZaySonInterface
     {
     public:
-        enum class ComponentType {Null, Content, ContentWithParameter, Option, Layout, Condition, ConditionWithOperation};
+        enum class ComponentType {Null, Content, ContentWithParameter, Option, Layout, Condition, ConditionWithOperation, ConditionWithEvent};
 
     public:
         virtual void AddComponent(ComponentType type, chars name, ZayExtend::ComponentCB cb) = 0;
