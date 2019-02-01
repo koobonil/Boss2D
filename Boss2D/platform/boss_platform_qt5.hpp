@@ -1451,7 +1451,6 @@
 
             sendCreate();
             sendSizeWhenValid();
-            m_tick_timer.start(1000 / USER_FRAMECOUNT);
         }
 
         h_view changeViewManagerAndDestroy(View* manager)
@@ -1541,6 +1540,7 @@
             {
                 g_view = getWidget();
                 m_view_manager->OnCreate();
+                m_tick_timer.start(1000 / USER_FRAMECOUNT);
             }
         }
 
@@ -1556,9 +1556,9 @@
 
         inline void sendDestroy()
         {
-            m_tick_timer.stop();
             if(m_view_manager != nullptr)
             {
+                m_tick_timer.stop();
                 g_view = getWidget();
                 m_view_manager->OnDestroy();
             }
@@ -1850,6 +1850,7 @@
             m_name = name;
             m_firstwidth = width;
             m_firstheight = height;
+            m_closing = false;
             setMinimumSize(policy->m_minwidth, policy->m_minheight);
             setMaximumSize(policy->m_maxwidth, policy->m_maxheight);
 
@@ -1894,7 +1895,17 @@
         void closeEvent(CloseEventPrivate* event) Q_DECL_OVERRIDE
         {
             if(m_api->closeEvent(event))
+            {
+                m_closing = true;
                 m_window.set_buf(nullptr);
+
+                // 자기 자신이 지워지지 않음!!!!! 임시코드!!!!!
+                /*if(m_api->parentIsPtr())
+                {
+                    Buffer::Free((buffer) m_api);
+                    m_api = nullptr;
+                }*/
+            }
         }
         void mousePressEvent(MouseEventPrivate* event) Q_DECL_OVERRIDE {m_api->mousePressEvent(event);}
         void mouseDoubleClickEvent(MouseEventPrivate* event) Q_DECL_OVERRIDE {m_api->mousePressEvent(event);}
@@ -1915,6 +1926,7 @@
             m_name = OldGenericView->m_name;
             m_firstwidth = OldGenericView->m_firstwidth;
             m_firstheight = OldGenericView->m_firstheight;
+            m_closing = false;
             setMinimumSize(OldGenericView->minimumWidth(), OldGenericView->minimumHeight());
             setMaximumSize(OldGenericView->maximumWidth(), OldGenericView->maximumHeight());
             Buffer::Free((buffer) OldGenericView);
@@ -1936,8 +1948,14 @@
             return QSize(m_firstwidth, m_firstheight);
         }
 
+        inline bool closing() const
+        {
+            return m_closing;
+        }
+
         inline void attachWindow(h_window window)
         {
+            m_closing = false;
             m_window = window;
         }
 
@@ -1981,6 +1999,7 @@
         QString m_name;
         sint32 m_firstwidth;
         sint32 m_firstheight;
+        bool m_closing;
         h_window m_window;
     };
 
@@ -2254,7 +2273,8 @@
         }
         ~WidgetBox()
         {
-            delete m_view;
+            if(m_view && !m_view->closing())
+                delete m_view;
         }
 
         void setWidget(GenericView* view, WidgetPrivate* widget)

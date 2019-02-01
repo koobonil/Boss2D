@@ -69,11 +69,8 @@ namespace BOSS
     class ZayConditionElement : public ZayUIElement
     {
     public:
-        enum class ConditionType {Unknown, If, IfFocused, IfHovered, IfPressed, Elif, Else, Endif};
-
-    public:
         ZayConditionElement() : ZayUIElement(Type::Condition)
-        {mConditionType = ConditionType::Unknown;}
+        {mConditionType = ZaySonInterface::ConditionType::Unknown;}
         ~ZayConditionElement() override {}
 
     public:
@@ -82,22 +79,9 @@ namespace BOSS
             ZayUIElement::Load(root, context);
 
             const String ConditionText = context.GetString();
-            branch;
-            jump(!String::Compare("iffocused", ConditionText, 9)) // 문자열길이 순서상 먼저
-                mConditionType = ConditionType::IfFocused;
-            jump(!String::Compare("ifhovered", ConditionText, 9))
-                mConditionType = ConditionType::IfHovered;
-            jump(!String::Compare("ifpressed", ConditionText, 9))
-                mConditionType = ConditionType::IfPressed;
-            jump(!String::Compare("if", ConditionText, 2))
-                mConditionType = ConditionType::If;
-            jump(!String::Compare("elif", ConditionText, 4))
-                mConditionType = ConditionType::Elif;
-            jump(!String::Compare("else", ConditionText, 4))
-                mConditionType = ConditionType::Else;
-            jump(!String::Compare("endif", ConditionText, 5))
-                mConditionType = ConditionType::Endif;
-            else mRefRoot->AddDebugError(String::Format("알 수 없는 조건문입니다(%s, Load)", (chars) ConditionText));
+            mConditionType = ZaySonInterface::ToCondition(ConditionText);
+            if(mConditionType == ZaySonInterface::ConditionType::Unknown)
+                mRefRoot->AddDebugError(String::Format("알 수 없는 조건문입니다(%s, Load)", (chars) ConditionText));
 
             if(sint32 PosB = ConditionText.Find(0, "(") + 1)
             {
@@ -130,11 +114,11 @@ namespace BOSS
                     // 조건의 성공여부
                     bool IsTrue = true;
                     auto CurCondition = (const ZayConditionElement*) uis[i].ConstPtr();
-                    if(CurCondition->mConditionType == ZayConditionElement::ConditionType::If ||
-                        CurCondition->mConditionType == ZayConditionElement::ConditionType::Elif)
+                    if(CurCondition->mConditionType == ZaySonInterface::ConditionType::If ||
+                        CurCondition->mConditionType == ZaySonInterface::ConditionType::Elif)
                         IsTrue = (ZayUIElement::GetResult(CurCondition->mConditionSolver).ToInteger() != 0);
                     // 포커스확인
-                    else if(CurCondition->mConditionType == ZayConditionElement::ConditionType::IfFocused)
+                    else if(CurCondition->mConditionType == ZaySonInterface::ConditionType::IfFocused)
                     {
                         if(panel)
                         {
@@ -143,7 +127,7 @@ namespace BOSS
                         }
                     }
                     // 호버확인
-                    else if(CurCondition->mConditionType == ZayConditionElement::ConditionType::IfHovered)
+                    else if(CurCondition->mConditionType == ZaySonInterface::ConditionType::IfHovered)
                     {
                         if(panel)
                         {
@@ -152,7 +136,7 @@ namespace BOSS
                         }
                     }
                     // 프레스확인
-                    else if(CurCondition->mConditionType == ZayConditionElement::ConditionType::IfPressed)
+                    else if(CurCondition->mConditionType == ZaySonInterface::ConditionType::IfPressed)
                     {
                         if(panel)
                         {
@@ -171,12 +155,12 @@ namespace BOSS
                             if(uis[++i].ConstValue().mType == ZayUIElement::Type::Condition)
                             {
                                 CurCondition = (const ZayConditionElement*) uis[i].ConstPtr();
-                                if(CurCondition->mConditionType == ZayConditionElement::ConditionType::Endif) // endif는 조건그룹을 빠져나오게 하고
+                                if(CurCondition->mConditionType == ZaySonInterface::ConditionType::Endif) // endif는 조건그룹을 빠져나오게 하고
                                     break;
-                                else if(CurCondition->mConditionType == ZayConditionElement::ConditionType::If || // 새로운 조건그룹을 만나면 수락
-                                    CurCondition->mConditionType == ZayConditionElement::ConditionType::IfFocused ||
-                                    CurCondition->mConditionType == ZayConditionElement::ConditionType::IfHovered ||
-                                    CurCondition->mConditionType == ZayConditionElement::ConditionType::IfPressed)
+                                else if(CurCondition->mConditionType == ZaySonInterface::ConditionType::If || // 새로운 조건그룹을 만나면 수락
+                                    CurCondition->mConditionType == ZaySonInterface::ConditionType::IfFocused ||
+                                    CurCondition->mConditionType == ZaySonInterface::ConditionType::IfHovered ||
+                                    CurCondition->mConditionType == ZaySonInterface::ConditionType::IfPressed)
                                 {
                                     i--;
                                     break;
@@ -189,7 +173,7 @@ namespace BOSS
                         if(uis[++i].ConstValue().mType == ZayUIElement::Type::Condition)
                         {
                             CurCondition = (const ZayConditionElement*) uis[i].ConstPtr();
-                            if(CurCondition->mConditionType == ZayConditionElement::ConditionType::Endif) // endif는 조건그룹을 빠져나오게 하고
+                            if(CurCondition->mConditionType == ZaySonInterface::ConditionType::Endif) // endif는 조건그룹을 빠져나오게 하고
                                 break;
                             else // 다른 모든 조건은 수락
                             {
@@ -205,7 +189,7 @@ namespace BOSS
         }
 
     public:
-        ConditionType mConditionType;
+        ZaySonInterface::ConditionType mConditionType;
         String mConditionSolver;
     };
 
@@ -215,11 +199,8 @@ namespace BOSS
     class ZayAssetElement : public ZayUIElement
     {
     public:
-        enum class DataType {Unknown, ViewScript, ImageMap};
-
-    public:
         ZayAssetElement() : ZayUIElement(Type::Asset)
-        {mDataType = DataType::Unknown;}
+        {mDataType = ZaySonInterface::DataType::Unknown;}
         ~ZayAssetElement() override {}
 
     public:
@@ -230,16 +211,16 @@ namespace BOSS
             mDataName = context("dataname").GetString();
             const String Type = context("datatype").GetString();
             if(!Type.Compare("viewscript"))
-                mDataType = DataType::ViewScript;
+                mDataType = ZaySonInterface::DataType::ViewScript;
             else if(!Type.Compare("imagemap"))
-                mDataType = DataType::ImageMap;
+                mDataType = ZaySonInterface::DataType::ImageMap;
             mFilePath = context("filepath").GetString();
             mUrl = context("url").GetString();
         }
 
     public:
         String mDataName;
-        DataType mDataType;
+        ZaySonInterface::DataType mDataType;
         String mFilePath;
         String mUrl;
     };
@@ -272,12 +253,9 @@ namespace BOSS
     class ZayRequestElement : public ZayUIElement
     {
     public:
-        enum class RequestType {Unknown, Function, Variable};
-
-    public:
         ZayRequestElement() : ZayUIElement(Type::Request)
         {
-            mRequestType = RequestType::Unknown;
+            mRequestType = ZaySonInterface::RequestType::Unknown;
             mGlueForFunction = nullptr;
         }
         ~ZayRequestElement() override {}
@@ -299,7 +277,7 @@ namespace BOSS
                 if(PosE != -1)
                 {
                     const String FunctionName = String(((chars) mRequestName) + PosB, PosE - PosB);
-                    mRequestType = RequestType::Function;
+                    mRequestType = ZaySonInterface::RequestType::Function;
                     mGlueForFunction = mRefRoot->FindGlue(FunctionName);
                     mParamForFunction.Load(root, GetValue);
                     if(mGlueForFunction == nullptr)
@@ -308,9 +286,9 @@ namespace BOSS
             }
 
             // 변수
-            if(mRequestType == RequestType::Unknown)
+            if(mRequestType == ZaySonInterface::RequestType::Unknown)
             {
-                mRequestType = RequestType::Variable;
+                mRequestType = ZaySonInterface::RequestType::Variable;
                 mFormulaForVariable = GetValue.GetString();
             }
         }
@@ -318,14 +296,14 @@ namespace BOSS
     public:
         void DeclareVariable()
         {
-            BOSS_ASSERT("잘못된 시나리오입니다", mRequestType == RequestType::Variable);
+            BOSS_ASSERT("잘못된 시나리오입니다", mRequestType == ZaySonInterface::RequestType::Variable);
             mSolverForVariable.Link("chain", mRequestName, false);
             mSolverForVariable.Parse(ZayUIElement::GetResult(mFormulaForVariable).ToText());
             mSolverForVariable.Execute();
         }
         void Transaction()
         {
-            if(mRequestType == RequestType::Function)
+            if(mRequestType == ZaySonInterface::RequestType::Function)
             {
                 if(mGlueForFunction)
                 {
@@ -337,7 +315,7 @@ namespace BOSS
                 }
                 else mRefRoot->AddDebugError(String::Format("글루함수를 실행하는데 실패하였습니다(%s, Transaction)", (chars) mRequestName));
             }
-            else if(mRequestType == RequestType::Variable)
+            else if(mRequestType == ZaySonInterface::RequestType::Variable)
             {
                 if(auto FindedSolver = Solver::Find("chain", mRequestName))
                 {
@@ -349,7 +327,7 @@ namespace BOSS
         }
 
     public:
-        RequestType mRequestType;
+        ZaySonInterface::RequestType mRequestType;
         String mRequestName;
         // 함수용
         const ZayExtend* mGlueForFunction;
@@ -738,6 +716,29 @@ namespace BOSS
     }
 
     ////////////////////////////////////////////////////////////////////////////////
+    // ZaySonInterface
+    ////////////////////////////////////////////////////////////////////////////////
+    ZaySonInterface::ConditionType ZaySonInterface::ToCondition(chars text)
+    {
+        branch;
+        jump(!String::Compare(text, "iffocused(", 10)) // 문자열길이 순서상 먼저
+            return ConditionType::IfFocused;
+        jump(!String::Compare(text, "ifhovered(", 10))
+            return ConditionType::IfHovered;
+        jump(!String::Compare(text, "ifpressed(", 10))
+            return ConditionType::IfPressed;
+        jump(!String::Compare(text, "if(", 3))
+            return ConditionType::If;
+        jump(!String::Compare(text, "elif(", 5))
+            return ConditionType::Elif;
+        jump(!String::Compare(text, "else"))
+            return ConditionType::Else;
+        jump(!String::Compare(text, "endif"))
+            return ConditionType::Endif;
+        return ConditionType::Unknown;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
     // ZaySon
     ////////////////////////////////////////////////////////////////////////////////
     ZaySon::ZaySon()
@@ -789,16 +790,18 @@ namespace BOSS
         mUIElement = NewView;
     }
 
-    void ZaySon::AddComponent(ComponentType type, chars name, ZayExtend::ComponentCB cb)
+    ZaySonInterface& ZaySon::AddComponent(ComponentType type, chars name, ZayExtend::ComponentCB cb)
     {
         auto& NewFunction = mExtendMap(name);
         NewFunction.ResetForComponent(cb);
+        return *this;
     }
 
-    void ZaySon::AddGlue(chars name, ZayExtend::GlueCB cb)
+    ZaySonInterface& ZaySon::AddGlue(chars name, ZayExtend::GlueCB cb)
     {
         auto& NewFunction = mExtendMap(name);
         NewFunction.ResetForGlue(cb);
+        return *this;
     }
 
     const ZayExtend* ZaySon::FindComponent(chars name) const

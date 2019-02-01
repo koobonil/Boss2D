@@ -71,11 +71,17 @@ namespace BOSS
     class ZaySonInterface
     {
     public:
-        enum class ComponentType {Null, Content, ContentWithParameter, Option, Layout, Condition, ConditionWithOperation, ConditionWithEvent};
+        enum class ComponentType {Unknown, Content, ContentWithParameter, Option, Layout, Condition, ConditionWithOperation, ConditionWithEvent};
+        enum class ConditionType {Unknown, If, IfFocused, IfHovered, IfPressed, Elif, Else, Endif};
+        enum class DataType {Unknown, ViewScript, ImageMap};
+        enum class RequestType {Unknown, Function, Variable};
 
     public:
-        virtual void AddComponent(ComponentType type, chars name, ZayExtend::ComponentCB cb) = 0;
-        virtual void AddGlue(chars name, ZayExtend::GlueCB cb) = 0;
+        static ConditionType ToCondition(chars text);
+
+    public:
+        virtual ZaySonInterface& AddComponent(ComponentType type, chars name, ZayExtend::ComponentCB cb) = 0;
+        virtual ZaySonInterface& AddGlue(chars name, ZayExtend::GlueCB cb) = 0;
     };
 
     //! \brief 뷰의 스크립트운영
@@ -92,8 +98,8 @@ namespace BOSS
         void SetUIName(chars uiname);
         inline const String& UIName() const {return mUIName;}
         void Load(const Context& context);
-        void AddComponent(ComponentType type, chars name, ZayExtend::ComponentCB cb) override;
-        void AddGlue(chars name, ZayExtend::GlueCB cb) override;
+        ZaySonInterface& AddComponent(ComponentType type, chars name, ZayExtend::ComponentCB cb) override;
+        ZaySonInterface& AddGlue(chars name, ZayExtend::GlueCB cb) override;
         const ZayExtend* FindComponent(chars name) const;
         const ZayExtend* FindGlue(chars name) const;
         sint32 Render(ZayPanel& panel, sint32 compmax = 0x7FFFFFFF);

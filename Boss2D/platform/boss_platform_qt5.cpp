@@ -552,7 +552,18 @@
         h_window Platform::OpenPopupWindow(h_view view, h_icon icon)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
-            return h_window::null();
+            GenericView* RenewedView = new GenericView(view);
+            WidgetPrivate* NewWidget = g_data->bindWidget(RenewedView);
+            NewWidget->resize(RenewedView->getFirstSize());
+            NewWidget->setWindowTitle(RenewedView->getName());
+            if(icon.get()) NewWidget->setWindowIcon(*((IconPrivate*) icon.get()));
+            NewWidget->show();
+
+            buffer NewBox = Buffer::Alloc<WidgetBox>(BOSS_DBG 1);
+            ((WidgetBox*) NewBox)->setWidget(RenewedView, NewWidget);
+            h_window NewWindowHandle = h_window::create_by_buf(BOSS_DBG NewBox);
+            RenewedView->attachWindow(NewWindowHandle);
+            return NewWindowHandle;
         }
 
         h_window Platform::OpenTrayWindow(h_view view, h_icon icon)
