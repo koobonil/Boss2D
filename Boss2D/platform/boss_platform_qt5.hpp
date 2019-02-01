@@ -1898,13 +1898,7 @@
             {
                 m_closing = true;
                 m_window.set_buf(nullptr);
-
-                // 자기 자신이 지워지지 않음!!!!! 임시코드!!!!!
-                /*if(m_api->parentIsPtr())
-                {
-                    Buffer::Free((buffer) m_api);
-                    m_api = nullptr;
-                }*/
+                setAttribute(Qt::WA_DeleteOnClose);
             }
         }
         void mousePressEvent(MouseEventPrivate* event) Q_DECL_OVERRIDE {m_api->mousePressEvent(event);}
