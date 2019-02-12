@@ -77,6 +77,7 @@ namespace BOSS
         enum class RequestType {Unknown, Function, Variable};
 
     public:
+        static bool IsFunctionCall(chars text, sint32* prmbegin = nullptr, sint32* prmend = nullptr);
         static ConditionType ToCondition(chars text);
 
     public:

@@ -25,10 +25,9 @@ namespace BOSS
     BOSS_DECLARE_ADDON_FUNCTION(Curl, CreateForUser, id_curl, chars, chars)
     BOSS_DECLARE_ADDON_FUNCTION(Curl, Clone, id_curl, id_curl)
     BOSS_DECLARE_ADDON_FUNCTION(Curl, Release, void, id_curl)
-    BOSS_DECLARE_ADDON_FUNCTION(Curl, GetString, chars, id_curl, chars, chars, chars, sint32)
-    BOSS_DECLARE_ADDON_FUNCTION(Curl, GetBytes, bytes, id_curl, chars, sint32*, chars, chars, sint32)
-    BOSS_DECLARE_ADDON_FUNCTION(Curl, GetRedirectUrl, chars, id_curl, chars, sint32, chars, chars, sint32)
-    BOSS_DECLARE_ADDON_FUNCTION(Curl, PutData, bool, id_curl, chars, bytes, sint32, sint32, chars)
+    BOSS_DECLARE_ADDON_FUNCTION(Curl, GetString, chars, id_curl, chars, chars, AddOn::Curl::SendType, chars, sint32)
+    BOSS_DECLARE_ADDON_FUNCTION(Curl, GetBytes, bytes, id_curl, chars, sint32*, chars, AddOn::Curl::SendType, chars, sint32)
+    BOSS_DECLARE_ADDON_FUNCTION(Curl, GetRedirectUrl, chars, id_curl, chars, sint32, chars, AddOn::Curl::SendType, chars, sint32)
     BOSS_DECLARE_ADDON_FUNCTION(Curl, SendStream, void, id_curl, chars, AddOn::Curl::CurlReadCB, payload)
     BOSS_DECLARE_ADDON_FUNCTION(Curl, FtpUpload, bool, id_curl, chars, chars, buffer)
     BOSS_DECLARE_ADDON_FUNCTION(Curl, FtpDownload, buffer, id_curl, chars, chars)
@@ -46,7 +45,6 @@ namespace BOSS
         Core_AddOn_Curl_GetString() = Customized_AddOn_Curl_GetString;
         Core_AddOn_Curl_GetBytes() = Customized_AddOn_Curl_GetBytes;
         Core_AddOn_Curl_GetRedirectUrl() = Customized_AddOn_Curl_GetRedirectUrl;
-        Core_AddOn_Curl_PutData() = Customized_AddOn_Curl_PutData;
         Core_AddOn_Curl_SendStream() = Customized_AddOn_Curl_SendStream;
         Core_AddOn_Curl_FtpUpload() = Customized_AddOn_Curl_FtpUpload;
         Core_AddOn_Curl_FtpDownload() = Customized_AddOn_Curl_FtpDownload;
@@ -205,7 +203,26 @@ namespace BOSS
         return cheader;
     }
 
-    static uint08s _Request(id_curl curl, chars url, chars headerdata, chars postdata, sint32 postlen, String* redirect_url, sint32 successcode)
+    struct UploadData
+    {
+        const void* mData;
+        sint32 mLength;
+        sint32 mFocus;
+    };
+
+    static size_t OnUpload(void* ptr, size_t size, size_t nitems, payload data)
+    {
+        auto Data = (BOSS::UploadData*) data;
+        const size_t CopyLen = Math::Min(Data->mLength - Data->mFocus, size * nitems);
+        if(0 < CopyLen)
+        {
+            Memory::Copy((uint08*) ptr, Data->mData, CopyLen);
+            Data->mFocus += CopyLen;
+        }
+        return CopyLen;
+    }
+
+    static uint08s _Request(id_curl curl, chars url, chars headerdata, AddOn::Curl::SendType sendtype, chars senddata, sint32 datalen, String* redirect_url, sint32 successcode)
     {
         if(!curl) return uint08s();
         ((CurlStruct*) curl)->mCoreCacheBytes.SubtractionAll();
@@ -213,12 +230,23 @@ namespace BOSS
 
         curl_easy_setopt(CurCurl, CURLOPT_URL, url);
         curl_easy_setopt(CurCurl, CURLOPT_SSL_VERIFYPEER, 0L);
-        curl_easy_setopt(CurCurl, CURLOPT_UPLOAD, 0);
-        if(postdata)
+        BOSS::UploadData PutData;
+        if(sendtype == AddOn::Curl::ST_Put)
+        {
+            PutData.mLength = (datalen == -1)? boss_strlen(senddata) : datalen;
+            PutData.mFocus = 0;
+            PutData.mData = senddata;
+            curl_easy_setopt(CurCurl, CURLOPT_UPLOAD, 1);
+            curl_easy_setopt(CurCurl, CURLOPT_READDATA, &PutData);
+            curl_easy_setopt(CurCurl, CURLOPT_READFUNCTION, BOSS::OnUpload);
+            curl_easy_setopt(CurCurl, CURLOPT_INFILESIZE_LARGE, (curl_off_t) PutData.mLength);
+        }
+        else curl_easy_setopt(CurCurl, CURLOPT_UPLOAD, 0);
+        if(sendtype == AddOn::Curl::ST_Post)
         {
             curl_easy_setopt(CurCurl, CURLOPT_POST, 1);
-            curl_easy_setopt(CurCurl, CURLOPT_POSTFIELDS , postdata);
-            curl_easy_setopt(CurCurl, CURLOPT_POSTFIELDSIZE, (postlen == -1)? boss_strlen(postdata) : postlen);
+            curl_easy_setopt(CurCurl, CURLOPT_POSTFIELDS , senddata);
+            curl_easy_setopt(CurCurl, CURLOPT_POSTFIELDSIZE, (datalen == -1)? boss_strlen(senddata) : datalen);
         }
         else curl_easy_setopt(CurCurl, CURLOPT_POST, 0);
         curl_easy_setopt(CurCurl, CURLOPT_WRITEDATA, &((CurlStruct*) curl)->mCoreCacheBytes);
@@ -266,10 +294,10 @@ namespace BOSS
     }
 
     ////////////////////////////////////////////////////////////////////////////////
-    chars Customized_AddOn_Curl_GetString(id_curl curl, chars url, chars headerdata, chars postdata, sint32 postlen)
+    chars Customized_AddOn_Curl_GetString(id_curl curl, chars url, chars headerdata, AddOn::Curl::SendType sendtype, chars senddata, sint32 datalen)
     {
         if(!curl) return nullptr;
-        uint08s RequestResult = BOSS::_Request(curl, url, headerdata, postdata, postlen, nullptr, 0);
+        uint08s RequestResult = BOSS::_Request(curl, url, headerdata, sendtype, senddata, datalen, nullptr, 0);
         if(RequestResult.Count() == 0) return "";
 
         ((CurlStruct*) curl)->mRequestCacheString = String((chars) RequestResult.AtDumping(0, 1), RequestResult.Count());
@@ -277,83 +305,21 @@ namespace BOSS
     }
 
     ////////////////////////////////////////////////////////////////////////////////
-    bytes Customized_AddOn_Curl_GetBytes(id_curl curl, chars url, sint32* getsize, chars headerdata, chars postdata, sint32 postlen)
+    bytes Customized_AddOn_Curl_GetBytes(id_curl curl, chars url, sint32* getsize, chars headerdata, AddOn::Curl::SendType sendtype, chars senddata, sint32 datalen)
     {
         if(!curl) return nullptr;
-        ((CurlStruct*) curl)->mRequestCacheBytes = BOSS::_Request(curl, url, headerdata, postdata, postlen, nullptr, 0);
+        ((CurlStruct*) curl)->mRequestCacheBytes = BOSS::_Request(curl, url, headerdata, sendtype, senddata, datalen, nullptr, 0);
         if(getsize) *getsize = ((CurlStruct*) curl)->mRequestCacheBytes.Count();
         return ((CurlStruct*) curl)->mRequestCacheBytes.AtDumping(0, 1);
     }
 
     ////////////////////////////////////////////////////////////////////////////////
-    chars Customized_AddOn_Curl_GetRedirectUrl(id_curl curl, chars url, sint32 successcode, chars headerdata, chars postdata, sint32 postlen)
+    chars Customized_AddOn_Curl_GetRedirectUrl(id_curl curl, chars url, sint32 successcode, chars headerdata, AddOn::Curl::SendType sendtype, chars senddata, sint32 datalen)
     {
         if(!curl) return nullptr;
         ((CurlStruct*) curl)->mRequestCacheString.Empty();
-        BOSS::_Request(curl, url, headerdata, postdata, postlen, &((CurlStruct*) curl)->mRequestCacheString, successcode);
+        BOSS::_Request(curl, url, headerdata, sendtype, senddata, datalen, &((CurlStruct*) curl)->mRequestCacheString, successcode);
         return ((CurlStruct*) curl)->mRequestCacheString;
-    }
-
-    struct UploadData
-    {
-        const void* mData;
-        sint32 mLength;
-        sint32 mFocus;
-    };
-
-    size_t OnUpload(void* ptr, size_t size, size_t nitems, payload data)
-    {
-        auto Data = (BOSS::UploadData*) data;
-        const size_t CopyLen = Math::Min(Data->mLength - Data->mFocus, size * nitems);
-        if(0 < CopyLen)
-        {
-            Memory::Copy((uint08*) ptr, Data->mData, CopyLen);
-            Data->mFocus += CopyLen;
-        }
-        return CopyLen;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////
-    bool Customized_AddOn_Curl_PutData(id_curl curl, chars url, bytes putdata, sint32 putsize, sint32 successcode, chars headerdata)
-    {
-        if(!curl) return false;
-        CURL* CurCurl = ((CurlStruct*) curl)->mId;
-
-        BOSS::UploadData NewData;
-        NewData.mLength = putsize;
-        NewData.mFocus = 0;
-        NewData.mData = putdata;
-
-        curl_easy_setopt(CurCurl, CURLOPT_URL, url);
-        curl_easy_setopt(CurCurl, CURLOPT_SSL_VERIFYPEER, 0L);
-        curl_easy_setopt(CurCurl, CURLOPT_POST, 0);
-        curl_easy_setopt(CurCurl, CURLOPT_UPLOAD, 1);
-        curl_easy_setopt(CurCurl, CURLOPT_READDATA, &NewData);
-        curl_easy_setopt(CurCurl, CURLOPT_READFUNCTION, BOSS::OnUpload);
-        curl_easy_setopt(CurCurl, CURLOPT_WRITEDATA, nullptr);
-        curl_easy_setopt(CurCurl, CURLOPT_WRITEFUNCTION, nullptr);
-        curl_easy_setopt(CurCurl, CURLOPT_INFILESIZE_LARGE, (curl_off_t) NewData.mLength);
-
-        curl_slist* cheader = nullptr;
-        cheader = BOSS::_MakeCHeader(cheader, url);
-        cheader = curl_slist_append(cheader, "User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0");
-        cheader = curl_slist_append(cheader, "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-        cheader = curl_slist_append(cheader, "Accept-Language: ko-kr,ko;q=0.8,en-us;q=0.5,en;q=0.3");
-        cheader = curl_slist_append(cheader, "Connection: keep-alive");
-        cheader = curl_slist_append(cheader, "Content-Type: application/bin");
-        if(headerdata) cheader = curl_slist_append(cheader, headerdata);
-        curl_easy_setopt(CurCurl, CURLOPT_HTTPHEADER, cheader);
-
-        CURLcode res = curl_easy_perform(CurCurl);
-        curl_slist_free_all(cheader);
-
-        if(res == CURLE_OK)
-        {
-            long statLong = 0;
-            if(CURLE_OK == curl_easy_getinfo(CurCurl, CURLINFO_HTTP_CODE, &statLong))
-                return (statLong == successcode);
-        }
-        return false;
     }
 
     ////////////////////////////////////////////////////////////////////////////////

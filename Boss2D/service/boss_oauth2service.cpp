@@ -275,7 +275,7 @@ namespace BOSS
                 "grant_type=authorization_code",
                 code, (chars) data_const().mClientId, (chars) data_const().mClientSecret);
             chars ResultA = AddOn::Curl::GetString(data().mCurl,
-                "https://" "accounts.google.com/o/oauth2/token", nullptr, PostData);
+                "https://" "accounts.google.com/o/oauth2/token", nullptr, AddOn::Curl::ST_Post, PostData);
             const Context ResultAJson(ST_Json, SO_OnlyReference, ResultA);
             data().mAccessToken = ResultAJson("access_token").GetString();
             data().mRefreshToken = ResultAJson("refresh_token").GetString();
@@ -394,7 +394,7 @@ namespace BOSS
                 "code=%s",
                 (chars) data_const().mClientId, code);
             chars ResultA = AddOn::Curl::GetString(data().mCurl,
-                "https://" "kauth.kakao.com/oauth/token", nullptr, PostData);
+                "https://" "kauth.kakao.com/oauth/token", nullptr, AddOn::Curl::ST_Post, PostData);
             const Context ResultAJson(ST_Json, SO_OnlyReference, ResultA);
             data().mAccessToken = ResultAJson("access_token").GetString();
             data().mRefreshToken = ResultAJson("refresh_token").GetString();

@@ -94,10 +94,17 @@ namespace BOSS
     public:
         static bool Test(const ZaySon& root, ZayUIs& dest, const Context& src)
         {
-            if(src.GetString(nullptr))
+            if(ZaySonInterface::ToCondition(src.GetString("")) != ZaySonInterface::ConditionType::Unknown) // oncreate, onclick, compvalues의 경우
             {
                 Object<ZayConditionElement> NewCondition(ObjectAllocType::Now);
                 NewCondition->Load(root, src);
+                dest.AtAdding() = (id_share) NewCondition;
+                return true;
+            }
+            else if(ZaySonInterface::ToCondition(src("compname").GetString("")) != ZaySonInterface::ConditionType::Unknown) // compname의 경우
+            {
+                Object<ZayConditionElement> NewCondition(ObjectAllocType::Now);
+                NewCondition->Load(root, src("compname"));
                 dest.AtAdding() = (id_share) NewCondition;
                 return true;
             }
@@ -265,31 +272,26 @@ namespace BOSS
         {
             ZayUIElement::Load(root, context);
 
-            chararray GetName;
-            const auto& GetValue = context(0, &GetName);
-            mRequestName = &GetName[0];
-
-            // 함수
-            if(!String::Compare("call", mRequestName, 4))
-            if(sint32 PosB = mRequestName.Find(0, "(") + 1)
+            const String TextTest = context.GetString("");
+            sint32 PosB, PosE;
+            if(ZaySonInterface::IsFunctionCall(TextTest, &PosB, &PosE)) // 함수호출
             {
-                sint32 PosE = mRequestName.Find(PosB + 1, ")");
-                if(PosE != -1)
-                {
-                    const String FunctionName = String(((chars) mRequestName) + PosB, PosE - PosB);
-                    mRequestType = ZaySonInterface::RequestType::Function;
-                    mGlueForFunction = mRefRoot->FindGlue(FunctionName);
-                    mParamForFunction.Load(root, GetValue);
-                    if(mGlueForFunction == nullptr)
-                        mRefRoot->AddDebugError(String::Format("글루함수를 찾을 수 없습니다(%s, Load)", (chars) FunctionName));
-                }
+                mRequestType = ZaySonInterface::RequestType::Function;
+                mRequestName = TextTest.Left(PosB - 1);
+                mGlueForFunction = mRefRoot->FindGlue(mRequestName);
+                if(!mGlueForFunction)
+                    mRefRoot->AddDebugError(String::Format("글루함수를 찾을 수 없습니다(%s, Load)", (chars) mRequestName));
+                Context Params(ST_Json, SO_NeedCopy, "[" + TextTest.Middle(PosB, PosE - PosB) + "]");
+                for(sint32 i = 0, iend = Params.LengthOfIndexable(); i < iend; ++i)
+                    mParamsForFunction.AtAdding() = Params[i].GetString();
             }
-
-            // 변수
-            if(mRequestType == ZaySonInterface::RequestType::Unknown)
+            else // 변수입력
             {
+                chararray GetName;
+                const auto& GetValue = context(0, &GetName);
                 mRequestType = ZaySonInterface::RequestType::Variable;
-                mFormulaForVariable = GetValue.GetString();
+                mRequestName = &GetName[0]; // 좌항
+                mFormulaForVariable = GetValue.GetString(); // 우항
             }
         }
 
@@ -308,9 +310,8 @@ namespace BOSS
                 if(mGlueForFunction)
                 {
                     ZayExtend::Payload ParamCollector = mGlueForFunction->MakePayload();
-                    if(0 < mParamForFunction.mParamFormulas.Count())
-                        for(sint32 i = 0, iend = mParamForFunction.mParamFormulas.Count(); i < iend; ++i)
-                            ParamCollector(ZayUIElement::GetResult(mParamForFunction.mParamFormulas[i]));
+                    for(sint32 i = 0, iend = mParamsForFunction.Count(); i < iend; ++i)
+                        ParamCollector(ZayUIElement::GetResult(mParamsForFunction[i]));
                     // ParamCollector가 소멸되면서 Glue함수가 호출됨
                 }
                 else mRefRoot->AddDebugError(String::Format("글루함수를 실행하는데 실패하였습니다(%s, Transaction)", (chars) mRequestName));
@@ -331,7 +332,7 @@ namespace BOSS
         String mRequestName;
         // 함수용
         const ZayExtend* mGlueForFunction;
-        ZayParamElement mParamForFunction;
+        Strings mParamsForFunction;
         // 변수용
         String mFormulaForVariable;
         Solver mSolverForVariable;
@@ -425,8 +426,8 @@ namespace BOSS
                             if(CurCompValue && 0 < CurCompValue->mParamFormulas.Count())
                             {
                                 Solvers LocalSolvers; // 파라미터계산용 패널정보 사전입력
-                                ZayUIElement::SetSolver(LocalSolvers.AtAdding(), "p.width", String::FromFloat(panel.w()));
-                                ZayUIElement::SetSolver(LocalSolvers.AtAdding(), "p.height", String::FromFloat(panel.h()));
+                                ZayUIElement::SetSolver(LocalSolvers.AtAdding(), "p.w", String::FromFloat(panel.w()));
+                                ZayUIElement::SetSolver(LocalSolvers.AtAdding(), "p.h", String::FromFloat(panel.h()));
                                 for(sint32 j = 0, jend = CurCompValue->mParamFormulas.Count(); j < jend; ++j)
                                     ParamCollector(ZayUIElement::GetResult(CurCompValue->mParamFormulas[j]));
                             }
@@ -718,6 +719,22 @@ namespace BOSS
     ////////////////////////////////////////////////////////////////////////////////
     // ZaySonInterface
     ////////////////////////////////////////////////////////////////////////////////
+    bool ZaySonInterface::IsFunctionCall(chars text, sint32* prmbegin, sint32* prmend)
+    {
+        const String FunctionTest = text;
+        if(sint32 PosB = FunctionTest.Find(0, "(") + 1)
+        {
+            sint32 PosE = FunctionTest.Find(PosB, ")");
+            if(PosE != -1)
+            {
+                if(prmbegin) *prmbegin = PosB;
+                if(prmend) *prmend = PosE;
+                return true;
+            }
+        }
+        return false;
+    }
+
     ZaySonInterface::ConditionType ZaySonInterface::ToCondition(chars text)
     {
         branch;
