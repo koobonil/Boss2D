@@ -81,7 +81,8 @@ namespace BOSS
         static ConditionType ToCondition(chars text);
 
     public:
-        virtual ZaySonInterface& AddComponent(ComponentType type, chars name, ZayExtend::ComponentCB cb) = 0;
+        virtual const String UIName() const = 0;
+        virtual ZaySonInterface& AddComponent(ComponentType type, chars name, ZayExtend::ComponentCB cb, chars paramcomment = nullptr) = 0;
         virtual ZaySonInterface& AddGlue(chars name, ZayExtend::GlueCB cb) = 0;
     };
 
@@ -97,9 +98,9 @@ namespace BOSS
 
     public:
         void SetUIName(chars uiname);
-        inline const String& UIName() const {return mUIName;}
+        const String UIName() const override;
         void Load(const Context& context);
-        ZaySonInterface& AddComponent(ComponentType type, chars name, ZayExtend::ComponentCB cb) override;
+        ZaySonInterface& AddComponent(ComponentType type, chars name, ZayExtend::ComponentCB cb, chars paramcomment = nullptr) override;
         ZaySonInterface& AddGlue(chars name, ZayExtend::GlueCB cb) override;
         const ZayExtend* FindComponent(chars name) const;
         const ZayExtend* FindGlue(chars name) const;

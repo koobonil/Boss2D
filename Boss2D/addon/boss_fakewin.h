@@ -28,7 +28,7 @@
 #define BOSS_FAKEWIN_DECLSPEC_DLLIMPORT //__declspec(dllimport)
 #define BOSS_FAKEWIN_STDCALL            //__stdcall
 
-#if BOSS_LINUX
+#if BOSS_LINUX | BOSS_MAC_OSX | BOSS_WINDOWS_MINGW
     #define alloca(N) boss_fakewin_alloca(N)
     #define _alloca(N) boss_fakewin_alloca(N)
     #ifdef __cplusplus
@@ -38,7 +38,7 @@
     #ifdef __cplusplus
         }
     #endif
-#elif !BOSS_WINDOWS | BOSS_WINDOWS_MINGW
+#else
     #define _alloca(N) alloca(N)
 #endif
 
@@ -496,6 +496,7 @@
     #define _ftime_s boss_fakewin_ftime_s
     #define _localtime_s boss_fakewin_localtime_s
     #define _wopen boss_fakewin_wopen
+    #define _open boss_fakewin_open
     #define _close boss_fakewin_close
     #define _read boss_fakewin_read
     #define _write boss_fakewin_write
@@ -669,7 +670,8 @@
     int boss_fakewin_feof(FILE*);
     errno_t boss_fakewin_ftime_s(struct boss_fakewin_struct_timeb*);
     errno_t boss_fakewin_localtime_s(struct tm*, const time_t*);
-    int boss_fakewin_wopen(const wchar_t*,int,int);
+    int boss_fakewin_wopen(const wchar_t*, int, int);
+    int boss_fakewin_open(const char*, int);
     int boss_fakewin_close(int);
     long boss_fakewin_read(int, void*, unsigned int);
     long boss_fakewin_write(int, const void*, unsigned int);

@@ -21,8 +21,8 @@ extern "C"
 // 등록과정
 namespace BOSS
 {
-    BOSS_DECLARE_ADDON_FUNCTION(Curl, Create, id_curl, void)
-    BOSS_DECLARE_ADDON_FUNCTION(Curl, CreateForUser, id_curl, chars, chars)
+    BOSS_DECLARE_ADDON_FUNCTION(Curl, Create, id_curl, sint32)
+    BOSS_DECLARE_ADDON_FUNCTION(Curl, CreateForUser, id_curl, chars, chars, sint32)
     BOSS_DECLARE_ADDON_FUNCTION(Curl, Clone, id_curl, id_curl)
     BOSS_DECLARE_ADDON_FUNCTION(Curl, Release, void, id_curl)
     BOSS_DECLARE_ADDON_FUNCTION(Curl, GetString, chars, id_curl, chars, chars, AddOn::Curl::SendType, chars, sint32)
@@ -103,7 +103,7 @@ namespace BOSS
     class CurlStruct
     {
     public:
-        CurlStruct()
+        CurlStruct(sint32 timeout) : mTimeOut(timeout)
         {
             mId = nullptr;
             mRefCount = 0;
@@ -113,6 +113,7 @@ namespace BOSS
         }
 
     public:
+        const sint32 mTimeOut;
         CURL* mId;
         sint32 mRefCount;
         uint08s mCoreCacheBytes;
@@ -123,18 +124,18 @@ namespace BOSS
     };
 
     ////////////////////////////////////////////////////////////////////////////////
-    id_curl Customized_AddOn_Curl_Create(void)
+    id_curl Customized_AddOn_Curl_Create(sint32 timeout)
     {
-        CurlStruct* NewStruct = new CurlStruct();
+        CurlStruct* NewStruct = new CurlStruct(timeout);
         NewStruct->mId = curl_easy_init();
         NewStruct->mRefCount = 1;
         return (id_curl) NewStruct;
     }
 
     ////////////////////////////////////////////////////////////////////////////////
-    id_curl Customized_AddOn_Curl_CreateForUser(chars username, chars password)
+    id_curl Customized_AddOn_Curl_CreateForUser(chars username, chars password, sint32 timeout)
     {
-        CurlStruct* NewStruct = new CurlStruct();
+        CurlStruct* NewStruct = new CurlStruct(timeout);
         NewStruct->mId = curl_easy_init();
         NewStruct->mRefCount = 1;
         curl_easy_setopt(NewStruct->mId, CURLOPT_USERPWD,
@@ -222,7 +223,7 @@ namespace BOSS
         return CopyLen;
     }
 
-    static uint08s _Request(id_curl curl, chars url, chars headerdata, AddOn::Curl::SendType sendtype, chars senddata, sint32 datalen, String* redirect_url, sint32 successcode)
+    static uint08s _Request(id_curl curl, chars url, chars headerdata, AddOn::Curl::SendType sendtype, chars senddata, sint32 datalen, String* redirect_url, sint32 successcode, sint32 timeout)
     {
         if(!curl) return uint08s();
         ((CurlStruct*) curl)->mCoreCacheBytes.SubtractionAll();
@@ -276,6 +277,7 @@ namespace BOSS
         }
         curl_easy_setopt(CurCurl, CURLOPT_HTTPHEADER, cheader);
 
+        curl_easy_setopt(CurCurl, CURLOPT_TIMEOUT, timeout);
         CURLcode res = curl_easy_perform(CurCurl);
         curl_slist_free_all(cheader);
 
@@ -297,7 +299,7 @@ namespace BOSS
     chars Customized_AddOn_Curl_GetString(id_curl curl, chars url, chars headerdata, AddOn::Curl::SendType sendtype, chars senddata, sint32 datalen)
     {
         if(!curl) return nullptr;
-        uint08s RequestResult = BOSS::_Request(curl, url, headerdata, sendtype, senddata, datalen, nullptr, 0);
+        uint08s RequestResult = BOSS::_Request(curl, url, headerdata, sendtype, senddata, datalen, nullptr, 0, ((CurlStruct*) curl)->mTimeOut);
         if(RequestResult.Count() == 0) return "";
 
         ((CurlStruct*) curl)->mRequestCacheString = String((chars) RequestResult.AtDumping(0, 1), RequestResult.Count());
@@ -308,7 +310,7 @@ namespace BOSS
     bytes Customized_AddOn_Curl_GetBytes(id_curl curl, chars url, sint32* getsize, chars headerdata, AddOn::Curl::SendType sendtype, chars senddata, sint32 datalen)
     {
         if(!curl) return nullptr;
-        ((CurlStruct*) curl)->mRequestCacheBytes = BOSS::_Request(curl, url, headerdata, sendtype, senddata, datalen, nullptr, 0);
+        ((CurlStruct*) curl)->mRequestCacheBytes = BOSS::_Request(curl, url, headerdata, sendtype, senddata, datalen, nullptr, 0, ((CurlStruct*) curl)->mTimeOut);
         if(getsize) *getsize = ((CurlStruct*) curl)->mRequestCacheBytes.Count();
         return ((CurlStruct*) curl)->mRequestCacheBytes.AtDumping(0, 1);
     }
@@ -318,7 +320,7 @@ namespace BOSS
     {
         if(!curl) return nullptr;
         ((CurlStruct*) curl)->mRequestCacheString.Empty();
-        BOSS::_Request(curl, url, headerdata, sendtype, senddata, datalen, &((CurlStruct*) curl)->mRequestCacheString, successcode);
+        BOSS::_Request(curl, url, headerdata, sendtype, senddata, datalen, &((CurlStruct*) curl)->mRequestCacheString, successcode, ((CurlStruct*) curl)->mTimeOut);
         return ((CurlStruct*) curl)->mRequestCacheString;
     }
 

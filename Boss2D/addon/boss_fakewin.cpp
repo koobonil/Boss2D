@@ -10,7 +10,7 @@
 #include <platform/boss_platform.hpp>
 #include "boss_fakewin.h"
 
-#if BOSS_LINUX
+#if BOSS_LINUX | BOSS_MAC_OSX | BOSS_WINDOWS_MINGW
     extern "C" void* boss_fakewin_alloca(boss_size_t size)
     {
         static uint08s _;
@@ -249,6 +249,7 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
     #undef _ftime_s
     #undef _localtime_s
     #undef _wopen
+    #undef _open
     #undef _close
     #undef _read
     #undef _write
@@ -877,9 +878,9 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         SearchResult(chars pathname)
         {
             String Checkname = pathname;
-            if(Checkname[-2] == '*') Checkname.Sub(1);
+            if(Checkname[-2] == '*') Checkname.SubTail(1);
             if(Checkname[-2] != '/' && Checkname[-2] != '\\')
-                Checkname.Add("/");
+                Checkname.AddTail("/");
             Pathname = WString::FromChars(Checkname);
             Cursor = 0;
         }
@@ -1737,6 +1738,11 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         return Platform::File::FDOpen(filename, Writable, Append, Exclusive, Truncate);
     }
 
+    extern "C" int boss_fakewin_open(const char* filename, int oflag)
+    {
+        return boss_fakewin_wopen(WString::FromChars(filename), oflag, 0);
+    }
+
     extern "C" int boss_fakewin_close(int fd)
     {
         return Platform::File::FDClose(fd)? 0 : -1;
@@ -2123,7 +2129,7 @@ extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR l
         if(!WString::Compare(lpName, L"USERPROFILE"))
         {
             String AssetsRem = Platform::File::RootForAssetsRem();
-            AssetsRem.Sub(1); // '/'기호제거
+            AssetsRem.SubTail(1); // '/'기호제거
             const WString AssetsRemW = WString::FromChars(AssetsRem);
             if(lpBuffer)
             {

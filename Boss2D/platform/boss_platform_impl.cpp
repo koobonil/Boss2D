@@ -321,7 +321,7 @@ namespace BOSS
                 return Result;
             }
 
-            bool Popup_FileDialog(String& path, String* shortpath, chars title, bool isdir)
+            bool Popup_FileDialog(DialogShellType type, String& path, String* shortpath, chars title)
             {
                 bool Result = false;
                 #if BOSS_WINDOWS && defined(_MSC_VER)
@@ -330,7 +330,7 @@ namespace BOSS
                     WString TitleName = WString::FromChars(title);
                     WString InitDir = Platform::File::GetDirName(WString::FromChars(path), L'/', L'\\');
 
-                    if(isdir)
+                    if(type == DST_Dir)
                     {
                         BROWSEINFOW bi = {0};
                         bi.lpszTitle = (wchars) TitleName;
@@ -368,7 +368,12 @@ namespace BOSS
                         ofn.lpstrFile = ResultPath;
                         ofn.nMaxFile = _MAX_PATH - 4;
 
-                        if(GetOpenFileNameW(&ofn))
+                        if(type == DST_FileSave)
+                        {
+                            if(GetSaveFileNameW(&ofn))
+                                Result = true;
+                        }
+                        else if(GetOpenFileNameW(&ofn))
                             Result = true;
                     }
 
@@ -380,7 +385,8 @@ namespace BOSS
                     CoUninitialize();
                 #elif BOSS_LINUX & !defined(BOSS_SILENT_NIGHT_IS_ENABLED)
                     auto NewDialog = gtk_file_chooser_dialog_new(title, nullptr,
-                        (isdir)? GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER : GTK_FILE_CHOOSER_ACTION_SAVE,
+                        (type == DST_Dir)? GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER :
+                        ((type == DST_FileSave)? GTK_FILE_CHOOSER_ACTION_SAVE : GTK_FILE_CHOOSER_ACTION_OPEN),
                         "_Cancel", GTK_RESPONSE_CANCEL, "_OK", GTK_RESPONSE_ACCEPT, nullptr);
                     if(gtk_dialog_run(GTK_DIALOG(NewDialog)) == GTK_RESPONSE_ACCEPT)
                         Result = true;

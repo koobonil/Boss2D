@@ -34,6 +34,7 @@ namespace BOSS
     enum MaskRole {MR_SrcOver, MR_DstOver, MR_Clear, MR_Src, MR_Dst,
         MR_SrcIn, MR_DstIn, MR_SrcOut, MR_DstOut,
         MR_SrcAtop, MR_DstAtop, MR_Xor, MR_Default = MR_SrcOver};
+    enum DialogShellType {DST_FileOpen, DST_FileSave, DST_Dir};
     enum DialogButtonType {DBT_YesNo, DBT_Ok, DBT_OKCancel, DBT_OkCancelIgnore};
     enum ConnectStatus {CS_Connecting, CS_Connected, CS_Disconnected};
     enum PurchaseType {PT_Consumable, PT_Unlockable};
@@ -318,13 +319,13 @@ namespace BOSS
 
             /*!
             \brief 파일(디렉토리) 다이얄로그
+            \param type : 종류(파일오픈, 파일저장, 디렉토리)
             \param path : 입력(초기값 필요) 및 결과
             \param shortpath : 아이템명
             \param title : 창제목
-            \param isdir : 디렉토리여부
             \return 유효성(확인버튼이 아닌 종료는 무효)
             */
-            static bool FileDialog(String& path, String* shortpath, chars title, bool isdir = false);
+            static bool FileDialog(DialogShellType type, String& path, String* shortpath, chars title);
 
             /*!
             \brief 메시지 다이얄로그

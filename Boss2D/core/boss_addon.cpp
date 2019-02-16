@@ -79,8 +79,8 @@ namespace BOSS
 
     ////////////////////////////////////////////////////////////////////////////////
     static void Curl_Error() {BOSS_ASSERT("Curl애드온이 준비되지 않았습니다", false);}
-    BOSS_DEFINE_ADDON_FUNCTION(Curl, Create, id_curl, return nullptr, void)
-    BOSS_DEFINE_ADDON_FUNCTION(Curl, CreateForUser, id_curl, return nullptr, chars, chars)
+    BOSS_DEFINE_ADDON_FUNCTION(Curl, Create, id_curl, return nullptr, sint32)
+    BOSS_DEFINE_ADDON_FUNCTION(Curl, CreateForUser, id_curl, return nullptr, chars, chars, sint32)
     BOSS_DEFINE_ADDON_FUNCTION(Curl, Clone, id_curl, return nullptr, id_curl)
     BOSS_DEFINE_ADDON_FUNCTION(Curl, Release, void, return, id_curl)
     BOSS_DEFINE_ADDON_FUNCTION(Curl, GetString, chars, return "", id_curl, chars, chars, AddOn::Curl::SendType, chars, sint32)
@@ -94,11 +94,11 @@ namespace BOSS
     BOSS_DEFINE_ADDON_FUNCTION(Curl, FtpDeleteFolder, bool, return false, id_curl, chars, chars)
     BOSS_DEFINE_ADDON_FUNCTION(Curl, FtpSearch, sint32, return -1, id_curl, chars, chars, AddOn::Curl::SearchCB, payload)
 
-    id_curl AddOn::Curl::Create(void)
-    {return Core_AddOn_Curl_Create()();}
+    id_curl AddOn::Curl::Create(sint32 timeout)
+    {return Core_AddOn_Curl_Create()(timeout);}
 
-    id_curl AddOn::Curl::CreateForUser(chars username, chars password)
-    {return Core_AddOn_Curl_CreateForUser()(username, password);}
+    id_curl AddOn::Curl::CreateForUser(chars username, chars password, sint32 timeout)
+    {return Core_AddOn_Curl_CreateForUser()(username, password, timeout);}
 
     id_curl AddOn::Curl::Clone(id_curl curl)
     {return Core_AddOn_Curl_Clone()(curl);}

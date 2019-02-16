@@ -943,7 +943,7 @@ extern "C" boss_dir boss_opendir(const char* dirname)
         #else
             String DirnameAtAssets = dirname;
             if(2 < DirnameAtAssets.Length() && DirnameAtAssets[-3] == '/' && DirnameAtAssets[-2] == '*')
-                DirnameAtAssets.Sub(2);
+                DirnameAtAssets.SubTail(2);
             dirname = DirnameAtAssets;
 
             #if BOSS_LINUX
@@ -1000,7 +1000,7 @@ extern "C" boss_dir boss_opendir(const char* dirname)
         #elif BOSS_LINUX | BOSS_MAC_OSX | BOSS_IPHONE | BOSS_ANDROID
             String DirnameAtAssets = dirname;
             if(2 < DirnameAtAssets.Length() && DirnameAtAssets[-3] == '/' && DirnameAtAssets[-2] == '*')
-                DirnameAtAssets.Sub(2);
+                DirnameAtAssets.SubTail(2);
             dirname = DirnameAtAssets;
             DIR* NewDirHandle = opendir(dirname);
             if(!NewDirHandle) return nullptr;

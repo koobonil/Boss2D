@@ -113,6 +113,7 @@
         typedef QMatrix MatrixPrivate;
         typedef QFocusEvent FocusEventPrivate;
         typedef QCloseEvent CloseEventPrivate;
+        typedef QMoveEvent MoveEventPrivate;
         typedef QResizeEvent ResizeEventPrivate;
         typedef QPaintEvent PaintEventPrivate;
         typedef QInputEvent InputEventPrivate;
@@ -172,6 +173,8 @@
         typedef FocusEventForEmpty FocusEventPrivate;
         class CloseEventForEmpty;
         typedef CloseEventForEmpty CloseEventPrivate;
+        class MoveEventForEmpty;
+        typedef MoveEventForEmpty MoveEventPrivate;
         class ResizeEventForEmpty;
         typedef ResizeEventForEmpty ResizeEventPrivate;
         class PaintEventForEmpty;
@@ -335,6 +338,21 @@
     public:
         CloseEventForEmpty(Type type) : QEvent(type) {}
         ~CloseEventForEmpty() {}
+    };
+
+    class MoveEventForEmpty : public QEvent
+    {
+        Q_GADGET
+
+    public:
+        MoveEventForEmpty(Type type) : QEvent(type) {}
+        ~MoveEventForEmpty() {}
+
+    public:
+        const QPoint& pos() const {return mPos;}
+
+    public:
+        QPoint mPos;
     };
 
     class ResizeEventForEmpty : public QEvent
@@ -1835,6 +1853,7 @@
         GenericView(WidgetPrivate* parent = nullptr) : FramePrivate(parent)
         {
             m_api = nullptr;
+
             setMouseTracking(true);
             setFocusPolicy(Qt::ClickFocus);
             setAutoFillBackground(false);
@@ -1862,6 +1881,7 @@
         GenericView(h_view view)
         {
             takeView(view);
+
             setMouseTracking(true);
             setFocusPolicy(Qt::ClickFocus);
             setAutoFillBackground(false);
@@ -1917,6 +1937,7 @@
             GenericView* OldGenericView = cast(view);
             m_api = OldGenericView->m_api;
             OldGenericView->m_api = nullptr;
+
             m_name = OldGenericView->m_name;
             m_firstwidth = OldGenericView->m_firstwidth;
             m_firstheight = OldGenericView->m_firstheight;
@@ -2377,7 +2398,13 @@
     class MainData
     {
     public:
-        MainData(MainWindowPrivate* parent)
+        enum class WindowType {Normal, Minimize, Maximize};
+        WindowType m_lastWindowType;
+        rect128 m_lastWindowNormalRect;
+
+    public:
+        MainData(MainWindowPrivate* parent) :
+            m_lastWindowType(WindowType::Normal), m_lastWindowNormalRect({0, 0, 0, 0})
         {
             m_parent = parent;
             m_viewGL = nullptr;
@@ -2516,7 +2543,7 @@
         Q_OBJECT
 
     public:
-        MainWindow()
+        MainWindow() : m_window_pos({0, 0}), m_window_pos_old({0, 0}), m_window_size({0, 0}), m_window_size_old({0, 0})
         {
             setUnifiedTitleAndToolBarOnMac(true);
             g_data = new MainData(this);
@@ -2540,6 +2567,58 @@
         bool firstVisible() const {return m_first_visible;}
 
     protected:
+        void moveEvent(MoveEventPrivate* event) Q_DECL_OVERRIDE
+        {
+            m_window_pos_old = m_window_pos;
+            auto CurPos = event->pos();
+            m_window_pos.x = CurPos.x();
+            m_window_pos.y = CurPos.y();
+        }
+
+        void resizeEvent(ResizeEventPrivate* event) Q_DECL_OVERRIDE
+        {
+            m_window_size_old = m_window_size;
+            auto CurSize = event->size();
+            m_window_size.w = CurSize.width();
+            m_window_size.h = CurSize.height();
+            WidgetPrivate::resizeEvent(event);
+        }
+
+        void changeEvent(QEvent* event) Q_DECL_OVERRIDE
+        {
+            if(event->type() == QEvent::WindowStateChange)
+            {
+                switch(windowState())
+                {
+                case Qt::WindowNoState:
+                    g_data->m_lastWindowType = MainData::WindowType::Normal;
+                    break;
+                case Qt::WindowMinimized:
+                    if(g_data->m_lastWindowType == MainData::WindowType::Normal)
+                    {
+                        g_data->m_lastWindowNormalRect.l = m_window_pos.x;
+                        g_data->m_lastWindowNormalRect.t = m_window_pos.y;
+                        g_data->m_lastWindowNormalRect.r = m_window_pos.x + m_window_size.w;
+                        g_data->m_lastWindowNormalRect.b = m_window_pos.y + m_window_size.h;
+                    }
+                    g_data->m_lastWindowType = MainData::WindowType::Minimize;
+                    break;
+                case Qt::WindowMaximized:
+                case Qt::WindowFullScreen:
+                    if(g_data->m_lastWindowType == MainData::WindowType::Normal)
+                    {
+                        g_data->m_lastWindowNormalRect.l = m_window_pos_old.x;
+                        g_data->m_lastWindowNormalRect.t = m_window_pos_old.y;
+                        g_data->m_lastWindowNormalRect.r = m_window_pos_old.x + m_window_size_old.w;
+                        g_data->m_lastWindowNormalRect.b = m_window_pos_old.y + m_window_size_old.h;
+                    }
+                    g_data->m_lastWindowType = MainData::WindowType::Maximize;
+                    break;
+                }
+            }
+            WidgetPrivate::changeEvent(event);
+        }
+
         void closeEvent(CloseEventPrivate* event) Q_DECL_OVERRIDE
         {
             g_data->onCloseEvent(event);
@@ -2560,6 +2639,10 @@
         }
 
     private:
+        point64 m_window_pos;
+        point64 m_window_pos_old;
+        size64 m_window_size;
+        size64 m_window_size_old;
         QTimer m_tick_timer;
         bool m_inited_platform;
         bool m_first_visible;
@@ -2720,9 +2803,11 @@
             else m_parentpos = QPoint(0, 0);
 
             m_closing = TCT_Null;
-            setWindowFlags(Qt::SplashScreen);
-            setWindowModality(Qt::WindowModal);
-            setFocus();
+            #if BOSS_WINDOWS
+                setWindowFlags(Qt::ToolTip | Qt::FramelessWindowHint);
+            #else
+                setWindowFlags(Qt::FramelessWindowHint);
+            #endif
             setFrame(false);
             selectAll();
 
@@ -2730,14 +2815,16 @@
             {
             case UIET_Int: setValidator(new IntValidatorPrivate(this)); break;
             case UIET_Float: setValidator(new DoubleValidatorPrivate(this)); break;
+            default: break;
             }
 
             PalettePrivate Palette = palette();
             Palette.setColor(PalettePrivate::Base, ColorPrivate(255, 255, 255));
+            Palette.setColor(PalettePrivate::Text, ColorPrivate(0, 0, 0));
             setPalette(Palette);
         }
 
-        ~EditTracker()
+        ~EditTracker() override
         {
         }
 
@@ -2746,6 +2833,8 @@
             move(m_parentpos.x() + x, m_parentpos.y() + y);
             resize(w, h);
             show();
+            activateWindow();
+            setFocus();
             m_tracker.Lock();
             return m_closing;
         }
@@ -2814,9 +2903,11 @@
             else m_parentpos = QPoint(0, 0);
 
             m_select = -1;
-            setWindowFlags(Qt::SplashScreen);
-            setWindowModality(Qt::WindowModal);
-            setFocus();
+            #if BOSS_WINDOWS
+                setWindowFlags(Qt::ToolTip | Qt::FramelessWindowHint);
+            #else
+                setWindowFlags(Qt::FramelessWindowHint);
+            #endif
 
             connect(this, SIGNAL(itemPressed(QListWidgetItem*)), SLOT(onItemPressed(QListWidgetItem*)));
         }
@@ -2830,6 +2921,8 @@
             move(m_parentpos.x() + x, m_parentpos.y() + y);
             resize(w, h);
             show();
+            activateWindow();
+            setFocus();
             m_tracker.Lock();
             return m_select;
         }

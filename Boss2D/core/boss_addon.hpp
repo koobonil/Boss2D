@@ -51,8 +51,8 @@ namespace BOSS
             enum SendType {ST_NoSend, ST_Put, ST_Post};
 
         public:
-            static id_curl Create(void);
-            static id_curl CreateForUser(chars username, chars password);
+            static id_curl Create(sint32 timeout = 0);
+            static id_curl CreateForUser(chars username, chars password, sint32 timeout = 0);
             static id_curl Clone(id_curl curl);
             static void Release(id_curl curl);
             static chars GetString(id_curl curl, chars url,

@@ -312,7 +312,7 @@
         void Platform::SetWindowPos(sint32 x, sint32 y)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
-            if(!Platform::Utility::IsFullScreen())
+            if(g_data->m_lastWindowType == MainData::WindowType::Normal)
             {
                 if(gSavedFrameless)
                     g_window->move(x, y);
@@ -328,16 +328,15 @@
         void Platform::SetWindowSize(sint32 width, sint32 height)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
-            if(!Platform::Utility::IsFullScreen())
+            if(g_data->m_lastWindowType == MainData::WindowType::Normal)
                 g_window->resize(width, height);
         }
 
-        static rect128 g_LastNormalWindowRect = {-1, -1, -1, -1};
         void Platform::GetWindowRect(rect128& rect, bool normally)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
-            if(Platform::Utility::IsFullScreen() && normally)
-                Memory::Copy(&rect, &g_LastNormalWindowRect, sizeof(rect128));
+            if(g_data->m_lastWindowType != MainData::WindowType::Normal && normally)
+                Memory::Copy(&rect, &g_data->m_lastWindowNormalRect, sizeof(rect128));
             else
             {
                 rect.l = g_window->x();
@@ -677,9 +676,9 @@
             return IsOk;
         }
 
-        bool Platform::Popup::FileDialog(String& path, String* shortpath, chars title, bool isdir)
+        bool Platform::Popup::FileDialog(DialogShellType type, String& path, String* shortpath, chars title)
         {
-            return PlatformImpl::Wrap::Popup_FileDialog(path, shortpath, title, isdir);
+            return PlatformImpl::Wrap::Popup_FileDialog(type, path, shortpath, title);
         }
 
         sint32 Platform::Popup::MessageDialog(chars title, chars text, DialogButtonType type)
@@ -796,34 +795,44 @@
         void Platform::Utility::SetMinimize()
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data);
+            if(g_data->m_lastWindowType == MainData::WindowType::Minimize)
+                return;
 
+            if(g_data->m_lastWindowType == MainData::WindowType::Normal)
+                Platform::GetWindowRect(g_data->m_lastWindowNormalRect);
+            g_data->m_lastWindowType = MainData::WindowType::Minimize;
             g_data->getMainWindow()->showMinimized();
         }
 
         void Platform::Utility::SetFullScreen()
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data);
-            if(IsFullScreen()) return;
+            if(g_data->m_lastWindowType == MainData::WindowType::Maximize)
+                return;
 
-            Platform::GetWindowRect(g_LastNormalWindowRect);
+            if(g_data->m_lastWindowType == MainData::WindowType::Normal)
+                Platform::GetWindowRect(g_data->m_lastWindowNormalRect);
+            g_data->m_lastWindowType = MainData::WindowType::Maximize;
             g_data->getMainWindow()->showFullScreen();
         }
 
         bool Platform::Utility::IsFullScreen()
         {
-            return (g_LastNormalWindowRect.l != -1 || g_LastNormalWindowRect.t != -1
-                || g_LastNormalWindowRect.r != -1 || g_LastNormalWindowRect.b != -1);
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data);
+            return (g_data->m_lastWindowType == MainData::WindowType::Maximize);
         }
 
         void Platform::Utility::SetNormalWindow()
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data);
-            if(!IsFullScreen()) return;
+            if(g_data->m_lastWindowType == MainData::WindowType::Normal)
+                return;
 
             g_data->getMainWindow()->showNormal();
-            Platform::SetWindowPos(g_LastNormalWindowRect.l, g_LastNormalWindowRect.t);
-            Platform::SetWindowSize(g_LastNormalWindowRect.r - g_LastNormalWindowRect.l, g_LastNormalWindowRect.b - g_LastNormalWindowRect.t);
-            g_LastNormalWindowRect.l = g_LastNormalWindowRect.t = g_LastNormalWindowRect.r = g_LastNormalWindowRect.b = -1;
+            g_data->m_lastWindowType = MainData::WindowType::Normal;
+            Platform::SetWindowPos(g_data->m_lastWindowNormalRect.l, g_data->m_lastWindowNormalRect.t);
+            Platform::SetWindowSize(g_data->m_lastWindowNormalRect.r - g_data->m_lastWindowNormalRect.l,
+                g_data->m_lastWindowNormalRect.b - g_data->m_lastWindowNormalRect.t);
         }
 
         void Platform::Utility::ExitProgram()

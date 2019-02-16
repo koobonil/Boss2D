@@ -1,3 +1,5 @@
+// author BOSS
+
 /***************************************************************************
  *                                  _   _ ____  _
  *  Project                     ___| | | |  _ \| |
@@ -36,7 +38,7 @@
 #endif
 
 #ifdef MSDOS
-#include <dos.h>  /* delay() */
+// removed by BOSS: #include <dos.h>  /* delay() */
 #endif
 
 #ifdef __VXWORKS__

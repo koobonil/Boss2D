@@ -799,6 +799,11 @@ namespace BOSS
         mUIName = uiname;
     }
 
+    const String ZaySon::UIName() const
+    {
+        return mUIName;
+    }
+
     void ZaySon::Load(const Context& context)
     {
         delete mUIElement;
@@ -807,7 +812,7 @@ namespace BOSS
         mUIElement = NewView;
     }
 
-    ZaySonInterface& ZaySon::AddComponent(ComponentType type, chars name, ZayExtend::ComponentCB cb)
+    ZaySonInterface& ZaySon::AddComponent(ComponentType type, chars name, ZayExtend::ComponentCB cb, chars paramcomment)
     {
         auto& NewFunction = mExtendMap(name);
         NewFunction.ResetForComponent(cb);
