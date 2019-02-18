@@ -639,11 +639,21 @@ namespace BOSS
 
     bool ZayPanel::text(chars string, UIFontAlign align, UIFontElide elide) const
     {
+        return text(string, -1, align, elide);
+    }
+
+    bool ZayPanel::text(chars string, sint32 count, UIFontAlign align, UIFontElide elide) const
+    {
         const Clip& LastClip = m_stack_clip[-1];
-        return Platform::Graphics::DrawString(LastClip.l, LastClip.t, LastClip.Width(), LastClip.Height(), string, align, elide);
+        return Platform::Graphics::DrawString(LastClip.l, LastClip.t, LastClip.Width(), LastClip.Height(), string, count, align, elide);
     }
 
     void ZayPanel::text(float x, float y, chars string, UIFontAlign align) const
+    {
+        text(x, y, string, -1, align);
+    }
+
+    void ZayPanel::text(float x, float y, chars string, sint32 count, UIFontAlign align) const
     {
         x += m_stack_clip[-1].l;
         y += m_stack_clip[-1].t;
@@ -664,7 +674,7 @@ namespace BOSS
         case UIFA_LeftAscent: case UIFA_CenterAscent: case UIFA_RightAscent: case UIFA_JustifyAscent: NeedAscent = true; break;
         case UIFA_LeftBottom: case UIFA_CenterBottom: case UIFA_RightBottom: case UIFA_JustifyBottom: NeedHeight = true; break;
         }
-        const sint32 Width = (NeedWidth)? Platform::Graphics::GetStringWidth(string) : 0;
+        const sint32 Width = (NeedWidth)? Platform::Graphics::GetStringWidth(string, count) : 0;
         const sint32 Height = (NeedHeight)? Platform::Graphics::GetStringHeight() : 0;
         const sint32 Ascent = (NeedAscent)? Platform::Graphics::GetStringAscent() : 0;
 
@@ -690,7 +700,7 @@ namespace BOSS
         }
         CalcRect.r = CalcRect.l + 0x2000; // 0xFFFF였으나 cocos2dx의 한계로 인하여 적당히 수정
         CalcRect.b = CalcRect.t + 0x2000;
-        Platform::Graphics::DrawString(CalcRect.l, CalcRect.t, CalcRect.Width(), CalcRect.Height(), string, UIFA_LeftTop);
+        Platform::Graphics::DrawString(CalcRect.l, CalcRect.t, CalcRect.Width(), CalcRect.Height(), string, count, UIFA_LeftTop);
     }
 
     void ZayPanel::sub(chars uigroup, id_surface surface) const

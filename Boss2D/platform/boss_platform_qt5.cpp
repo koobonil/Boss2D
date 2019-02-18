@@ -1707,7 +1707,7 @@
             return Result;
         }
 
-        bool Platform::Graphics::DrawString(float x, float y, float w, float h, chars string, UIFontAlign align, UIFontElide elide)
+        bool Platform::Graphics::DrawString(float x, float y, float w, float h, chars string, sint32 count, UIFontAlign align, UIFontElide elide)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             #ifndef BOSS_SILENT_NIGHT_IS_ENABLED
@@ -1715,7 +1715,7 @@
                 CanvasClass::get()->painter().setBrush(Qt::NoBrush);
                 CanvasClass::get()->painter().setCompositionMode(CanvasClass::get()->mask());
 
-                const QString Text = QString::fromUtf8(string);
+                const QString Text = QString::fromUtf8(string, count);
                 if(elide != UIFE_None)
                 {
                     const QString ElidedText = CanvasClass::get()->painter().fontMetrics().elidedText(Text, _ExchangeTextElideMode(elide), w);
@@ -1730,7 +1730,7 @@
             return false;
         }
 
-        bool Platform::Graphics::DrawStringW(float x, float y, float w, float h, wchars string, UIFontAlign align, UIFontElide elide)
+        bool Platform::Graphics::DrawStringW(float x, float y, float w, float h, wchars string, sint32 count, UIFontAlign align, UIFontElide elide)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             #ifndef BOSS_SILENT_NIGHT_IS_ENABLED
@@ -1738,7 +1738,7 @@
                 CanvasClass::get()->painter().setBrush(Qt::NoBrush);
                 CanvasClass::get()->painter().setCompositionMode(CanvasClass::get()->mask());
 
-                const QString Text = QString::fromWCharArray(string);
+                const QString Text = QString::fromWCharArray(string, count);
                 if(elide != UIFE_None)
                 {
                     const QString ElidedText = CanvasClass::get()->painter().fontMetrics().elidedText(Text, _ExchangeTextElideMode(elide), w);
@@ -1753,11 +1753,23 @@
             return false;
         }
 
-        sint32 Platform::Graphics::GetLengthOfString(chars string, sint32 clipping_width)
+        sint32 Platform::Graphics::GetLengthOfString(sint32 clipping_width, chars string, sint32 count)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             chars StringFocus = string;
-            while(*StringFocus)
+            if(count != -1)
+            {
+                chars StringFocusEnd = string + count;
+                while(StringFocus < StringFocusEnd)
+                {
+                    const sint32 CurLetterLength = String::GetLengthOfFirstLetter(StringFocus);
+                    const QString CurLetter = QString::fromUtf8(StringFocus, CurLetterLength);
+                    clipping_width -= CanvasClass::get()->painter().fontMetrics().width(CurLetter);
+                    if(clipping_width < 0) break;
+                    StringFocus += CurLetterLength;
+                }
+            }
+            else while(*StringFocus)
             {
                 const sint32 CurLetterLength = String::GetLengthOfFirstLetter(StringFocus);
                 const QString CurLetter = QString::fromUtf8(StringFocus, CurLetterLength);
@@ -1768,11 +1780,23 @@
             return StringFocus - string;
         }
 
-        sint32 Platform::Graphics::GetLengthOfStringW(wchars string, sint32 clipping_width)
+        sint32 Platform::Graphics::GetLengthOfStringW(sint32 clipping_width, wchars string, sint32 count)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             wchars StringFocus = string;
-            while(*StringFocus)
+            if(count != -1)
+            {
+                wchars StringFocusEnd = string + count;
+                while(StringFocus < StringFocusEnd)
+                {
+                    const sint32 CurLetterLength = WString::GetLengthOfFirstLetter(StringFocus);
+                    const QString CurLetter = QString::fromWCharArray(StringFocus, CurLetterLength);
+                    clipping_width -= CanvasClass::get()->painter().fontMetrics().width(CurLetter);
+                    if(clipping_width < 0) break;
+                    StringFocus += CurLetterLength;
+                }
+            }
+            else while(*StringFocus)
             {
                 const sint32 CurLetterLength = WString::GetLengthOfFirstLetter(StringFocus);
                 const QString CurLetter = QString::fromWCharArray(StringFocus, CurLetterLength);
@@ -1783,16 +1807,16 @@
             return StringFocus - string;
         }
 
-        sint32 Platform::Graphics::GetStringWidth(chars string)
+        sint32 Platform::Graphics::GetStringWidth(chars string, sint32 count)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
-            return CanvasClass::get()->painter().fontMetrics().width(QString::fromUtf8(string));
+            return CanvasClass::get()->painter().fontMetrics().width(QString::fromUtf8(string, count));
         }
 
-        sint32 Platform::Graphics::GetStringWidthW(wchars string)
+        sint32 Platform::Graphics::GetStringWidthW(wchars string, sint32 count)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
-            return CanvasClass::get()->painter().fontMetrics().width(QString::fromWCharArray(string));
+            return CanvasClass::get()->painter().fontMetrics().width(QString::fromWCharArray(string, count));
         }
 
         sint32 Platform::Graphics::GetStringHeight()

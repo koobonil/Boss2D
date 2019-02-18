@@ -287,8 +287,10 @@ namespace BOSS
         haschild stretchNative(id_image_read image, UIStretchForm form = UISF_Strong) const;
         haschild ninepatch(const Image& image, bool visible = true);
         void pattern(const Image& image, UIAlign align, bool reversed_xorder = false, bool reversed_yorder = false) const;
-        bool text(chars string, UIFontAlign align, UIFontElide elide = UIFE_None) const;
-        void text(float x, float y, chars string, UIFontAlign align) const; // 중점식
+        bool text(chars string, UIFontAlign align = UIFA_CenterMiddle, UIFontElide elide = UIFE_None) const;
+        bool text(chars string, sint32 count, UIFontAlign align = UIFA_CenterMiddle, UIFontElide elide = UIFE_None) const;
+        void text(float x, float y, chars string, UIFontAlign align = UIFA_CenterMiddle) const; // 중점식
+        void text(float x, float y, chars string, sint32 count, UIFontAlign align = UIFA_CenterMiddle) const; // 중점식
         void sub(chars uigroup, id_surface surface) const;
         PanelState state(chars uiname = nullptr) const;
         Point toview(float x, float y) const;

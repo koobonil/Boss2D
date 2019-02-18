@@ -135,7 +135,7 @@ namespace BOSS
 
         Platform::Graphics::SetColor(0xFF, 0x00, 0x00, 0xFF);
         Platform::Graphics::DrawString(l, t, r - l, b - t,
-            "뷰생성기가 없습니다.\nPlatform::SetViewCreator를 사용하세요.", UIFA_CenterMiddle, UIFE_Right);
+            "뷰생성기가 없습니다.\nPlatform::SetViewCreator를 사용하세요.", -1, UIFA_CenterMiddle, UIFE_Right);
     }
 
     void View::OnTouch(TouchType type, sint32 id, sint32 x, sint32 y)

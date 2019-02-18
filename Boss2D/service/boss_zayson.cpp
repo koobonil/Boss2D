@@ -344,7 +344,7 @@ namespace BOSS
     class ZayComponentElement : public ZayUIElement
     {
     public:
-        ZayComponentElement() : ZayUIElement(Type::Component) {}
+        ZayComponentElement() : ZayUIElement(Type::Component) {mCompID = -2;}
         ~ZayComponentElement() override {}
 
     public:
@@ -354,6 +354,9 @@ namespace BOSS
 
             hook(context("compname"))
                 mCompName = fish.GetString();
+
+            hook(context("compid"))
+                mCompID = fish.GetInt(-2);
 
             hook(context("compvalues"))
             for(sint32 i = 0, iend = fish.LengthOfIndexable(); i < iend; ++i)
@@ -397,6 +400,21 @@ namespace BOSS
 
                 if(auto CurComponent = mRefRoot->FindComponent(mCompName))
                 {
+                    auto RenderDebug = [](const ZayComponentElement* self, ZayPanel& panel, bool content)->void
+                    {
+                        // 툴에 의한 포커스표현
+                        if(self->mCompID == self->mRefRoot->debugFocusedCompID())
+                        {
+                            ZAY_RGBA(panel, 255, 0, 0, -128)
+                            {
+                                if(content)
+                                    panel.fill();
+                                else ZAY_INNER(panel, 5)
+                                    panel.rect(10);
+                            }
+                        }
+                    };
+
                     if(mCompValues.Count() == 0)
                     {
                         String UINameTemp;
@@ -406,7 +424,10 @@ namespace BOSS
                         ZayExtend::Payload ParamCollector = CurComponent->MakePayload(ComponentName, this);
 
                         ZAY_EXTEND(ParamCollector >> panel)
+                        {
+                            RenderDebug(this, panel, CurComponent->HasContentComponent());
                             RenderChildren(panel, uiname, compmax);
+                        }
                     }
                     else // CompValue항목이 존재할 경우
                     {
@@ -432,7 +453,10 @@ namespace BOSS
                                     ParamCollector(ZayUIElement::GetResult(CurCompValue->mParamFormulas[j]));
                             }
                             ZAY_EXTEND(ParamCollector >> panel)
+                            {
+                                RenderDebug(this, panel, CurComponent->HasContentComponent());
                                 RenderChildren(panel, UINameSub, compmax);
+                            }
                         }
                     }
                 }
@@ -467,6 +491,7 @@ namespace BOSS
 
     public:
         String mCompName;
+        sint32 mCompID;
         ZayUIs mCompValues;
         ZayUIs mClickCodes;
         ZayUIs mChildren;
@@ -535,8 +560,9 @@ namespace BOSS
     ////////////////////////////////////////////////////////////////////////////////
     // ZayExtend
     ////////////////////////////////////////////////////////////////////////////////
-    ZayExtend::ZayExtend(ComponentCB ccb, GlueCB gcb)
+    ZayExtend::ZayExtend(ComponentType type, ComponentCB ccb, GlueCB gcb)
     {
+        mComponentType = type;
         mComponentCB = ccb;
         mGlueCB = gcb;
     }
@@ -612,66 +638,78 @@ namespace BOSS
 
     UIAlign ZayExtend::Payload::ParamToUIAlign(sint32 i) const
     {
-        const String Result = mParams[i].ToText();
+        String Result = mParams[i].ToText();
+        if(!String::CompareNoCase(Result, "UIA_", 4))
+            Result = Result.Right(Result.Length() - 4);
+
         branch;
-        jump(!Result.Compare("UIA_LeftTop")) return UIA_LeftTop;
-        jump(!Result.Compare("UIA_CenterTop")) return UIA_CenterTop;
-        jump(!Result.Compare("UIA_RightTop")) return UIA_RightTop;
-        jump(!Result.Compare("UIA_LeftMiddle")) return UIA_LeftMiddle;
-        jump(!Result.Compare("UIA_CenterMiddle")) return UIA_CenterMiddle;
-        jump(!Result.Compare("UIA_RightMiddle")) return UIA_RightMiddle;
-        jump(!Result.Compare("UIA_LeftBottom")) return UIA_LeftBottom;
-        jump(!Result.Compare("UIA_CenterBottom")) return UIA_CenterBottom;
-        jump(!Result.Compare("UIA_RightBottom")) return UIA_RightBottom;
+        jump(!Result.CompareNoCase("LeftTop")) return UIA_LeftTop;
+        jump(!Result.CompareNoCase("CenterTop")) return UIA_CenterTop;
+        jump(!Result.CompareNoCase("RightTop")) return UIA_RightTop;
+        jump(!Result.CompareNoCase("LeftMiddle")) return UIA_LeftMiddle;
+        jump(!Result.CompareNoCase("CenterMiddle")) return UIA_CenterMiddle;
+        jump(!Result.CompareNoCase("RightMiddle")) return UIA_RightMiddle;
+        jump(!Result.CompareNoCase("LeftBottom")) return UIA_LeftBottom;
+        jump(!Result.CompareNoCase("CenterBottom")) return UIA_CenterBottom;
+        jump(!Result.CompareNoCase("RightBottom")) return UIA_RightBottom;
         BOSS_ASSERT("알 수 없는 UIAlign입니다", false);
         return UIA_LeftTop;
     }
 
     UIStretchForm ZayExtend::Payload::ParamToUIStretchForm(sint32 i) const
     {
-        const String Result = mParams[i].ToText();
+        String Result = mParams[i].ToText();
+        if(!String::CompareNoCase(Result, "UISF_", 5))
+            Result = Result.Right(Result.Length() - 5);
+
         branch;
-        jump(!Result.Compare("UISF_Strong")) return UISF_Strong;
-        jump(!Result.Compare("UISF_Inner")) return UISF_Inner;
-        jump(!Result.Compare("UISF_Outer")) return UISF_Outer;
-        jump(!Result.Compare("UISF_Width")) return UISF_Width;
-        jump(!Result.Compare("UISF_Height")) return UISF_Height;
+        jump(!Result.CompareNoCase("Strong")) return UISF_Strong;
+        jump(!Result.CompareNoCase("Inner")) return UISF_Inner;
+        jump(!Result.CompareNoCase("Outer")) return UISF_Outer;
+        jump(!Result.CompareNoCase("Width")) return UISF_Width;
+        jump(!Result.CompareNoCase("Height")) return UISF_Height;
         BOSS_ASSERT("알 수 없는 UIStretchForm입니다", false);
         return UISF_Strong;
     }
 
     UIFontAlign ZayExtend::Payload::ParamToUIFontAlign(sint32 i) const
     {
-        const String Result = mParams[i].ToText();
+        String Result = mParams[i].ToText();
+        if(!String::CompareNoCase(Result, "UIFA_", 5))
+            Result = Result.Right(Result.Length() - 5);
+
         branch;
-        jump(!Result.Compare("UIFA_LeftTop")) return UIFA_LeftTop;
-        jump(!Result.Compare("UIFA_CenterTop")) return UIFA_CenterTop;
-        jump(!Result.Compare("UIFA_RightTop")) return UIFA_RightTop;
-        jump(!Result.Compare("UIFA_JustifyTop")) return UIFA_JustifyTop;
-        jump(!Result.Compare("UIFA_LeftMiddle")) return UIFA_LeftMiddle;
-        jump(!Result.Compare("UIFA_CenterMiddle")) return UIFA_CenterMiddle;
-        jump(!Result.Compare("UIFA_RightMiddle")) return UIFA_RightMiddle;
-        jump(!Result.Compare("UIFA_JustifyMiddle")) return UIFA_JustifyMiddle;
-        jump(!Result.Compare("UIFA_LeftAscent")) return UIFA_LeftAscent;
-        jump(!Result.Compare("UIFA_CenterAscent")) return UIFA_CenterAscent;
-        jump(!Result.Compare("UIFA_RightAscent")) return UIFA_RightAscent;
-        jump(!Result.Compare("UIFA_JustifyAscent")) return UIFA_JustifyAscent;
-        jump(!Result.Compare("UIFA_LeftBottom")) return UIFA_LeftBottom;
-        jump(!Result.Compare("UIFA_CenterBottom")) return UIFA_CenterBottom;
-        jump(!Result.Compare("UIFA_RightBottom")) return UIFA_RightBottom;
-        jump(!Result.Compare("UIFA_JustifyBottom")) return UIFA_JustifyBottom;
+        jump(!Result.CompareNoCase("LeftTop")) return UIFA_LeftTop;
+        jump(!Result.CompareNoCase("CenterTop")) return UIFA_CenterTop;
+        jump(!Result.CompareNoCase("RightTop")) return UIFA_RightTop;
+        jump(!Result.CompareNoCase("JustifyTop")) return UIFA_JustifyTop;
+        jump(!Result.CompareNoCase("LeftMiddle")) return UIFA_LeftMiddle;
+        jump(!Result.CompareNoCase("CenterMiddle")) return UIFA_CenterMiddle;
+        jump(!Result.CompareNoCase("RightMiddle")) return UIFA_RightMiddle;
+        jump(!Result.CompareNoCase("JustifyMiddle")) return UIFA_JustifyMiddle;
+        jump(!Result.CompareNoCase("LeftAscent")) return UIFA_LeftAscent;
+        jump(!Result.CompareNoCase("CenterAscent")) return UIFA_CenterAscent;
+        jump(!Result.CompareNoCase("RightAscent")) return UIFA_RightAscent;
+        jump(!Result.CompareNoCase("JustifyAscent")) return UIFA_JustifyAscent;
+        jump(!Result.CompareNoCase("LeftBottom")) return UIFA_LeftBottom;
+        jump(!Result.CompareNoCase("CenterBottom")) return UIFA_CenterBottom;
+        jump(!Result.CompareNoCase("RightBottom")) return UIFA_RightBottom;
+        jump(!Result.CompareNoCase("JustifyBottom")) return UIFA_JustifyBottom;
         BOSS_ASSERT("알 수 없는 UIFontAlign입니다", false);
         return UIFA_LeftTop;
     }
 
     UIFontElide ZayExtend::Payload::ParamToUIFontElide(sint32 i) const
     {
-        const String Result = mParams[i].ToText();
+        String Result = mParams[i].ToText();
+        if(!String::CompareNoCase(Result, "UIFE_", 5))
+            Result = Result.Right(Result.Length() - 5);
+
         branch;
-        jump(!Result.Compare("UIFE_None")) return UIFE_None;
-        jump(!Result.Compare("UIFE_Left")) return UIFE_Left;
-        jump(!Result.Compare("UIFE_Center")) return UIFE_Center;
-        jump(!Result.Compare("UIFE_Right")) return UIFE_Right;
+        jump(!Result.CompareNoCase("None")) return UIFE_None;
+        jump(!Result.CompareNoCase("Left")) return UIFE_Left;
+        jump(!Result.CompareNoCase("Center")) return UIFE_Center;
+        jump(!Result.CompareNoCase("Right")) return UIFE_Right;
         BOSS_ASSERT("알 수 없는 UIFontElide입니다", false);
         return UIFE_None;
     }
@@ -693,16 +731,22 @@ namespace BOSS
 
     bool ZayExtend::HasComponent() const
     {
-        return (bool) mComponentCB;
+        return (mComponentCB != nullptr);
+    }
+
+    bool ZayExtend::HasContentComponent() const
+    {
+        return (mComponentType == ComponentType::Content || mComponentType == ComponentType::ContentWithParameter);
     }
 
     bool ZayExtend::HasGlue() const
     {
-        return (bool) mGlueCB;
+        return (mGlueCB != nullptr);
     }
 
-    void ZayExtend::ResetForComponent(ComponentCB cb)
+    void ZayExtend::ResetForComponent(ComponentType type, ComponentCB cb)
     {
+        mComponentType = type;
         mComponentCB = cb;
     }
 
@@ -762,6 +806,7 @@ namespace BOSS
     {
         mUIElement = nullptr;
         // 디버그정보
+        mDebugFocusedCompID = -1;
         mDebugErrorFocus = 0;
         for(sint32 i = 0; i < mDebugErrorCountMax; ++i)
             mDebugErrorShowCount[i] = 0;
@@ -785,6 +830,7 @@ namespace BOSS
         rhs.mUIElement = nullptr;
         mExtendMap = ToReference(rhs.mExtendMap);
         mDebugCompName = ToReference(rhs.mDebugCompName);
+        mDebugFocusedCompID = ToReference(rhs.mDebugFocusedCompID);
         mDebugErrorFocus = ToReference(rhs.mDebugErrorFocus);
         for(sint32 i = 0; i < mDebugErrorCountMax; ++i)
         {
@@ -812,10 +858,10 @@ namespace BOSS
         mUIElement = NewView;
     }
 
-    ZaySonInterface& ZaySon::AddComponent(ComponentType type, chars name, ZayExtend::ComponentCB cb, chars paramcomment)
+    ZaySonInterface& ZaySon::AddComponent(ZayExtend::ComponentType type, chars name, ZayExtend::ComponentCB cb, chars paramcomment)
     {
         auto& NewFunction = mExtendMap(name);
-        NewFunction.ResetForComponent(cb);
+        NewFunction.ResetForComponent(type, cb);
         return *this;
     }
 
@@ -869,6 +915,11 @@ namespace BOSS
             mDebugCompName = mDebugCompName + '(' + comment + ')';
     }
 
+    void ZaySon::SetDebugFocusedCompID(sint32 id) const
+    {
+        mDebugFocusedCompID = id;
+    }
+
     void ZaySon::AddDebugError(chars name) const
     {
         // 같은 메시지는 새로 추가하지 않고 강조만 함
@@ -888,6 +939,11 @@ namespace BOSS
     chars ZaySon::debugCompName() const
     {
         return mDebugCompName;
+    }
+
+    sint32 ZaySon::debugFocusedCompID() const
+    {
+        return mDebugFocusedCompID;
     }
 
     sint32 ZaySon::debugErrorCountMax() const

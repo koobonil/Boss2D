@@ -1054,8 +1054,9 @@
             return Result;
         }
 
-        bool Platform::Graphics::DrawString(float x, float y, float w, float h, chars string, UIFontAlign align, UIFontElide elide)
+        bool Platform::Graphics::DrawString(float x, float y, float w, float h, chars string, sint32 count, UIFontAlign align, UIFontElide elide)
         {
+            BOSS_ASSERT("count처리해야함!!!", false);
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
             auto NewLabel = _GetChild<cocos2d::Label>(ViewAPI::CurPainter(), false);
             NewLabel->setPosition(cocos2d::Vec2(x + w / 2, ViewAPI::CalcY(y + h / 2)));
@@ -1068,21 +1069,14 @@
             return false;
         }
 
-        bool Platform::Graphics::DrawStringW(float x, float y, float w, float h, wchars string, UIFontAlign align, UIFontElide elide)
+        bool Platform::Graphics::DrawStringW(float x, float y, float w, float h, wchars string, sint32 count, UIFontAlign align, UIFontElide elide)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
-            return DrawString(x, y, w, h, String::FromWChars(string), align, elide);
+            String NewText = String::FromWChars(string, count);
+            return DrawString(x, y, w, h, NewText, NewText.Length(), align, elide);
         }
 
-        sint32 Platform::Graphics::GetLengthOfString(chars string, sint32 clipping_width)
-        {
-            BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
-
-            BOSS_ASSERT("Further development is needed.", false);
-            return 0;
-        }
-
-        sint32 Platform::Graphics::GetLengthOfStringW(wchars string, sint32 clipping_width)
+        sint32 Platform::Graphics::GetLengthOfString(sint32 clipping_width, chars string, sint32 count)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
 
@@ -1090,8 +1084,17 @@
             return 0;
         }
 
-        sint32 Platform::Graphics::GetStringWidth(chars string)
+        sint32 Platform::Graphics::GetLengthOfStringW(sint32 clipping_width, wchars string, sint32 count)
         {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
+
+            BOSS_ASSERT("Further development is needed.", false);
+            return 0;
+        }
+
+        sint32 Platform::Graphics::GetStringWidth(chars string, sint32 count)
+        {
+            BOSS_ASSERT("count처리해야함!!!", false);
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
 
             BOSS_ASSERT("해당 방법은 퍼포먼스가 너무 떨어짐!", false);
@@ -1103,8 +1106,9 @@
             return Result;
         }
 
-        sint32 Platform::Graphics::GetStringWidthW(wchars string)
+        sint32 Platform::Graphics::GetStringWidthW(wchars string, sint32 count)
         {
+            BOSS_ASSERT("count처리해야함!!!", false);
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
 
             BOSS_ASSERT("해당 방법은 퍼포먼스가 너무 떨어짐!", false);

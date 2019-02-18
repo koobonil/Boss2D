@@ -4229,8 +4229,15 @@
         Q_OBJECT
 
     public:
-        PipePrivate() {mStatus = CS_Connecting; mTempContext = nullptr;}
-        virtual ~PipePrivate() {delete mTempContext;}
+        PipePrivate()
+        {
+            mStatus = CS_Connecting;
+            mTempContext = nullptr;
+        }
+        virtual ~PipePrivate()
+        {
+            delete mTempContext;
+        }
 
     public:
         inline ConnectStatus Status() const {return mStatus;}
@@ -4387,8 +4394,6 @@
         void OnDisconnected()
         {
             mStatus = CS_Disconnected;
-            delete mClient;
-            mClient = nullptr;
         }
         void OnReadyRead()
         {

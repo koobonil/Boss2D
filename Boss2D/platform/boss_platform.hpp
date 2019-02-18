@@ -936,11 +936,12 @@ namespace BOSS
             \param w : 가로길이(px)
             \param h : 세로길이(px)
             \param string : 문자열
+            \param count : 문자열의 길이(char단위)
             \param align : 정렬
             \param elide : 생략기호(...) 방향
             \return 실제로 생략이 되었는지의 여부
             */
-            static bool DrawString(float x, float y, float w, float h, chars string, UIFontAlign align, UIFontElide elide = UIFE_None);
+            static bool DrawString(float x, float y, float w, float h, chars string, sint32 count = -1, UIFontAlign align = UIFA_CenterMiddle, UIFontElide elide = UIFE_None);
 
             /*!
             \brief 문자열 출력(UTF16)
@@ -949,41 +950,46 @@ namespace BOSS
             \param w : 가로길이(px)
             \param h : 세로길이(px)
             \param string : 문자열
+            \param count : 문자열의 길이(wchar단위)
             \param align : 정렬
             \param elide : 생략기호(...) 방향
             \return 실제로 생략이 되었는지의 여부
             */
-            static bool DrawStringW(float x, float y, float w, float h, wchars string, UIFontAlign align, UIFontElide elide = UIFE_None);
+            static bool DrawStringW(float x, float y, float w, float h, wchars string, sint32 count = -1, UIFontAlign align = UIFA_CenterMiddle, UIFontElide elide = UIFE_None);
 
             /*!
             \brief 특정 가로길이 공간에 잘려진 문자열 수량얻기
-            \param string : 문자열
             \param width : 가로길이(px)
+            \param string : 문자열
+            \param count : 문자열의 길이(char단위)
             \return 잘린 문자열의 수량
             */
-            static sint32 GetLengthOfString(chars string, sint32 clipping_width);
+            static sint32 GetLengthOfString(sint32 clipping_width, chars string, sint32 count = -1);
 
             /*!
             \brief 특정 가로길이 공간에 잘려진 문자열 수량얻기(UTF16)
-            \param string : 문자열
             \param width : 가로길이(px)
+            \param string : 문자열
+            \param count : 문자열의 길이(wchar단위)
             \return 잘린 문자열의 수량
             */
-            static sint32 GetLengthOfStringW(wchars string, sint32 clipping_width);
+            static sint32 GetLengthOfStringW(sint32 clipping_width, wchars string, sint32 count = -1);
 
             /*!
             \brief 폰트의 가로길이 얻기
             \param string : 문자열
+            \param count : 문자열의 길이(char단위)
             \return 가로길이(px)
             */
-            static sint32 GetStringWidth(chars string);
+            static sint32 GetStringWidth(chars string, sint32 count = -1);
 
             /*!
             \brief 폰트의 가로길이 얻기(UTF16)
             \param string : 문자열
+            \param count : 문자열의 길이(wchar단위)
             \return 가로길이(px)
             */
-            static sint32 GetStringWidthW(wchars string);
+            static sint32 GetStringWidthW(wchars string, sint32 count = -1);
 
             /*!
             \brief 폰트의 세로길이 얻기

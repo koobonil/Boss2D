@@ -960,7 +960,7 @@
             BOSS_ASSERT("Further development is needed.", false);
         }
 
-        bool Platform::Graphics::DrawString(float x, float y, float w, float h, chars string, UIFontAlign align, UIFontElide elide)
+        bool Platform::Graphics::DrawString(float x, float y, float w, float h, chars string, sint32 count, UIFontAlign align, UIFontElide elide)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
 
@@ -968,7 +968,7 @@
             return false;
         }
 
-        bool Platform::Graphics::DrawStringW(float x, float y, float w, float h, wchars string, UIFontAlign align, UIFontElide elide)
+        bool Platform::Graphics::DrawStringW(float x, float y, float w, float h, wchars string, sint32 count, UIFontAlign align, UIFontElide elide)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
 
@@ -976,7 +976,7 @@
             return false;
         }
 
-        sint32 Platform::Graphics::GetLengthOfString(chars string, sint32 clipping_width)
+        sint32 Platform::Graphics::GetLengthOfString(sint32 clipping_width, chars string, sint32 count)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
 
@@ -984,7 +984,7 @@
             return 0;
         }
 
-        sint32 Platform::Graphics::GetLengthOfStringW(wchars string, sint32 clipping_width)
+        sint32 Platform::Graphics::GetLengthOfStringW(sint32 clipping_width, wchars string, sint32 count)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
 
@@ -992,7 +992,7 @@
             return 0;
         }
 
-        sint32 Platform::Graphics::GetStringWidth(chars string)
+        sint32 Platform::Graphics::GetStringWidth(chars string, sint32 count)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
 
@@ -1000,7 +1000,7 @@
             return 0;
         }
 
-        sint32 Platform::Graphics::GetStringWidthW(wchars string)
+        sint32 Platform::Graphics::GetStringWidthW(wchars string, sint32 count)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
 

@@ -14,11 +14,12 @@ namespace BOSS
         BOSS_DECLARE_STANDARD_CLASS(ZayExtend)
     public:
         class Payload;
+        enum class ComponentType {Unknown, Content, ContentWithParameter, Option, Layout, Condition, ConditionWithOperation, ConditionWithEvent};
         typedef std::function<ZayPanel::StackBinder(ZayPanel& panel, const Payload& params)> ComponentCB;
         typedef std::function<void(const Payload& params)> GlueCB;
 
     public:
-        ZayExtend(ComponentCB ccb = nullptr, GlueCB gcb = nullptr);
+        ZayExtend(ComponentType type = ComponentType::Unknown, ComponentCB ccb = nullptr, GlueCB gcb = nullptr);
         ~ZayExtend();
 
     public: // 파라미터와 함께 함수호출
@@ -58,12 +59,14 @@ namespace BOSS
 
     public:
         bool HasComponent() const;
+        bool HasContentComponent() const;
         bool HasGlue() const;
-        void ResetForComponent(ComponentCB cb);
+        void ResetForComponent(ComponentType type, ComponentCB cb);
         void ResetForGlue(GlueCB cb);
         Payload MakePayload(chars uiname = nullptr, const ZayUIElement* uielement = nullptr) const;
 
     private:
+        ComponentType mComponentType;
         ComponentCB mComponentCB;
         GlueCB mGlueCB;
     };
@@ -71,7 +74,6 @@ namespace BOSS
     class ZaySonInterface
     {
     public:
-        enum class ComponentType {Unknown, Content, ContentWithParameter, Option, Layout, Condition, ConditionWithOperation, ConditionWithEvent};
         enum class ConditionType {Unknown, If, IfFocused, IfHovered, IfPressed, Elif, Else, Endif};
         enum class DataType {Unknown, ViewScript, ImageMap};
         enum class RequestType {Unknown, Function, Variable};
@@ -82,7 +84,7 @@ namespace BOSS
 
     public:
         virtual const String UIName() const = 0;
-        virtual ZaySonInterface& AddComponent(ComponentType type, chars name, ZayExtend::ComponentCB cb, chars paramcomment = nullptr) = 0;
+        virtual ZaySonInterface& AddComponent(ZayExtend::ComponentType type, chars name, ZayExtend::ComponentCB cb, chars paramcomment = nullptr) = 0;
         virtual ZaySonInterface& AddGlue(chars name, ZayExtend::GlueCB cb) = 0;
     };
 
@@ -100,7 +102,7 @@ namespace BOSS
         void SetUIName(chars uiname);
         const String UIName() const override;
         void Load(const Context& context);
-        ZaySonInterface& AddComponent(ComponentType type, chars name, ZayExtend::ComponentCB cb, chars paramcomment = nullptr) override;
+        ZaySonInterface& AddComponent(ZayExtend::ComponentType type, chars name, ZayExtend::ComponentCB cb, chars paramcomment = nullptr) override;
         ZaySonInterface& AddGlue(chars name, ZayExtend::GlueCB cb) override;
         const ZayExtend* FindComponent(chars name) const;
         const ZayExtend* FindGlue(chars name) const;
@@ -113,14 +115,17 @@ namespace BOSS
 
     public:
         void SetDebugCompName(chars name, chars comment) const;
+        void SetDebugFocusedCompID(sint32 id = -1) const;
         void AddDebugError(chars name) const;
         chars debugCompName() const;
+        sint32 debugFocusedCompID() const;
         sint32 debugErrorCountMax() const;
         chars debugErrorName(sint32 i) const;
         float debugErrorShowRate(sint32 i, bool countdown) const;
 
     private:
         mutable String mDebugCompName;
+        mutable sint32 mDebugFocusedCompID;
         static const sint32 mDebugErrorCountMax = 10;
         static const sint32 mDebugErrorShowMax = 150;
         mutable sint32 mDebugErrorFocus;
