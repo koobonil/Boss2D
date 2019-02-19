@@ -255,11 +255,12 @@
             g_window->ClientSize.h = height;
         }
 
-        void Platform::GetWindowRect(rect128& rect, bool normally)
+        rect128 Platform::GetWindowRect(bool normally)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
 
             BOSS_ASSERT("Further development is needed.", false);
+            return {0, 0, 0, 0};
         }
 
         void Platform::SetWindowVisible(bool visible)
@@ -858,6 +859,13 @@
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
             ViewAPI::CurFont()._fontName = name;
             ViewAPI::CurFont()._fontSize = size;
+        }
+
+        void Platform::Graphics::SetFontForFreeType(chars nickname, sint32 height)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
+
+            BOSS_ASSERT("Further development is needed.", false);
         }
 
         void Platform::Graphics::SetZoom(float zoom)

@@ -138,13 +138,17 @@ namespace BOSS
 
     ////////////////////////////////////////////////////////////////////////////////
     static void FreeType_Error() {BOSS_ASSERT("FreeType애드온이 준비되지 않았습니다", false);}
-    BOSS_DEFINE_ADDON_FUNCTION(FreeType, Create, id_freetype, return nullptr, buffer)
+    BOSS_DEFINE_ADDON_FUNCTION(FreeType, Create, id_freetype, return nullptr, buffer, chars)
+    BOSS_DEFINE_ADDON_FUNCTION(FreeType, Get, id_freetype_read, return nullptr, chars)
     BOSS_DEFINE_ADDON_FUNCTION(FreeType, Release, void, return, id_freetype)
     BOSS_DEFINE_ADDON_FUNCTION(FreeType, ToBmp, id_bitmap, return nullptr, id_freetype, sint32, uint32)
     BOSS_DEFINE_ADDON_FUNCTION(FreeType, GetInfo, void, return, id_freetype, sint32, uint32, sint32*, sint32*)
 
-    id_freetype AddOn::FreeType::Create(buffer ttf)
-    {return Core_AddOn_FreeType_Create()(ttf);}
+    id_freetype AddOn::FreeType::Create(buffer ttf, chars nickname)
+    {return Core_AddOn_FreeType_Create()(ttf, nickname);}
+
+    id_freetype_read AddOn::FreeType::Get(chars nickname)
+    {return Core_AddOn_FreeType_Get()(nickname);}
 
     void AddOn::FreeType::Release(id_freetype freetype)
     {Core_AddOn_FreeType_Release()(freetype);}

@@ -1341,6 +1341,31 @@
         sint32 m_maxheight;
     };
 
+    class FTFontClass
+    {
+    public:
+        FTFontClass()
+        {
+            mHeight = 0;
+        }
+        ~FTFontClass()
+        {
+        }
+        FTFontClass(const FTFontClass& rhs)
+        {
+            operator=(rhs);
+        }
+        FTFontClass& operator=(const FTFontClass& rhs)
+        {
+            mNickName = ToReference(rhs.mNickName);
+            mHeight = ToReference(rhs.mHeight);
+            return *this;
+        }
+    public:
+        String mNickName;
+        sint32 mHeight;
+    };
+
     class CanvasClass
     {
     public:
@@ -1354,9 +1379,18 @@
         void BindCore(PaintDevicePrivate* device);
         void UnbindCore();
     public:
+        // Getter
         static inline CanvasClass* get() {return ST();}
         inline PainterPrivate& painter() {return mPainter;}
+        inline bool is_font_ft() const {return mUseFontFT;}
+        inline id_freetype_read font_ft_id() const {return AddOn::FreeType::Get(mFontFT.mNickName);}
+        inline sint32 font_ft_height() const {return mFontFT.mHeight;}
         inline const ColorPrivate& color() const {return mColor;}
+        // Setter
+        inline void SetFont(chars name, sint32 size)
+        {mUseFontFT = false; painter().setFont(FontPrivate(name, size));}
+        inline void SetFontFT(chars nickname, sint32 height)
+        {mUseFontFT = true; mFontFT.mNickName = nickname; mFontFT.mHeight = height;}
         inline void SetColor(uint08 r, uint08 g, uint08 b, uint08 a)
         {mColor.setRgb(r, g, b, a);}
         inline const PainterPrivate::CompositionMode& mask() const {return mMask;}
@@ -1369,6 +1403,8 @@
         bool mIsSurfaceBinded;
         CanvasClass* mSavedCanvas;
         float mSavedZoom;
+        bool mUseFontFT;
+        FTFontClass mFontFT;
         FontPrivate mSavedFont;
         QRectF mSavedClipRect;
         PainterPrivate mPainter;
@@ -2591,7 +2627,16 @@
                 switch(windowState())
                 {
                 case Qt::WindowNoState:
-                    g_data->m_lastWindowType = MainData::WindowType::Normal;
+                    if(g_data->m_lastWindowType != MainData::WindowType::Normal)
+                    {
+                        g_data->m_lastWindowType = MainData::WindowType::Normal;
+                        auto& CurRect = geometry();
+                        const auto NewRect = QRect(g_data->m_lastWindowNormalRect.l, g_data->m_lastWindowNormalRect.t,
+                            g_data->m_lastWindowNormalRect.r - g_data->m_lastWindowNormalRect.l,
+                            g_data->m_lastWindowNormalRect.b - g_data->m_lastWindowNormalRect.t);
+                        if(CurRect != NewRect)
+                            setGeometry(NewRect);
+                    }
                     break;
                 case Qt::WindowMinimized:
                     if(g_data->m_lastWindowType == MainData::WindowType::Normal)

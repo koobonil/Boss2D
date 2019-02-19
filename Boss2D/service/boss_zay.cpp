@@ -226,7 +226,7 @@ namespace BOSS
         m_stack_scissor.AtAdding() = Rect(0, 0, m_width, m_height);
         m_stack_color.AtAdding() = Color(Color::ColoringDefault);
         m_stack_mask.AtAdding() = MR_Default;
-        m_stack_font.AtAdding() = Font("Arial", 10);
+        m_stack_font.AtAdding();
         m_stack_zoom.AtAdding() = 1;
 
         m_clipped_width = m_width;
@@ -282,7 +282,7 @@ namespace BOSS
             m_stack_scissor.AtAdding() = Rect(0, 0, m_width, m_height);
             m_stack_color.AtAdding() = Color(Color::ColoringDefault);
             m_stack_mask.AtAdding() = MR_Default;
-            m_stack_font.AtAdding() = Font("Arial", 10);
+            m_stack_font.AtAdding();
             m_stack_zoom.AtAdding() = 1;
 
             m_clipped_width = m_width;
@@ -875,14 +875,31 @@ namespace BOSS
         return StackBinder(this, ST_Mask);
     }
 
-    ZayPanel::StackBinder ZayPanel::_push_font(float size, chars name)
+    ZayPanel::StackBinder ZayPanel::_push_sysfont(float size, chars name)
     {
         Font& NewFont = m_stack_font.AtAdding();
         const Font& LastFont = m_stack_font[-2];
-        NewFont.name = (name)? name : (chars) LastFont.name;
-        NewFont.size = LastFont.size * size;
+        NewFont.is_freefont = false;
+        NewFont.system_name = (name)? name : (chars) LastFont.system_name;
+        NewFont.system_size = LastFont.system_size * size;
+        NewFont.freefont_nickname = LastFont.freefont_nickname;
+        NewFont.freefont_height = LastFont.freefont_height;
 
-        Platform::Graphics::SetFont(NewFont.name, NewFont.size);
+        Platform::Graphics::SetFont(NewFont.system_name, NewFont.system_size);
+        return StackBinder(this, ST_Font);
+    }
+
+    ZayPanel::StackBinder ZayPanel::_push_freefont(sint32 height, chars nickname)
+    {
+        Font& NewFont = m_stack_font.AtAdding();
+        const Font& LastFont = m_stack_font[-2];
+        NewFont.is_freefont = true;
+        NewFont.system_name = LastFont.system_name;
+        NewFont.system_size = LastFont.system_size;
+        NewFont.freefont_nickname = (nickname)? nickname : (chars) LastFont.freefont_nickname;
+        NewFont.freefont_height = height;
+
+        Platform::Graphics::SetFontForFreeType(NewFont.freefont_nickname, NewFont.freefont_height);
         return StackBinder(this, ST_Font);
     }
 
@@ -967,7 +984,9 @@ namespace BOSS
         m_stack_font.SubtractionOne();
 
         const Font& LastFont = m_stack_font[-1];
-        Platform::Graphics::SetFont(LastFont.name, LastFont.size);
+        if(LastFont.is_freefont)
+            Platform::Graphics::SetFontForFreeType(LastFont.freefont_nickname, LastFont.freefont_height);
+        else Platform::Graphics::SetFont(LastFont.system_name, LastFont.system_size);
     }
 
     void ZayPanel::_pop_zoom()

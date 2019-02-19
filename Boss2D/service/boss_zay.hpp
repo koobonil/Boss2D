@@ -110,7 +110,9 @@
 #define ZAY_MASK(PANEL, MASK) \
     if(auto _ = (PANEL)._push_mask(MASK))
 #define ZAY_FONT(PANEL, ...) \
-    if(auto _ = (PANEL)._push_font(__VA_ARGS__))
+    if(auto _ = (PANEL)._push_sysfont(__VA_ARGS__))
+#define ZAY_FREEFONT(PANEL, ...) \
+    if(auto _ = (PANEL)._push_freefont(__VA_ARGS__))
 #define ZAY_ZOOM(PANEL, ZOOM) \
     if(auto _ = (PANEL)._push_zoom(ZOOM))
 #define ZAY_ZOOM_CLEAR(PANEL) \
@@ -351,7 +353,8 @@ namespace BOSS
         StackBinder _push_color(const Color& color);
         StackBinder _push_color_clear();
         StackBinder _push_mask(MaskRole role);
-        StackBinder _push_font(float size, chars name = nullptr);
+        StackBinder _push_sysfont(float size, chars name = nullptr);
+        StackBinder _push_freefont(sint32 height, chars nickname = nullptr);
         StackBinder _push_zoom(float zoom);
         StackBinder _push_zoom_clear();
         StackBinder _push_pass();

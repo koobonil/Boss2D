@@ -5,19 +5,15 @@ namespace BOSS
 {
     Font::Font()
     {
-        name = "Arial";
-        size = 10;
+        is_freefont = false;
+        system_name = "Arial";
+        system_size = 10;
+        freefont_height = 0;
     }
 
     Font::Font(const Font& rhs)
     {
         operator=(rhs);
-    }
-
-    Font::Font(chars name, float size)
-    {
-        this->name = name;
-        this->size = size;
     }
 
     Font::~Font()
@@ -26,8 +22,11 @@ namespace BOSS
 
     Font& Font::operator=(const Font& rhs)
     {
-        name = rhs.name;
-        size = rhs.size;
+        is_freefont = rhs.is_freefont;
+        system_name = rhs.system_name;
+        system_size = rhs.system_size;
+        freefont_nickname = rhs.freefont_nickname;
+        freefont_height = rhs.freefont_height;
         return *this;
     }
 }

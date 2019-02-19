@@ -96,11 +96,20 @@ namespace BOSS
         static void SetWindowSize(sint32 width, sint32 height);
 
         /*!
-        \brief 윈도우영역 얻기
-        \param rect : 윈도우영역(px)
-        \param normally : 전체화면화된 경우 노멀값을 사용할지의 여부
+        \brief 윈도우영역 설정
+        \param x : 가로위치(px)
+        \param y : 세로위치(px)
+        \param width : 가로길이(px)
+        \param height : 세로길이(px)
         */
-        static void GetWindowRect(rect128& rect, bool normally = false);
+        static void SetWindowRect(sint32 x, sint32 y, sint32 width, sint32 height);
+
+        /*!
+        \brief 윈도우영역 얻기
+        \param normally : 전체화면화된 경우 노멀값을 사용할지의 여부
+        \return 윈도우영역(px)
+        */
+        static rect128 GetWindowRect(bool normally = false);
 
         /*!
         \brief 윈도우보여짐 설정
@@ -768,6 +777,14 @@ namespace BOSS
             \param size : 사이즈값
             */
             static void SetFont(chars name, float size);
+
+            /*!
+            \brief 프리타입식 폰트지정(BOSS_NEED_ADDON_FREETYPE가 1일때 가능)
+            \param nickname : 프리타입 Create시 작성한 nickname
+            \param height : 세로길이(px)
+            \see AddOn::FreeType::Create
+            */
+            static void SetFontForFreeType(chars nickname, sint32 height);
 
             /*!
             \brief 줌지정

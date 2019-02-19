@@ -33,6 +33,7 @@
         mIsSurfaceBinded = false;
         mSavedCanvas = nullptr;
         mSavedZoom = 1.0f;
+        mUseFontFT = false;
         mMask = PainterPrivate::CompositionMode_SourceOver;
     }
     CanvasClass::CanvasClass(PaintDevicePrivate* device) : mIsTypeSurface(false)
@@ -40,6 +41,7 @@
         mIsSurfaceBinded = false;
         mSavedCanvas = nullptr;
         mSavedZoom = 1.0f;
+        mUseFontFT = false;
         mMask = PainterPrivate::CompositionMode_SourceOver;
         BindCore(device);
     }
@@ -323,6 +325,15 @@
                     g_window->move(x - WindowFrame, y - TitleBarHeight - WindowFrame / 2);
                 }
             }
+            else
+            {
+                const sint32 CurWidth = g_data->m_lastWindowNormalRect.r - g_data->m_lastWindowNormalRect.l;
+                const sint32 CurHeight = g_data->m_lastWindowNormalRect.b - g_data->m_lastWindowNormalRect.t;
+                g_data->m_lastWindowNormalRect.l = x;
+                g_data->m_lastWindowNormalRect.t = y;
+                g_data->m_lastWindowNormalRect.r = x + CurWidth;
+                g_data->m_lastWindowNormalRect.b = y + CurHeight;
+            }
         }
 
         void Platform::SetWindowSize(sint32 width, sint32 height)
@@ -330,20 +341,34 @@
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
             if(g_data->m_lastWindowType == MainData::WindowType::Normal)
                 g_window->resize(width, height);
+            else
+            {
+                g_data->m_lastWindowNormalRect.r = g_data->m_lastWindowNormalRect.l + width;
+                g_data->m_lastWindowNormalRect.b = g_data->m_lastWindowNormalRect.t + height;
+            }
         }
 
-        void Platform::GetWindowRect(rect128& rect, bool normally)
+        void Platform::SetWindowRect(sint32 x, sint32 y, sint32 width, sint32 height)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
+            if(g_data->m_lastWindowType == MainData::WindowType::Normal)
+                g_window->setGeometry(x, y, width, height);
+            else
+            {
+                g_data->m_lastWindowNormalRect.l = x;
+                g_data->m_lastWindowNormalRect.t = y;
+                g_data->m_lastWindowNormalRect.r = x + width;
+                g_data->m_lastWindowNormalRect.b = y + height;
+            }
+        }
+
+        rect128 Platform::GetWindowRect(bool normally)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
             if(g_data->m_lastWindowType != MainData::WindowType::Normal && normally)
-                Memory::Copy(&rect, &g_data->m_lastWindowNormalRect, sizeof(rect128));
-            else
-            {
-                rect.l = g_window->x();
-                rect.t = g_window->y();
-                rect.r = rect.l + g_window->width();
-                rect.b = rect.t + g_window->height();
-            }
+                return g_data->m_lastWindowNormalRect;
+            return {g_window->x(), g_window->y(),
+                g_window->x() + g_window->width(), g_window->y() + g_window->height()};
         }
 
         void Platform::SetWindowVisible(bool visible)
@@ -799,7 +824,7 @@
                 return;
 
             if(g_data->m_lastWindowType == MainData::WindowType::Normal)
-                Platform::GetWindowRect(g_data->m_lastWindowNormalRect);
+                g_data->m_lastWindowNormalRect = Platform::GetWindowRect();
             g_data->m_lastWindowType = MainData::WindowType::Minimize;
             g_data->getMainWindow()->showMinimized();
         }
@@ -811,7 +836,7 @@
                 return;
 
             if(g_data->m_lastWindowType == MainData::WindowType::Normal)
-                Platform::GetWindowRect(g_data->m_lastWindowNormalRect);
+                g_data->m_lastWindowNormalRect = Platform::GetWindowRect();
             g_data->m_lastWindowType = MainData::WindowType::Maximize;
             g_data->getMainWindow()->showFullScreen();
         }
@@ -828,10 +853,10 @@
             if(g_data->m_lastWindowType == MainData::WindowType::Normal)
                 return;
 
-            g_data->getMainWindow()->showNormal();
+            g_data->getMainWindow()->showNormal(); // 매우 느림! 대책 강구해야 함!
             g_data->m_lastWindowType = MainData::WindowType::Normal;
-            Platform::SetWindowPos(g_data->m_lastWindowNormalRect.l, g_data->m_lastWindowNormalRect.t);
-            Platform::SetWindowSize(g_data->m_lastWindowNormalRect.r - g_data->m_lastWindowNormalRect.l,
+            Platform::SetWindowRect(g_data->m_lastWindowNormalRect.l, g_data->m_lastWindowNormalRect.t,
+                g_data->m_lastWindowNormalRect.r - g_data->m_lastWindowNormalRect.l,
                 g_data->m_lastWindowNormalRect.b - g_data->m_lastWindowNormalRect.t);
         }
 
@@ -1261,7 +1286,13 @@
                 static const sint32 PixelScale = Platform::Utility::GetPixelScale();
                 size *= 0.3f * PixelScale;
             #endif
-            CanvasClass::get()->painter().setFont(FontPrivate(name, (sint32) size));
+            CanvasClass::get()->SetFont(name, (sint32) size);
+        }
+
+        void Platform::Graphics::SetFontForFreeType(chars nickname, sint32 height)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
+            CanvasClass::get()->SetFontFT(nickname, height);
         }
 
         void Platform::Graphics::SetZoom(float zoom)
@@ -1711,21 +1742,28 @@
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             #ifndef BOSS_SILENT_NIGHT_IS_ENABLED
-                CanvasClass::get()->painter().setPen(CanvasClass::get()->color());
-                CanvasClass::get()->painter().setBrush(Qt::NoBrush);
-                CanvasClass::get()->painter().setCompositionMode(CanvasClass::get()->mask());
-
-                const QString Text = QString::fromUtf8(string, count);
-                if(elide != UIFE_None)
+                if(CanvasClass::get()->is_font_ft())
                 {
-                    const QString ElidedText = CanvasClass::get()->painter().fontMetrics().elidedText(Text, _ExchangeTextElideMode(elide), w);
-                    if(ElidedText != Text)
-                    {
-                        CanvasClass::get()->painter().drawText(QRectF(x, y, w, h), ElidedText, QTextOption(_ExchangeAlignment(align)));
-                        return true;
-                    }
+                    BOSS_ASSERT("준비중!!!", false);
                 }
-                CanvasClass::get()->painter().drawText(QRectF(x, y, w, h), Text, QTextOption(_ExchangeAlignment(align)));
+                else
+                {
+                    CanvasClass::get()->painter().setPen(CanvasClass::get()->color());
+                    CanvasClass::get()->painter().setBrush(Qt::NoBrush);
+                    CanvasClass::get()->painter().setCompositionMode(CanvasClass::get()->mask());
+
+                    const QString Text = QString::fromUtf8(string, count);
+                    if(elide != UIFE_None)
+                    {
+                        const QString ElidedText = CanvasClass::get()->painter().fontMetrics().elidedText(Text, _ExchangeTextElideMode(elide), w);
+                        if(ElidedText != Text)
+                        {
+                            CanvasClass::get()->painter().drawText(QRectF(x, y, w, h), ElidedText, QTextOption(_ExchangeAlignment(align)));
+                            return true;
+                        }
+                    }
+                    CanvasClass::get()->painter().drawText(QRectF(x, y, w, h), Text, QTextOption(_ExchangeAlignment(align)));
+                }
             #endif
             return false;
         }
@@ -1734,21 +1772,28 @@
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             #ifndef BOSS_SILENT_NIGHT_IS_ENABLED
-                CanvasClass::get()->painter().setPen(CanvasClass::get()->color());
-                CanvasClass::get()->painter().setBrush(Qt::NoBrush);
-                CanvasClass::get()->painter().setCompositionMode(CanvasClass::get()->mask());
-
-                const QString Text = QString::fromWCharArray(string, count);
-                if(elide != UIFE_None)
+                if(CanvasClass::get()->is_font_ft())
                 {
-                    const QString ElidedText = CanvasClass::get()->painter().fontMetrics().elidedText(Text, _ExchangeTextElideMode(elide), w);
-                    if(ElidedText != Text)
-                    {
-                        CanvasClass::get()->painter().drawText(QRectF(x, y, w, h), ElidedText, QTextOption(_ExchangeAlignment(align)));
-                        return true;
-                    }
+                    BOSS_ASSERT("준비중!!!", false);
                 }
-                CanvasClass::get()->painter().drawText(QRectF(x, y, w, h), Text, QTextOption(_ExchangeAlignment(align)));
+                else
+                {
+                    CanvasClass::get()->painter().setPen(CanvasClass::get()->color());
+                    CanvasClass::get()->painter().setBrush(Qt::NoBrush);
+                    CanvasClass::get()->painter().setCompositionMode(CanvasClass::get()->mask());
+
+                    const QString Text = QString::fromWCharArray(string, count);
+                    if(elide != UIFE_None)
+                    {
+                        const QString ElidedText = CanvasClass::get()->painter().fontMetrics().elidedText(Text, _ExchangeTextElideMode(elide), w);
+                        if(ElidedText != Text)
+                        {
+                            CanvasClass::get()->painter().drawText(QRectF(x, y, w, h), ElidedText, QTextOption(_ExchangeAlignment(align)));
+                            return true;
+                        }
+                    }
+                    CanvasClass::get()->painter().drawText(QRectF(x, y, w, h), Text, QTextOption(_ExchangeAlignment(align)));
+                }
             #endif
             return false;
         }
@@ -1757,10 +1802,25 @@
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             chars StringFocus = string;
-            if(count != -1)
+            if(CanvasClass::get()->is_font_ft())
             {
-                chars StringFocusEnd = string + count;
-                while(StringFocus < StringFocusEnd)
+                BOSS_ASSERT("준비중!!!", false);
+            }
+            else
+            {
+                if(count != -1)
+                {
+                    chars StringFocusEnd = string + count;
+                    while(StringFocus < StringFocusEnd)
+                    {
+                        const sint32 CurLetterLength = String::GetLengthOfFirstLetter(StringFocus);
+                        const QString CurLetter = QString::fromUtf8(StringFocus, CurLetterLength);
+                        clipping_width -= CanvasClass::get()->painter().fontMetrics().width(CurLetter);
+                        if(clipping_width < 0) break;
+                        StringFocus += CurLetterLength;
+                    }
+                }
+                else while(*StringFocus)
                 {
                     const sint32 CurLetterLength = String::GetLengthOfFirstLetter(StringFocus);
                     const QString CurLetter = QString::fromUtf8(StringFocus, CurLetterLength);
@@ -1769,14 +1829,6 @@
                     StringFocus += CurLetterLength;
                 }
             }
-            else while(*StringFocus)
-            {
-                const sint32 CurLetterLength = String::GetLengthOfFirstLetter(StringFocus);
-                const QString CurLetter = QString::fromUtf8(StringFocus, CurLetterLength);
-                clipping_width -= CanvasClass::get()->painter().fontMetrics().width(CurLetter);
-                if(clipping_width < 0) break;
-                StringFocus += CurLetterLength;
-            }
             return StringFocus - string;
         }
 
@@ -1784,10 +1836,25 @@
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             wchars StringFocus = string;
-            if(count != -1)
+            if(CanvasClass::get()->is_font_ft())
             {
-                wchars StringFocusEnd = string + count;
-                while(StringFocus < StringFocusEnd)
+                BOSS_ASSERT("준비중!!!", false);
+            }
+            else
+            {
+                if(count != -1)
+                {
+                    wchars StringFocusEnd = string + count;
+                    while(StringFocus < StringFocusEnd)
+                    {
+                        const sint32 CurLetterLength = WString::GetLengthOfFirstLetter(StringFocus);
+                        const QString CurLetter = QString::fromWCharArray(StringFocus, CurLetterLength);
+                        clipping_width -= CanvasClass::get()->painter().fontMetrics().width(CurLetter);
+                        if(clipping_width < 0) break;
+                        StringFocus += CurLetterLength;
+                    }
+                }
+                else while(*StringFocus)
                 {
                     const sint32 CurLetterLength = WString::GetLengthOfFirstLetter(StringFocus);
                     const QString CurLetter = QString::fromWCharArray(StringFocus, CurLetterLength);
@@ -1796,38 +1863,50 @@
                     StringFocus += CurLetterLength;
                 }
             }
-            else while(*StringFocus)
-            {
-                const sint32 CurLetterLength = WString::GetLengthOfFirstLetter(StringFocus);
-                const QString CurLetter = QString::fromWCharArray(StringFocus, CurLetterLength);
-                clipping_width -= CanvasClass::get()->painter().fontMetrics().width(CurLetter);
-                if(clipping_width < 0) break;
-                StringFocus += CurLetterLength;
-            }
             return StringFocus - string;
         }
 
         sint32 Platform::Graphics::GetStringWidth(chars string, sint32 count)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
+            if(CanvasClass::get()->is_font_ft())
+            {
+                BOSS_ASSERT("준비중!!!", false);
+                return 0;
+            }
             return CanvasClass::get()->painter().fontMetrics().width(QString::fromUtf8(string, count));
         }
 
         sint32 Platform::Graphics::GetStringWidthW(wchars string, sint32 count)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
+            if(CanvasClass::get()->is_font_ft())
+            {
+                BOSS_ASSERT("준비중!!!", false);
+                return 0;
+            }
             return CanvasClass::get()->painter().fontMetrics().width(QString::fromWCharArray(string, count));
         }
 
         sint32 Platform::Graphics::GetStringHeight()
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
+            if(CanvasClass::get()->is_font_ft())
+            {
+                BOSS_ASSERT("준비중!!!", false);
+                return 0;
+            }
             return CanvasClass::get()->painter().fontMetrics().height();
         }
 
         sint32 Platform::Graphics::GetStringAscent()
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
+            if(CanvasClass::get()->is_font_ft())
+            {
+                BOSS_ASSERT("준비중!!!", false);
+                return 0;
+            }
             return CanvasClass::get()->painter().fontMetrics().ascent();
         }
 

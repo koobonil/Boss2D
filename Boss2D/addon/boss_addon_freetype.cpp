@@ -18,7 +18,8 @@ bool __LINK_ADDON_FREETYPE__() {return true;} // 링크옵션 /OPT:NOREF가 안�
 // 등록과정
 namespace BOSS
 {
-    BOSS_DECLARE_ADDON_FUNCTION(FreeType, Create, id_freetype, buffer)
+    BOSS_DECLARE_ADDON_FUNCTION(FreeType, Create, id_freetype, buffer, chars)
+    BOSS_DECLARE_ADDON_FUNCTION(FreeType, Get, id_freetype_read, chars)
     BOSS_DECLARE_ADDON_FUNCTION(FreeType, Release, void, id_freetype)
     BOSS_DECLARE_ADDON_FUNCTION(FreeType, ToBmp, id_bitmap, id_freetype, sint32, uint32)
     BOSS_DECLARE_ADDON_FUNCTION(FreeType, GetInfo, void, id_freetype, sint32, uint32, sint32*, sint32*)
@@ -26,6 +27,7 @@ namespace BOSS
     static autorun Bind_AddOn_FreeType()
     {
         Core_AddOn_FreeType_Create() = Customized_AddOn_FreeType_Create;
+        Core_AddOn_FreeType_Get() = Customized_AddOn_FreeType_Get;
         Core_AddOn_FreeType_Release() = Customized_AddOn_FreeType_Release;
         Core_AddOn_FreeType_ToBmp() = Customized_AddOn_FreeType_ToBmp;
         Core_AddOn_FreeType_GetInfo() = Customized_AddOn_FreeType_GetInfo;
@@ -2701,32 +2703,94 @@ typedef struct  FT_GlyphSlotRec_
 
 // ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 // 구현부
-class FaceInfo
+class LibraryInfo
 {
 public:
-    buffer TTF;
-    FT_Face Face;
-    int SavedHeight;
-    FaceInfo(buffer ttf) : TTF(ttf)
+    LibraryInfo()
     {
-        Face = nullptr;
-        SavedHeight = 0;
+        mID = nullptr;
+    }
+    ~LibraryInfo()
+    {
+        if(mID)
+            FT_Done_FreeType(mID);
+    }
+
+public:
+    FT_Library mID;
+};
+
+class FaceInfo
+{
+private:
+    class FaceMap
+    {
+    private:
+        FaceMap()
+        {
+            mMutex = Mutex::Open();
+        }
+        ~FaceMap()
+        {
+            Mutex::Close(mMutex);
+            BOSS_ASSERT("해제되지 못한 FreeType이 존재합니다", mFace.Count() == 0);
+        }
+
+    public:
+        inline static FaceMap& ST() {static FaceMap _; return _;}
+
+    public:
+        id_mutex mMutex;
+        Map<FaceInfo*> mFace;
+    };
+
+public:
+    FaceInfo(buffer ttf, chars nickname) : mTTF(ttf), mNickName(nickname)
+    {
+        mFace = nullptr;
+        mSavedHeight = 0;
+
+        Mutex::Lock(FaceMap::ST().mMutex);
+        BOSS_ASSERT("이미 등록된 FreeType의 닉네임입니다", FaceMap::ST().mFace.Access(nickname) == nullptr);
+        FaceMap::ST().mFace(nickname) = this;
+        Mutex::Unlock(FaceMap::ST().mMutex);
     }
     ~FaceInfo()
     {
-        FT_Done_Face(Face);
-        Buffer::Free(TTF);
+        Mutex::Lock(FaceMap::ST().mMutex);
+        FaceMap::ST().mFace.Remove(mNickName);
+        Mutex::Unlock(FaceMap::ST().mMutex);
+
+        FT_Done_Face(mFace);
+        Buffer::Free(mTTF);
     }
+
+public:
+    static FaceInfo* GetFace(chars nickname)
+    {
+        Mutex::Lock(FaceMap::ST().mMutex);
+        auto Result = FaceMap::ST().mFace.Access(nickname);
+        Mutex::Unlock(FaceMap::ST().mMutex);
+        if(Result)
+            return *Result;
+        return nullptr;
+    }
+
+public:
+    buffer mTTF;
+    const String mNickName;
+    FT_Face mFace;
+    int mSavedHeight;
 };
 
 static void CheckHeight(FaceInfo* info, int height)
 {
-    if(info->SavedHeight != height)
+    if(info->mSavedHeight != height)
     {
-        info->SavedHeight = height;
-        if(FT_Set_Pixel_Sizes(info->Face, 0, height) != FT_Err_Ok)
+        info->mSavedHeight = height;
+        if(FT_Set_Pixel_Sizes(info->mFace, 0, height) != FT_Err_Ok)
         {
-            BOSS_ASSERT("해당 폰트의 사이즈설정에 실패하였습니다", false);
+            BOSS_ASSERT("해당 FreeType의 사이즈설정에 실패하였습니다", false);
             return;
         }
     }
@@ -2734,28 +2798,34 @@ static void CheckHeight(FaceInfo* info, int height)
 
 namespace BOSS
 {
-    id_freetype Customized_AddOn_FreeType_Create(buffer ttf)
+    id_freetype Customized_AddOn_FreeType_Create(buffer ttf, chars nickname)
     {
-        static FT_Library Library = nullptr;
+        static LibraryInfo Library;
         FT_Error ErrorResult = FT_Err_Ok;
 
-        if(Library == nullptr)
+        if(Library.mID == nullptr)
         {
-            if((ErrorResult = FT_Init_FreeType(&Library)) != FT_Err_Ok)
+            if((ErrorResult = FT_Init_FreeType(&Library.mID)) != FT_Err_Ok)
             {
                 BOSS_ASSERT(String::Format("FreeType의 초기화에 실패하였습니다(ErrCode==%d)", ErrorResult), false);
                 return nullptr;
             }
         }
-        FaceInfo* Info = new FaceInfo(ttf);
+
+        FaceInfo* Info = new FaceInfo(ttf, nickname);
         const sint32 TTFLength = Buffer::SizeOf(ttf) * Buffer::CountOf(ttf);
-        if((ErrorResult = FT_New_Memory_Face(Library, (bytes) ttf, TTFLength, 0, &Info->Face)) != FT_Err_Ok)
+        if((ErrorResult = FT_New_Memory_Face(Library.mID, (bytes) ttf, TTFLength, 0, &Info->mFace)) != FT_Err_Ok)
         {
-            BOSS_ASSERT(String::Format("해당 폰트의 로드에 실패하였습니다(ErrCode==%d)", ErrorResult), false);
+            BOSS_ASSERT(String::Format("해당 FreeType의 로드에 실패하였습니다(ErrCode==%d)", ErrorResult), false);
             delete Info;
             return nullptr;
         }
         return (id_freetype) Info;
+    }
+
+    id_freetype_read Customized_AddOn_FreeType_Get(chars nickname)
+    {
+        return (id_freetype_read) FaceInfo::GetFace(nickname);
     }
 
     void Customized_AddOn_FreeType_Release(id_freetype freetype)
@@ -2785,19 +2855,19 @@ namespace BOSS
         }
 
         CheckHeight(Info, height);
-        if(FT_Load_Char(Info->Face, code, FT_LOAD_RENDER) != FT_Err_Ok)
+        if(FT_Load_Char(Info->mFace, code, FT_LOAD_RENDER) != FT_Err_Ok)
         {
-            BOSS_ASSERT("해당 폰트의 로드에 실패하였습니다", false);
+            BOSS_ASSERT("해당 FreeType의 로드에 실패하였습니다", false);
             return nullptr;
         }
 
         // 비트맵구성
-        FT_Bitmap& FontBitmap = Info->Face->glyph->bitmap;
+        FT_Bitmap& FontBitmap = Info->mFace->glyph->bitmap;
         const int Width = FontBitmap.width;
         const int Height = FontBitmap.rows;
-        const int Ascent = Info->Face->size->metrics.ascender / 64;
-        const int BearingX = Info->Face->glyph->metrics.horiBearingX / 64;
-        const int BearingY = Info->Face->glyph->metrics.horiBearingY / 64;
+        const int Ascent = Info->mFace->size->metrics.ascender / 64;
+        const int BearingX = Info->mFace->glyph->metrics.horiBearingX / 64;
+        const int BearingY = Info->mFace->glyph->metrics.horiBearingY / 64;
         id_bitmap NewBitmap = Bmp::Create(4, Width, Height, (sint16) BearingX, (sint16) Ascent - BearingY);
         auto BitmapFocus = (Bmp::bitmappixel*) Bmp::GetBits(NewBitmap);
 
@@ -2826,15 +2896,15 @@ namespace BOSS
         {
             FT_UInt  glyph_index = (FT_UInt) code;
             glyph_index = (FT_UInt) code;
-            if(Info->Face->charmap)
-              glyph_index = FT_Get_Char_Index(Info->Face, code);
+            if(Info->mFace->charmap)
+              glyph_index = FT_Get_Char_Index(Info->mFace, code);
             FT_Fixed advance = 0;
-            FT_Get_Advance(Info->Face, glyph_index,
+            FT_Get_Advance(Info->mFace, glyph_index,
                 FT_LOAD_NO_HINTING | FT_LOAD_IGNORE_TRANSFORM, &advance);
             *width = advance / 1024 / 64;
         }
         if(ascent)
-            *ascent = Info->Face->size->metrics.ascender / 64;
+            *ascent = Info->mFace->size->metrics.ascender / 64;
     }
 }
 // ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■

@@ -16,8 +16,8 @@ bool PlatformInit()
     if(0 < InfoString.Length())
     {
         Context Info(ST_Json, SO_OnlyReference, InfoString, InfoString.Length());
-        Platform::SetWindowPos(Info("x").GetInt(0), Info("y").GetInt(0));
-        Platform::SetWindowSize(Info("w").GetInt(640), Info("h").GetInt(480));
+        Platform::SetWindowRect(Info("x").GetInt(0), Info("y").GetInt(0),
+            Info("w").GetInt(640), Info("h").GetInt(480));
     }
     else Platform::SetWindowSize(640, 480);
 
@@ -49,7 +49,7 @@ bool PlatformInit()
 void PlatformQuit()
 {
     rect128 WindowRect;
-    Platform::GetWindowRect(WindowRect);
+    WindowRect = Platform::GetWindowRect();
 
     Context Info;
     Info.At("x").Set(String::FromInteger(WindowRect.l));
