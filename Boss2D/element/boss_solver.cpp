@@ -1,6 +1,8 @@
 ﻿#include <boss.hpp>
 #include "boss_solver.hpp"
 
+#include <platform/boss_platform.hpp> 
+
 namespace BOSS
 {
     // 상수항
@@ -119,6 +121,8 @@ namespace BOSS
             case SolverOperatorType::Multiply:       collector += " * "; break;
             case SolverOperatorType::Divide:         collector += " / "; break;
             case SolverOperatorType::Remainder:      collector += " % "; break;
+            case SolverOperatorType::RangeTarget:    collector += " ~ "; break;
+            case SolverOperatorType::RangeTimer:     collector += " : "; break;
             case SolverOperatorType::Greater:        collector += " < "; break;
             case SolverOperatorType::GreaterOrEqual: collector += " <= "; break;
             case SolverOperatorType::Less:           collector += " > "; break;
@@ -153,6 +157,8 @@ namespace BOSS
             case SolverOperatorType::Multiply:       return mOperandL->result(Zero).Multiply(mOperandR->result(One));
             case SolverOperatorType::Divide:         return mOperandL->result(Zero).Divide(mOperandR->result(One));
             case SolverOperatorType::Remainder:      return mOperandL->result(Zero).Remainder(mOperandR->result(One));
+            case SolverOperatorType::RangeTarget:    return mOperandL->result(Zero).RangeTarget(mOperandR->result(Zero));
+            case SolverOperatorType::RangeTimer:     return mOperandL->result(Zero).RangeTimer(mOperandR->result(Zero));
             case SolverOperatorType::Greater:        return mOperandL->result(Zero).Greater(mOperandR->result(Zero));
             case SolverOperatorType::GreaterOrEqual: return mOperandL->result(Zero).GreaterOrEqual(mOperandR->result(Zero));
             case SolverOperatorType::Less:           return mOperandL->result(Zero).Less(mOperandR->result(Zero));
@@ -240,6 +246,72 @@ namespace BOSS
             }
     }
 
+    SolverValue::Range::Range()
+    {
+        mValue1 = 0;
+        mValue2 = 0;
+        mBeginMsec = 0;
+        mEndMsec = 0;
+    }
+
+    SolverValue::Range::Range(Float value)
+    {
+        mValue1 = value;
+        mValue2 = value;
+        mBeginMsec = 0;
+        mEndMsec = 0;
+    }
+
+    SolverValue::Range::Range(const Range& rhs)
+    {
+        operator=(rhs);
+    }
+
+    SolverValue::Range::Range(Range&& rhs)
+    {
+        operator=(ToReference(rhs));
+    }
+
+    SolverValue::Range::~Range()
+    {
+    }
+
+    SolverValue::Range& SolverValue::Range::operator=(const Range& rhs)
+    {
+        mValue1 = rhs.mValue1;
+        mValue2 = rhs.mValue2;
+        mBeginMsec = rhs.mBeginMsec;
+        mEndMsec = rhs.mEndMsec;
+        return *this;
+    }
+
+    SolverValue::Range& SolverValue::Range::operator=(Range&& rhs)
+    {
+        mValue1 = ToReference(rhs.mValue1);
+        mValue2 = ToReference(rhs.mValue2);
+        mBeginMsec = ToReference(rhs.mBeginMsec);
+        mEndMsec = ToReference(rhs.mEndMsec);
+        return *this;
+    }
+
+    SolverValue::Float SolverValue::Range::GetValue() const
+    {
+        if(mBeginMsec == 0 && mEndMsec == 0)
+            return mValue1 + Math::Random() * (mValue2 - mValue1);
+        uint64 CurMsec = Platform::Utility::CurrentTimeMsec();
+        if(CurMsec <= mBeginMsec) return mValue1;
+        if(mEndMsec < CurMsec) return mValue2;
+        return mValue1 + (mValue2 - mValue1) * (CurMsec - mBeginMsec) / (mEndMsec - mBeginMsec);
+    }
+
+    SolverValue::Text SolverValue::Range::GetCode() const
+    {
+        if(mBeginMsec == 0 && mEndMsec == 0)
+            return String::FromFloat(GetValue());
+        return "@R" + String::FromFloat(mValue1) + '_' + String::FromFloat(mValue2) + '_' +
+            String::FromInteger((sint64) mBeginMsec) + '_' + String::FromInteger((sint64) mEndMsec);
+    }
+
     SolverValue::SolverValue(SolverValueType type)
     {
         mType = type;
@@ -267,6 +339,7 @@ namespace BOSS
         mInteger = rhs.mInteger;
         mFloat = rhs.mFloat;
         mText = rhs.mText;
+        mRange = rhs.mRange;
         return *this;
     }
 
@@ -276,6 +349,7 @@ namespace BOSS
         mInteger = ToReference(rhs.mInteger);
         mFloat = ToReference(rhs.mFloat);
         mText = ToReference(rhs.mText);
+        mRange = ToReference(rhs.mRange);
         return *this;
     }
 
@@ -305,8 +379,55 @@ namespace BOSS
         return Result;
     }
 
+    SolverValue SolverValue::MakeByRange(Float value1, Float value2)
+    {
+        SolverValue Result(SolverValueType::Range);
+        Result.mRange.mValue1 = value1;
+        Result.mRange.mValue2 = value2;
+        return Result;
+    }
+
+    SolverValue SolverValue::MakeByRangeTime(Range value, Float sec)
+    {
+        SolverValue Result(SolverValueType::Range);
+        Result.mRange.mValue1 = value.mValue1;
+        Result.mRange.mValue2 = value.mValue2;
+        Result.mRange.mBeginMsec = Platform::Utility::CurrentTimeMsec();
+        Result.mRange.mEndMsec = Result.mRange.mBeginMsec + Math::Max(0, sec * 1000);
+        return Result;
+    }
+
+    SolverValue SolverValue::MakeByRangeTime(chars code)
+    {
+        SolverValue Result(SolverValueType::Range);
+        if(*(code++) == '@' && *(code++) == 'R') // @R0_0_0_0
+        {
+            sint32 FindStep = 0;
+            chars BeginPos = code;
+            while(true)
+            {
+                if(*code == '_' || *code == '\0')
+                {
+                    switch(FindStep++)
+                    {
+                    case 0: Result.mRange.mValue1 = Parser::GetFloat<Float>(BeginPos, code - BeginPos); break;
+                    case 1: Result.mRange.mValue2 = Parser::GetFloat<Float>(BeginPos, code - BeginPos); break;
+                    case 2: Result.mRange.mBeginMsec = Parser::GetInt<uint64>(BeginPos, code - BeginPos); break;
+                    case 3: Result.mRange.mEndMsec = Parser::GetInt<uint64>(BeginPos, code - BeginPos); break;
+                    }
+                    if(*code == '\0') break;
+                    BeginPos = code + 1;
+                }
+                code++;
+            }
+        }
+        return Result;
+    }
+
     SolverValue::Integer SolverValue::ToInteger() const
     {
+        if(mType == SolverValueType::Range)
+            return (Integer) mRange.GetValue();
         if(mType == SolverValueType::Integer)
             return mInteger;
         if(mType == SolverValueType::Float)
@@ -316,6 +437,8 @@ namespace BOSS
 
     SolverValue::Float SolverValue::ToFloat() const
     {
+        if(mType == SolverValueType::Range)
+            return mRange.GetValue();
         if(mType == SolverValueType::Integer)
             return (Float) mInteger;
         if(mType == SolverValueType::Float)
@@ -323,13 +446,28 @@ namespace BOSS
         return Parser::GetFloat<Float>(mText);
     }
 
-    SolverValue::Text SolverValue::ToText() const
+    SolverValue::Text SolverValue::ToText(bool quotes) const
     {
+        if(mType == SolverValueType::Range)
+            return mRange.GetCode();
         if(mType == SolverValueType::Integer)
             return String::FromInteger(mInteger);
         if(mType == SolverValueType::Float)
             return String::FromFloat(mFloat);
+        if(quotes)
+            return '\'' + mText + '\'';
         return mText;
+    }
+
+    SolverValue::Range SolverValue::ToRange() const
+    {
+        if(mType == SolverValueType::Range)
+            return mRange;
+        if(mType == SolverValueType::Integer)
+            return Range((Float) mInteger);
+        if(mType == SolverValueType::Float)
+            return Range(mFloat);
+        return Range(Parser::GetFloat<Float>(mText));
     }
 
     SolverValueType SolverValue::GetMergedType(const SolverValue& rhs) const
@@ -390,6 +528,16 @@ namespace BOSS
         case SolverValueType::Text: return MakeByText(ToText() + "%" + rhs.ToText());
         }
         return SolverValue();
+    }
+
+    SolverValue SolverValue::RangeTarget(const SolverValue& rhs) const
+    {
+        return MakeByRange(ToFloat(), rhs.ToFloat());
+    }
+
+    SolverValue SolverValue::RangeTimer(const SolverValue& rhs) const
+    {
+        return MakeByRangeTime(ToRange(), rhs.ToFloat());
     }
 
     SolverValue SolverValue::Greater(const SolverValue& rhs) const
@@ -602,6 +750,8 @@ namespace BOSS
                 jump(*formula == '*') AddOperator(OperandFocus, SolverOperatorType::Multiply, deep);
                 jump(*formula == '/') AddOperator(OperandFocus, SolverOperatorType::Divide, deep);
                 jump(*formula == '%') AddOperator(OperandFocus, SolverOperatorType::Remainder, deep);
+                jump(*formula == '~') AddOperator(OperandFocus, SolverOperatorType::RangeTarget, deep);
+                jump(*formula == ':') AddOperator(OperandFocus, SolverOperatorType::RangeTimer, deep);
                 jump(*formula == '<')
                 {
                     if(formula[1] == '=')
@@ -669,7 +819,7 @@ namespace BOSS
                 {
                     chars End = formula;
                     while(*(++End)) if(*End == *formula) break;
-                    NewOperand = SolverVariable(String(formula + 1, End - formula - 1)).clone();
+                    NewOperand = SolverLiteral(SolverValue::MakeByText(String(formula + 1, End - formula - 1))).clone();
                     formula += (End - formula - 1 + 2) - 1;
                 }
                 else

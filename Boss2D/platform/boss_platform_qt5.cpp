@@ -1466,7 +1466,7 @@
         }
 
         void Platform::Graphics::DrawTextureToFBO(id_texture_read texture, float tx, float ty, float tw, float th,
-            orientationtype ori, bool antialiasing, float x, float y, float w, float h, uint32 fbo)
+            orientationtype ori, bool antialiasing, float x, float y, float w, float h, Color color, uint32 fbo)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             BOSS_ASSERT("본 함수를 호출하기 전에 BeginGL()을 호출하여야 안전합니다", g_isBeginGL);
@@ -1474,7 +1474,7 @@
                 if(texture == 0) return;
 
                 OpenGLPrivate::ST().DrawTexture(fbo, Rect(x, y, x + w, y + h),
-                    texture, Rect(tx, ty, tx + tw, ty + th), ori, antialiasing);
+                    texture, Rect(tx, ty, tx + tw, ty + th), color, ori, antialiasing);
             #endif
         }
 
@@ -1694,6 +1694,8 @@
                 else CanvasClass::get()->painter().drawPixmap(QRect((sint32) x, (sint32) y, (sint32) w, (sint32) h),
                     *((const PixmapPrivate*) image), QRect((sint32) ix, (sint32) iy, (sint32) iw, (sint32) ih));
 
+                // 아래 코드는 QT의 소수점표현 랜더링으로 이미지변형이 있음 → 안이쁘고 연결된 이미지 사이에 구멍뚫림
+                // QT에서 나중에 개선할 지도 모르니 보관함
                 //if(w == iw && h == ih)
                 //    CanvasClass::get()->painter().drawPixmap(QPointF(x, y), *((const PixmapPrivate*) image), QRectF(ix, iy, iw, ih));
                 //else CanvasClass::get()->painter().drawPixmap(QRectF(x, y, w, h), *((const PixmapPrivate*) image), QRectF(ix, iy, iw, ih));
@@ -1738,13 +1740,336 @@
             return Result;
         }
 
-        bool Platform::Graphics::DrawString(float x, float y, float w, float h, chars string, sint32 count, UIFontAlign align, UIFontElide elide)
+        static inline sint32 _GetXFontAlignCode(UIFontAlign align)
+        {
+            sint32 Code = 0;
+            switch(align)
+            {
+            case UIFA_LeftTop:    Code = 0; break; case UIFA_CenterTop:    Code = 1; break; case UIFA_RightTop:    Code = 2; break; case UIFA_JustifyTop:    Code = 3; break;
+            case UIFA_LeftMiddle: Code = 0; break; case UIFA_CenterMiddle: Code = 1; break; case UIFA_RightMiddle: Code = 2; break; case UIFA_JustifyMiddle: Code = 3; break;
+            case UIFA_LeftAscent: Code = 0; break; case UIFA_CenterAscent: Code = 1; break; case UIFA_RightAscent: Code = 2; break; case UIFA_JustifyAscent: Code = 3; break;
+            case UIFA_LeftBottom: Code = 0; break; case UIFA_CenterBottom: Code = 1; break; case UIFA_RightBottom: Code = 2; break; case UIFA_JustifyBottom: Code = 3; break;
+            }
+            return Code;
+        }
+
+        static inline sint32 _GetYFontAlignCode(UIFontAlign align)
+        {
+            sint32 Code = 0;
+            switch(align)
+            {
+            case UIFA_LeftTop:    Code = 0; break; case UIFA_CenterTop:    Code = 0; break; case UIFA_RightTop:    Code = 0; break; case UIFA_JustifyTop:    Code = 0; break;
+            case UIFA_LeftMiddle: Code = 1; break; case UIFA_CenterMiddle: Code = 1; break; case UIFA_RightMiddle: Code = 1; break; case UIFA_JustifyMiddle: Code = 1; break;
+            case UIFA_LeftAscent: Code = 2; break; case UIFA_CenterAscent: Code = 2; break; case UIFA_RightAscent: Code = 2; break; case UIFA_JustifyAscent: Code = 2; break;
+            case UIFA_LeftBottom: Code = 3; break; case UIFA_CenterBottom: Code = 3; break; case UIFA_RightBottom: Code = 3; break; case UIFA_JustifyBottom: Code = 3; break;
+            }
+            return Code;
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // FreeFontGlyph
+        ////////////////////////////////////////////////////////////////////////////////
+        class FreeFontGlyph
+        {
+        public:
+            FreeFontGlyph(chars nickname, sint32 height, sint32 texturesize)
+                : mNickName(nickname), mFontHeight(height), mTextureSize(texturesize)
+            {
+                mLastCell = nullptr;
+                // 첫 AddCode호출시 AddCell호출유도
+                mLastOffsetX = mTextureSize;
+                mLastOffsetY = mTextureSize;
+                mLastLineHeight = 0;
+            }
+            ~FreeFontGlyph()
+            {
+                delete mLastCell;
+            }
+
+            FreeFontGlyph(const FreeFontGlyph& rhs) = delete;
+            FreeFontGlyph& operator=(const FreeFontGlyph& rhs) = delete;
+
+        public:
+            struct CodeData
+            {
+                TextureClass* mRefTexture;
+                point64 mUVPos;
+                size64 mUVSize;
+                point64 mRenderPos;
+                sint32 mSavedWidth, mSavedAscent; // TTF크기정보
+            };
+
+        private:
+            class CellList
+            {
+            public:
+                CellList(sint32 texturesize)
+                {
+                    mTexture.Init(false, false, texturesize, texturesize, nullptr);
+                    mLastAccessMsec = Platform::Utility::CurrentTimeMsec();
+                    mNext = nullptr;
+                }
+                ~CellList()
+                {
+                    CellList* CurCell = mNext;
+                    while(CurCell)
+                    {
+                        CellList* NextCell = CurCell->mNext;
+                        CurCell->mNext = nullptr;
+                        delete CurCell;
+                        CurCell = NextCell;
+                    }
+                }
+            public:
+                TextureClass mTexture;
+                uint64 mLastAccessMsec; // 마지막 사용시각
+                CellList* mNext;
+            };
+            struct CodePack
+            {
+                CellList* mRefCell;
+                CodeData mCode;
+            };
+
+        private:
+            void AddCell()
+            {
+                auto NewCell = new CellList(mTextureSize);
+                NewCell->mNext = mLastCell;
+                mLastCell = NewCell;
+            }
+
+        public:
+            const CodeData* GetCode(uint32 code)
+            {
+                if(auto CurCodePack = mCodeMap.Access(code))
+                {
+                    CurCodePack->mRefCell->mLastAccessMsec = Platform::Utility::CurrentTimeMsec();
+                    return &CurCodePack->mCode;
+                }
+                else if(auto CurFreeType = AddOn::FreeType::Get(mNickName))
+                {
+                    // 비트맵할당
+                    auto NewBitmap = AddOn::FreeType::ToBmp(CurFreeType, mFontHeight, code);
+                    const sint32 BitmapWidth = Bmp::GetWidth(NewBitmap);
+				    const sint32 BitmapHeight = Bmp::GetHeight(NewBitmap);
+				    const sint32 RenderPosX = Bmp::GetParam1(NewBitmap);
+				    const sint32 RenderPosY = Bmp::GetParam2(NewBitmap);
+				    auto BitmapBits = (Bmp::bitmappixel*) Bmp::GetBits(NewBitmap);
+
+                    // 공간확보
+                    const sint32 SpaceGap = 1;
+                    const sint32 SpaceWidth = BitmapWidth + SpaceGap;
+                    const sint32 SpaceHeight = BitmapHeight + SpaceGap;
+                    if(mTextureSize < mLastOffsetX + SpaceWidth)
+                    {
+                        mLastOffsetX = SpaceGap;
+                        mLastOffsetY += mLastLineHeight;
+                        mLastLineHeight = 0;
+                    }
+                    mLastLineHeight = Math::Max(mLastLineHeight, SpaceHeight);
+                    if(mTextureSize < mLastOffsetY + mLastLineHeight)
+                    {
+                        mLastOffsetX = SpaceGap;
+                        mLastOffsetY = SpaceGap;
+                        AddCell();
+                    }
+
+                    // 복사 및 비트맵해제
+                    mLastCell->mTexture.CopyFromBitmap(mLastOffsetX, mLastOffsetY, BitmapWidth, BitmapHeight, BitmapBits);
+                    Bmp::Remove(NewBitmap);
+
+                    // 프리폰트 텍스쳐상황 디버깅
+                    #if !BOSS_NDEBUG
+                        id_bitmap Test = mLastCell->mTexture.CreateBitmapByGL();
+                        const sint32 TestWidth = Bmp::GetWidth(Test);
+				        const sint32 TestHeight = Bmp::GetHeight(Test);
+				        auto TestBits = (Bmp::bitmappixel*) Bmp::GetBits(Test);
+                        for(sint32 i = 0, iend = TestWidth * TestHeight; i < iend; ++i)
+                        {
+                            TestBits[i].r = TestBits[i].a;
+                            TestBits[i].g = TestBits[i].a;
+                            TestBits[i].b = TestBits[i].a;
+                        }
+                        Bmp::ToAsset(Test, String::FromWChars(WString::Format(L"freefont_debug/texture_%d.bmp", mLastCell->mTexture.id(0))));
+                        Bmp::Remove(Test);
+                    #endif
+
+                    // 코드정보화
+                    auto& NewCodePack = mCodeMap[code];
+                    NewCodePack.mRefCell = mLastCell;
+                    NewCodePack.mCode.mRefTexture = &mLastCell->mTexture;
+                    NewCodePack.mCode.mUVPos.x = mLastOffsetX;
+                    NewCodePack.mCode.mUVPos.y = mTextureSize - (mLastOffsetY + BitmapHeight);
+                    NewCodePack.mCode.mUVSize.w = BitmapWidth;
+                    NewCodePack.mCode.mUVSize.h = BitmapHeight;
+                    NewCodePack.mCode.mRenderPos.x = RenderPosX;
+                    NewCodePack.mCode.mRenderPos.y = RenderPosY;
+                    AddOn::FreeType::GetInfo(CurFreeType, mFontHeight, code, &NewCodePack.mCode.mSavedWidth, &NewCodePack.mCode.mSavedAscent);
+
+                    mLastOffsetX += SpaceWidth;
+                    return &NewCodePack.mCode;
+                }
+                return nullptr;
+            }
+
+        private:
+            const String mNickName;
+            const sint32 mFontHeight;
+            const sint32 mTextureSize; // 텍스쳐크기
+
+        private:
+            Map<CodePack> mCodeMap; // 코드별 UV정보
+            CellList* mLastCell;
+            sint32 mLastOffsetX;
+            sint32 mLastOffsetY;
+            sint32 mLastLineHeight;
+        };
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // FreeFont
+        ////////////////////////////////////////////////////////////////////////////////
+        class FreeFont
+        {
+        public:
+            FreeFont(chars nickname, sint32 height)
+            {
+                class HeightPool
+                {
+                public:
+                    HeightPool() {}
+                    ~HeightPool()
+                    {
+                        for(sint32 i = 0, iend = mGlyphMap.Count(); i < iend; ++i)
+                            delete *mGlyphMap.AccessByOrder(i);
+                    }
+                public:
+                    FreeFontGlyph* ValidGlyph(chars nickname, sint32 height)
+                    {
+                        auto& CurGlyph = mGlyphMap[height];
+                        return (CurGlyph)? CurGlyph :
+                            (CurGlyph = new FreeFontGlyph(nickname, height, (height <= 32)? 256 : ((height <= 128)? 512 : 1024)));
+                    }
+                private:
+                    Map<FreeFontGlyph*> mGlyphMap;
+                };
+                static Map<HeightPool> Pool;
+                mRefGlyph = Pool(nickname).ValidGlyph(nickname, height);
+            }
+            ~FreeFont()
+            {
+            }
+
+        public:
+            void Render(sint32 x, sint32 y, wchars string, sint32 count, ColorPrivate color, float justifyrate)
+            {
+                BOSS_ASSERT("count에는 음수값이 올 수 없습니다", 0 <= count);
+                const Color CurColor(color.red(), color.green(), color.blue(), color.alpha());
+                Platform::Graphics::BeginGL();
+                for(sint32 i = 0; i < count; ++i)
+                {
+                    auto CurCode = mRefGlyph->GetCode((uint32) string[i]);
+                    if(CurCode)
+                    {
+                        Platform::Graphics::DrawTextureToFBO((id_texture_read) CurCode->mRefTexture,
+                            CurCode->mUVPos.x, CurCode->mUVPos.y, CurCode->mUVSize.w, CurCode->mUVSize.h, orientationtype_normal0,
+                            false, x + CurCode->mRenderPos.x * justifyrate, y + CurCode->mRenderPos.y, CurCode->mUVSize.w * justifyrate, CurCode->mUVSize.h, CurColor);
+                        x += CurCode->mSavedWidth * justifyrate;
+                    }
+                }
+                Platform::Graphics::EndGL();
+            }
+            sint32 GetLengthOf(sint32 clipping_width, wchars string, sint32 count)
+            {
+                BOSS_ASSERT("count에는 음수값이 올 수 없습니다", 0 <= count);
+                sint32 SumWidth = 0;
+                for(sint32 i = 0; i < count; ++i)
+                {
+                    auto CurCode = mRefGlyph->GetCode((uint32) string[i]);
+                    SumWidth += CurCode->mSavedWidth;
+                    if(clipping_width < SumWidth)
+                        return i;
+                }
+                return count;
+            }
+            sint32 GetWidth(wchars string, sint32 count)
+            {
+                BOSS_ASSERT("count에는 음수값이 올 수 없습니다", 0 <= count);
+                sint32 SumWidth = 0;
+                for(sint32 i = 0; i < count; ++i)
+                {
+                    auto CurCode = mRefGlyph->GetCode((uint32) string[i]);
+                    SumWidth += CurCode->mSavedWidth;
+                }
+                return SumWidth;
+            }
+            sint32 GetAscent(wchar_t code)
+            {
+                return mRefGlyph->GetCode((uint32) code)->mSavedAscent;
+            }
+
+        private:
+            FreeFontGlyph* mRefGlyph;
+        };
+
+        template<typename TYPE>
+        static bool _DrawString(float x, float y, float w, float h, const TYPE* string, sint32 count, UIFontAlign align, UIFontElide elide)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             #ifndef BOSS_SILENT_NIGHT_IS_ENABLED
                 if(CanvasClass::get()->is_font_ft())
                 {
-                    BOSS_ASSERT("준비중!!!", false);
+                    FreeFont CurFreeFont(CanvasClass::get()->font_ft_nickname(), CanvasClass::get()->font_ft_height());
+
+                    const sint32 XAlign = _GetXFontAlignCode(align);
+                    sint32 TextWidth = 0;
+                    if(XAlign != 0) // Center, Right, Justify에 모두 가로길이 필요
+                    {
+                        if(sizeof(TYPE) == 1)
+                        {
+                            const WString NewString = WString::FromChars((chars) string, count);
+                            TextWidth = CurFreeFont.GetWidth(NewString, NewString.Length());
+                        }
+                        else TextWidth = CurFreeFont.GetWidth((wchars) string, (count < 0)? boss_wcslen((wchars) string) : count);
+                    }
+
+                    sint32 DstX = x;
+                    switch(XAlign)
+                    {
+                    case 1: // Center
+                        DstX += (w - TextWidth) / 2;
+                        break;
+                    case 2: // Right
+                        DstX += w - TextWidth;
+                        break;
+                    default:
+                        break;
+                    }
+
+                    sint32 DstY = y;
+                    switch(_GetYFontAlignCode(align))
+                    {
+                    case 1: // Middle
+                        DstY += (h - CurFreeFont.GetAscent(L'A')) / 2;
+                        break;
+                    case 2: // Ascent
+                        DstY += h - CurFreeFont.GetAscent(L'A');
+                        break;
+                    case 3: // Bottom
+                        DstY += h - CanvasClass::get()->font_ft_height();
+                        break;
+                    default:
+                        break;
+                    }
+
+                    if(sizeof(TYPE) == 1)
+                    {
+                        const WString NewString = WString::FromChars((chars) string, count);
+                        CurFreeFont.Render(DstX, DstY, NewString, NewString.Length(),
+                            CanvasClass::get()->color(), (XAlign == 3)? w / TextWidth : 1);
+                    }
+                    else CurFreeFont.Render(DstX, DstY, (wchars) string, (count < 0)? boss_wcslen((wchars) string) : count,
+                        CanvasClass::get()->color(), (XAlign == 3)? w / TextWidth : 1);
                 }
                 else
                 {
@@ -1752,7 +2077,8 @@
                     CanvasClass::get()->painter().setBrush(Qt::NoBrush);
                     CanvasClass::get()->painter().setCompositionMode(CanvasClass::get()->mask());
 
-                    const QString Text = QString::fromUtf8(string, count);
+                    const QString Text = (sizeof(TYPE) == 1)?
+                        QString::fromUtf8((chars) string, count) : QString::fromWCharArray((wchars) string, count);
                     if(elide != UIFE_None)
                     {
                         const QString ElidedText = CanvasClass::get()->painter().fontMetrics().elidedText(Text, _ExchangeTextElideMode(elide), w);
@@ -1766,104 +2092,69 @@
                 }
             #endif
             return false;
+        }
+
+        bool Platform::Graphics::DrawString(float x, float y, float w, float h, chars string, sint32 count, UIFontAlign align, UIFontElide elide)
+        {
+            return _DrawString(x, y, w, h, string, count, align, elide);
         }
 
         bool Platform::Graphics::DrawStringW(float x, float y, float w, float h, wchars string, sint32 count, UIFontAlign align, UIFontElide elide)
         {
-            BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
-            #ifndef BOSS_SILENT_NIGHT_IS_ENABLED
-                if(CanvasClass::get()->is_font_ft())
-                {
-                    BOSS_ASSERT("준비중!!!", false);
-                }
-                else
-                {
-                    CanvasClass::get()->painter().setPen(CanvasClass::get()->color());
-                    CanvasClass::get()->painter().setBrush(Qt::NoBrush);
-                    CanvasClass::get()->painter().setCompositionMode(CanvasClass::get()->mask());
+            return _DrawString(x, y, w, h, string, count, align, elide);
+        }
 
-                    const QString Text = QString::fromWCharArray(string, count);
-                    if(elide != UIFE_None)
-                    {
-                        const QString ElidedText = CanvasClass::get()->painter().fontMetrics().elidedText(Text, _ExchangeTextElideMode(elide), w);
-                        if(ElidedText != Text)
-                        {
-                            CanvasClass::get()->painter().drawText(QRectF(x, y, w, h), ElidedText, QTextOption(_ExchangeAlignment(align)));
-                            return true;
-                        }
-                    }
-                    CanvasClass::get()->painter().drawText(QRectF(x, y, w, h), Text, QTextOption(_ExchangeAlignment(align)));
+        template<typename TYPE>
+        static sint32 _GetLengthOfString(sint32 clipping_width, const TYPE* string, sint32 count)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
+            if(CanvasClass::get()->is_font_ft())
+            {
+                FreeFont CurFreeFont(CanvasClass::get()->font_ft_nickname(), CanvasClass::get()->font_ft_height());
+                if(sizeof(TYPE) == 1)
+                {
+                    const WString NewString = WString::FromChars((chars) string, count);
+                    return CurFreeFont.GetLengthOf(clipping_width, NewString, NewString.Length());
                 }
-            #endif
-            return false;
+                return CurFreeFont.GetLengthOf(clipping_width, (wchars) string, (count < 0)? boss_wcslen((wchars) string) : count);
+            }
+
+            const TYPE* StringFocus = string;
+            if(count != -1)
+            {
+                const TYPE* StringFocusEnd = string + count;
+                while(StringFocus < StringFocusEnd)
+                {
+                    const sint32 CurLetterLength = (sizeof(TYPE) == 1)?
+                        String::GetLengthOfFirstLetter((chars) StringFocus) : WString::GetLengthOfFirstLetter((wchars) StringFocus);
+                    const QString CurLetter = (sizeof(TYPE) == 1)?
+                        QString::fromUtf8((chars) StringFocus, CurLetterLength) : QString::fromWCharArray((wchars) StringFocus, CurLetterLength);
+                    clipping_width -= CanvasClass::get()->painter().fontMetrics().width(CurLetter);
+                    if(clipping_width < 0) break;
+                    StringFocus += CurLetterLength;
+                }
+            }
+            else while(*StringFocus)
+            {
+                const sint32 CurLetterLength = (sizeof(TYPE) == 1)?
+                    String::GetLengthOfFirstLetter((chars) StringFocus) : WString::GetLengthOfFirstLetter((wchars) StringFocus);
+                const QString CurLetter = (sizeof(TYPE) == 1)?
+                    QString::fromUtf8((chars) StringFocus, CurLetterLength) : QString::fromWCharArray((wchars) StringFocus, CurLetterLength);
+                clipping_width -= CanvasClass::get()->painter().fontMetrics().width(CurLetter);
+                if(clipping_width < 0) break;
+                StringFocus += CurLetterLength;
+            }
+            return StringFocus - string;
         }
 
         sint32 Platform::Graphics::GetLengthOfString(sint32 clipping_width, chars string, sint32 count)
         {
-            BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
-            chars StringFocus = string;
-            if(CanvasClass::get()->is_font_ft())
-            {
-                BOSS_ASSERT("준비중!!!", false);
-            }
-            else
-            {
-                if(count != -1)
-                {
-                    chars StringFocusEnd = string + count;
-                    while(StringFocus < StringFocusEnd)
-                    {
-                        const sint32 CurLetterLength = String::GetLengthOfFirstLetter(StringFocus);
-                        const QString CurLetter = QString::fromUtf8(StringFocus, CurLetterLength);
-                        clipping_width -= CanvasClass::get()->painter().fontMetrics().width(CurLetter);
-                        if(clipping_width < 0) break;
-                        StringFocus += CurLetterLength;
-                    }
-                }
-                else while(*StringFocus)
-                {
-                    const sint32 CurLetterLength = String::GetLengthOfFirstLetter(StringFocus);
-                    const QString CurLetter = QString::fromUtf8(StringFocus, CurLetterLength);
-                    clipping_width -= CanvasClass::get()->painter().fontMetrics().width(CurLetter);
-                    if(clipping_width < 0) break;
-                    StringFocus += CurLetterLength;
-                }
-            }
-            return StringFocus - string;
+            return _GetLengthOfString(clipping_width, string, count);
         }
 
         sint32 Platform::Graphics::GetLengthOfStringW(sint32 clipping_width, wchars string, sint32 count)
         {
-            BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
-            wchars StringFocus = string;
-            if(CanvasClass::get()->is_font_ft())
-            {
-                BOSS_ASSERT("준비중!!!", false);
-            }
-            else
-            {
-                if(count != -1)
-                {
-                    wchars StringFocusEnd = string + count;
-                    while(StringFocus < StringFocusEnd)
-                    {
-                        const sint32 CurLetterLength = WString::GetLengthOfFirstLetter(StringFocus);
-                        const QString CurLetter = QString::fromWCharArray(StringFocus, CurLetterLength);
-                        clipping_width -= CanvasClass::get()->painter().fontMetrics().width(CurLetter);
-                        if(clipping_width < 0) break;
-                        StringFocus += CurLetterLength;
-                    }
-                }
-                else while(*StringFocus)
-                {
-                    const sint32 CurLetterLength = WString::GetLengthOfFirstLetter(StringFocus);
-                    const QString CurLetter = QString::fromWCharArray(StringFocus, CurLetterLength);
-                    clipping_width -= CanvasClass::get()->painter().fontMetrics().width(CurLetter);
-                    if(clipping_width < 0) break;
-                    StringFocus += CurLetterLength;
-                }
-            }
-            return StringFocus - string;
+            return _GetLengthOfString(clipping_width, string, count);
         }
 
         sint32 Platform::Graphics::GetStringWidth(chars string, sint32 count)
@@ -1871,7 +2162,9 @@
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             if(CanvasClass::get()->is_font_ft())
             {
-                BOSS_ASSERT("준비중!!!", false);
+                FreeFont CurFreeFont(CanvasClass::get()->font_ft_nickname(), CanvasClass::get()->font_ft_height());
+                const WString NewString = WString::FromChars(string, count);
+                CurFreeFont.GetWidth(NewString, NewString.Length());
                 return 0;
             }
             return CanvasClass::get()->painter().fontMetrics().width(QString::fromUtf8(string, count));
@@ -1882,7 +2175,8 @@
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             if(CanvasClass::get()->is_font_ft())
             {
-                BOSS_ASSERT("준비중!!!", false);
+                FreeFont CurFreeFont(CanvasClass::get()->font_ft_nickname(), CanvasClass::get()->font_ft_height());
+                CurFreeFont.GetWidth(string, count);
                 return 0;
             }
             return CanvasClass::get()->painter().fontMetrics().width(QString::fromWCharArray(string, count));
@@ -1892,10 +2186,7 @@
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             if(CanvasClass::get()->is_font_ft())
-            {
-                BOSS_ASSERT("준비중!!!", false);
-                return 0;
-            }
+                return CanvasClass::get()->font_ft_height();
             return CanvasClass::get()->painter().fontMetrics().height();
         }
 
@@ -1904,8 +2195,8 @@
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             if(CanvasClass::get()->is_font_ft())
             {
-                BOSS_ASSERT("준비중!!!", false);
-                return 0;
+                FreeFont CurFreeFont(CanvasClass::get()->font_ft_nickname(), CanvasClass::get()->font_ft_height());
+                return CurFreeFont.GetAscent(L'A');
             }
             return CanvasClass::get()->painter().fontMetrics().ascent();
         }
@@ -2118,7 +2409,7 @@
         }
 
         void Platform::Graphics::DrawSurfaceToFBO(id_surface_read surface, float sx, float sy, float sw, float sh,
-            orientationtype ori, bool antialiasing, float x, float y, float w, float h, uint32 fbo)
+            orientationtype ori, bool antialiasing, float x, float y, float w, float h, Color color, uint32 fbo)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             BOSS_ASSERT("본 함수를 호출하기 전에 BeginGL()을 호출하여야 안전합니다", g_isBeginGL);
@@ -2126,7 +2417,7 @@
                 if(!surface) return;
 
                 OpenGLPrivate::ST().DrawTexture(fbo, Rect(x, y, x + w, y + h),
-                    ((const SurfaceClass*) surface)->texture(), Rect(sx, sy, sx + sw, sy + sh), ori, antialiasing);
+                    ((const SurfaceClass*) surface)->texture(), Rect(sx, sy, sx + sw, sy + sh), color, ori, antialiasing);
             #endif
         }
 

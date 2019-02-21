@@ -49,7 +49,7 @@ bool PlatformInit()
 void PlatformQuit()
 {
     rect128 WindowRect;
-    WindowRect = Platform::GetWindowRect();
+    WindowRect = Platform::GetWindowRect(true);
 
     Context Info;
     Info.At("x").Set(String::FromInteger(WindowRect.l));

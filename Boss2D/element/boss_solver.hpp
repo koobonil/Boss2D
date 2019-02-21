@@ -4,10 +4,11 @@
 namespace BOSS
 {
     class Solver;
-    enum class SolverValueType {Integer, Float, Text};
+    enum class SolverValueType {Range, Integer, Float, Text};
     enum class SolverOperandType {Unknown, Literal, Variable, Formula};
     enum class SolverOperatorType {Unknown,
         Addition, Subtract, Multiply, Divide, Remainder, // +, -, *, /, %
+        RangeTarget, RangeTimer, // ~, :
         Greater, GreaterOrEqual, Less, LessOrEqual, Equal, Different, // <, <=, >, >=, ==, !=
         Function_Min, Function_Max}; // [min], [max]
 
@@ -35,6 +36,27 @@ namespace BOSS
     // 연산값
     class SolverValue
     {
+        // 타입
+        public: typedef sint64 Integer;
+        public: typedef double Float;
+        public: typedef String Text;
+        public: class Range
+        {
+            public: Range();
+            public: Range(Float value);
+            public: Range(const Range& rhs);
+            public: Range(Range&& rhs);
+            public: ~Range();
+            public: Range& operator=(const Range& rhs);
+            public: Range& operator=(Range&& rhs);
+            public: Float GetValue() const;
+            public: Text GetCode() const;
+            public: Float mValue1;
+            public: Float mValue2;
+            public: uint64 mBeginMsec;
+            public: uint64 mEndMsec;
+        };
+
         public: SolverValue(SolverValueType type = SolverValueType::Integer);
         public: SolverValue(const SolverValue& rhs);
         public: SolverValue(SolverValue&& rhs);
@@ -42,26 +64,27 @@ namespace BOSS
         public: SolverValue& operator=(const SolverValue& rhs);
         public: SolverValue& operator=(SolverValue&& rhs);
 
-        // 타입
-        public: typedef sint64 Integer;
-        public: typedef double Float;
-        public: typedef String Text;
-
         public: static SolverValue MakeByInteger(Integer value);
         public: static SolverValue MakeByFloat(Float value);
         public: static SolverValue MakeByText(Text value);
+        public: static SolverValue MakeByRange(Float value1, Float value2);
+        public: static SolverValue MakeByRangeTime(Range value, Float sec);
+        public: static SolverValue MakeByRangeTime(chars code);
 
         // 함수
         public: SolverValueType GetType() const;
         public: Integer ToInteger() const;
         public: Float ToFloat() const;
-        public: Text ToText() const;
+        public: Text ToText(bool quotes = false) const;
+        public: Range ToRange() const;
         private: SolverValueType GetMergedType(const SolverValue& rhs) const;
         public: SolverValue Addition(const SolverValue& rhs) const;
         public: SolverValue Subtract(const SolverValue& rhs) const;
         public: SolverValue Multiply(const SolverValue& rhs) const;
         public: SolverValue Divide(const SolverValue& rhs) const;
         public: SolverValue Remainder(const SolverValue& rhs) const;
+        public: SolverValue RangeTarget(const SolverValue& rhs) const;
+        public: SolverValue RangeTimer(const SolverValue& rhs) const;
         public: SolverValue Greater(const SolverValue& rhs) const;
         public: SolverValue GreaterOrEqual(const SolverValue& rhs) const;
         public: SolverValue Less(const SolverValue& rhs) const;
@@ -76,6 +99,7 @@ namespace BOSS
         private: Integer mInteger;
         private: Float mFloat;
         private: Text mText;
+        private: Range mRange;
     };
     typedef Array<SolverValue> SolverValues;
 
@@ -126,7 +150,16 @@ namespace BOSS
         public: inline const String& linked_variable() const {return mLinkedVariable;}
         public: inline const String& parsed_formula() const {return mParsedFormula;}
         public: inline float reliable() const {return mReliable;}
-        public: inline SolverValue result() const {return mResult;}
+        public: inline SolverValue result() const
+        {
+            if(mResult.GetType() == SolverValueType::Text)
+            {
+                chars Sample = mResult.ToText();
+                if(Sample[0] == '@' && Sample[1] == 'R')
+                    return SolverValue::MakeByRangeTime(Sample);
+            }
+            return mResult;
+        }
         public: inline bool is_result_updated() const {return (mResultUpdateId != 0);}
         public: inline bool is_result_matched(uint32 id) const {return (mResultUpdateId == id);}
         public: inline void ClearUpdateMark() {mResultUpdateId = 0;}

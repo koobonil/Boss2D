@@ -300,7 +300,7 @@ namespace BOSS
         {
             BOSS_ASSERT("잘못된 시나리오입니다", mRequestType == ZaySonInterface::RequestType::Variable);
             mSolverForVariable.Link("chain", mRequestName, false);
-            mSolverForVariable.Parse(ZayUIElement::GetResult(mFormulaForVariable).ToText());
+            mSolverForVariable.Parse(ZayUIElement::GetResult(mFormulaForVariable).ToText(true));
             mSolverForVariable.Execute();
         }
         void Transaction()
@@ -320,7 +320,7 @@ namespace BOSS
             {
                 if(auto FindedSolver = Solver::Find("chain", mRequestName))
                 {
-                    FindedSolver->Parse(ZayUIElement::GetResult(mFormulaForVariable).ToText());
+                    FindedSolver->Parse(ZayUIElement::GetResult(mFormulaForVariable).ToText(true));
                     FindedSolver->Execute();
                 }
                 else mRefRoot->AddDebugError(String::Format("변수를 업데이트하는데 실패하였습니다(%s, Transaction)", (chars) mRequestName));

@@ -77,8 +77,8 @@ namespace BOSS
             static id_freetype Create(buffer ttf, chars nickname);
             static id_freetype_read Get(chars nickname);
             static void Release(id_freetype freetype);
-            static id_bitmap ToBmp(id_freetype freetype, sint32 height, uint32 code);
-            static void GetInfo(id_freetype freetype, sint32 height, uint32 code, sint32* width = nullptr, sint32* ascent = nullptr);
+            static id_bitmap ToBmp(id_freetype_read freetype, sint32 height, uint32 code);
+            static void GetInfo(id_freetype_read freetype, sint32 height, uint32 code, sint32* width = nullptr, sint32* ascent = nullptr);
         };
 
         //! \brief GIT연동

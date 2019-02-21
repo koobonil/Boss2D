@@ -896,10 +896,11 @@ namespace BOSS
             \param y : 상단위치(px)
             \param w : 가로길이(px)
             \param h : 세로길이(px)
+            \param color : 컬러링값
             \param fbo : 출력될 프레임버퍼의 FBO핸들(화면출력시 0)
             */
             static void DrawTextureToFBO(id_texture_read texture, float tx, float ty, float tw, float th,
-                orientationtype ori, bool antialiasing, float x, float y, float w, float h, uint32 fbo = 0);
+                orientationtype ori, bool antialiasing, float x, float y, float w, float h, Color color = Color::White, uint32 fbo = 0);
 
             /*!
             \brief 이미지 생성
@@ -1171,11 +1172,12 @@ namespace BOSS
             \param y : 상단위치(px)
             \param w : 가로길이(px)
             \param h : 세로길이(px)
+            \param color : 컬러링값
             \param fbo : 출력될 프레임버퍼의 FBO핸들(화면출력시 0)
             \see GetSurfaceFBO
             */
             static void DrawSurfaceToFBO(id_surface_read surface, float sx, float sy, float sw, float sh,
-                orientationtype ori, bool antialiasing, float x, float y, float w, float h, uint32 fbo = 0);
+                orientationtype ori, bool antialiasing, float x, float y, float w, float h, Color color = Color::White, uint32 fbo = 0);
 
             /*!
             \brief 서피스에서 이미지 얻기

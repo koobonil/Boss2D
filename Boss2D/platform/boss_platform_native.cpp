@@ -925,7 +925,7 @@
         }
 
         void Platform::Graphics::DrawTextureToFBO(id_texture_read texture, float tx, float ty, float tw, float th,
-            orientationtype ori, bool antialiasing, float x, float y, float w, float h, uint32 fbo)
+            orientationtype ori, bool antialiasing, float x, float y, float w, float h, Color color, uint32 fbo)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
 
@@ -1178,7 +1178,7 @@
         }
 
         void Platform::Graphics::DrawSurfaceToFBO(id_surface_read surface, float sx, float sy, float sw, float sh,
-            orientationtype ori, bool antialiasing, float x, float y, float w, float h, uint32 fbo)
+            orientationtype ori, bool antialiasing, float x, float y, float w, float h, Color color, uint32 fbo)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
 

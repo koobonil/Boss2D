@@ -21,8 +21,8 @@ namespace BOSS
     BOSS_DECLARE_ADDON_FUNCTION(FreeType, Create, id_freetype, buffer, chars)
     BOSS_DECLARE_ADDON_FUNCTION(FreeType, Get, id_freetype_read, chars)
     BOSS_DECLARE_ADDON_FUNCTION(FreeType, Release, void, id_freetype)
-    BOSS_DECLARE_ADDON_FUNCTION(FreeType, ToBmp, id_bitmap, id_freetype, sint32, uint32)
-    BOSS_DECLARE_ADDON_FUNCTION(FreeType, GetInfo, void, id_freetype, sint32, uint32, sint32*, sint32*)
+    BOSS_DECLARE_ADDON_FUNCTION(FreeType, ToBmp, id_bitmap, id_freetype_read, sint32, uint32)
+    BOSS_DECLARE_ADDON_FUNCTION(FreeType, GetInfo, void, id_freetype_read, sint32, uint32, sint32*, sint32*)
 
     static autorun Bind_AddOn_FreeType()
     {
@@ -2780,10 +2780,10 @@ public:
     buffer mTTF;
     const String mNickName;
     FT_Face mFace;
-    int mSavedHeight;
+    mutable int mSavedHeight;
 };
 
-static void CheckHeight(FaceInfo* info, int height)
+static void CheckHeight(const FaceInfo* info, int height)
 {
     if(info->mSavedHeight != height)
     {
@@ -2833,32 +2833,34 @@ namespace BOSS
         delete (FaceInfo*) freetype;
     }
 
-    id_bitmap Customized_AddOn_FreeType_ToBmp(id_freetype freetype, sint32 height, uint32 code)
+    id_bitmap Customized_AddOn_FreeType_ToBmp(id_freetype_read freetype, sint32 height, uint32 code)
     {
-        FaceInfo* Info = (FaceInfo*) freetype;
+        const FaceInfo* Info = (const FaceInfo*) freetype;
+        if(Info)
+        {
+            CheckHeight(Info, height);
+            if(FT_Load_Char(Info->mFace, code, FT_LOAD_RENDER) != FT_Err_Ok)
+            {
+                BOSS_ASSERT("해당 FreeType의 로드에 실패하였습니다", false);
+                Info = nullptr;
+            }
+        }
+
         if(!Info)
         {
-            // 비트맵구성
-            const int Width = height / 2 - 1;
+            // 가짜 비트맵구성
+            const int Width = height / 2 - 1; // 1은 자간공백
             const int Height = height;
             id_bitmap NewBitmap = Bmp::Create(4, Width, Height);
             auto BitmapFocus = (Bmp::bitmappixel*) Bmp::GetBits(NewBitmap);
-
             // 프로세싱
             for(int y = 0; y < Height; ++y)
             {
                 Bmp::bitmappixel* BitmapFocusEnd = BitmapFocus-- + Width;
                 while(++BitmapFocus < BitmapFocusEnd)
-                    BitmapFocus->argb = 0xFF000000;
+                    BitmapFocus->argb = 0xFF000000 | 0x00FFFFFF;
             }
             return NewBitmap;
-        }
-
-        CheckHeight(Info, height);
-        if(FT_Load_Char(Info->mFace, code, FT_LOAD_RENDER) != FT_Err_Ok)
-        {
-            BOSS_ASSERT("해당 FreeType의 로드에 실패하였습니다", false);
-            return nullptr;
         }
 
         // 비트맵구성
@@ -2877,14 +2879,17 @@ namespace BOSS
             bytes FontFocus = &FontBitmap.buffer[FontBitmap.pitch * y];
             Bmp::bitmappixel* BitmapFocusEnd = BitmapFocus-- + Width;
             while(++BitmapFocus < BitmapFocusEnd)
-                BitmapFocus->argb = ((uint32) (*(FontFocus++) & 0xFF)) << 24;
+            {
+                const uint32 OneAlpha = *(FontFocus++);
+                BitmapFocus->argb = (OneAlpha << 24) | 0x00FFFFFF;
+            }
         }
         return NewBitmap;
     }
 
-    void Customized_AddOn_FreeType_GetInfo(id_freetype freetype, sint32 height, uint32 code, sint32* width, sint32* ascent)
+    void Customized_AddOn_FreeType_GetInfo(id_freetype_read freetype, sint32 height, uint32 code, sint32* width, sint32* ascent)
     {
-        FaceInfo* Info = (FaceInfo*) freetype;
+        const FaceInfo* Info = (const FaceInfo*) freetype;
         if(!Info)
         {
             if(width) *width = height / 2;

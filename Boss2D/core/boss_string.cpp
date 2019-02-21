@@ -563,6 +563,13 @@ namespace BOSS
         return String(Result, ResultLength);
     }
 
+    String String::FromInteger(const sint64 value)
+    {
+        char Result[1024];
+        const sint32 ResultLength = boss_snprintf(Result, 1024, "%lld", value);
+        return String(Result, ResultLength);
+    }
+
     String String::FromFloat(const float value)
     {
         char Result[1024];

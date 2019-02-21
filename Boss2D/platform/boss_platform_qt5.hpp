@@ -1383,7 +1383,7 @@
         static inline CanvasClass* get() {return ST();}
         inline PainterPrivate& painter() {return mPainter;}
         inline bool is_font_ft() const {return mUseFontFT;}
-        inline id_freetype_read font_ft_id() const {return AddOn::FreeType::Get(mFontFT.mNickName);}
+        inline chars font_ft_nickname() const {return mFontFT.mNickName;}
         inline sint32 font_ft_height() const {return mFontFT.mHeight;}
         inline const ColorPrivate& color() const {return mColor;}
         // Setter
@@ -3065,7 +3065,7 @@
                 f->glDisable(GL_DEPTH_TEST); TestGL(BOSS_DBG 0);
                 f->glDisable(GL_SCISSOR_TEST); TestGL(BOSS_DBG 0);
                 f->glEnable(GL_BLEND); TestGL(BOSS_DBG 0);
-                f->glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA); TestGL(BOSS_DBG 0);
+                f->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); TestGL(BOSS_DBG 0);
 
                 mAttrib[0].vertices[0] = NewRect.l;
                 mAttrib[0].vertices[1] = NewRect.t;
@@ -3092,7 +3092,7 @@
                 mAttrib[3].texcoords[1] = 1;
                 f->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); TestGL(BOSS_DBG 0);
             }
-            void DrawTexture(uint32 fbo, const BOSS::Rect& rect, id_texture_read tex, const BOSS::Rect& texrect, orientationtype ori, bool antialiasing)
+            void DrawTexture(uint32 fbo, const BOSS::Rect& rect, id_texture_read tex, const BOSS::Rect& texrect, const BOSS::Color& color, orientationtype ori, bool antialiasing)
             {
                 QOpenGLContext* ctx = QOpenGLContext::currentContext();
                 QOpenGLFunctions* f = ctx->functions();
@@ -3162,20 +3162,20 @@
                 f->glDisable(GL_DEPTH_TEST); TestGL(BOSS_DBG 0);
                 f->glDisable(GL_SCISSOR_TEST); TestGL(BOSS_DBG 0);
                 f->glEnable(GL_BLEND); TestGL(BOSS_DBG 0);
-                f->glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA); TestGL(BOSS_DBG 0);
+                f->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); TestGL(BOSS_DBG 0);
 
                 mAttrib[0].vertices[0] = NewRect.l;
                 mAttrib[0].vertices[1] = NewRect.t;
-                mAttrib[0].color32 = 0xFFFFFFFF;
+                mAttrib[0].color32 = color.rgba;
                 mAttrib[1].vertices[0] = NewRect.r;
                 mAttrib[1].vertices[1] = NewRect.t;
-                mAttrib[1].color32 = 0xFFFFFFFF;
+                mAttrib[1].color32 = color.rgba;
                 mAttrib[2].vertices[0] = NewRect.l;
                 mAttrib[2].vertices[1] = NewRect.b;
-                mAttrib[2].color32 = 0xFFFFFFFF;
+                mAttrib[2].color32 = color.rgba;
                 mAttrib[3].vertices[0] = NewRect.r;
                 mAttrib[3].vertices[1] = NewRect.b;
-                mAttrib[3].color32 = 0xFFFFFFFF;
+                mAttrib[3].color32 = color.rgba;
 
                 sint32 UV[4] = {2, 3, 1, 0};
                 switch(ori)
@@ -3651,6 +3651,29 @@
                     else BOSS_ASSERT("미리 저장된 mBits가 없어서 CreateBitmapByCopy에 실패하였습니다", false);
                 }
                 return NewBitmap;
+            }
+            void CopyFromBitmap(sint32 x, sint32 y, sint32 width, sint32 height, const Bmp::bitmappixel* bits)
+            {
+                BOSS_ASSERT("복사영역이 텍스쳐영역을 벗어납니다", 0 <= x && 0 <= y && x + width <= mWidth && y + height <= mHeight);
+
+                QOpenGLContext* ctx = QOpenGLContext::currentContext();
+                BOSS_ASSERT("OpenGL의 Context접근에 실패하였습니다", ctx);
+                if(ctx)
+                {
+                    QOpenGLFunctions* f = ctx->functions();
+                    if(mNV21)
+                        BOSS_ASSERT("개발이 필요합니다!", false);
+                    else
+                    {
+                        f->glBindTexture(GL_TEXTURE_2D, mTexture[0]);
+                        f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                        f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                        f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                        f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                        f->glTexSubImage2D(GL_TEXTURE_2D, 0,
+                            x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, bits);
+                    }
+                }
             }
 
         public:
