@@ -309,7 +309,7 @@ namespace BOSS
         if(mBeginMsec == 0 && mEndMsec == 0)
             return String::FromFloat(GetValue());
         return "@R" + String::FromFloat(mValue1) + '_' + String::FromFloat(mValue2) + '_' +
-            String::FromInteger((sint64) mBeginMsec) + '_' + String::FromInteger((sint64) mEndMsec);
+            String::FromInteger((sint64) mBeginMsec) + '_' + String::FromInteger((sint64) mEndMsec) + '@';
     }
 
     SolverValue::SolverValue(SolverValueType type)
@@ -400,13 +400,13 @@ namespace BOSS
     SolverValue SolverValue::MakeByRangeTime(chars code)
     {
         SolverValue Result(SolverValueType::Range);
-        if(*(code++) == '@' && *(code++) == 'R') // @R0_0_0_0
+        if(*(code++) == '@' && *(code++) == 'R') // @R0_0_0_0@
         {
             sint32 FindStep = 0;
             chars BeginPos = code;
-            while(true)
+            while(*code != '\0')
             {
-                if(*code == '_' || *code == '\0')
+                if(*code == '_' || *code == '@')
                 {
                     switch(FindStep++)
                     {
@@ -415,7 +415,6 @@ namespace BOSS
                     case 2: Result.mRange.mBeginMsec = Parser::GetInt<uint64>(BeginPos, code - BeginPos); break;
                     case 3: Result.mRange.mEndMsec = Parser::GetInt<uint64>(BeginPos, code - BeginPos); break;
                     }
-                    if(*code == '\0') break;
                     BeginPos = code + 1;
                 }
                 code++;
@@ -820,6 +819,13 @@ namespace BOSS
                     chars End = formula;
                     while(*(++End)) if(*End == *formula) break;
                     NewOperand = SolverLiteral(SolverValue::MakeByText(String(formula + 1, End - formula - 1))).clone();
+                    formula += (End - formula - 1 + 2) - 1;
+                }
+                else if(*formula == '@')
+                {
+                    chars End = formula;
+                    while(*(++End)) if(*End == *formula) break;
+                    NewOperand = SolverLiteral(SolverValue::MakeByRangeTime(String(formula, End - formula + 1))).clone();
                     formula += (End - formula - 1 + 2) - 1;
                 }
                 else

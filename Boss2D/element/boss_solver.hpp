@@ -155,8 +155,11 @@ namespace BOSS
             if(mResult.GetType() == SolverValueType::Text)
             {
                 chars Sample = mResult.ToText();
-                if(Sample[0] == '@' && Sample[1] == 'R')
-                    return SolverValue::MakeByRangeTime(Sample);
+                if(Sample[0] == '@')
+                {
+                    if(Sample[1] == 'R')
+                        return SolverValue::MakeByRangeTime(Sample);
+                }
             }
             return mResult;
         }

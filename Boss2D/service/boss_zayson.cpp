@@ -289,9 +289,13 @@ namespace BOSS
             {
                 chararray GetName;
                 const auto& GetValue = context(0, &GetName);
-                mRequestType = ZaySonInterface::RequestType::Variable;
-                mRequestName = &GetName[0]; // 좌항
-                mFormulaForVariable = GetValue.GetString(); // 우항
+                BOSS_ASSERT("함수콜이 아닌 Request는 좌우항으로 나누어져야 합니다", 0 < GetName.Count());
+                if(0 < GetName.Count())
+                {
+                    mRequestType = ZaySonInterface::RequestType::Variable;
+                    mRequestName = &GetName[0]; // 좌항
+                    mFormulaForVariable = GetValue.GetString(); // 우항
+                }
             }
         }
 
@@ -765,15 +769,33 @@ namespace BOSS
     ////////////////////////////////////////////////////////////////////////////////
     bool ZaySonInterface::IsFunctionCall(chars text, sint32* prmbegin, sint32* prmend)
     {
-        const String FunctionTest = text;
-        if(sint32 PosB = FunctionTest.Find(0, "(") + 1)
+        chars Focus = text;
+        // 공백스킵
+        while(*Focus == ' ') Focus++;
+        // 함수명의 탈락조건
+        if(boss_isalpha(*Focus) == 0)
+            return false; // 첫글자가 영문이 아닐 경우 탈락
+        while(*(++Focus) != '(' && *Focus != '\0')
+            if(boss_isalnum(*Focus) == 0 && *Focus != '_')
+                return false; // 영문, 숫자가 아닐 경우 함수탈락
+
+        // 파라미터 발라내기
+        if(*Focus == '(')
         {
-            sint32 PosE = FunctionTest.Find(PosB, ")");
-            if(PosE != -1)
+            const sint32 ParamBeginPos = (Focus + 1) - text;
+            sint32 DeepLevel = 1;
+            while(*(++Focus) != '\0')
             {
-                if(prmbegin) *prmbegin = PosB;
-                if(prmend) *prmend = PosE;
-                return true;
+                if(*Focus == '(') DeepLevel++;
+                else if(*Focus == ')')
+                {
+                    if(--DeepLevel == 0)
+                    {
+                        if(prmbegin) *prmbegin = ParamBeginPos;
+                        if(prmend) *prmend = Focus - text;
+                        return true;
+                    }
+                }
             }
         }
         return false;
