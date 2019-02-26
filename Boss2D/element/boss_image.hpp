@@ -13,8 +13,10 @@ namespace BOSS
     public:
         Image();
         Image(const Image& rhs);
+        Image(Image&& rhs);
         ~Image();
         Image& operator=(const Image& rhs);
+        Image& operator=(Image&& rhs);
 
     public:
         Image& SetName(chars name);
@@ -113,4 +115,5 @@ namespace BOSS
         mutable sint32s m_patch_cached_dst_x;
         mutable sint32s m_patch_cached_dst_y;
     };
+    typedef Array<Image> Images;
 }

@@ -14,7 +14,7 @@ namespace BOSS
         BOSS_DECLARE_STANDARD_CLASS(ZayExtend)
     public:
         class Payload;
-        enum class ComponentType {Unknown, Content, ContentWithParameter, Option, Layout, Condition, ConditionWithOperation, ConditionWithEvent};
+        enum class ComponentType {Unknown, Content, ContentWithParameter, Option, Layout, Loop, Condition, ConditionWithOperation, ConditionWithEvent};
         typedef std::function<ZayPanel::StackBinder(ZayPanel& panel, const Payload& params)> ComponentCB;
         typedef std::function<void(const Payload& params)> GlueCB;
 
@@ -74,13 +74,13 @@ namespace BOSS
     class ZaySonInterface
     {
     public:
-        enum class ConditionType {Unknown, If, IfFocused, IfHovered, IfPressed, Elif, Else, Endif};
+        enum class ConditionType {Unknown, If, IfFocused, IfHovered, IfPressed, Else, Endif};
         enum class DataType {Unknown, ViewScript, ImageMap};
         enum class RequestType {Unknown, Function, Variable};
 
     public:
         static bool IsFunctionCall(chars text, sint32* prmbegin = nullptr, sint32* prmend = nullptr);
-        static ConditionType ToCondition(chars text);
+        static ConditionType ToCondition(chars text, bool* withelse = nullptr);
 
     public:
         virtual const String UIName() const = 0;

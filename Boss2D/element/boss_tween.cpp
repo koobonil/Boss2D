@@ -64,6 +64,12 @@ namespace BOSS
         m_needRepaint = (m_value != m_valueEnd);
     }
 
+    bool Tween1D::IsArrived()
+    {
+        const uint64 CurTime = Platform::Utility::CurrentTimeMsec();
+        return (m_timeEnd < CurTime)? true : false;
+    }
+
     void Tween1D::SetUpdateCB(TweenUpdateCB cb)
     {
         BOSS_ASSERT("cb는 nullptr가 될 수 없습니다", cb != nullptr);

@@ -21,11 +21,45 @@ namespace BOSS
         }
 
         /*!
+        \brief 복사생성자(불허)
+        */
+        Tree(const Tree&)
+        {BOSS_ASSERT("Tree는 복사될 수 없습니다", false);}
+
+        /*!
+        \brief 이동생성자
+        \param rhs : 이동할 인스턴스
+        */
+        Tree(Tree&& rhs)
+        {
+            operator=(ToReference(rhs));
+        }
+
+        /*!
         \brief 소멸자
         */
         ~Tree()
         {
             RemoveValue();
+        }
+
+        /*!
+        \brief 복사(불허)
+        */
+        Tree& operator=(const Tree&)
+        {BOSS_ASSERT("Tree는 복사될 수 없습니다", false); return *this;}
+
+        /*!
+        \brief 이동
+        \param rhs : 이동할 인스턴스
+        \return 자기 객체
+        */
+        Tree& operator=(Tree&& rhs)
+        {
+            mChild = ToReference(rhs.mChild);
+            mValue = rhs.mValue; rhs.mValue = nullptr;
+            mDestroyer = rhs.mDestroyer; rhs.mDestroyer = nullptr;
+            return *this;
         }
 
     public:

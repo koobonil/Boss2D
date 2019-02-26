@@ -20,6 +20,11 @@ namespace BOSS
         operator=(rhs);
     }
 
+    Image::Image(Image&& rhs)
+    {
+        operator=(ToReference(rhs));
+    }
+
     Image::~Image()
     {
         ResetBitmap();
@@ -29,10 +34,12 @@ namespace BOSS
     {
         ResetBitmap();
         ResetData();
-        m_fileformat = rhs.m_fileformat;
+
         m_filepath = rhs.m_filepath;
+        m_fileformat = rhs.m_fileformat;
         m_bitmap = (rhs.m_bitmap)? Bmp::Clone(rhs.m_bitmap) : nullptr;
         m_image_cache_max = rhs.m_image_cache_max;
+
         m_valid_rect.l = rhs.m_valid_rect.l;
         m_valid_rect.t = rhs.m_valid_rect.t;
         m_valid_rect.r = rhs.m_valid_rect.r;
@@ -43,6 +50,37 @@ namespace BOSS
         m_patch_yzone = rhs.m_patch_yzone;
         if(0 < m_patch_xzone.Count() && 0 < m_patch_yzone.Count())
             RecalcData();
+        return *this;
+    }
+
+    Image& Image::operator=(Image&& rhs)
+    {
+        m_filepath = ToReference(rhs.m_filepath);
+        m_fileformat = rhs.m_fileformat; rhs.m_fileformat = Format::Null;
+        Bmp::Remove(m_bitmap);
+        m_bitmap = rhs.m_bitmap; rhs.m_bitmap = nullptr;
+        m_image_cache_max = rhs.m_image_cache_max;
+        m_image_cached_map = ToReference(rhs.m_image_cached_map);
+        m_image_cached_queue = ToReference(rhs.m_image_cached_queue);
+
+        m_valid_rect.l = rhs.m_valid_rect.l;
+        m_valid_rect.t = rhs.m_valid_rect.t;
+        m_valid_rect.r = rhs.m_valid_rect.r;
+        m_valid_rect.b = rhs.m_valid_rect.b;
+        m_child_ixzone = ToReference(rhs.m_child_ixzone);
+        m_child_iyzone = ToReference(rhs.m_child_iyzone);
+        m_patch_xzone = ToReference(rhs.m_patch_xzone);
+        m_patch_yzone = ToReference(rhs.m_patch_yzone);
+        m_patch_calced_sum_width = rhs.m_patch_calced_sum_width;
+        m_patch_calced_sum_height = rhs.m_patch_calced_sum_height;
+        m_patch_calced_src_x = ToReference(rhs.m_patch_calced_src_x);
+        m_patch_calced_src_y = ToReference(rhs.m_patch_calced_src_y);
+        m_patch_cached_dst_terms_w = rhs.m_patch_cached_dst_terms_w;
+        m_patch_cached_dst_terms_h = rhs.m_patch_cached_dst_terms_h;
+        m_patch_cached_dst_visible_w = rhs.m_patch_cached_dst_visible_w;
+        m_patch_cached_dst_visible_h = rhs.m_patch_cached_dst_visible_h;
+        m_patch_cached_dst_x = ToReference(rhs.m_patch_cached_dst_x);
+        m_patch_cached_dst_y = ToReference(rhs.m_patch_cached_dst_y);
         return *this;
     }
 

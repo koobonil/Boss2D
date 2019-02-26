@@ -27,6 +27,7 @@ namespace BOSS
     public:
         void Reset(float value);
         void MoveTo(float value, float second);
+        bool IsArrived();
         void SetUpdateCB(TweenUpdateCB cb);
 
     protected:

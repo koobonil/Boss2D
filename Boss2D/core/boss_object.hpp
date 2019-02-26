@@ -235,7 +235,7 @@ namespace BOSS
         \brief 이동생성자
         \param rhs : 이동할 인스턴스
         */
-        Object(Object&& rhs) : share(nullptr) {operator=(rhs);}
+        Object(Object&& rhs) : share(nullptr) {operator=(ToReference(rhs));}
 
         /*!
         \brief 특수생성자

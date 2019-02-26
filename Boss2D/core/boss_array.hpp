@@ -66,7 +66,7 @@ namespace BOSS
         {
             Share::Remove(share);
             share = rhs.share;
-            rhs.share = nullptr;
+            rhs.share = Share::Create(SampleBuffer(), MINCOUNT);
             return *this;
         }
 
@@ -267,7 +267,7 @@ namespace BOSS
         \brief 이동생성자
         \param rhs : 복사할 인스턴스
         */
-        Array(Array&& rhs) : share(rhs.share) {rhs.share = nullptr;}
+        Array(Array&& rhs) : share(rhs.share) {rhs.share = Share::Create(SampleBuffer(), MINCOUNT);}
 
         /*!
         \brief 특수생성자(값으로부터)

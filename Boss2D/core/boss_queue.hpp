@@ -67,6 +67,21 @@ namespace BOSS
         }
 
         /*!
+        \brief 복사생성자(불허)
+        */
+        Queue(const Queue&)
+        {BOSS_ASSERT("Queue는 복사될 수 없습니다", false);}
+
+        /*!
+        \brief 이동생성자
+        \param rhs : 이동할 인스턴스
+        */
+        Queue(Queue&& rhs) : Head(TYPE())
+        {
+            operator=(ToReference(rhs));
+        }
+
+        /*!
         \brief 소멸자
         */
         ~Queue()
@@ -82,6 +97,27 @@ namespace BOSS
                 }
             }
             else BOSS_ASSERT("큐에 해제되지 않은 데이터가 존재합니다", DataCount == 0);
+        }
+
+        /*!
+        \brief 복사(불허)
+        */
+        Queue& operator=(const Queue&)
+        {BOSS_ASSERT("Queue는 복사될 수 없습니다", false); return *this;}
+
+        /*!
+        \brief 이동
+        \param rhs : 이동할 인스턴스
+        \return 자기 객체
+        */
+        Queue& operator=(Queue&& rhs)
+        {
+            Head.Prev = rhs.Head.Prev; rhs.Head.Prev = &rhs.Head;
+            Head.Prev->Next = &Head;
+            Head.Next = rhs.Head.Next; rhs.Head.Next = &rhs.Head;
+            Head.Next->Prev = &Head;
+            DataCount = rhs.DataCount; rhs.DataCount = 0;
+            return *this;
         }
 
     private:
