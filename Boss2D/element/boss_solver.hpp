@@ -8,28 +8,29 @@ namespace BOSS
     enum class SolverOperandType {Unknown, Literal, Variable, Formula};
     enum class SolverOperatorType {Unknown,
         Addition, Subtract, Multiply, Divide, Remainder, // +, -, *, /, %
-        RangeTarget, RangeTimer, // ~, :
+        Variabler, RangeTarget, RangeTimer, // #, ~, :
         Greater, GreaterOrEqual, Less, LessOrEqual, Equal, Different, // <, <=, >, >=, ==, !=
         Function_Min, Function_Max}; // [min], [max]
 
     // 업데이트체인
     class SolverChainPair
     {
-        public: SolverChainPair() {mDest = nullptr;}
+        public: SolverChainPair() {mTarget = nullptr;}
         public: ~SolverChainPair() {}
 
         // 인터페이스
-        public: void ResetDest(Solver* solver, bool needupdate);
-        public: bool RemoveDest();
+        public: void ResetTarget(Solver* solver, bool needupdate);
+        public: void ChangeTarget(Solver* oldsolver, Solver* newsolver);
+        public: bool RemoveTarget();
         public: void AddObserver(Solver* solver);
         public: bool SubObserver(Solver* solver);
         public: void RenualAllObservers();
-        public: Solver* dest() {return mDest;}
-        public: const Solver* dest() const {return mDest;}
+        public: Solver* target() {return mTarget;}
+        public: const Solver* target() const {return mTarget;}
 
         // 멤버
-        private: Solver* mDest;
-        private: Array<Solver*, datatype_pod_canmemcpy_zeroset> mObservers;
+        private: Solver* mTarget;
+        private: Map<Solver*> mObserverMap;
     };
     typedef Map<SolverChainPair> SolverChain;
 
@@ -83,6 +84,7 @@ namespace BOSS
         public: SolverValue Multiply(const SolverValue& rhs) const;
         public: SolverValue Divide(const SolverValue& rhs) const;
         public: SolverValue Remainder(const SolverValue& rhs) const;
+        public: SolverValue Variabler(const SolverValue& rhs, const SolverChain* chain) const;
         public: SolverValue RangeTarget(const SolverValue& rhs) const;
         public: SolverValue RangeTimer(const SolverValue& rhs) const;
         public: SolverValue Greater(const SolverValue& rhs) const;
@@ -113,7 +115,8 @@ namespace BOSS
         // 인터페이스
         public: inline SolverOperandType type() const {return mOperandType;}
         // 가상 인터페이스
-        public: virtual void PrintString(String& collector) const = 0; // 데이터출력
+        public: virtual void PrintFormula(String& collector) const = 0; // 계산식출력
+        public: virtual void PrintVariables(Strings& collector, bool targetless_only) const = 0; // 변수리스트출력
         public: virtual void UpdateChain(Solver* solver, SolverChain* chain) = 0; // 체인업데이트
         public: virtual float reliable() const = 0; // 신뢰도
         public: virtual SolverValue result(SolverValue zero) const = 0; // 결과값
@@ -124,7 +127,8 @@ namespace BOSS
     };
     class SolverOperandBlank : public SolverOperand
     {
-        public: void PrintString(String& collector) const override {}
+        public: void PrintFormula(String& collector) const override {}
+        public: void PrintVariables(Strings& collector, bool targetless_only) const override {}
         public: void UpdateChain(Solver* solver, SolverChain* chain) override {}
         public: float reliable() const override {return 0;}
         public: SolverValue result(SolverValue zero) const override {return zero;}
@@ -139,14 +143,20 @@ namespace BOSS
         public: Solver();
         public: ~Solver();
         public: Solver(const Solver& rhs) {operator=(rhs);}
+        public: Solver(Solver&& rhs) {operator=(ToReference(rhs));}
         public: Solver& operator=(const Solver& rhs);
+        public: Solver& operator=(Solver&& rhs);
 
         // 인터페이스
-        public: void Link(chars chain, chars variable, bool needupdate);
+        public: Solver& Link(chars chain, chars variable = nullptr, bool needupdate = false);
         public: void Unlink();
         public: static Solver* Find(chars chain, chars variable);
-        public: void Parse(chars formula);
+        public: Solver& Parse(chars formula);
         public: void Execute();
+        public: SolverValue ExecuteOnly() const;
+        public: String ExecuteVariableName() const;
+        public: Strings GetTargetlessVariables() const;
+        public: inline bool is_blank() const {return (mParsedFormula.Length() == 0);}
         public: inline const String& linked_variable() const {return mLinkedVariable;}
         public: inline const String& parsed_formula() const {return mParsedFormula;}
         public: inline float reliable() const {return mReliable;}

@@ -17,16 +17,12 @@ namespace BOSS
         virtual ~ZayUIElement() {}
 
     public:
-        static void SetSolver(Solver& solver, chars variable, chars formula)
-        {
-            solver.Link("chain", variable, false);
-            solver.Parse(formula);
-            solver.Execute();
-        }
-        static SolverValue GetResult(chars formula)
+        static SolverValue GetResult(chars viewname, chars formula)
         {
             Solver NewSolver;
-            SetSolver(NewSolver, "_", formula);
+            NewSolver.Link(viewname);
+            NewSolver.Parse(formula);
+            NewSolver.Execute();
             return NewSolver.result();
         }
 
@@ -35,9 +31,9 @@ namespace BOSS
         {
             mRefRoot = &root;
             hook(context("uiname"))
-                mUIName = fish.GetString();
+                mUINameSolver.Link(root.ViewName()).Parse(fish.GetString());
             hook(context("uiloop"))
-                mUILoop = fish.GetString();
+                mUILoopSolver.Link(root.ViewName()).Parse(fish.GetString());
             hook(context("comment"))
                 mComment = fish.GetString();
         }
@@ -53,24 +49,24 @@ namespace BOSS
         typedef Array<DebugLog> DebugLogs;
 
     public:
-        virtual void Render(ZayPanel& panel, const String& uiname, sint32& compmax, DebugLogs& logs) const 
+        virtual void Render(ZayPanel& panel, const String& defaultname, sint32& compmax, DebugLogs& logs) const
         {
         }
-        virtual void OnTouch()
+        virtual void OnTouch(chars uiname)
         {
         }
 
     public:
-        static void TouchCore(const ZayUIElement* payload)
+        static void TouchCore(chars uiname, const ZayUIElement* payload)
         {
-            ((ZayUIElement*) payload)->OnTouch();
+            ((ZayUIElement*) payload)->OnTouch(uiname);
         }
 
     public:
         Type mType;
         const ZaySon* mRefRoot;
-        String mUIName;
-        String mUILoop;
+        Solver mUINameSolver;
+        Solver mUILoopSolver;
         String mComment;
     };
     typedef Object<ZayUIElement> ZayUI;
@@ -95,29 +91,32 @@ namespace BOSS
             ZayUIElement::Load(root, context);
 
             const String ConditionText = context.GetString();
-            mConditionType = ZaySonInterface::ToCondition(ConditionText, &mWithElse);
+            mConditionType = ZaySonUtility::ToCondition(ConditionText, &mWithElse);
             if(mConditionType == ZaySonInterface::ConditionType::Unknown)
-                mRefRoot->AddDebugError(String::Format("알 수 없는 조건문입니다(%s, Load)", (chars) ConditionText));
+                root.AddDebugError(String::Format("알 수 없는 조건문입니다(%s, Load)", (chars) ConditionText));
 
             if(sint32 PosB = ConditionText.Find(0, "(") + 1)
             {
                 sint32 PosE = ConditionText.Find(PosB + 1, ")");
                 if(PosE != -1)
-                    mConditionSolver = String(((chars) ConditionText) + PosB, PosE - PosB);
+                {
+                    mConditionSolver.Link(root.ViewName());
+                    mConditionSolver.Parse(String(((chars) ConditionText) + PosB, PosE - PosB));
+                }
             }
         }
 
     public:
         static bool Test(const ZaySon& root, ZayUIs& dest, const Context& src)
         {
-            if(ZaySonInterface::ToCondition(src.GetString("")) != ZaySonInterface::ConditionType::Unknown) // oncreate, onclick, compvalues의 경우
+            if(ZaySonUtility::ToCondition(src.GetString("")) != ZaySonInterface::ConditionType::Unknown) // oncreate, onclick, compvalues의 경우
             {
                 Object<ZayConditionElement> NewCondition(ObjectAllocType::Now);
                 NewCondition->Load(root, src);
                 dest.AtAdding() = (id_share) NewCondition;
                 return true;
             }
-            else if(ZaySonInterface::ToCondition(src("compname").GetString("")) != ZaySonInterface::ConditionType::Unknown) // compname의 경우
+            else if(ZaySonUtility::ToCondition(src("compname").GetString("")) != ZaySonInterface::ConditionType::Unknown) // compname의 경우
             {
                 Object<ZayConditionElement> NewCondition(ObjectAllocType::Now);
                 NewCondition->Load(root, src("compname"));
@@ -126,7 +125,7 @@ namespace BOSS
             }
             return false;
         };
-        static sint32s Collect(const ZayUIElement* self, const ZayUIs& uis, const ZayPanel* panel = nullptr)
+        static sint32s Collect(chars viewname, const ZayUIs& uis, const ZayPanel* panel = nullptr)
         {
             sint32s Collector;
             // 조건문처리로 유효한 CompValue를 수집
@@ -138,14 +137,14 @@ namespace BOSS
                     bool IsTrue = true;
                     auto CurCondition = (const ZayConditionElement*) uis[i].ConstPtr();
                     if(CurCondition->mConditionType == ZaySonInterface::ConditionType::If)
-                        IsTrue = (ZayUIElement::GetResult(CurCondition->mConditionSolver).ToInteger() != 0);
+                        IsTrue = (CurCondition->mConditionSolver.ExecuteOnly().ToInteger() != 0);
                     // 포커스확인
                     else if(CurCondition->mConditionType == ZaySonInterface::ConditionType::IfFocused)
                     {
                         if(panel)
                         {
-                            const String UIName = ZayUIElement::GetResult(CurCondition->mConditionSolver).ToText();
-                            IsTrue = !!(panel->state(self->mRefRoot->UIName() + '.' + UIName) & PS_Focused);
+                            const String UIName = CurCondition->mConditionSolver.ExecuteOnly().ToText();
+                            IsTrue = !!(panel->state(viewname + ('.' + UIName)) & PS_Focused);
                         }
                     }
                     // 호버확인
@@ -153,8 +152,8 @@ namespace BOSS
                     {
                         if(panel)
                         {
-                            const String UIName = ZayUIElement::GetResult(CurCondition->mConditionSolver).ToText();
-                            IsTrue = !!(panel->state(self->mRefRoot->UIName() + '.' + UIName) & PS_Hovered);
+                            const String UIName = CurCondition->mConditionSolver.ExecuteOnly().ToText();
+                            IsTrue = !!(panel->state(viewname + ('.' + UIName)) & PS_Hovered);
                         }
                     }
                     // 프레스확인
@@ -162,8 +161,8 @@ namespace BOSS
                     {
                         if(panel)
                         {
-                            const String UIName = ZayUIElement::GetResult(CurCondition->mConditionSolver).ToText();
-                            IsTrue = !!(panel->state(self->mRefRoot->UIName() + '.' + UIName) & PS_Dragging);
+                            const String UIName = CurCondition->mConditionSolver.ExecuteOnly().ToText();
+                            IsTrue = !!(panel->state(viewname + ('.' + UIName)) & PS_Dragging);
                         }
                     }
 
@@ -214,7 +213,7 @@ namespace BOSS
     public:
         ZaySonInterface::ConditionType mConditionType;
         bool mWithElse;
-        String mConditionSolver;
+        Solver mConditionSolver;
     };
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -264,11 +263,11 @@ namespace BOSS
             ZayUIElement::Load(root, context);
 
             for(sint32 i = 0, iend = context.LengthOfIndexable(); i < iend; ++i)
-                mParamFormulas.AtAdding() = context[i].GetString();
+                mParamSolvers.AtAdding().Link(root.ViewName()).Parse(context[i].GetString());
         }
 
     public:
-        Strings mParamFormulas;
+        Solvers mParamSolvers;
     };
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -280,7 +279,7 @@ namespace BOSS
         ZayRequestElement() : ZayUIElement(Type::Request)
         {
             mRequestType = ZaySonInterface::RequestType::Unknown;
-            mGlueForFunction = nullptr;
+            mGlueFunction = nullptr;
         }
         ~ZayRequestElement() override {}
 
@@ -291,16 +290,15 @@ namespace BOSS
 
             const String TextTest = context.GetString("");
             sint32 PosB, PosE;
-            if(ZaySonInterface::IsFunctionCall(TextTest, &PosB, &PosE)) // 함수호출
+            if(ZaySonUtility::IsFunctionCall(TextTest, &PosB, &PosE)) // 함수호출
             {
                 mRequestType = ZaySonInterface::RequestType::Function;
-                mRequestName = TextTest.Left(PosB - 1);
-                mGlueForFunction = mRefRoot->FindGlue(mRequestName);
-                if(!mGlueForFunction)
-                    mRefRoot->AddDebugError(String::Format("글루함수를 찾을 수 없습니다(%s, Load)", (chars) mRequestName));
-                Context Params(ST_Json, SO_NeedCopy, "[" + TextTest.Middle(PosB, PosE - PosB) + "]");
-                for(sint32 i = 0, iend = Params.LengthOfIndexable(); i < iend; ++i)
-                    mParamsForFunction.AtAdding() = Params[i].GetString();
+                mGlueFunction = root.FindGlue(TextTest.Left(PosB - 1));
+                if(!mGlueFunction)
+                    root.AddDebugError(String::Format("글루함수를 찾을 수 없습니다(%s, Load)", (chars) TextTest.Left(PosB - 1)));
+                auto Params = ZaySonUtility::GetCommaStrings(TextTest.Middle(PosB, PosE - PosB));
+                for(sint32 i = 0, iend = Params.Count(); i < iend; ++i)
+                    mRSolvers.AtAdding().Link(root.ViewName()).Parse(Params[i]); // 파라미터들
             }
             else // 변수입력
             {
@@ -310,53 +308,71 @@ namespace BOSS
                 if(0 < GetName.Count())
                 {
                     mRequestType = ZaySonInterface::RequestType::Variable;
-                    mRequestName = &GetName[0]; // 좌항
-                    mFormulaForVariable = GetValue.GetString(); // 우항
+                    mLSolver.Parse(&GetName[0]); // 좌항
+                    mRSolvers.AtAdding().Parse(GetValue.GetString()); // 우항
                 }
             }
         }
 
     public:
-        void DeclareVariable()
+        void InitForCreate()
         {
-            BOSS_ASSERT("잘못된 시나리오입니다", mRequestType == ZaySonInterface::RequestType::Variable);
-            mSolverForVariable.Link("chain", mRequestName, false);
-            mSolverForVariable.Parse(ZayUIElement::GetResult(mFormulaForVariable).ToText(true));
-            mSolverForVariable.Execute();
+            if(mRequestType == ZaySonInterface::RequestType::Variable)
+            {
+                mLSolver.Link(mRefRoot->ViewName());
+                mRSolvers.At(0).Link(mRefRoot->ViewName(), mLSolver.ExecuteVariableName());
+                mRSolvers.At(0).Execute();
+            }
+        }
+        void InitForClick(Map<String>& collector)
+        {
+            if(mRequestType == ZaySonInterface::RequestType::Variable)
+            {
+                mLSolver.Link(mRefRoot->ViewName());
+                mRSolvers.At(0).Link(mRefRoot->ViewName());
+
+                // 변수때는 변수명에서도 캡쳐 목록화
+                const Strings Variables = mLSolver.GetTargetlessVariables();
+                for(sint32 i = 0, iend = Variables.Count(); i < iend; ++i)
+                    collector(Variables[i]) = Variables[i];
+            }
+            // 변수와 함수 모두 캡쳐가 필요한 변수의 목록화
+            for(sint32 i = 0, iend = mRSolvers.Count(); i < iend; ++i)
+            {
+                const Strings Variables = mRSolvers[i].GetTargetlessVariables();
+                for(sint32 j = 0, jend = Variables.Count(); j < jend; ++j)
+                    collector(Variables[j]) = Variables[j];
+            }
         }
         void Transaction()
         {
-            if(mRequestType == ZaySonInterface::RequestType::Function)
+            if(mRequestType == ZaySonInterface::RequestType::Variable)
             {
-                if(mGlueForFunction)
+                if(auto FindedSolver = Solver::Find(mRefRoot->ViewName(), mLSolver.ExecuteVariableName()))
                 {
-                    ZayExtend::Payload ParamCollector = mGlueForFunction->MakePayload();
-                    for(sint32 i = 0, iend = mParamsForFunction.Count(); i < iend; ++i)
-                        ParamCollector(ZayUIElement::GetResult(mParamsForFunction[i]));
-                    // ParamCollector가 소멸되면서 Glue함수가 호출됨
-                }
-                else mRefRoot->AddDebugError(String::Format("글루함수를 실행하는데 실패하였습니다(%s, Transaction)", (chars) mRequestName));
-            }
-            else if(mRequestType == ZaySonInterface::RequestType::Variable)
-            {
-                if(auto FindedSolver = Solver::Find("chain", mRequestName))
-                {
-                    FindedSolver->Parse(ZayUIElement::GetResult(mFormulaForVariable).ToText(true));
+                    FindedSolver->Parse(mRSolvers[0].ExecuteOnly().ToText(true));
                     FindedSolver->Execute();
                 }
-                else mRefRoot->AddDebugError(String::Format("변수를 업데이트하는데 실패하였습니다(%s, Transaction)", (chars) mRequestName));
+                else mRefRoot->AddDebugError(String::Format("변수를 업데이트하는데 실패하였습니다(%s, Transaction)",
+                    (chars) mLSolver.ExecuteVariableName()));
+            }
+            else if(mRequestType == ZaySonInterface::RequestType::Function)
+            {
+                if(mGlueFunction)
+                {
+                    ZayExtend::Payload ParamCollector = mGlueFunction->MakePayload();
+                    for(sint32 i = 0, iend = mRSolvers.Count(); i < iend; ++i)
+                        ParamCollector(mRSolvers[i].ExecuteOnly());
+                    // ParamCollector가 소멸되면서 Glue함수가 호출됨
+                }
             }
         }
 
     public:
         ZaySonInterface::RequestType mRequestType;
-        String mRequestName;
-        // 함수용
-        const ZayExtend* mGlueForFunction;
-        Strings mParamsForFunction;
-        // 변수용
-        String mFormulaForVariable;
-        Solver mSolverForVariable;
+        Solver mLSolver;
+        Solvers mRSolvers; // 변수, 함수파라미터들 겸용
+        const ZayExtend* mGlueFunction;
     };
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -389,6 +405,7 @@ namespace BOSS
                 mCompValues.AtAdding() = (id_share) NewParam;
             }
 
+            Map<String> CaptureCollector;
             hook(context("onclick"))
             for(sint32 i = 0, iend = fish.LengthOfIndexable(); i < iend; ++i)
             {
@@ -396,8 +413,12 @@ namespace BOSS
                     continue;
                 Object<ZayRequestElement> NewRequest(ObjectAllocType::Now);
                 NewRequest->Load(root, fish[i]);
+                NewRequest->InitForClick(CaptureCollector);
                 mClickCodes.AtAdding() = (id_share) NewRequest;
             }
+            // 캡쳐목록 정리
+            for(sint32 i = 0, iend = CaptureCollector.Count(); i < iend; ++i)
+                mClickCodeCaptures.AtAdding() = *CaptureCollector.AccessByOrder(i);
 
             hook(context("ui"))
             for(sint32 i = 0, iend = fish.LengthOfIndexable(); i < iend; ++i)
@@ -411,7 +432,7 @@ namespace BOSS
         }
 
     private:
-        void Render(ZayPanel& panel, const String& uiname, sint32& compmax, DebugLogs& logs) const override
+        void Render(ZayPanel& panel, const String& defaultname, sint32& compmax, DebugLogs& logs) const override
         {
             if(0 < compmax)
             {
@@ -421,6 +442,7 @@ namespace BOSS
 
                 if(auto CurComponent = mRefRoot->FindComponent(mCompName))
                 {
+                    // 디버깅 정보수집
                     auto AddDebugLog = [](DebugLogs& logs, ZayPanel& panel, bool fill, chars uiname)->void
                     {
                         auto& NewLog = logs.AtAdding();
@@ -429,15 +451,16 @@ namespace BOSS
                         NewLog.mUIName = uiname;
                     };
 
-                    const String CalcedUIName((0 < mUIName.Length())? (chars) ZayUIElement::GetResult(mUIName).ToText() : "");
+                    chars ViewName = mRefRoot->ViewName();
+                    const String UIName((mUINameSolver.is_blank())? "" : (chars) mUINameSolver.ExecuteVariableName());
                     if(mCompValues.Count() == 0)
                     {
-                        if(mUILoop.Length() == 0)
+                        if(mUILoopSolver.is_blank())
                         {
                             String UINameTemp;
                             chars ComponentName = nullptr;
-                            if(0 < CalcedUIName.Length()) ComponentName = UINameTemp = mRefRoot->UIName() + '.' + CalcedUIName;
-                            else if(0 < mClickCodes.Count()) ComponentName = uiname;
+                            if(0 < UIName.Length()) ComponentName = UINameTemp = ViewName + ('.' + UIName);
+                            else if(0 < mClickCodes.Count()) ComponentName = defaultname;
 
                             // 파라미터 없음
                             ZayExtend::Payload ParamCollector = CurComponent->MakePayload(ComponentName, this);
@@ -445,60 +468,63 @@ namespace BOSS
                             {
                                 if(mCompID == mRefRoot->debugFocusedCompID())
                                     AddDebugLog(logs, panel, CurComponent->HasContentComponent(), ComponentName);
-                                RenderChildren(panel, uiname, compmax, logs);
+                                RenderChildren(panel, ComponentName, defaultname, compmax, logs);
                             }
                         }
                         else // 반복문
                         {
-                            const sint32 LoopCount = Math::Max(0, (sint32) ZayUIElement::GetResult(mUILoop).ToInteger());
+                            const sint32 LoopCount = Math::Max(0, (sint32) mUILoopSolver.ExecuteOnly().ToInteger());
                             for(sint32 i = 0; i < LoopCount; ++i)
                             {
                                 // 지역변수 수집
                                 Solvers LocalSolvers;
-                                if(0 < CalcedUIName.Length())
+                                if(0 < UIName.Length())
                                 {
-                                    ZayUIElement::SetSolver(LocalSolvers.AtAdding(), CalcedUIName + "V", String::FromInteger(i));
-                                    ZayUIElement::SetSolver(LocalSolvers.AtAdding(), CalcedUIName + "N", String::FromInteger(LoopCount));
+                                    LocalSolvers.AtAdding().Link(ViewName, UIName + "V").Parse(String::FromInteger(i)).Execute();
+                                    LocalSolvers.AtAdding().Link(ViewName, UIName + "N").Parse(String::FromInteger(LoopCount)).Execute();
                                 }
-                                RenderChildren(panel, uiname + String::Format(".%d", i), compmax, logs);
+                                RenderChildren(panel, nullptr, defaultname + String::Format("_%d", i), compmax, logs);
                             }
                         }
                     }
                     else // CompValue항목이 존재할 경우
                     {
                         // 조건문에 의해 살아남은 유효한 CompValue를 모두 실행
-                        sint32s CollectedCompValues = ZayConditionElement::Collect(this, mCompValues, &panel);
+                        sint32s CollectedCompValues = ZayConditionElement::Collect(ViewName, mCompValues, &panel);
                         for(sint32 i = 0, iend = CollectedCompValues.Count(); i < iend; ++i)
                         {
-                            const String IndexCode((1 < iend)? (chars) String::FromInteger(i) : "");
-                            const String UINameSub(uiname + IndexCode);
+                            const String DefaultName(defaultname + ((1 < iend)? (chars) String::Format("_%d", i) : ""));
                             String UINameTemp;
                             chars ComponentName = nullptr;
-                            if(0 < CalcedUIName.Length())
-                                ComponentName = UINameTemp = mRefRoot->UIName() + '.' + CalcedUIName + IndexCode;
-                            else if(0 < mClickCodes.Count()) ComponentName = UINameSub;
+                            if(0 < UIName.Length())
+                                ComponentName = UINameTemp = ViewName + ('.' + UIName) + ((1 < iend)? (chars) String::FromInteger(i) : "");
+                            else if(0 < mClickCodes.Count()) ComponentName = DefaultName;
 
                             // 지역변수 수집
                             Solvers LocalSolvers;
-                            ZayUIElement::SetSolver(LocalSolvers.AtAdding(), "p.w", String::FromFloat(panel.w()));
-                            ZayUIElement::SetSolver(LocalSolvers.AtAdding(), "p.h", String::FromFloat(panel.h()));
-                            if(1 < iend && 0 < CalcedUIName.Length())
+                            const Point ViewPos = panel.toview(0, 0);
+                            LocalSolvers.AtAdding().Link(ViewName, "p.x").Parse(String::FromFloat(ViewPos.x)).Execute();
+                            LocalSolvers.AtAdding().Link(ViewName, "p.y").Parse(String::FromFloat(ViewPos.y)).Execute();
+                            LocalSolvers.AtAdding().Link(ViewName, "p.w").Parse(String::FromFloat(panel.w())).Execute();
+                            LocalSolvers.AtAdding().Link(ViewName, "p.h").Parse(String::FromFloat(panel.h())).Execute();
+                            if(1 < iend && 0 < UIName.Length())
                             {
-                                ZayUIElement::SetSolver(LocalSolvers.AtAdding(), CalcedUIName + "V", String::FromInteger(i));
-                                ZayUIElement::SetSolver(LocalSolvers.AtAdding(), CalcedUIName + "N", String::FromInteger(iend));
+                                LocalSolvers.AtAdding().Link(ViewName, UIName + "V").Parse(String::FromInteger(i)).Execute();
+                                LocalSolvers.AtAdding().Link(ViewName, UIName + "N").Parse(String::FromInteger(iend)).Execute();
                             }
 
                             // 파라미터 수집
                             ZayExtend::Payload ParamCollector = CurComponent->MakePayload(ComponentName, this);
-                            auto CurCompValue = (const ZayParamElement*) mCompValues[CollectedCompValues[i]].ConstPtr();
-                            if(CurCompValue && 0 < CurCompValue->mParamFormulas.Count())
-                                for(sint32 j = 0, jend = CurCompValue->mParamFormulas.Count(); j < jend; ++j)
-                                    ParamCollector(ZayUIElement::GetResult(CurCompValue->mParamFormulas[j]));
+                            if(auto CurCompValue = (const ZayParamElement*) mCompValues[CollectedCompValues[i]].ConstPtr())
+                            {
+                                for(sint32 j = 0, jend = CurCompValue->mParamSolvers.Count(); j < jend; ++j)
+                                    ParamCollector(CurCompValue->mParamSolvers[j].ExecuteOnly());
+                            }
                             ZAY_EXTEND(ParamCollector >> panel)
                             {
                                 if(mCompID == mRefRoot->debugFocusedCompID())
                                     AddDebugLog(logs, panel, CurComponent->HasContentComponent(), ComponentName);
-                                RenderChildren(panel, UINameSub, compmax, logs);
+                                RenderChildren(panel, ComponentName, DefaultName, compmax, logs);
                             }
                         }
                     }
@@ -507,23 +533,52 @@ namespace BOSS
             }
             else mRefRoot->AddDebugError("Debug모드의 컴포넌트 수량제한으로 부분출력중(→키를 눌러 해소)");
         }
-        void RenderChildren(ZayPanel& panel, const String& uiname, sint32& compmax, DebugLogs& logs) const
+        void RenderChildren(ZayPanel& panel, chars uiname, const String& defaultname, sint32& compmax, DebugLogs& logs) const
         {
+            // 클릭코드를 위한 변수를 사전 캡쳐
+            if(uiname != nullptr && 0 < mClickCodeCaptures.Count())
+            {
+                const Point ViewPos = panel.toview(0, 0);
+                hook(mClickCodeCaptureValues(uiname))
+                for(sint32 i = 0, iend = mClickCodeCaptures.Count(); i < iend; ++i)
+                {
+                    chars CurVariable = mClickCodeCaptures[i];
+                    branch;
+                    jump(!String::Compare(CurVariable, "p.x")) fish(CurVariable) = String::FromFloat(ViewPos.x);
+                    jump(!String::Compare(CurVariable, "p.y")) fish(CurVariable) = String::FromFloat(ViewPos.y);
+                    jump(!String::Compare(CurVariable, "p.w")) fish(CurVariable) = String::FromFloat(panel.w());
+                    jump(!String::Compare(CurVariable, "p.h")) fish(CurVariable) = String::FromFloat(panel.h());
+                    else fish(CurVariable) = Solver().Link(mRefRoot->ViewName()).Parse(CurVariable).ExecuteOnly().ToText(true);
+                }
+            }
+
+            // 자식으로 재귀
             if(0 < mChildren.Count())
             {
-                sint32s CollectedChildren = ZayConditionElement::Collect(this, mChildren, &panel);
+                sint32s CollectedChildren = ZayConditionElement::Collect(mRefRoot->ViewName(), mChildren, &panel);
                 for(sint32 i = 0, iend = CollectedChildren.Count(); i < iend; ++i)
                 {
                     auto CurChildren = (const ZayUIElement*) mChildren[CollectedChildren[i]].ConstPtr();
-                    CurChildren->Render(panel, uiname + String::Format(".%d", i), compmax, logs);
+                    CurChildren->Render(panel, defaultname + String::Format(".%d", i), compmax, logs);
                 }
             }
         }
-        void OnTouch() override
+        void OnTouch(chars uiname) override
         {
             if(0 < mClickCodes.Count())
             {
-                sint32s CollectedClickCodes = ZayConditionElement::Collect(this, mClickCodes);
+                // 사전 캡쳐된 변수를 지역변수화
+                Solvers LocalSolvers;
+                hook(mClickCodeCaptureValues(uiname))
+                for(sint32 i = 0, iend = fish.Count(); i < iend; ++i)
+                {
+                    chararray Variable;
+                    auto& Value = *fish.AccessByOrder(i, &Variable);
+                    LocalSolvers.AtAdding().Link(mRefRoot->ViewName(), &Variable[0]).Parse(Value).Execute();
+                }
+
+                // 클릭코드의 실행
+                sint32s CollectedClickCodes = ZayConditionElement::Collect(mRefRoot->ViewName(), mClickCodes);
                 for(sint32 i = 0, iend = CollectedClickCodes.Count(); i < iend; ++i)
                 {
                     auto CurClickCode = (ZayRequestElement*) mClickCodes.At(CollectedClickCodes[i]).Ptr();
@@ -537,6 +592,9 @@ namespace BOSS
         sint32 mCompID;
         ZayUIs mCompValues;
         ZayUIs mClickCodes;
+        Strings mClickCodeCaptures;
+        typedef Map<String> CaptureValue;
+        mutable Map<CaptureValue> mClickCodeCaptureValues;
         ZayUIs mChildren;
     };
 
@@ -571,7 +629,7 @@ namespace BOSS
                     continue;
                 Object<ZayRequestElement> NewRequest(ObjectAllocType::Now);
                 NewRequest->Load(root, fish[i]);
-                NewRequest->DeclareVariable();
+                NewRequest->InitForCreate();
                 mCreateCodes.AtAdding() = (id_share) NewRequest;
             }
 
@@ -587,11 +645,14 @@ namespace BOSS
         }
 
     private:
-        void Render(ZayPanel& panel, const String& uiname, sint32& compmax, DebugLogs& logs) const override
+        void Render(ZayPanel& panel, const String& defaultname, sint32& compmax, DebugLogs& logs) const override
         {
-            for(sint32 i = 0, iend = mChildren.Count(); i < iend; ++i)
-                if(mChildren[i]->mType == ZayUIElement::Type::Component)
-                    mChildren[i]->Render(panel, uiname + String::Format(".%d", i), compmax, logs);
+            sint32s CollectedChildren = ZayConditionElement::Collect(mRefRoot->ViewName(), mChildren, &panel);
+            for(sint32 i = 0, iend = CollectedChildren.Count(); i < iend; ++i)
+            {
+                auto CurChildren = (const ZayUIElement*) mChildren[CollectedChildren[i]].ConstPtr();
+                CurChildren->Render(panel, defaultname + String::Format(".%d", i), compmax, logs);
+            }
         }
 
     public:
@@ -649,10 +710,10 @@ namespace BOSS
     ZayPanel::SubGestureCB ZayExtend::Payload::MakeGesture() const
     {
         auto UIElement = mUIElement;
-        return ZAY_GESTURE_T(t, UIElement)
+        return ZAY_GESTURE_NT(n, t, UIElement)
             {
                 if(t == GT_InReleased)
-                    ZayUIElement::TouchCore(UIElement);
+                    ZayUIElement::TouchCore(n, UIElement);
             };
     }
 
@@ -804,82 +865,6 @@ namespace BOSS
     }
 
     ////////////////////////////////////////////////////////////////////////////////
-    // ZaySonInterface
-    ////////////////////////////////////////////////////////////////////////////////
-    bool ZaySonInterface::IsFunctionCall(chars text, sint32* prmbegin, sint32* prmend)
-    {
-        chars Focus = text;
-        // 공백스킵
-        while(*Focus == ' ') Focus++;
-        // 함수명의 탈락조건
-        if(boss_isalpha(*Focus) == 0)
-            return false; // 첫글자가 영문이 아닐 경우 탈락
-        while(*(++Focus) != '(' && *Focus != '\0')
-            if(boss_isalnum(*Focus) == 0 && *Focus != '_')
-                return false; // 영문, 숫자가 아닐 경우 함수탈락
-
-        // 파라미터 발라내기
-        if(*Focus == '(')
-        {
-            const sint32 ParamBeginPos = (Focus + 1) - text;
-            sint32 DeepLevel = 1;
-            while(*(++Focus) != '\0')
-            {
-                if(*Focus == '(') DeepLevel++;
-                else if(*Focus == ')')
-                {
-                    if(--DeepLevel == 0)
-                    {
-                        if(prmbegin) *prmbegin = ParamBeginPos;
-                        if(prmend) *prmend = Focus - text;
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    ZaySonInterface::ConditionType ZaySonInterface::ToCondition(chars text, bool* withelse)
-    {
-        if(withelse) *withelse = false;
-        branch;
-        jump(!String::Compare(text, "if(", 3))
-            return ConditionType::If;
-        jump(!String::Compare(text, "iffocused(", 10))
-            return ConditionType::IfFocused;
-        jump(!String::Compare(text, "ifhovered(", 10))
-            return ConditionType::IfHovered;
-        jump(!String::Compare(text, "ifpressed(", 10))
-            return ConditionType::IfPressed;
-        jump(!String::Compare(text, "elif(", 5))
-        {
-            if(withelse) *withelse = true;
-            return ConditionType::If;
-        }
-        jump(!String::Compare(text, "eliffocused(", 12))
-        {
-            if(withelse) *withelse = true;
-            return ConditionType::IfFocused;
-        }
-        jump(!String::Compare(text, "elifhovered(", 12))
-        {
-            if(withelse) *withelse = true;
-            return ConditionType::IfHovered;
-        }
-        jump(!String::Compare(text, "elifpressed(", 12))
-        {
-            if(withelse) *withelse = true;
-            return ConditionType::IfPressed;
-        }
-        jump(!String::Compare(text, "else"))
-            return ConditionType::Else;
-        jump(!String::Compare(text, "endif"))
-            return ConditionType::Endif;
-        return ConditionType::Unknown;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////
     // ZaySon
     ////////////////////////////////////////////////////////////////////////////////
     ZaySon::ZaySon()
@@ -904,10 +889,8 @@ namespace BOSS
 
     ZaySon& ZaySon::operator=(ZaySon&& rhs)
     {
-        mUIName = ToReference(rhs.mUIName);
-        delete mUIElement;
-        mUIElement = rhs.mUIElement;
-        rhs.mUIElement = nullptr;
+        mViewName = ToReference(rhs.mViewName);
+        delete mUIElement; mUIElement = rhs.mUIElement; rhs.mUIElement = nullptr;
         mExtendMap = ToReference(rhs.mExtendMap);
         mDebugCompName = ToReference(rhs.mDebugCompName);
         mDebugFocusedCompID = ToReference(rhs.mDebugFocusedCompID);
@@ -920,22 +903,24 @@ namespace BOSS
         return *this;
     }
 
-    void ZaySon::SetUIName(chars uiname)
+    void ZaySon::Load(chars viewname, const Context& context)
     {
-        mUIName = uiname;
+        mViewName = viewname;
+        Reload(context);
     }
 
-    const String ZaySon::UIName() const
+    void ZaySon::Reload(const Context& context)
     {
-        return mUIName;
-    }
-
-    void ZaySon::Load(const Context& context)
-    {
+        BOSS_ASSERT("Reload는 Load후 호출가능합니다", 0 < mViewName.Length());
         delete mUIElement;
         auto NewView = new ZayViewElement();
         NewView->Load(*this, context);
         mUIElement = NewView;
+    }
+
+    const String& ZaySon::ViewName() const
+    {
+        return mViewName;
     }
 
     ZaySonInterface& ZaySon::AddComponent(ZayExtend::ComponentType type, chars name, ZayExtend::ComponentCB cb, chars paramcomment)
@@ -991,7 +976,7 @@ namespace BOSS
             mDebugCompName = "(null)";
             const sint32 OldCompMax = compmax;
             ZayUIElement::DebugLogs LogCollector;
-            mUIElement->Render(panel, UIName(), compmax, LogCollector);
+            mUIElement->Render(panel, mViewName, compmax, LogCollector);
 
             // 수집된 디버그로그(GUI툴에 의한 포커스표현)
             const Point ViewPos = panel.toview(0, 0);
@@ -1081,5 +1066,143 @@ namespace BOSS
         if(countdown && 0 < ShowCount)
             ShowCount--;
         return Result;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // ZaySonUtility
+    ////////////////////////////////////////////////////////////////////////////////
+    String ZaySonUtility::GetSafetyString(chars text)
+    {
+        String Collector;
+        for(sint32 c = 0, cold = 0; true; ++c)
+        {
+            if(text[c] == '\0')
+            {
+                Collector += String(text + cold, c - cold).Trim();
+                break;
+            }
+            else if(text[c] == ',')
+            {
+                Collector += String(text + cold, c - cold).Trim() + ", ";
+                cold = c + 1;
+            }
+            else if(text[c] == '\'' || text[c] == '\"')
+            {
+                Collector += String(text + cold, c - cold).Trim();
+                cold = c + 1;
+
+                const char EndCode = text[c];
+                while(text[++c] != '\0' && (text[c] != EndCode || text[c - 1] == '\\'));
+
+                String LiteralText(text + cold, c - cold); // 따옴표안쪽
+                LiteralText.Replace("\\\\", "([****])");
+                LiteralText.Replace("\\\'", "\'");
+                LiteralText.Replace("\\\"", "\"");
+                LiteralText.Replace("\\", "\\\\"); // 슬래시기호는 쌍슬래시로
+                LiteralText.Replace("([****])", "\\\\");
+                LiteralText.Replace("\'", "\\\'"); // 내부 따옴표는 쌍슬래시+따옴표로
+                LiteralText.Replace("\"", "\\\"");
+                Collector += '\'' + LiteralText + '\''; // 외부 따옴표는 단따옴표만 인정
+                cold = c + 1;
+            }
+        }
+        return Collector;
+    }
+
+    Strings ZaySonUtility::GetCommaStrings(chars text)
+    {
+        Strings SubStrings;
+        for(sint32 c = 0, cold = 0; true; ++c)
+        {
+            if(text[c] == '\0')
+            {
+                SubStrings.AtAdding() = String(text + cold, c - cold).Trim();
+                break;
+            }
+            else if(text[c] == ',')
+            {
+                SubStrings.AtAdding() = String(text + cold, c - cold).Trim();
+                cold = c + 1;
+            }
+            else if(text[c] == '\'' || text[c] == '\"')
+            {
+                const char EndCode = text[c];
+                while(text[++c] != '\0' && (text[c] != EndCode || text[c - 1] == '\\'));
+            }
+        }
+        return SubStrings;
+    }
+
+    bool ZaySonUtility::IsFunctionCall(chars text, sint32* prmbegin, sint32* prmend)
+    {
+        chars Focus = text;
+        // 공백스킵
+        while(*Focus == ' ') Focus++;
+        // 함수명의 탈락조건
+        if(boss_isalpha(*Focus) == 0)
+            return false; // 첫글자가 영문이 아닐 경우 탈락
+        while(*(++Focus) != '(' && *Focus != '\0')
+            if(boss_isalnum(*Focus) == 0 && *Focus != '_')
+                return false; // 영문, 숫자가 아닐 경우 함수탈락
+
+        // 파라미터 발라내기
+        if(*Focus == '(')
+        {
+            const sint32 ParamBeginPos = (Focus + 1) - text;
+            sint32 DeepLevel = 1;
+            while(*(++Focus) != '\0')
+            {
+                if(*Focus == '(') DeepLevel++;
+                else if(*Focus == ')')
+                {
+                    if(--DeepLevel == 0)
+                    {
+                        if(prmbegin) *prmbegin = ParamBeginPos;
+                        if(prmend) *prmend = Focus - text;
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    ZaySonInterface::ConditionType ZaySonUtility::ToCondition(chars text, bool* withelse)
+    {
+        if(withelse) *withelse = false;
+        branch;
+        jump(!String::Compare(text, "if(", 3))
+            return ZaySonInterface::ConditionType::If;
+        jump(!String::Compare(text, "iffocused(", 10))
+            return ZaySonInterface::ConditionType::IfFocused;
+        jump(!String::Compare(text, "ifhovered(", 10))
+            return ZaySonInterface::ConditionType::IfHovered;
+        jump(!String::Compare(text, "ifpressed(", 10))
+            return ZaySonInterface::ConditionType::IfPressed;
+        jump(!String::Compare(text, "elif(", 5))
+        {
+            if(withelse) *withelse = true;
+            return ZaySonInterface::ConditionType::If;
+        }
+        jump(!String::Compare(text, "eliffocused(", 12))
+        {
+            if(withelse) *withelse = true;
+            return ZaySonInterface::ConditionType::IfFocused;
+        }
+        jump(!String::Compare(text, "elifhovered(", 12))
+        {
+            if(withelse) *withelse = true;
+            return ZaySonInterface::ConditionType::IfHovered;
+        }
+        jump(!String::Compare(text, "elifpressed(", 12))
+        {
+            if(withelse) *withelse = true;
+            return ZaySonInterface::ConditionType::IfPressed;
+        }
+        jump(!String::Compare(text, "else"))
+            return ZaySonInterface::ConditionType::Else;
+        jump(!String::Compare(text, "endif"))
+            return ZaySonInterface::ConditionType::Endif;
+        return ZaySonInterface::ConditionType::Unknown;
     }
 }

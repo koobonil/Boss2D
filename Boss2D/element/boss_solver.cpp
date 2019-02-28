@@ -13,8 +13,9 @@ namespace BOSS
         public: ~SolverLiteral() {}
 
         // 가상 인터페이스
-        public: void PrintString(String& collector) const override
+        public: void PrintFormula(String& collector) const override
         {collector += mValue.ToText();}
+        public: void PrintVariables(Strings& collector, bool targetless_only) const override {}
         public: void UpdateChain(Solver* solver, SolverChain* chain) override {}
         public: float reliable() const override {return 1;}
         public: SolverValue result(SolverValue zero) const override {return mValue;}
@@ -52,8 +53,16 @@ namespace BOSS
         }
 
         // 가상 인터페이스
-        public: void PrintString(String& collector) const override
+        public: void PrintFormula(String& collector) const override
         {collector += mName;}
+        public: void PrintVariables(Strings& collector, bool targetless_only) const override
+        {
+            if(targetless_only)
+            if(auto CurChainPair = mChain->Access(mName))
+            if(CurChainPair->target())
+                return;
+            collector.AtAdding() = mName;
+        }
         public: void UpdateChain(Solver* solver, SolverChain* chain) override
         {
             RemoveCurrentChain();
@@ -66,7 +75,7 @@ namespace BOSS
         public: float reliable() const override
         {
             if(auto CurChainPair = mChain->Access(mName))
-            if(auto CurSolver = CurChainPair->dest())
+            if(auto CurSolver = CurChainPair->target())
                 return CurSolver->reliable();
             return 1; // 해당 Solver를 찾지 못하면 텍스트타입이라 오히려 신뢰도가 100%
         }
@@ -75,7 +84,7 @@ namespace BOSS
             if(0 < reliable())
             {
                 if(auto CurChainPair = mChain->Access(mName))
-                if(auto CurSolver = CurChainPair->dest())
+                if(auto CurSolver = CurChainPair->target())
                     return CurSolver->result();
                 return SolverValue::MakeByText(mName); // 해당 Solver를 찾지 못하면 텍스트타입
             }
@@ -100,16 +109,17 @@ namespace BOSS
     {
         BOSS_DECLARE_NONCOPYABLE_INITIALIZED_CLASS(SolverFormula, mOperatorType(SolverOperatorType::Unknown), mOperatorPriority(0))
         public: SolverFormula(SolverOperatorType type = SolverOperatorType::Unknown, sint32 priority = 0)
-            : SolverOperand(SolverOperandType::Formula), mOperatorType(type), mOperatorPriority(priority) {mOperandP = nullptr;}
+            : SolverOperand(SolverOperandType::Formula), mOperatorType(type), mOperatorPriority(priority)
+        {mOperandP = nullptr; mChain = nullptr;}
         public: ~SolverFormula() {}
 
         // 가상 인터페이스
-        public: void PrintString(String& collector) const override
+        public: void PrintFormula(String& collector) const override
         {
             auto PrintOperand = [](const SolverOperandObject& operand, String& collector)->void
             {
                 if(operand->type() == SolverOperandType::Formula) collector += "(";
-                operand->PrintString(collector);
+                operand->PrintFormula(collector);
                 if(operand->type() == SolverOperandType::Formula) collector += ")";
             };
 
@@ -121,6 +131,7 @@ namespace BOSS
             case SolverOperatorType::Multiply:       collector += " * "; break;
             case SolverOperatorType::Divide:         collector += " / "; break;
             case SolverOperatorType::Remainder:      collector += " % "; break;
+            case SolverOperatorType::Variabler:      collector += " # "; break;
             case SolverOperatorType::RangeTarget:    collector += " ~ "; break;
             case SolverOperatorType::RangeTimer:     collector += " : "; break;
             case SolverOperatorType::Greater:        collector += " < "; break;
@@ -134,8 +145,14 @@ namespace BOSS
             }
             PrintOperand(mOperandR, collector);
         }
+        public: void PrintVariables(Strings& collector, bool targetless_only) const override
+        {
+            mOperandL->PrintVariables(collector, targetless_only);
+            mOperandR->PrintVariables(collector, targetless_only);
+        }
         public: void UpdateChain(Solver* solver, SolverChain* chain) override
         {
+            mChain = chain;
             mOperandL->UpdateChain(solver, chain);
             mOperandR->UpdateChain(solver, chain);
         }
@@ -157,6 +174,7 @@ namespace BOSS
             case SolverOperatorType::Multiply:       return mOperandL->result(Zero).Multiply(mOperandR->result(One));
             case SolverOperatorType::Divide:         return mOperandL->result(Zero).Divide(mOperandR->result(One));
             case SolverOperatorType::Remainder:      return mOperandL->result(Zero).Remainder(mOperandR->result(One));
+            case SolverOperatorType::Variabler:      return mOperandL->result(Zero).Variabler(mOperandR->result(One), mChain);
             case SolverOperatorType::RangeTarget:    return mOperandL->result(Zero).RangeTarget(mOperandR->result(Zero));
             case SolverOperatorType::RangeTimer:     return mOperandL->result(Zero).RangeTimer(mOperandR->result(Zero));
             case SolverOperatorType::Greater:        return mOperandL->result(Zero).Greater(mOperandR->result(Zero));
@@ -186,12 +204,13 @@ namespace BOSS
         public: SolverOperandObject mOperandL; // L항
         public: SolverOperandObject mOperandR; // R항
         public: SolverOperandObject* mOperandP; // 부모항
+        private: const SolverChain* mChain; // 검색체인
     };
 
     static uint32 gSolverUpdateId = 1;
-    void SolverChainPair::ResetDest(Solver* solver, bool needupdate)
+    void SolverChainPair::ResetTarget(Solver* solver, bool needupdate)
     {
-        mDest = solver;
+        mTarget = solver;
         if(needupdate)
         {
             gSolverUpdateId++; // UpdateId증가
@@ -199,51 +218,42 @@ namespace BOSS
         }
     }
 
-    bool SolverChainPair::RemoveDest()
+    void SolverChainPair::ChangeTarget(Solver* oldsolver, Solver* newsolver)
     {
-        mDest = nullptr;
+        if(mTarget == oldsolver)
+            mTarget = newsolver;
+    }
+
+    bool SolverChainPair::RemoveTarget()
+    {
+        mTarget = nullptr;
         gSolverUpdateId++; // UpdateId증가
         RenualAllObservers();
-        return (mObservers.Count() == 0);
+        return (mObserverMap.Count() == 0);
     }
 
     void SolverChainPair::AddObserver(Solver* solver)
     {
-        for(sint32 i = 0, iend = mObservers.Count(); i < iend; ++i)
-        {
-            if(!mObservers[i])
-            {
-                mObservers.At(i) = solver;
-                return;
-            }
-        }
-        mObservers.AtAdding() = solver;
+        mObserverMap[PtrToUint64(solver)] = solver;
     }
 
     bool SolverChainPair::SubObserver(Solver* solver)
     {
-        for(sint32 i = 0, iend = mObservers.Count(); i < iend; ++i)
-        {
-            if(mObservers[i] == solver)
-            {
-                mObservers.At(i) = nullptr;
-                break;
-            }
-        }
-        // 배열길이 줄임
-        while(0 < mObservers.Count() && !mObservers[-1])
-            mObservers.SubtractionOne();
-        return (!mDest && mObservers.Count() == 0);
+        mObserverMap.Remove(PtrToUint64(solver));
+        return (!mTarget && mObserverMap.Count() == 0);
     }
 
     void SolverChainPair::RenualAllObservers()
     {
-        for(sint32 i = 0, iend = mObservers.Count(); i < iend; ++i)
-            if(mObservers[i] && !mObservers[i]->is_result_matched(gSolverUpdateId))
+        for(sint32 i = 0, iend = mObserverMap.Count(); i < iend; ++i)
+        {
+            auto& CurObserver = *mObserverMap.AccessByOrder(i);
+            if(!CurObserver->is_result_matched(gSolverUpdateId))
             {
-                gSolverUpdateId--; // Execute호출에 따른 UpdateId증가를 방지
-                mObservers.At(i)->Execute();
+                gSolverUpdateId--; // 아래 Execute호출에 따른 UpdateId증가를 방지
+                CurObserver->Execute();
             }
+        }
     }
 
     SolverValue::Range::Range()
@@ -529,6 +539,15 @@ namespace BOSS
         return SolverValue();
     }
 
+    SolverValue SolverValue::Variabler(const SolverValue& rhs, const SolverChain* chain) const
+    {
+        const String Name = ToText() + rhs.ToText();
+        if(auto CurChainPair = chain->Access(Name))
+        if(auto CurSolver = CurChainPair->target())
+            return CurSolver->result();
+        return MakeByInteger(0);
+    }
+
     SolverValue SolverValue::RangeTarget(const SolverValue& rhs) const
     {
         return MakeByRange(ToFloat(), rhs.ToFloat());
@@ -642,57 +661,68 @@ namespace BOSS
 
     Solver& Solver::operator=(const Solver& rhs)
     {
-        Unlink();
-        mLinkedChain = rhs.mLinkedChain;
-        mLinkedVariable = rhs.mLinkedVariable;
-        mParsedFormula = rhs.mParsedFormula;
-        mOperandTop = rhs.mOperandTop;
-        mReliable = rhs.mReliable;
-        mResult = rhs.mResult;
-        mResultUpdateId = rhs.mResultUpdateId;
+        BOSS_ASSERT("Solver는 복사할 수 없습니다", false);
+        return *this;
+    }
 
-        // 강제적 권리이양
-        ((Solver*) &rhs)->Unlink();
-        ((Solver*) &rhs)->mOperandTop = SolverOperandObject();
+    Solver& Solver::operator=(Solver&& rhs)
+    {
+        Unlink();
+        mLinkedChain = rhs.mLinkedChain; rhs.mLinkedChain = nullptr;
+        mLinkedVariable = ToReference(rhs.mLinkedVariable);
+        mParsedFormula = ToReference(rhs.mParsedFormula);
+        mOperandTop = ToReference(rhs.mOperandTop);
+        mReliable = rhs.mReliable; rhs.mReliable = 0;
+        mResult = ToReference(rhs.mResult);
+        mResultUpdateId = rhs.mResultUpdateId; rhs.mResultUpdateId = 0;
+
         if(mLinkedChain)
         {
-            (*mLinkedChain)(mLinkedVariable).ResetDest(this, false);
-            // 업데이드된 내용의 전달
+            if(0 < mLinkedVariable.Length())
+                (*mLinkedChain)(mLinkedVariable).ChangeTarget(&rhs, this);
+            // 하위의 변수들에게 새로운 솔버정보(this)를 갱신
             mOperandTop->UpdateChain(this, mLinkedChain);
         }
         return *this;
     }
 
     static Map<SolverChain> gSolverChains;
-    void Solver::Link(chars chain, chars variable, bool needupdate)
+    Solver& Solver::Link(chars chain, chars variable, bool needupdate)
     {
         Unlink();
         mLinkedChain = &gSolverChains(chain);
-        mLinkedVariable = variable;
-        (*mLinkedChain)(variable).ResetDest(this, needupdate);
-        // 업데이드된 내용의 전달
+        if(variable && *variable)
+        {
+            mLinkedVariable = variable;
+            (*mLinkedChain)(mLinkedVariable).ResetTarget(this, needupdate);
+        }
+        // 하위의 변수들에게 새로운 체인정보 전달
         mOperandTop->UpdateChain(this, mLinkedChain);
+        return *this;
     }
 
     void Solver::Unlink()
     {
         if(mLinkedChain)
         {
-            if((*mLinkedChain)(mLinkedVariable).RemoveDest())
-                mLinkedChain->Remove(mLinkedVariable);
+            if(0 < mLinkedVariable.Length())
+            {
+                if((*mLinkedChain)(mLinkedVariable).RemoveTarget())
+                    mLinkedChain->Remove(mLinkedVariable);
+                mLinkedVariable.Empty();
+            }
             mLinkedChain = nullptr;
-            mLinkedVariable = "";
         }
     }
 
     Solver* Solver::Find(chars chain, chars variable)
     {
         if(auto FindedChain = &gSolverChains(chain))
-            return (*FindedChain)(variable).dest();
+            return (*FindedChain)(variable).target();
         return nullptr;
     }
 
-    void Solver::Parse(chars formula)
+    Solver& Solver::Parse(chars formula)
     {
         auto AddOperator = [](SolverOperandObject*& focus, SolverOperatorType type, sint32 deep)->void
         {
@@ -749,6 +779,7 @@ namespace BOSS
                 jump(*formula == '*') AddOperator(OperandFocus, SolverOperatorType::Multiply, deep);
                 jump(*formula == '/') AddOperator(OperandFocus, SolverOperatorType::Divide, deep);
                 jump(*formula == '%') AddOperator(OperandFocus, SolverOperatorType::Remainder, deep);
+                jump(*formula == '#') AddOperator(OperandFocus, SolverOperatorType::Variabler, deep);
                 jump(*formula == '~') AddOperator(OperandFocus, SolverOperatorType::RangeTarget, deep);
                 jump(*formula == ':') AddOperator(OperandFocus, SolverOperatorType::RangeTimer, deep);
                 jump(*formula == '<')
@@ -859,9 +890,11 @@ namespace BOSS
 
         // 파싱결과를 기록
         mParsedFormula.Empty();
-        mOperandTop->PrintString(mParsedFormula);
-        // 체인을 업데이트
-        mOperandTop->UpdateChain(this, mLinkedChain);
+        mOperandTop->PrintFormula(mParsedFormula);
+        // 링크가 된 경우 새로 생긴 하위의 변수들에게 체인정보 전달
+        if(mLinkedChain)
+            mOperandTop->UpdateChain(this, mLinkedChain);
+        return *this;
     }
 
     void Solver::Execute()
@@ -872,12 +905,43 @@ namespace BOSS
         mReliable = mOperandTop->reliable();
         mResult = mOperandTop->result(SolverValue::MakeByInteger(0));
 
-        // 현재 결과에 종속된 계산식들을 리뉴얼
-        if(mLinkedChain)
+        // 현재 결과에 종속된 다른 계산식들을 리뉴얼
+        if(mLinkedChain && 0 < mLinkedVariable.Length())
         if(OldReliable != mReliable || OldResult.Different(mResult).ToInteger() != 0)
         {
             mResultUpdateId = gSolverUpdateId;
             (*mLinkedChain)(mLinkedVariable).RenualAllObservers();
         }
+    }
+
+    SolverValue Solver::ExecuteOnly() const
+    {
+        return mOperandTop->result(SolverValue::MakeByInteger(0));
+    }
+
+    String Solver::ExecuteVariableName() const
+    {
+        switch(mOperandTop->type())
+        {
+        case SolverOperandType::Literal:
+            return mOperandTop->result(SolverValue()).ToText();
+        case SolverOperandType::Variable:
+            {
+                Strings GetName;
+                mOperandTop->PrintVariables(GetName, false);
+                return GetName[0];
+            }
+            break;
+        case SolverOperandType::Formula:
+            return ExecuteOnly().ToText();
+        }
+        return String();
+    }
+
+    Strings Solver::GetTargetlessVariables() const
+    {
+        Strings Results;
+        mOperandTop->PrintVariables(Results, true);
+        return Results;
     }
 }

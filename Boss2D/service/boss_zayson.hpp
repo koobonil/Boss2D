@@ -79,11 +79,7 @@ namespace BOSS
         enum class RequestType {Unknown, Function, Variable};
 
     public:
-        static bool IsFunctionCall(chars text, sint32* prmbegin = nullptr, sint32* prmend = nullptr);
-        static ConditionType ToCondition(chars text, bool* withelse = nullptr);
-
-    public:
-        virtual const String UIName() const = 0;
+        virtual const String& ViewName() const = 0;
         virtual ZaySonInterface& AddComponent(ZayExtend::ComponentType type, chars name, ZayExtend::ComponentCB cb, chars paramcomment = nullptr) = 0;
         virtual ZaySonInterface& AddGlue(chars name, ZayExtend::GlueCB cb) = 0;
     };
@@ -99,9 +95,9 @@ namespace BOSS
         ZaySon& operator=(ZaySon&& rhs);
 
     public:
-        void SetUIName(chars uiname);
-        const String UIName() const override;
-        void Load(const Context& context);
+        void Load(chars viewname, const Context& context);
+        void Reload(const Context& context);
+        const String& ViewName() const override;
         ZaySonInterface& AddComponent(ZayExtend::ComponentType type, chars name, ZayExtend::ComponentCB cb, chars paramcomment = nullptr) override;
         ZaySonInterface& AddGlue(chars name, ZayExtend::GlueCB cb) override;
         const ZayExtend* FindComponent(chars name) const;
@@ -109,7 +105,7 @@ namespace BOSS
         sint32 Render(ZayPanel& panel, sint32 compmax = 0x7FFFFFFF);
 
     private:
-        String mUIName;
+        String mViewName;
         ZayUIElement* mUIElement;
         Map<ZayExtend> mExtendMap;
 
@@ -131,5 +127,14 @@ namespace BOSS
         mutable sint32 mDebugErrorFocus;
         mutable String mDebugErrorName[mDebugErrorCountMax];
         mutable sint32 mDebugErrorShowCount[mDebugErrorCountMax];
+    };
+
+    class ZaySonUtility
+    {
+    public:
+        static String GetSafetyString(chars text);
+        static Strings GetCommaStrings(chars text);
+        static bool IsFunctionCall(chars text, sint32* prmbegin = nullptr, sint32* prmend = nullptr);
+        static ZaySonInterface::ConditionType ToCondition(chars text, bool* withelse = nullptr);
     };
 }
