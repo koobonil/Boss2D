@@ -225,6 +225,12 @@ namespace BOSS
         return (!m_curpath && m_pathes.Count() == 0);
     }
 
+    bool Tween2D::IsArrivedAlmost(float second)
+    {
+        if(IsArrived()) return true;
+        return ((m_lastmsec - Platform::Utility::CurrentTimeMsec()) * 0.001f <= second);
+    }
+
     bool Tween2D::UpdateForRender()
     {
         m_needRepaint = false;

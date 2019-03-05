@@ -207,40 +207,40 @@ namespace BOSS
         private: const SolverChain* mChain; // 검색체인
     };
 
-    static uint32 gSolverUpdateId = 1;
-    void SolverChainPair::ResetTarget(Solver* solver, bool needupdate)
+    void SolverChainPair::ResetTarget(Solver* solver, bool updateobservers)
     {
-        mTarget = solver;
-        if(needupdate)
-        {
-            gSolverUpdateId++; // UpdateId증가
+        mTarget.mSolver = solver;
+        mTarget.mUpdateID++;
+        if(updateobservers)
             RenualAllObservers();
-        }
     }
 
-    void SolverChainPair::ChangeTarget(Solver* oldsolver, Solver* newsolver)
+    void SolverChainPair::ForcedChangeTarget(Solver* oldsolver, Solver* newsolver)
     {
-        if(mTarget == oldsolver)
-            mTarget = newsolver;
+        if(mTarget.mSolver == oldsolver)
+            mTarget.mSolver = newsolver;
     }
 
-    bool SolverChainPair::RemoveTarget()
+    bool SolverChainPair::RemoveTarget(bool updateobservers)
     {
-        mTarget = nullptr;
-        gSolverUpdateId++; // UpdateId증가
-        RenualAllObservers();
+        mTarget.mSolver = nullptr;
+        mTarget.mUpdateID++;
+        if(updateobservers)
+            RenualAllObservers();
         return (mObserverMap.Count() == 0);
     }
 
     void SolverChainPair::AddObserver(Solver* solver)
     {
-        mObserverMap[PtrToUint64(solver)] = solver;
+        auto& CurObserver = mObserverMap[PtrToUint64(solver)];
+        CurObserver.mSolver = solver;
+        CurObserver.mUpdateID = 0;
     }
 
     bool SolverChainPair::SubObserver(Solver* solver)
     {
         mObserverMap.Remove(PtrToUint64(solver));
-        return (!mTarget && mObserverMap.Count() == 0);
+        return (!mTarget.mSolver && mObserverMap.Count() == 0);
     }
 
     void SolverChainPair::RenualAllObservers()
@@ -248,10 +248,10 @@ namespace BOSS
         for(sint32 i = 0, iend = mObserverMap.Count(); i < iend; ++i)
         {
             auto& CurObserver = *mObserverMap.AccessByOrder(i);
-            if(!CurObserver->is_result_matched(gSolverUpdateId))
+            if(!CurObserver.mUpdateID != mTarget.mUpdateID)
             {
-                gSolverUpdateId--; // 아래 Execute호출에 따른 UpdateId증가를 방지
-                CurObserver->Execute();
+                CurObserver.mUpdateID = mTarget.mUpdateID;
+                CurObserver.mSolver->Execute(true);
             }
         }
     }
@@ -651,7 +651,6 @@ namespace BOSS
         mLinkedChain = nullptr;
         mReliable = 0;
         mResult = SolverValue::MakeByInteger(0);
-        mResultUpdateId = 0;
     }
 
     Solver::~Solver()
@@ -674,12 +673,11 @@ namespace BOSS
         mOperandTop = ToReference(rhs.mOperandTop);
         mReliable = rhs.mReliable; rhs.mReliable = 0;
         mResult = ToReference(rhs.mResult);
-        mResultUpdateId = rhs.mResultUpdateId; rhs.mResultUpdateId = 0;
 
         if(mLinkedChain)
         {
             if(0 < mLinkedVariable.Length())
-                (*mLinkedChain)(mLinkedVariable).ChangeTarget(&rhs, this);
+                (*mLinkedChain)(mLinkedVariable).ForcedChangeTarget(&rhs, this);
             // 하위의 변수들에게 새로운 솔버정보(this)를 갱신
             mOperandTop->UpdateChain(this, mLinkedChain);
         }
@@ -687,27 +685,27 @@ namespace BOSS
     }
 
     static Map<SolverChain> gSolverChains;
-    Solver& Solver::Link(chars chain, chars variable, bool needupdate)
+    Solver& Solver::Link(chars chain, chars variable, bool updateobservers)
     {
         Unlink();
         mLinkedChain = &gSolverChains(chain);
         if(variable && *variable)
         {
             mLinkedVariable = variable;
-            (*mLinkedChain)(mLinkedVariable).ResetTarget(this, needupdate);
+            (*mLinkedChain)(mLinkedVariable).ResetTarget(this, updateobservers);
         }
         // 하위의 변수들에게 새로운 체인정보 전달
         mOperandTop->UpdateChain(this, mLinkedChain);
         return *this;
     }
 
-    void Solver::Unlink()
+    void Solver::Unlink(bool updateobservers)
     {
         if(mLinkedChain)
         {
             if(0 < mLinkedVariable.Length())
             {
-                if((*mLinkedChain)(mLinkedVariable).RemoveTarget())
+                if((*mLinkedChain)(mLinkedVariable).RemoveTarget(updateobservers))
                     mLinkedChain->Remove(mLinkedVariable);
                 mLinkedVariable.Empty();
             }
@@ -897,20 +895,21 @@ namespace BOSS
         return *this;
     }
 
-    void Solver::Execute()
+    void Solver::Execute(bool updateobservers)
     {
-        gSolverUpdateId++; // UpdateId증가
-        const float OldReliable = mReliable;
-        const SolverValue OldResult = mResult;
-        mReliable = mOperandTop->reliable();
-        mResult = mOperandTop->result(SolverValue::MakeByInteger(0));
-
-        // 현재 결과에 종속된 다른 계산식들을 리뉴얼
         if(mLinkedChain && 0 < mLinkedVariable.Length())
-        if(OldReliable != mReliable || OldResult.Different(mResult).ToInteger() != 0)
         {
-            mResultUpdateId = gSolverUpdateId;
-            (*mLinkedChain)(mLinkedVariable).RenualAllObservers();
+            const float OldReliable = mReliable;
+            const SolverValue OldResult = ToReference(mResult);
+            mReliable = mOperandTop->reliable();
+            mResult = mOperandTop->result(SolverValue::MakeByInteger(0));
+            if(OldReliable != mReliable || OldResult.Different(mResult).ToInteger() != 0)
+                (*mLinkedChain)(mLinkedVariable).ResetTarget(this, updateobservers);
+        }
+        else
+        {
+            mReliable = mOperandTop->reliable();
+            mResult = mOperandTop->result(SolverValue::MakeByInteger(0));
         }
     }
 

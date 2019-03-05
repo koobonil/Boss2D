@@ -75,7 +75,6 @@
         {
             mSavedCanvas->mSavedZoom = mSavedCanvas->mPainter.matrix().m11();
             mSavedCanvas->mSavedFont = mSavedCanvas->mPainter.font();
-            mSavedCanvas->mSavedClipRect = mSavedCanvas->mPainter.clipBoundingRect();
             mSavedCanvas->mPainter.end();
         }
         mPainter.begin(device);
@@ -94,7 +93,7 @@
             mSavedCanvas->mPainter.setRenderHints(PainterPrivate::Antialiasing | PainterPrivate::HighQualityAntialiasing);
             Platform::Graphics::SetZoom(mSavedCanvas->mSavedZoom);
             mSavedCanvas->mPainter.setFont(mSavedCanvas->mSavedFont);
-            mSavedCanvas->mPainter.setClipRect(mSavedCanvas->mSavedClipRect);
+            mSavedCanvas->mPainter.setClipRect(mSavedCanvas->mScissor);
             mSavedCanvas = nullptr;
         }
     }
@@ -1244,9 +1243,11 @@
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             const MatrixPrivate& LastMatrix = CanvasClass::get()->painter().matrix();
             const float LastZoom = (float) LastMatrix.m11();
-            CanvasClass::get()->painter().setClipRect(QRectF(
-                QPointF(Math::Floor(x * LastZoom) / LastZoom, Math::Floor(y * LastZoom) / LastZoom),
-                QPointF(Math::Ceil((x + w) * LastZoom) / LastZoom, Math::Ceil((y + h) * LastZoom) / LastZoom)));
+            CanvasClass::get()->SetScissor(
+                Math::Floor(x * LastZoom) / LastZoom,
+                Math::Floor(y * LastZoom) / LastZoom,
+                Math::Ceil((x + w) * LastZoom) / LastZoom,
+                Math::Ceil((y + h) * LastZoom) / LastZoom);
         }
 
         void Platform::Graphics::SetColor(uint08 r, uint08 g, uint08 b, uint08 a)

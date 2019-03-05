@@ -95,14 +95,11 @@ namespace BOSS
             if(mConditionType == ZaySonInterface::ConditionType::Unknown)
                 root.AddDebugError(String::Format("알 수 없는 조건문입니다(%s, Load)", (chars) ConditionText));
 
-            if(sint32 PosB = ConditionText.Find(0, "(") + 1)
+            sint32 PosB, PosE;
+            if(ZaySonUtility::IsFunctionCall(ConditionText, &PosB, &PosE)) // ()사용여부와 파라미터 발라내기
             {
-                sint32 PosE = ConditionText.Find(PosB + 1, ")");
-                if(PosE != -1)
-                {
-                    mConditionSolver.Link(root.ViewName());
-                    mConditionSolver.Parse(String(((chars) ConditionText) + PosB, PosE - PosB));
-                }
+                mConditionSolver.Link(root.ViewName());
+                mConditionSolver.Parse(String(((chars) ConditionText) + PosB, PosE - PosB));
             }
         }
 

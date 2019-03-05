@@ -15,22 +15,27 @@ namespace BOSS
     // 업데이트체인
     class SolverChainPair
     {
-        public: SolverChainPair() {mTarget = nullptr;}
-        public: ~SolverChainPair() {}
-
         // 인터페이스
-        public: void ResetTarget(Solver* solver, bool needupdate);
-        public: void ChangeTarget(Solver* oldsolver, Solver* newsolver);
-        public: bool RemoveTarget();
+        public: void ResetTarget(Solver* solver, bool updateobservers);
+        public: void ForcedChangeTarget(Solver* oldsolver, Solver* newsolver);
+        public: bool RemoveTarget(bool updateobservers);
         public: void AddObserver(Solver* solver);
         public: bool SubObserver(Solver* solver);
         public: void RenualAllObservers();
-        public: Solver* target() {return mTarget;}
-        public: const Solver* target() const {return mTarget;}
+        public: Solver* target() {return mTarget.mSolver;}
+        public: const Solver* target() const {return mTarget.mSolver;}
+
+        private: class Pair
+        {
+            public: Pair() {mSolver = nullptr; mUpdateID = 0;}
+            public: ~Pair() {}
+            public: Solver* mSolver;
+            public: sint32 mUpdateID;
+        };
 
         // 멤버
-        private: Solver* mTarget;
-        private: Map<Solver*> mObserverMap;
+        private: Pair mTarget;
+        private: Map<Pair> mObserverMap;
     };
     typedef Map<SolverChainPair> SolverChain;
 
@@ -148,11 +153,11 @@ namespace BOSS
         public: Solver& operator=(Solver&& rhs);
 
         // 인터페이스
-        public: Solver& Link(chars chain, chars variable = nullptr, bool needupdate = false);
-        public: void Unlink();
+        public: Solver& Link(chars chain, chars variable = nullptr, bool updateobservers = false);
+        public: void Unlink(bool updateobservers = false);
         public: static Solver* Find(chars chain, chars variable);
         public: Solver& Parse(chars formula);
-        public: void Execute();
+        public: void Execute(bool updateobservers = false);
         public: SolverValue ExecuteOnly() const;
         public: String ExecuteVariableName() const;
         public: Strings GetTargetlessVariables() const;
@@ -173,9 +178,6 @@ namespace BOSS
             }
             return mResult;
         }
-        public: inline bool is_result_updated() const {return (mResultUpdateId != 0);}
-        public: inline bool is_result_matched(uint32 id) const {return (mResultUpdateId == id);}
-        public: inline void ClearUpdateMark() {mResultUpdateId = 0;}
 
         // 멤버
         private: SolverChain* mLinkedChain;
@@ -184,7 +186,6 @@ namespace BOSS
         private: SolverOperandObject mOperandTop;
         private: float mReliable;
         private: SolverValue mResult;
-        private: uint32 mResultUpdateId;
     };
     typedef Array<Solver> Solvers;
 }

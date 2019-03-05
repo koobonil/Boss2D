@@ -1385,12 +1385,18 @@
         inline bool is_font_ft() const {return mUseFontFT;}
         inline chars font_ft_nickname() const {return mFontFT.mNickName;}
         inline sint32 font_ft_height() const {return mFontFT.mHeight;}
+        inline const QRect& scissor() const {return mScissor;}
         inline const ColorPrivate& color() const {return mColor;}
         // Setter
         inline void SetFont(chars name, sint32 size)
         {mUseFontFT = false; painter().setFont(FontPrivate(name, size));}
         inline void SetFontFT(chars nickname, sint32 height)
         {mUseFontFT = true; mFontFT.mNickName = nickname; mFontFT.mHeight = height;}
+        inline void SetScissor(sint32 l, sint32 t, sint32 r, sint32 b)
+        {
+            mScissor = QRect(l, t, r - l, b - t);
+            mPainter.setClipRect(mScissor);
+        }
         inline void SetColor(uint08 r, uint08 g, uint08 b, uint08 a)
         {mColor.setRgb(r, g, b, a);}
         inline const PainterPrivate::CompositionMode& mask() const {return mMask;}
@@ -1406,8 +1412,8 @@
         bool mUseFontFT;
         FTFontClass mFontFT;
         FontPrivate mSavedFont;
-        QRectF mSavedClipRect;
         PainterPrivate mPainter;
+        QRect mScissor;
         ColorPrivate mColor;
         PainterPrivate::CompositionMode mMask;
     };
@@ -3063,9 +3069,13 @@
 
                 f->glDisable(GL_CULL_FACE); TestGL(BOSS_DBG 0);
                 f->glDisable(GL_DEPTH_TEST); TestGL(BOSS_DBG 0);
-                f->glDisable(GL_SCISSOR_TEST); TestGL(BOSS_DBG 0);
                 f->glEnable(GL_BLEND); TestGL(BOSS_DBG 0);
                 f->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); TestGL(BOSS_DBG 0);
+                f->glEnable(GL_SCISSOR_TEST); TestGL(BOSS_DBG 0);
+                const QRect& CurScissor = CanvasClass::get()->scissor();
+                const int ScreenHeight = CanvasClass::get()->painter().window().height();
+                f->glScissor(CurScissor.x(), ScreenHeight - (CurScissor.y() + CurScissor.height()),
+                    CurScissor.width(), CurScissor.height());
 
                 mAttrib[0].vertices[0] = NewRect.l;
                 mAttrib[0].vertices[1] = NewRect.t;
@@ -3160,9 +3170,13 @@
 
                 f->glDisable(GL_CULL_FACE); TestGL(BOSS_DBG 0);
                 f->glDisable(GL_DEPTH_TEST); TestGL(BOSS_DBG 0);
-                f->glDisable(GL_SCISSOR_TEST); TestGL(BOSS_DBG 0);
                 f->glEnable(GL_BLEND); TestGL(BOSS_DBG 0);
                 f->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); TestGL(BOSS_DBG 0);
+                f->glEnable(GL_SCISSOR_TEST); TestGL(BOSS_DBG 0);
+                const QRect& CurScissor = CanvasClass::get()->scissor();
+                const int ScreenHeight = CanvasClass::get()->painter().window().height();
+                f->glScissor(CurScissor.x(), ScreenHeight - (CurScissor.y() + CurScissor.height()),
+                    CurScissor.width(), CurScissor.height());
 
                 mAttrib[0].vertices[0] = NewRect.l;
                 mAttrib[0].vertices[1] = NewRect.t;

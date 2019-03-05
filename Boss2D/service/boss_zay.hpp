@@ -8,6 +8,7 @@
 #include <element/boss_color.hpp>
 #include <element/boss_image.hpp>
 #include <element/boss_font.hpp>
+#include <element/boss_tween.hpp>
 #include <functional>
 
 // 옵션스택관련
@@ -91,6 +92,9 @@
     if(auto _ = (PANEL)._push_clip_by_child(IX, IY, XC, YC, true))
 #define ZAY_CHILD_SECTION_UI_SCISSOR(PANEL, IX, IY, XC, YC, ...) \
     if(auto _ = (PANEL)._push_clip_ui_by_child(IX, IY, XC, YC, true, __VA_ARGS__))
+
+#define ZAY_SCROLL_UI(PANEL, CW, CH, ...) \
+    if(auto _ = (PANEL)._push_scroll_ui(CW, CH, __VA_ARGS__))
 
 #define ZAY_RGB(PANEL, R, G, B) \
     if(auto _ = (PANEL)._push_color(R, G, B, 0xFF))
@@ -233,6 +237,9 @@ namespace BOSS
         const rect128& rect(chars uiname = nullptr) const;
         const float zoom(chars uiname = nullptr) const;
         const point64& oldxy(chars uiname = nullptr) const;
+        Point scroll(chars uiname) const;
+        bool isScrollSensing(chars uiname) const;
+        void moveScroll(chars uiname, float ox, float oy, float x, float y, float sec);
         void resizeForced(sint32 w = -1, sint32 h = -1);
         bool getResizingValue(sint32& w, sint32& h);
 
@@ -267,7 +274,7 @@ namespace BOSS
         typedef std::function<void(ZayPanel&, chars)> SubRenderCB;
 
     public:
-        ZayPanel(float width, float height, const buffer touch);
+        ZayPanel(Updater* updater, float width, float height, const buffer touch);
         ZayPanel(id_surface surface, float width, float height, chars uigroup = nullptr);
         ~ZayPanel();
 
@@ -349,6 +356,7 @@ namespace BOSS
         StackBinder _push_clip_ui_by_rect(const Rect& r, bool doScissor, chars uiname, SubGestureCB cb = nullptr, bool hoverpass = true);
         StackBinder _push_clip_by_child(sint32 ix, sint32 iy, sint32 xcount, sint32 ycount, bool doScissor);
         StackBinder _push_clip_ui_by_child(sint32 ix, sint32 iy, sint32 xcount, sint32 ycount, bool doScissor, chars uiname, SubGestureCB cb = nullptr, bool hoverpass = true);
+        StackBinder _push_scroll_ui(float contentw, float contenth, chars uiname, SubGestureCB cb = nullptr, sint32 sensitive = 0, sint32 senseborder = 0);
         StackBinder _push_color(sint32 r, sint32 g, sint32 b, sint32 a);
         StackBinder _push_color(const Color& color);
         StackBinder _push_color_clear();
@@ -358,13 +366,14 @@ namespace BOSS
         StackBinder _push_zoom(float zoom);
         StackBinder _push_zoom_clear();
         StackBinder _push_pass();
+
     private:
         void _pop_clip();
         void _pop_color();
         void _pop_mask();
         void _pop_font();
         void _pop_zoom();
-        void _add_ui(chars uiname, SubGestureCB cb, bool hoverpass);
+        void _add_ui(chars uiname, SubGestureCB cb, sint32 scroll, bool hoverpass);
 
     private:
         bool _push_scissor(float l, float t, float r, float b);
@@ -378,6 +387,7 @@ namespace BOSS
 
     protected:
         bool m_dirty;
+        Updater* const m_updater;
         const float m_width;
         const float m_height;
         id_surface m_ref_surface;
@@ -492,6 +502,7 @@ namespace BOSS
             float m_zoom;
             GestureCB m_cb;
             ZayPanel::SubGestureCB m_subcb;
+            sint32 m_scroll;
             bool m_hoverpass;
             sint32 m_hoverid;
             mutable point64 m_saved_xy;
@@ -500,6 +511,27 @@ namespace BOSS
             mutable sint32 m_saved_updateid_for_state;
             mutable PanelState m_saved_state;
             mutable PanelState m_saved_state_old;
+        };
+
+        //! \brief 스크롤객체
+        class Scroll
+        {
+        public:
+            Scroll();
+            ~Scroll();
+            Scroll& operator=(const Scroll& rhs);
+
+        public:
+            void Init(Updater* updater, float x, float y);
+            void Move(float x, float y, float sec);
+            void Moving(float x, float y, float sec, float unitsec, float unitrate);
+            void Reset(float x, float y);
+            void ValidSize(sint32 width, sint32 height);
+
+        public:
+            Tween2D* m_pos;
+            size64 m_size;
+            bool m_sense;
         };
 
     private:
@@ -536,10 +568,10 @@ namespace BOSS
         public:
             void ready(sint32 width, sint32 height);
             void update(chars uiname, float l, float t, float r, float b,
-                float zoom, ZayPanel::SubGestureCB cb, bool hoverpass, bool* dirtytest = nullptr);
-            const Element* get() const;
-            const Element* get(chars uiname, sint32 lag) const;
-            const Element& get(sint32 x, sint32 y) const;
+                float zoom, ZayPanel::SubGestureCB cb, sint32 scroll, bool hoverpass, bool* dirtytest = nullptr);
+            const Element* background() const;
+            const Element* find(chars uiname, sint32 lag) const;
+            const Element& get(sint32 x, sint32 y, const Element*& backscroll) const;
             bool hovertest(sint32 x, sint32 y);
 
         private:
@@ -552,15 +584,23 @@ namespace BOSS
             inline sint32 hovery() const {return m_hover_y;}
             inline const Element* getfocus() const {return m_focus;}
             inline const Element* getpress() const {return m_press;}
+            inline void setpress_xy(sint32 x, sint32 y) {m_press_x = x; m_press_y = y;}
+            inline sint32 press_to_xy(sint32 x, sint32 y) const
+            {return (sint32) Math::Distance(m_press_x, m_press_y, x, y);}
+            inline Scroll* getscroll(chars uiname) {return m_scrollmap.Access(uiname);}
+            inline const Scroll* getscroll_const(chars uiname) const {return m_scrollmap.Access(uiname);}
+            inline Scroll* getscroll_valid(chars uiname) {return &m_scrollmap(uiname);}
+
+        public:
             inline bool changefocus(const Element* element)
             {
-                bool Result = (m_focus != element);
+                const bool Result = (m_focus != element);
                 m_focus = element;
                 return Result;
             }
             inline bool changepress(const Element* element)
             {
-                bool Result = (m_press != element);
+                const bool Result = (m_press != element);
                 m_press = element;
                 return Result;
             }
@@ -593,8 +633,11 @@ namespace BOSS
             const Element* m_press;
             const Element* m_moving;
             const Element* m_dropping;
+            sint32 m_press_x;
+            sint32 m_press_y;
             sint32 m_hover_x;
             sint32 m_hover_y;
+            Map<Scroll> m_scrollmap;
         };
 
     private:

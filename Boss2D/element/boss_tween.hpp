@@ -66,6 +66,7 @@ namespace BOSS
         void MoveTo(float x, float y, float second);
         void JumpTo(float x, float y);
         bool IsArrived();
+        bool IsArrivedAlmost(float second);
 
     protected:
         virtual bool UpdateForRender() override;
