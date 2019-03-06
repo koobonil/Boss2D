@@ -57,12 +57,6 @@ namespace BOSS
         }
 
     public:
-        static void TouchCore(chars uiname, const ZayUIElement* payload)
-        {
-            ((ZayUIElement*) payload)->OnTouch(uiname);
-        }
-
-    public:
         Type mType;
         const ZaySon* mRefRoot;
         Solver mUINameSolver;
@@ -71,6 +65,14 @@ namespace BOSS
     };
     typedef Object<ZayUIElement> ZayUI;
     typedef Array<ZayUI> ZayUIs;
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // ZayExtendTouch
+    ////////////////////////////////////////////////////////////////////////////////
+    void ZayExtendTouch(chars uiname, const void* uielement)
+    {
+        ((ZayUIElement*) uielement)->OnTouch(uiname);
+    }
 
     ////////////////////////////////////////////////////////////////////////////////
     // ZayConditionElement
@@ -659,413 +661,6 @@ namespace BOSS
     };
 
     ////////////////////////////////////////////////////////////////////////////////
-    // ZayExtend
-    ////////////////////////////////////////////////////////////////////////////////
-    ZayExtend::ZayExtend(ComponentType type, ComponentCB ccb, GlueCB gcb)
-    {
-        mComponentType = type;
-        mComponentCB = ccb;
-        mGlueCB = gcb;
-    }
-
-    ZayExtend::~ZayExtend()
-    {
-    }
-
-    ZayExtend::Payload::Payload(const ZayExtend* owner, chars uiname, const ZayUIElement* uielement, const SolverValue* param)
-    {
-        mOwner = owner;
-        mUIName = uiname;
-        mUIElement = uielement;
-        if(param) AddParam(*param);
-    }
-
-    ZayExtend::Payload::~Payload()
-    {
-        if(mOwner->HasGlue())
-            mOwner->mGlueCB(*this);
-    }
-
-    ZayExtend::Payload& ZayExtend::Payload::operator()(const SolverValue& value)
-    {
-        AddParam(value);
-        return *this;
-    }
-
-    ZayPanel::StackBinder ZayExtend::Payload::operator>>(ZayPanel& panel) const
-    {
-        if(mOwner->HasComponent())
-            return mOwner->mComponentCB(panel, *this);
-        return panel._push_pass();
-    }
-
-    chars ZayExtend::Payload::UIName() const
-    {
-        return mUIName;
-    }
-
-    ZayPanel::SubGestureCB ZayExtend::Payload::MakeGesture() const
-    {
-        auto UIElement = mUIElement;
-        return ZAY_GESTURE_NT(n, t, UIElement)
-            {
-                if(t == GT_InReleased)
-                    ZayUIElement::TouchCore(n, UIElement);
-            };
-    }
-
-    sint32 ZayExtend::Payload::ParamCount() const
-    {
-        return mParams.Count();
-    }
-
-    const SolverValue& ZayExtend::Payload::Param(sint32 i) const
-    {
-        return mParams[i];
-    }
-
-    bool ZayExtend::Payload::ParamToBool(sint32 i) const
-    {
-        if(mParams[i].GetType() == SolverValueType::Text)
-        {
-            if(!mParams[i].ToText().CompareNoCase("true"))
-                return true;
-            if(!mParams[i].ToText().CompareNoCase("false"))
-                return false;
-            BOSS_ASSERT("알 수 없는 Bool입니다", false);
-        }
-        return !!mParams[i].ToInteger();
-    }
-
-    UIAlign ZayExtend::Payload::ParamToUIAlign(sint32 i) const
-    {
-        String Result = mParams[i].ToText();
-        if(!String::CompareNoCase(Result, "UIA_", 4))
-            Result = Result.Right(Result.Length() - 4);
-
-        branch;
-        jump(!Result.CompareNoCase("LeftTop")) return UIA_LeftTop;
-        jump(!Result.CompareNoCase("CenterTop")) return UIA_CenterTop;
-        jump(!Result.CompareNoCase("RightTop")) return UIA_RightTop;
-        jump(!Result.CompareNoCase("LeftMiddle")) return UIA_LeftMiddle;
-        jump(!Result.CompareNoCase("CenterMiddle")) return UIA_CenterMiddle;
-        jump(!Result.CompareNoCase("RightMiddle")) return UIA_RightMiddle;
-        jump(!Result.CompareNoCase("LeftBottom")) return UIA_LeftBottom;
-        jump(!Result.CompareNoCase("CenterBottom")) return UIA_CenterBottom;
-        jump(!Result.CompareNoCase("RightBottom")) return UIA_RightBottom;
-        BOSS_ASSERT("알 수 없는 UIAlign입니다", false);
-        return UIA_LeftTop;
-    }
-
-    UIStretchForm ZayExtend::Payload::ParamToUIStretchForm(sint32 i) const
-    {
-        String Result = mParams[i].ToText();
-        if(!String::CompareNoCase(Result, "UISF_", 5))
-            Result = Result.Right(Result.Length() - 5);
-
-        branch;
-        jump(!Result.CompareNoCase("Strong")) return UISF_Strong;
-        jump(!Result.CompareNoCase("Inner")) return UISF_Inner;
-        jump(!Result.CompareNoCase("Outer")) return UISF_Outer;
-        jump(!Result.CompareNoCase("Width")) return UISF_Width;
-        jump(!Result.CompareNoCase("Height")) return UISF_Height;
-        BOSS_ASSERT("알 수 없는 UIStretchForm입니다", false);
-        return UISF_Strong;
-    }
-
-    UIFontAlign ZayExtend::Payload::ParamToUIFontAlign(sint32 i) const
-    {
-        String Result = mParams[i].ToText();
-        if(!String::CompareNoCase(Result, "UIFA_", 5))
-            Result = Result.Right(Result.Length() - 5);
-
-        branch;
-        jump(!Result.CompareNoCase("LeftTop")) return UIFA_LeftTop;
-        jump(!Result.CompareNoCase("CenterTop")) return UIFA_CenterTop;
-        jump(!Result.CompareNoCase("RightTop")) return UIFA_RightTop;
-        jump(!Result.CompareNoCase("JustifyTop")) return UIFA_JustifyTop;
-        jump(!Result.CompareNoCase("LeftMiddle")) return UIFA_LeftMiddle;
-        jump(!Result.CompareNoCase("CenterMiddle")) return UIFA_CenterMiddle;
-        jump(!Result.CompareNoCase("RightMiddle")) return UIFA_RightMiddle;
-        jump(!Result.CompareNoCase("JustifyMiddle")) return UIFA_JustifyMiddle;
-        jump(!Result.CompareNoCase("LeftAscent")) return UIFA_LeftAscent;
-        jump(!Result.CompareNoCase("CenterAscent")) return UIFA_CenterAscent;
-        jump(!Result.CompareNoCase("RightAscent")) return UIFA_RightAscent;
-        jump(!Result.CompareNoCase("JustifyAscent")) return UIFA_JustifyAscent;
-        jump(!Result.CompareNoCase("LeftBottom")) return UIFA_LeftBottom;
-        jump(!Result.CompareNoCase("CenterBottom")) return UIFA_CenterBottom;
-        jump(!Result.CompareNoCase("RightBottom")) return UIFA_RightBottom;
-        jump(!Result.CompareNoCase("JustifyBottom")) return UIFA_JustifyBottom;
-        BOSS_ASSERT("알 수 없는 UIFontAlign입니다", false);
-        return UIFA_LeftTop;
-    }
-
-    UIFontElide ZayExtend::Payload::ParamToUIFontElide(sint32 i) const
-    {
-        String Result = mParams[i].ToText();
-        if(!String::CompareNoCase(Result, "UIFE_", 5))
-            Result = Result.Right(Result.Length() - 5);
-
-        branch;
-        jump(!Result.CompareNoCase("None")) return UIFE_None;
-        jump(!Result.CompareNoCase("Left")) return UIFE_Left;
-        jump(!Result.CompareNoCase("Center")) return UIFE_Center;
-        jump(!Result.CompareNoCase("Right")) return UIFE_Right;
-        BOSS_ASSERT("알 수 없는 UIFontElide입니다", false);
-        return UIFE_None;
-    }
-
-    void ZayExtend::Payload::AddParam(const SolverValue& value)
-    {
-        mParams.AtAdding() = value;
-    }
-
-    const ZayExtend::Payload ZayExtend::operator()() const
-    {
-        return Payload(this);
-    }
-
-    ZayExtend::Payload ZayExtend::operator()(const SolverValue& value) const
-    {
-        return Payload(this, nullptr, nullptr, &value);
-    }
-
-    bool ZayExtend::HasComponent() const
-    {
-        return (mComponentCB != nullptr);
-    }
-
-    bool ZayExtend::HasContentComponent() const
-    {
-        return (mComponentType == ComponentType::Content || mComponentType == ComponentType::ContentWithParameter);
-    }
-
-    bool ZayExtend::HasGlue() const
-    {
-        return (mGlueCB != nullptr);
-    }
-
-    void ZayExtend::ResetForComponent(ComponentType type, ComponentCB cb)
-    {
-        mComponentType = type;
-        mComponentCB = cb;
-    }
-
-    void ZayExtend::ResetForGlue(GlueCB cb)
-    {
-        mGlueCB = cb;
-    }
-
-    ZayExtend::Payload ZayExtend::MakePayload(chars uiname, const ZayUIElement* uielement) const
-    {
-        return Payload(this, uiname, uielement);
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////
-    // ZaySon
-    ////////////////////////////////////////////////////////////////////////////////
-    ZaySon::ZaySon()
-    {
-        mUIElement = nullptr;
-        // 디버그정보
-        mDebugFocusedCompID = -1;
-        mDebugErrorFocus = 0;
-        for(sint32 i = 0; i < mDebugErrorCountMax; ++i)
-            mDebugErrorShowCount[i] = 0;
-    }
-
-    ZaySon::~ZaySon()
-    {
-        delete mUIElement;
-    }
-
-    ZaySon::ZaySon(ZaySon&& rhs)
-    {
-        operator=(ToReference(rhs));
-    }
-
-    ZaySon& ZaySon::operator=(ZaySon&& rhs)
-    {
-        mViewName = ToReference(rhs.mViewName);
-        delete mUIElement; mUIElement = rhs.mUIElement; rhs.mUIElement = nullptr;
-        mExtendMap = ToReference(rhs.mExtendMap);
-        mDebugCompName = ToReference(rhs.mDebugCompName);
-        mDebugFocusedCompID = ToReference(rhs.mDebugFocusedCompID);
-        mDebugErrorFocus = ToReference(rhs.mDebugErrorFocus);
-        for(sint32 i = 0; i < mDebugErrorCountMax; ++i)
-        {
-            mDebugErrorName[i] = ToReference(rhs.mDebugErrorName[i]);
-            mDebugErrorShowCount[i] = ToReference(rhs.mDebugErrorShowCount[i]);
-        }
-        return *this;
-    }
-
-    void ZaySon::Load(chars viewname, const Context& context)
-    {
-        mViewName = viewname;
-        Reload(context);
-    }
-
-    void ZaySon::Reload(const Context& context)
-    {
-        BOSS_ASSERT("Reload는 Load후 호출가능합니다", 0 < mViewName.Length());
-        delete mUIElement;
-        auto NewView = new ZayViewElement();
-        NewView->Load(*this, context);
-        mUIElement = NewView;
-    }
-
-    const String& ZaySon::ViewName() const
-    {
-        return mViewName;
-    }
-
-    ZaySonInterface& ZaySon::AddComponent(ZayExtend::ComponentType type, chars name, ZayExtend::ComponentCB cb, chars paramcomment)
-    {
-        String OneName = name;
-        const sint32 Pos = OneName.Find(0, ' ');
-        if(Pos != -1) OneName = OneName.Left(Pos);
-
-        auto& NewFunction = mExtendMap(OneName);
-        NewFunction.ResetForComponent(type, cb);
-        return *this;
-    }
-
-    ZaySonInterface& ZaySon::AddGlue(chars name, ZayExtend::GlueCB cb)
-    {
-        String OneName = name;
-        const sint32 Pos = OneName.Find(0, ' ');
-        if(Pos != -1) OneName = OneName.Left(Pos);
-
-        auto& NewFunction = mExtendMap(OneName);
-        NewFunction.ResetForGlue(cb);
-        return *this;
-    }
-
-    const ZayExtend* ZaySon::FindComponent(chars name) const
-    {
-        if(auto FindedFunc = mExtendMap.Access(name))
-        {
-            const ZayExtend* Result = (FindedFunc->HasComponent())? FindedFunc : nullptr;
-            BOSS_ASSERT(String::Format("\"%s\"는 Component함수가 아닙니다", name), Result);
-            return Result;
-        }
-        BOSS_ASSERT(String::Format("\"%s\"으로 등록된 ZayExtend를 찾을 수 없습니다", name), false);
-        return nullptr;
-    }
-
-    const ZayExtend* ZaySon::FindGlue(chars name) const
-    {
-        if(auto FindedFunc = mExtendMap.Access(name))
-        {
-            const ZayExtend* Result = (FindedFunc->HasGlue())? FindedFunc : nullptr;
-            BOSS_ASSERT(String::Format("\"%s\"는 Glue함수가 아닙니다", name), Result);
-            return Result;
-        }
-        BOSS_ASSERT(String::Format("\"%s\"으로 등록된 ZayExtend를 찾을 수 없습니다", name), false);
-        return nullptr;
-    }
-
-    sint32 ZaySon::Render(ZayPanel& panel, sint32 compmax)
-    {
-        if(mUIElement)
-        {
-            mDebugCompName = "(null)";
-            const sint32 OldCompMax = compmax;
-            ZayUIElement::DebugLogs LogCollector;
-            mUIElement->Render(panel, mViewName, compmax, LogCollector);
-
-            // 수집된 디버그로그(GUI툴에 의한 포커스표현)
-            const Point ViewPos = panel.toview(0, 0);
-            ZAY_MOVE(panel, -ViewPos.x, -ViewPos.y)
-            for(sint32 i = 0, iend = LogCollector.Count(); i < iend; ++i)
-            {
-                hook(LogCollector[i])
-                ZAY_RECT(panel, fish.mRect)
-                ZAY_FONT(panel, Math::MaxF(0.8, (fish.mRect.r - fish.mRect.l) * 0.005))
-                {
-                    // 영역표시
-                    ZAY_RGBA(panel, 255, 0, 0, 128)
-                    if(fish.mFill)
-                        panel.fill();
-                    else ZAY_INNER(panel, 5)
-                        panel.rect(10);
-                    // UI명칭
-                    if(0 < fish.mUIName.Length())
-                    {
-                        ZAY_RGB(panel, 0, 0, 0)
-                        for(sint32 y = -1; y <= 1; ++y)
-                        for(sint32 x = -1; x <= 1; ++x)
-                            ZAY_MOVE(panel, x, y)
-                                panel.text(panel.w() / 2, panel.h() / 2, fish.mUIName);
-                        ZAY_RGB(panel, 255, 0, 0)
-                            panel.text(panel.w() / 2, panel.h() / 2, fish.mUIName);
-                    }
-                }
-            }
-            return OldCompMax - compmax;
-        }
-        return 0;
-    }
-
-    void ZaySon::SetDebugCompName(chars name, chars comment) const
-    {
-        mDebugCompName = name;
-        if(comment[0] != '\0')
-            mDebugCompName = mDebugCompName + '(' + comment + ')';
-    }
-
-    void ZaySon::SetDebugFocusedCompID(sint32 id) const
-    {
-        mDebugFocusedCompID = id;
-    }
-
-    void ZaySon::AddDebugError(chars name) const
-    {
-        // 같은 메시지는 새로 추가하지 않고 강조만 함
-        for(sint32 i = 0; i < mDebugErrorCountMax; ++i)
-        {
-            if(0 < mDebugErrorShowCount[i] && !mDebugErrorName[i].Compare(name))
-            {
-                mDebugErrorShowCount[i] = mDebugErrorShowMax;
-                return;
-            }
-        }
-        mDebugErrorFocus = (mDebugErrorFocus + mDebugErrorCountMax - 1) % mDebugErrorCountMax;
-        mDebugErrorName[mDebugErrorFocus] = name;
-        mDebugErrorShowCount[mDebugErrorFocus] = mDebugErrorShowMax;
-    }
-
-    chars ZaySon::debugCompName() const
-    {
-        return mDebugCompName;
-    }
-
-    sint32 ZaySon::debugFocusedCompID() const
-    {
-        return mDebugFocusedCompID;
-    }
-
-    sint32 ZaySon::debugErrorCountMax() const
-    {
-        return mDebugErrorCountMax;
-    }
-
-    chars ZaySon::debugErrorName(sint32 i) const
-    {
-        return mDebugErrorName[(mDebugErrorFocus + i) % mDebugErrorCountMax];
-    }
-
-    float ZaySon::debugErrorShowRate(sint32 i, bool countdown) const
-    {
-        sint32& ShowCount = mDebugErrorShowCount[(mDebugErrorFocus + i) % mDebugErrorCountMax];
-        const float Result = ShowCount / (float) mDebugErrorShowMax;
-        if(countdown && 0 < ShowCount)
-            ShowCount--;
-        return Result;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////
     // ZaySonUtility
     ////////////////////////////////////////////////////////////////////////////////
     String ZaySonUtility::GetSafetyString(chars text)
@@ -1201,5 +796,211 @@ namespace BOSS
         jump(!String::Compare(text, "endif"))
             return ZaySonInterface::ConditionType::Endif;
         return ZaySonInterface::ConditionType::Unknown;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // ZaySon
+    ////////////////////////////////////////////////////////////////////////////////
+    ZaySon::ZaySon()
+    {
+        mUIElement = nullptr;
+        // 디버그정보
+        mDebugFocusedCompID = -1;
+        mDebugErrorFocus = 0;
+        for(sint32 i = 0; i < mDebugErrorCountMax; ++i)
+            mDebugErrorShowCount[i] = 0;
+    }
+
+    ZaySon::~ZaySon()
+    {
+        delete (ZayUIElement*) mUIElement;
+    }
+
+    ZaySon::ZaySon(ZaySon&& rhs)
+    {
+        operator=(ToReference(rhs));
+    }
+
+    ZaySon& ZaySon::operator=(ZaySon&& rhs)
+    {
+        mViewName = ToReference(rhs.mViewName);
+        delete (ZayUIElement*) mUIElement;
+        mUIElement = rhs.mUIElement;
+        rhs.mUIElement = nullptr;
+        mExtendMap = ToReference(rhs.mExtendMap);
+        mDebugCompName = ToReference(rhs.mDebugCompName);
+        mDebugFocusedCompID = ToReference(rhs.mDebugFocusedCompID);
+        mDebugErrorFocus = ToReference(rhs.mDebugErrorFocus);
+        for(sint32 i = 0; i < mDebugErrorCountMax; ++i)
+        {
+            mDebugErrorName[i] = ToReference(rhs.mDebugErrorName[i]);
+            mDebugErrorShowCount[i] = ToReference(rhs.mDebugErrorShowCount[i]);
+        }
+        return *this;
+    }
+
+    void ZaySon::Load(chars viewname, const Context& context)
+    {
+        mViewName = viewname;
+        Reload(context);
+    }
+
+    void ZaySon::Reload(const Context& context)
+    {
+        BOSS_ASSERT("Reload는 Load후 호출가능합니다", 0 < mViewName.Length());
+        delete (ZayUIElement*) mUIElement;
+        auto NewView = new ZayViewElement();
+        NewView->Load(*this, context);
+        mUIElement = NewView;
+    }
+
+    const String& ZaySon::ViewName() const
+    {
+        return mViewName;
+    }
+
+    ZaySonInterface& ZaySon::AddComponent(ZayExtend::ComponentType type, chars name, ZayExtend::ComponentCB cb, chars paramcomment)
+    {
+        String OneName = name;
+        const sint32 Pos = OneName.Find(0, ' ');
+        if(Pos != -1) OneName = OneName.Left(Pos);
+
+        auto& NewFunction = mExtendMap(OneName);
+        NewFunction.ResetForComponent(type, cb);
+        return *this;
+    }
+
+    ZaySonInterface& ZaySon::AddGlue(chars name, ZayExtend::GlueCB cb)
+    {
+        String OneName = name;
+        const sint32 Pos = OneName.Find(0, ' ');
+        if(Pos != -1) OneName = OneName.Left(Pos);
+
+        auto& NewFunction = mExtendMap(OneName);
+        NewFunction.ResetForGlue(cb);
+        return *this;
+    }
+
+    const ZayExtend* ZaySon::FindComponent(chars name) const
+    {
+        if(auto FindedFunc = mExtendMap.Access(name))
+        {
+            const ZayExtend* Result = (FindedFunc->HasComponent())? FindedFunc : nullptr;
+            BOSS_ASSERT(String::Format("\"%s\"는 Component함수가 아닙니다", name), Result);
+            return Result;
+        }
+        BOSS_ASSERT(String::Format("\"%s\"으로 등록된 ZayExtend를 찾을 수 없습니다", name), false);
+        return nullptr;
+    }
+
+    const ZayExtend* ZaySon::FindGlue(chars name) const
+    {
+        if(auto FindedFunc = mExtendMap.Access(name))
+        {
+            const ZayExtend* Result = (FindedFunc->HasGlue())? FindedFunc : nullptr;
+            BOSS_ASSERT(String::Format("\"%s\"는 Glue함수가 아닙니다", name), Result);
+            return Result;
+        }
+        BOSS_ASSERT(String::Format("\"%s\"으로 등록된 ZayExtend를 찾을 수 없습니다", name), false);
+        return nullptr;
+    }
+
+    sint32 ZaySon::Render(ZayPanel& panel, sint32 compmax)
+    {
+        if(mUIElement)
+        {
+            mDebugCompName = "(null)";
+            const sint32 OldCompMax = compmax;
+            ZayUIElement::DebugLogs LogCollector;
+            ((ZayUIElement*) mUIElement)->Render(panel, mViewName, compmax, LogCollector);
+
+            // 수집된 디버그로그(GUI툴에 의한 포커스표현)
+            const Point ViewPos = panel.toview(0, 0);
+            ZAY_MOVE(panel, -ViewPos.x, -ViewPos.y)
+            for(sint32 i = 0, iend = LogCollector.Count(); i < iend; ++i)
+            {
+                hook(LogCollector[i])
+                ZAY_RECT(panel, fish.mRect)
+                ZAY_FONT(panel, Math::MaxF(0.8, (fish.mRect.r - fish.mRect.l) * 0.005))
+                {
+                    // 영역표시
+                    ZAY_RGBA(panel, 255, 0, 0, 128)
+                    if(fish.mFill)
+                        panel.fill();
+                    else ZAY_INNER(panel, 5)
+                        panel.rect(10);
+                    // UI명칭
+                    if(0 < fish.mUIName.Length())
+                    {
+                        ZAY_RGB(panel, 0, 0, 0)
+                        for(sint32 y = -1; y <= 1; ++y)
+                        for(sint32 x = -1; x <= 1; ++x)
+                            ZAY_MOVE(panel, x, y)
+                                panel.text(panel.w() / 2, panel.h() / 2, fish.mUIName);
+                        ZAY_RGB(panel, 255, 0, 0)
+                            panel.text(panel.w() / 2, panel.h() / 2, fish.mUIName);
+                    }
+                }
+            }
+            return OldCompMax - compmax;
+        }
+        return 0;
+    }
+
+    void ZaySon::SetDebugCompName(chars name, chars comment) const
+    {
+        mDebugCompName = name;
+        if(comment[0] != '\0')
+            mDebugCompName = mDebugCompName + '(' + comment + ')';
+    }
+
+    void ZaySon::SetDebugFocusedCompID(sint32 id) const
+    {
+        mDebugFocusedCompID = id;
+    }
+
+    void ZaySon::AddDebugError(chars name) const
+    {
+        // 같은 메시지는 새로 추가하지 않고 강조만 함
+        for(sint32 i = 0; i < mDebugErrorCountMax; ++i)
+        {
+            if(0 < mDebugErrorShowCount[i] && !mDebugErrorName[i].Compare(name))
+            {
+                mDebugErrorShowCount[i] = mDebugErrorShowMax;
+                return;
+            }
+        }
+        mDebugErrorFocus = (mDebugErrorFocus + mDebugErrorCountMax - 1) % mDebugErrorCountMax;
+        mDebugErrorName[mDebugErrorFocus] = name;
+        mDebugErrorShowCount[mDebugErrorFocus] = mDebugErrorShowMax;
+    }
+
+    chars ZaySon::debugCompName() const
+    {
+        return mDebugCompName;
+    }
+
+    sint32 ZaySon::debugFocusedCompID() const
+    {
+        return mDebugFocusedCompID;
+    }
+
+    sint32 ZaySon::debugErrorCountMax() const
+    {
+        return mDebugErrorCountMax;
+    }
+
+    chars ZaySon::debugErrorName(sint32 i) const
+    {
+        return mDebugErrorName[(mDebugErrorFocus + i) % mDebugErrorCountMax];
+    }
+
+    float ZaySon::debugErrorShowRate(sint32 i, bool countdown) const
+    {
+        sint32& ShowCount = mDebugErrorShowCount[(mDebugErrorFocus + i) % mDebugErrorCountMax];
+        const float Result = ShowCount / (float) mDebugErrorShowMax;
+        if(countdown && 0 < ShowCount)
+            ShowCount--;
+        return Result;
     }
 }

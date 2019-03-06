@@ -1,76 +1,14 @@
 ﻿#pragma once
 #include <service/boss_zay.hpp>
-#include <element/boss_solver.hpp>
-
-#define ZAY_EXTEND(...) if(auto _ = (__VA_ARGS__))
 
 namespace BOSS
 {
-    class ZayUIElement;
-
-    //! \brief 뷰의 확장함수관리
-    class ZayExtend
+    //! \brief 뷰스크립트 문서객체모델
+    class ZaySonDocument
     {
-        BOSS_DECLARE_STANDARD_CLASS(ZayExtend)
-    public:
-        class Payload;
-        enum class ComponentType {Unknown, Content, ContentWithParameter, Option, Layout, Loop, Condition, ConditionWithOperation, ConditionWithEvent};
-        typedef std::function<ZayPanel::StackBinder(ZayPanel& panel, const Payload& params)> ComponentCB;
-        typedef std::function<void(const Payload& params)> GlueCB;
-
-    public:
-        ZayExtend(ComponentType type = ComponentType::Unknown, ComponentCB ccb = nullptr, GlueCB gcb = nullptr);
-        ~ZayExtend();
-
-    public: // 파라미터와 함께 함수호출
-        class Payload
-        {
-            BOSS_DECLARE_NONCOPYABLE_CLASS(Payload)
-        public:
-            Payload(const ZayExtend* owner, chars uiname = nullptr, const ZayUIElement* uielement = nullptr, const SolverValue* param = nullptr);
-            ~Payload();
-
-        public:
-            Payload& operator()(const SolverValue& value);
-            ZayPanel::StackBinder operator>>(ZayPanel& panel) const;
-
-        public:
-            chars UIName() const;
-            ZayPanel::SubGestureCB MakeGesture() const;
-            sint32 ParamCount() const;
-            const SolverValue& Param(sint32 i) const;
-            bool ParamToBool(sint32 i) const;
-            UIAlign ParamToUIAlign(sint32 i) const;
-            UIStretchForm ParamToUIStretchForm(sint32 i) const;
-            UIFontAlign ParamToUIFontAlign(sint32 i) const;
-            UIFontElide ParamToUIFontElide(sint32 i) const;
-
-        private:
-            void AddParam(const SolverValue& value);
-
-        private:
-            const ZayExtend* mOwner;
-            chars mUIName;
-            const ZayUIElement* mUIElement;
-            SolverValues mParams;
-        };
-        const Payload operator()() const;
-        Payload operator()(const SolverValue& value) const;
-
-    public:
-        bool HasComponent() const;
-        bool HasContentComponent() const;
-        bool HasGlue() const;
-        void ResetForComponent(ComponentType type, ComponentCB cb);
-        void ResetForGlue(GlueCB cb);
-        Payload MakePayload(chars uiname = nullptr, const ZayUIElement* uielement = nullptr) const;
-
-    private:
-        ComponentType mComponentType;
-        ComponentCB mComponentCB;
-        GlueCB mGlueCB;
     };
 
+    //! \brief 뷰스크립트 원형
     class ZaySonInterface
     {
     public:
@@ -84,7 +22,17 @@ namespace BOSS
         virtual ZaySonInterface& AddGlue(chars name, ZayExtend::GlueCB cb) = 0;
     };
 
-    //! \brief 뷰의 스크립트운영
+    //! \brief 뷰스크립트 도구
+    class ZaySonUtility
+    {
+    public:
+        static String GetSafetyString(chars text);
+        static Strings GetCommaStrings(chars text);
+        static bool IsFunctionCall(chars text, sint32* prmbegin = nullptr, sint32* prmend = nullptr);
+        static ZaySonInterface::ConditionType ToCondition(chars text, bool* withelse = nullptr);
+    };
+
+    //! \brief 뷰스크립트
     class ZaySon : public ZaySonInterface
     {
         BOSS_DECLARE_NONCOPYABLE_CLASS(ZaySon)
@@ -106,7 +54,7 @@ namespace BOSS
 
     private:
         String mViewName;
-        ZayUIElement* mUIElement;
+        void* mUIElement;
         Map<ZayExtend> mExtendMap;
 
     public:
@@ -127,14 +75,5 @@ namespace BOSS
         mutable sint32 mDebugErrorFocus;
         mutable String mDebugErrorName[mDebugErrorCountMax];
         mutable sint32 mDebugErrorShowCount[mDebugErrorCountMax];
-    };
-
-    class ZaySonUtility
-    {
-    public:
-        static String GetSafetyString(chars text);
-        static Strings GetCommaStrings(chars text);
-        static bool IsFunctionCall(chars text, sint32* prmbegin = nullptr, sint32* prmend = nullptr);
-        static ZaySonInterface::ConditionType ToCondition(chars text, bool* withelse = nullptr);
     };
 }

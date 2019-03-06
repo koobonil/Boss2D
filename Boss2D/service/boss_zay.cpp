@@ -79,6 +79,9 @@ namespace BOSS
         TouchRectObjects mTouchRects;
     };
 
+    ////////////////////////////////////////////////////////////////////////////////
+    // ZayObject
+    ////////////////////////////////////////////////////////////////////////////////
     ZayObject::ZayObject()
     {
         m_resource = nullptr;
@@ -242,6 +245,9 @@ namespace BOSS
         return Result;
     }
 
+    ////////////////////////////////////////////////////////////////////////////////
+    // ZayPanel
+    ////////////////////////////////////////////////////////////////////////////////
     ZayPanel::ZayPanel(Updater* updater, float width, float height, const buffer touch)
         : m_updater(updater), m_width(width), m_height(height)
     {
@@ -1140,6 +1146,258 @@ namespace BOSS
         Platform::Graphics::SetScissor(LastRect.l, LastRect.t, LastRect.Width(), LastRect.Height());
     }
 
+    ////////////////////////////////////////////////////////////////////////////////
+    // ZayExtend
+    ////////////////////////////////////////////////////////////////////////////////
+    extern void ZayExtendTouch(chars uiname, const void* uielement);
+
+    ZayExtend::ZayExtend(ComponentType type, ComponentCB ccb, GlueCB gcb)
+    {
+        mComponentType = type;
+        mComponentCB = ccb;
+        mGlueCB = gcb;
+    }
+
+    ZayExtend::~ZayExtend()
+    {
+    }
+
+    ZayExtend::Payload::Payload(const ZayExtend* owner, chars uiname, void* uielement, const SolverValue* param)
+        : mUIElement(uielement)
+    {
+        mOwner = owner;
+        mUIName = uiname;
+        if(param) AddParam(*param);
+    }
+
+    ZayExtend::Payload::~Payload()
+    {
+        if(mOwner->HasGlue()) // 소멸시 함수호출
+            mOwner->mGlueCB(*this);
+    }
+
+    ZayExtend::Payload& ZayExtend::Payload::operator()(const SolverValue& value)
+    {
+        AddParam(value);
+        return *this;
+    }
+
+    ZayExtend::Payload& ZayExtend::Payload::operator()(sint32 value)
+    {
+        AddParam(SolverValue::MakeByInteger(value));
+        return *this;
+    }
+
+    ZayExtend::Payload& ZayExtend::Payload::operator()(sint64 value)
+    {
+        AddParam(SolverValue::MakeByInteger(value));
+        return *this;
+    }
+
+    ZayExtend::Payload& ZayExtend::Payload::operator()(SolverValue::Float value)
+    {
+        AddParam(SolverValue::MakeByFloat(value));
+        return *this;
+    }
+
+    ZayExtend::Payload& ZayExtend::Payload::operator()(SolverValue::Text value)
+    {
+        AddParam(SolverValue::MakeByText(value));
+        return *this;
+    }
+
+    ZayPanel::StackBinder ZayExtend::Payload::operator>>(ZayPanel& panel) const
+    {
+        if(mOwner->HasComponent())
+            return mOwner->mComponentCB(panel, *this);
+        return panel._push_pass();
+    }
+
+    chars ZayExtend::Payload::UIName() const
+    {
+        return mUIName;
+    }
+
+    ZayPanel::SubGestureCB ZayExtend::Payload::MakeGesture() const
+    {
+        auto UIElement = mUIElement;
+        return ZAY_GESTURE_NT(n, t, UIElement)
+            {
+                if(t == GT_InReleased)
+                    ZayExtendTouch(n, UIElement);
+            };
+    }
+
+    sint32 ZayExtend::Payload::ParamCount() const
+    {
+        return mParams.Count();
+    }
+
+    const SolverValue& ZayExtend::Payload::Param(sint32 i) const
+    {
+        return mParams[i];
+    }
+
+    bool ZayExtend::Payload::ParamToBool(sint32 i) const
+    {
+        if(mParams[i].GetType() == SolverValueType::Text)
+        {
+            if(!mParams[i].ToText().CompareNoCase("true"))
+                return true;
+            if(!mParams[i].ToText().CompareNoCase("false"))
+                return false;
+            BOSS_ASSERT("알 수 없는 Bool입니다", false);
+        }
+        return !!mParams[i].ToInteger();
+    }
+
+    UIAlign ZayExtend::Payload::ParamToUIAlign(sint32 i) const
+    {
+        String Result = mParams[i].ToText();
+        if(!String::CompareNoCase(Result, "UIA_", 4))
+            Result = Result.Right(Result.Length() - 4);
+
+        branch;
+        jump(!Result.CompareNoCase("LeftTop")) return UIA_LeftTop;
+        jump(!Result.CompareNoCase("CenterTop")) return UIA_CenterTop;
+        jump(!Result.CompareNoCase("RightTop")) return UIA_RightTop;
+        jump(!Result.CompareNoCase("LeftMiddle")) return UIA_LeftMiddle;
+        jump(!Result.CompareNoCase("CenterMiddle")) return UIA_CenterMiddle;
+        jump(!Result.CompareNoCase("RightMiddle")) return UIA_RightMiddle;
+        jump(!Result.CompareNoCase("LeftBottom")) return UIA_LeftBottom;
+        jump(!Result.CompareNoCase("CenterBottom")) return UIA_CenterBottom;
+        jump(!Result.CompareNoCase("RightBottom")) return UIA_RightBottom;
+        BOSS_ASSERT("알 수 없는 UIAlign입니다", false);
+        return UIA_LeftTop;
+    }
+
+    UIStretchForm ZayExtend::Payload::ParamToUIStretchForm(sint32 i) const
+    {
+        String Result = mParams[i].ToText();
+        if(!String::CompareNoCase(Result, "UISF_", 5))
+            Result = Result.Right(Result.Length() - 5);
+
+        branch;
+        jump(!Result.CompareNoCase("Strong")) return UISF_Strong;
+        jump(!Result.CompareNoCase("Inner")) return UISF_Inner;
+        jump(!Result.CompareNoCase("Outer")) return UISF_Outer;
+        jump(!Result.CompareNoCase("Width")) return UISF_Width;
+        jump(!Result.CompareNoCase("Height")) return UISF_Height;
+        BOSS_ASSERT("알 수 없는 UIStretchForm입니다", false);
+        return UISF_Strong;
+    }
+
+    UIFontAlign ZayExtend::Payload::ParamToUIFontAlign(sint32 i) const
+    {
+        String Result = mParams[i].ToText();
+        if(!String::CompareNoCase(Result, "UIFA_", 5))
+            Result = Result.Right(Result.Length() - 5);
+
+        branch;
+        jump(!Result.CompareNoCase("LeftTop")) return UIFA_LeftTop;
+        jump(!Result.CompareNoCase("CenterTop")) return UIFA_CenterTop;
+        jump(!Result.CompareNoCase("RightTop")) return UIFA_RightTop;
+        jump(!Result.CompareNoCase("JustifyTop")) return UIFA_JustifyTop;
+        jump(!Result.CompareNoCase("LeftMiddle")) return UIFA_LeftMiddle;
+        jump(!Result.CompareNoCase("CenterMiddle")) return UIFA_CenterMiddle;
+        jump(!Result.CompareNoCase("RightMiddle")) return UIFA_RightMiddle;
+        jump(!Result.CompareNoCase("JustifyMiddle")) return UIFA_JustifyMiddle;
+        jump(!Result.CompareNoCase("LeftAscent")) return UIFA_LeftAscent;
+        jump(!Result.CompareNoCase("CenterAscent")) return UIFA_CenterAscent;
+        jump(!Result.CompareNoCase("RightAscent")) return UIFA_RightAscent;
+        jump(!Result.CompareNoCase("JustifyAscent")) return UIFA_JustifyAscent;
+        jump(!Result.CompareNoCase("LeftBottom")) return UIFA_LeftBottom;
+        jump(!Result.CompareNoCase("CenterBottom")) return UIFA_CenterBottom;
+        jump(!Result.CompareNoCase("RightBottom")) return UIFA_RightBottom;
+        jump(!Result.CompareNoCase("JustifyBottom")) return UIFA_JustifyBottom;
+        BOSS_ASSERT("알 수 없는 UIFontAlign입니다", false);
+        return UIFA_LeftTop;
+    }
+
+    UIFontElide ZayExtend::Payload::ParamToUIFontElide(sint32 i) const
+    {
+        String Result = mParams[i].ToText();
+        if(!String::CompareNoCase(Result, "UIFE_", 5))
+            Result = Result.Right(Result.Length() - 5);
+
+        branch;
+        jump(!Result.CompareNoCase("None")) return UIFE_None;
+        jump(!Result.CompareNoCase("Left")) return UIFE_Left;
+        jump(!Result.CompareNoCase("Center")) return UIFE_Center;
+        jump(!Result.CompareNoCase("Right")) return UIFE_Right;
+        BOSS_ASSERT("알 수 없는 UIFontElide입니다", false);
+        return UIFE_None;
+    }
+
+    void ZayExtend::Payload::AddParam(const SolverValue& value)
+    {
+        mParams.AtAdding() = value;
+    }
+
+    const ZayExtend::Payload ZayExtend::operator()() const
+    {
+        return Payload(this);
+    }
+
+    ZayExtend::Payload ZayExtend::operator()(const SolverValue& value) const
+    {
+        return Payload(this, nullptr, nullptr, &value);
+    }
+
+    ZayExtend::Payload ZayExtend::operator()(sint32 value) const
+    {
+        return Payload(this, nullptr, nullptr, &SolverValue::MakeByInteger(value));
+    }
+
+    ZayExtend::Payload ZayExtend::operator()(sint64 value) const
+    {
+        return Payload(this, nullptr, nullptr, &SolverValue::MakeByInteger(value));
+    }
+
+    ZayExtend::Payload ZayExtend::operator()(SolverValue::Float value) const
+    {
+        return Payload(this, nullptr, nullptr, &SolverValue::MakeByFloat(value));
+    }
+
+    ZayExtend::Payload ZayExtend::operator()(SolverValue::Text value) const
+    {
+        return Payload(this, nullptr, nullptr, &SolverValue::MakeByText(value));
+    }
+
+    bool ZayExtend::HasComponent() const
+    {
+        return (mComponentCB != nullptr);
+    }
+
+    bool ZayExtend::HasContentComponent() const
+    {
+        return (mComponentType == ComponentType::Content || mComponentType == ComponentType::ContentWithParameter);
+    }
+
+    bool ZayExtend::HasGlue() const
+    {
+        return (mGlueCB != nullptr);
+    }
+
+    void ZayExtend::ResetForComponent(ComponentType type, ComponentCB cb)
+    {
+        mComponentType = type;
+        mComponentCB = cb;
+    }
+
+    void ZayExtend::ResetForGlue(GlueCB cb)
+    {
+        mGlueCB = cb;
+    }
+
+    ZayExtend::Payload ZayExtend::MakePayload(chars uiname, const void* uielement) const
+    {
+        return Payload(this, uiname, (void*) uielement);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // ZayView
+    ////////////////////////////////////////////////////////////////////////////////
     class ZayController : public ZayObject
     {
     private:

@@ -1,17 +1,18 @@
 ﻿#pragma once
 #include <platform/boss_platform.hpp>
 #include <element/boss_clip.hpp>
-#include <element/boss_rect.hpp>
-#include <element/boss_point.hpp>
-#include <element/boss_size.hpp>
-#include <element/boss_vector.hpp>
 #include <element/boss_color.hpp>
-#include <element/boss_image.hpp>
 #include <element/boss_font.hpp>
+#include <element/boss_image.hpp>
+#include <element/boss_point.hpp>
+#include <element/boss_rect.hpp>
+#include <element/boss_size.hpp>
+#include <element/boss_solver.hpp>
 #include <element/boss_tween.hpp>
+#include <element/boss_vector.hpp>
 #include <functional>
 
-// 옵션스택관련
+// 옵션스택
 #define ZAY_LTRB(PANEL, L, T, R, B) \
     if(auto _ = (PANEL)._push_clip(L, T, R, B, false))
 #define ZAY_LTRB_UI(PANEL, L, T, R, B, ...) \
@@ -122,7 +123,16 @@
 #define ZAY_ZOOM_CLEAR(PANEL) \
     if(auto _ = (PANEL)._push_zoom_clear())
 
-// 서브패널관련
+// 확장형 옵션스택
+// ZayExtend A가 파라미터가 없는 경우 : ZAY_EXTEND(A() >> panel) {...}
+// ZayExtend B가 파라미터가 하나인 경우 : ZAY_EXTEND(B(1) >> panel) {...}
+// ZayExtend C가 파라미터가 다양한 경우 : ZAY_EXTEND(C(1)(2.5)("abc") >> panel) {...}
+// ZayExtend D가 하위옵션이 필요없는 경우 : ZAY_EXTEND(D(1)(2.5)("abc") >> panel);
+#define ZAY_EXTEND(...)                           if(auto _ = (__VA_ARGS__))
+#define ZAY_DECLARE_COMPONENT(PANEL, PARAMS, ...) [__VA_ARGS__](ZayPanel& PANEL, const ZayExtend::Payload& PARAMS)->ZayPanel::StackBinder
+#define ZAY_DECLARE_GLUE(PARAMS, ...)             [__VA_ARGS__](const ZayExtend::Payload& PARAMS)->void
+
+// 서브패널
 #define ZAY_MAKE_SUB(PANEL, SURFACE) \
     for(ZayPanel PANEL(SURFACE, Platform::Graphics::GetSurfaceWidth(SURFACE), Platform::Graphics::GetSurfaceHeight(SURFACE)); (PANEL)._is_dirty(); (PANEL)._clear_me())
 #define ZAY_MAKE_SUB_UI(PANEL, SURFACE, NAME) \
@@ -132,7 +142,7 @@
 #define ZAY_MAKE_SUB_UI_WH(PANEL, SURFACE, NAME, W, H) \
     for(ZayPanel PANEL(SURFACE, W, H, NAME); (PANEL)._is_dirty(); (PANEL)._clear_me())
 
-// 뷰등록관련
+// 뷰등록
 #define ZAY_VIEW_API static void
 #define ZAY_DECLARE_VIEW(NAME) ZAY_DECLARE_VIEW_CLASS(NAME, ZayObject)
 #define ZAY_DECLARE_VIEW_CLASS(NAME, CLASS) \
@@ -160,7 +170,7 @@
     static autorun _ = ZayView::_makefunc(true, "" NAME, OnCommand, OnNotify, \
         OnGesture, OnRender, _Lock, _Unlock, _Alloc, _Free);
 
-// UI 제스처/랜더 콜백함수
+// 제스처/랜더 람다함수
 #define ZAY_GESTURE_T(TYPE, ...)                       [__VA_ARGS__](ZayObject*, chars, GestureType TYPE, sint32, sint32)->void
 #define ZAY_GESTURE_TXY(TYPE, X, Y, ...)               [__VA_ARGS__](ZayObject*, chars, GestureType TYPE, sint32 X, sint32 Y)->void
 #define ZAY_GESTURE_NT(NAME, TYPE, ...)                [__VA_ARGS__](ZayObject*, chars NAME, GestureType TYPE, sint32, sint32)->void
@@ -195,7 +205,7 @@ namespace BOSS
         SM_AddChild, SM_InsertChild, SM_RemoveChild, // 자식의 개체관리
         SM_RenameChild, SM_MoveChild, SM_ModifyChild}; // 자식의 에디트
 
-    //! \brief 뷰의 자료관리
+    //! \brief 뷰의 데이터모델
     class ZayObject
     {
         friend class ZayView;
@@ -264,7 +274,7 @@ namespace BOSS
         sint32 m_resizing_height;
     };
 
-    //! \brief 뷰의 패널관리
+    //! \brief 뷰패널
     class ZayPanel
     {
     public:
@@ -408,7 +418,78 @@ namespace BOSS
         bool m_test_scissor;
     };
 
-    //! \brief 뷰의 인스턴스관리
+    //! \brief 뷰패널의 확장모델
+    class ZayExtend
+    {
+        BOSS_DECLARE_STANDARD_CLASS(ZayExtend)
+    public:
+        class Payload;
+        enum class ComponentType {Unknown, Content, ContentWithParameter, Option, Layout, Loop, Condition, ConditionWithOperation, ConditionWithEvent};
+        typedef std::function<ZayPanel::StackBinder(ZayPanel& panel, const Payload& params)> ComponentCB;
+        typedef std::function<void(const Payload& params)> GlueCB;
+
+    public:
+        ZayExtend(ComponentType type = ComponentType::Unknown, ComponentCB ccb = nullptr, GlueCB gcb = nullptr);
+        ~ZayExtend();
+
+    public: // 함수파라미터
+        class Payload
+        {
+            BOSS_DECLARE_NONCOPYABLE_INITIALIZED_CLASS(Payload, mUIElement(nullptr))
+        public:
+            Payload(const ZayExtend* owner, chars uiname = nullptr, void* uielement = nullptr, const SolverValue* param = nullptr);
+            ~Payload();
+
+        public:
+            Payload& operator()(const SolverValue& value);
+            Payload& operator()(sint32 value);
+            Payload& operator()(sint64 value);
+            Payload& operator()(SolverValue::Float value);
+            Payload& operator()(SolverValue::Text value);
+            ZayPanel::StackBinder operator>>(ZayPanel& panel) const;
+
+        public:
+            chars UIName() const;
+            ZayPanel::SubGestureCB MakeGesture() const;
+            sint32 ParamCount() const;
+            const SolverValue& Param(sint32 i) const;
+            bool ParamToBool(sint32 i) const;
+            UIAlign ParamToUIAlign(sint32 i) const;
+            UIStretchForm ParamToUIStretchForm(sint32 i) const;
+            UIFontAlign ParamToUIFontAlign(sint32 i) const;
+            UIFontElide ParamToUIFontElide(sint32 i) const;
+
+        private:
+            void AddParam(const SolverValue& value);
+
+        private:
+            const ZayExtend* mOwner;
+            chars mUIName;
+            void* const mUIElement;
+            SolverValues mParams;
+        };
+        const Payload operator()() const;
+        Payload operator()(const SolverValue& value) const;
+        Payload operator()(sint32 value) const;
+        Payload operator()(sint64 value) const;
+        Payload operator()(SolverValue::Float value) const;
+        Payload operator()(SolverValue::Text value) const;
+
+    public:
+        bool HasComponent() const;
+        bool HasContentComponent() const;
+        bool HasGlue() const;
+        void ResetForComponent(ComponentType type, ComponentCB cb);
+        void ResetForGlue(GlueCB cb);
+        Payload MakePayload(chars uiname = nullptr, const void* uielement = nullptr) const;
+
+    private:
+        ComponentType mComponentType;
+        ComponentCB mComponentCB;
+        GlueCB mGlueCB;
+    };
+
+    //! \brief 뷰의 m인스턴스
     template<typename TYPE>
     class ZayInstance
     {
@@ -480,7 +561,7 @@ namespace BOSS
         friend class ZayPanel;
 
     private:
-        //! \brief 뷰의 영역객체
+        // 영역모델
         class Element
         {
         public:
@@ -513,7 +594,8 @@ namespace BOSS
             mutable PanelState m_saved_state_old;
         };
 
-        //! \brief 스크롤객체
+    private:
+        // 스크롤모델
         class Scroll
         {
         public:
@@ -535,7 +617,7 @@ namespace BOSS
         };
 
     private:
-        //! \brief 뷰의 터치관리
+        // 터치/스크롤 관리
         class Touch
         {
         public:
@@ -641,7 +723,7 @@ namespace BOSS
         };
 
     private:
-        //! \brief 뷰의 함수관리
+        // 구동함수 관리
         class Function
         {
         public:
