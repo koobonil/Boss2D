@@ -178,6 +178,7 @@ namespace BOSS
             }
             return mResult;
         }
+        public: inline uint64 resultmsec() const {return mResultMsec;}
 
         // 멤버
         private: SolverChain* mLinkedChain;
@@ -186,6 +187,7 @@ namespace BOSS
         private: SolverOperandObject mOperandTop;
         private: float mReliable;
         private: SolverValue mResult;
+        private: uint64 mResultMsec;
     };
     typedef Array<Solver> Solvers;
 }

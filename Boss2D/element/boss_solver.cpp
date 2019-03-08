@@ -5,6 +5,8 @@
 
 namespace BOSS
 {
+    static Map<SolverChain> gSolverChains;
+
     // 상수항
     class SolverLiteral : public SolverOperand
     {
@@ -14,7 +16,7 @@ namespace BOSS
 
         // 가상 인터페이스
         public: void PrintFormula(String& collector) const override
-        {collector += mValue.ToText();}
+        {collector += mValue.ToText(true);}
         public: void PrintVariables(Strings& collector, bool targetless_only) const override {}
         public: void UpdateChain(Solver* solver, SolverChain* chain) override {}
         public: float reliable() const override {return 1;}
@@ -38,14 +40,32 @@ namespace BOSS
         {mSolver = nullptr; mChain = nullptr;}
         public: ~SolverVariable() {RemoveCurrentChain();}
 
+        public: static const Solver* FindTarget(const SolverChain* firstchain, chars name)
+        {
+            if(auto CurChainPair = firstchain->Access(name))
+            if(auto CurSolver = CurChainPair->target())
+                return CurSolver;
+            for(sint32 i = 0; name[i] != '\0'; ++i)
+            {
+                if(name[i] == '.')
+                {
+                    if(auto CurChain = gSolverChains.Access(name, i))
+                    if(auto CurChainPair = CurChain->Access(&name[i + 1]))
+                        return CurChainPair->target();
+                    return nullptr;
+                }
+            }
+            return nullptr;
+        }
+
         // 비공개부
         private: void RemoveCurrentChain()
         {
             if(mSolver && mChain)
             {
                 // 기존 체인을 제거
-                if(auto CurChainPair = mChain->Access(mName))
-                if(CurChainPair->SubObserver(mSolver))
+                if(auto OldChainPair = mChain->Access(mName))
+                if(OldChainPair->SubObserver(mSolver))
                     mChain->Remove(mName);
                 mSolver = nullptr;
                 mChain = nullptr;
@@ -58,8 +78,7 @@ namespace BOSS
         public: void PrintVariables(Strings& collector, bool targetless_only) const override
         {
             if(targetless_only)
-            if(auto CurChainPair = mChain->Access(mName))
-            if(CurChainPair->target())
+            if(FindTarget(mChain, mName))
                 return;
             collector.AtAdding() = mName;
         }
@@ -74,8 +93,7 @@ namespace BOSS
         }
         public: float reliable() const override
         {
-            if(auto CurChainPair = mChain->Access(mName))
-            if(auto CurSolver = CurChainPair->target())
+            if(auto CurSolver = FindTarget(mChain, mName))
                 return CurSolver->reliable();
             return 1; // 해당 Solver를 찾지 못하면 텍스트타입이라 오히려 신뢰도가 100%
         }
@@ -83,8 +101,7 @@ namespace BOSS
         {
             if(0 < reliable())
             {
-                if(auto CurChainPair = mChain->Access(mName))
-                if(auto CurSolver = CurChainPair->target())
+                if(auto CurSolver = FindTarget(mChain, mName))
                     return CurSolver->result();
                 return SolverValue::MakeByText(mName); // 해당 Solver를 찾지 못하면 텍스트타입
             }
@@ -542,8 +559,7 @@ namespace BOSS
     SolverValue SolverValue::Variabler(const SolverValue& rhs, const SolverChain* chain) const
     {
         const String Name = ToText() + rhs.ToText();
-        if(auto CurChainPair = chain->Access(Name))
-        if(auto CurSolver = CurChainPair->target())
+        if(auto CurSolver = SolverVariable::FindTarget(chain, Name))
             return CurSolver->result();
         return MakeByInteger(0);
     }
@@ -651,6 +667,7 @@ namespace BOSS
         mLinkedChain = nullptr;
         mReliable = 0;
         mResult = SolverValue::MakeByInteger(0);
+        mResultMsec = 0;
     }
 
     Solver::~Solver()
@@ -673,6 +690,7 @@ namespace BOSS
         mOperandTop = ToReference(rhs.mOperandTop);
         mReliable = rhs.mReliable; rhs.mReliable = 0;
         mResult = ToReference(rhs.mResult);
+        mResultMsec = rhs.mResultMsec; rhs.mResultMsec = 0;
 
         if(mLinkedChain)
         {
@@ -684,7 +702,6 @@ namespace BOSS
         return *this;
     }
 
-    static Map<SolverChain> gSolverChains;
     Solver& Solver::Link(chars chain, chars variable, bool updateobservers)
     {
         Unlink();
@@ -903,6 +920,7 @@ namespace BOSS
             const SolverValue OldResult = ToReference(mResult);
             mReliable = mOperandTop->reliable();
             mResult = mOperandTop->result(SolverValue::MakeByInteger(0));
+            mResultMsec = Platform::Utility::CurrentTimeMsec();
             if(OldReliable != mReliable || OldResult.Different(mResult).ToInteger() != 0)
                 (*mLinkedChain)(mLinkedVariable).ResetTarget(this, updateobservers);
         }
@@ -910,6 +928,7 @@ namespace BOSS
         {
             mReliable = mOperandTop->reliable();
             mResult = mOperandTop->result(SolverValue::MakeByInteger(0));
+            mResultMsec = Platform::Utility::CurrentTimeMsec();
         }
     }
 

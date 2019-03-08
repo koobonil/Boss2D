@@ -4,6 +4,228 @@
 namespace BOSS
 {
     ////////////////////////////////////////////////////////////////////////////////
+    // ZaySonDocument
+    ////////////////////////////////////////////////////////////////////////////////
+    ZaySonDocument::ZaySonDocument(chars chain)
+    {
+        mChain = chain;
+        mExecutedCount = 0;
+    }
+
+    ZaySonDocument::~ZaySonDocument()
+    {
+    }
+
+    ZaySonDocument::ZaySonDocument(ZaySonDocument&& rhs)
+    {
+        operator=(ToReference(rhs));
+    }
+
+    ZaySonDocument& ZaySonDocument::operator=(ZaySonDocument&& rhs)
+    {
+        mChain = ToReference(rhs.mChain);
+        mSolvers = ToReference(rhs.mSolvers);
+        mExecutedCount = rhs.mExecutedCount; rhs.mExecutedCount = 0;
+        return *this;
+    }
+
+    void ZaySonDocument::Add(chars variable, chars formula)
+    {
+        auto& NewSolver = mSolvers.AtAdding();
+        NewSolver.Link(mChain, variable);
+        NewSolver.Parse(formula);
+    }
+
+    void ZaySonDocument::AddJson(const Context& json, const String nameheader)
+    {
+        if(auto Length = json.LengthOfNamable())
+        {
+            for(sint32 i = 0; i < Length; ++i)
+            {
+                chararray GetKey;
+                auto& ChildJson = json(i, &GetKey);
+                AddJson(ChildJson, nameheader + String::Format("%s.", &GetKey[0]));
+            }
+        }
+        else if(auto Length = json.LengthOfIndexable())
+        {
+            for(sint32 i = 0; i < Length; ++i)
+                AddJson(json[i], nameheader + String::Format("%d.", i));
+            // 수량정보
+            auto& NewSolver = mSolvers.AtAdding();
+            NewSolver.Link(mChain, nameheader + "count");
+            NewSolver.Parse(String::FromInteger(Length));
+        }
+        else if(chars CurValue = json.GetString(nullptr))
+        {
+            auto& NewSolver = mSolvers.AtAdding();
+            NewSolver.Link(mChain, nameheader.Left(nameheader.Length() - 1));
+            NewSolver.Parse(String::Format("\'%s\'", CurValue));
+        }
+    }
+
+    void ZaySonDocument::AddFlush()
+    {
+        for(sint32 i = mExecutedCount, iend = mSolvers.Count(); i < iend; ++i)
+            mSolvers.At(i).Execute(true);
+        mExecutedCount = mSolvers.Count();
+    }
+
+    void ZaySonDocument::Update(chars variable, chars formula)
+    {
+        if(auto CurSolver = Solver::Find(mChain, variable))
+        {
+            CurSolver->Parse(formula);
+            CurSolver->Execute(true);
+        }
+    }
+
+    void ZaySonDocument::CheckUpdatedSolvers(uint64 msec, UpdateCB cb)
+    {
+        for(sint32 i = 0; i < mExecutedCount; ++i)
+            if(msec <= mSolvers[i].resultmsec())
+                cb(&mSolvers[i]);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // ZaySonUtility
+    ////////////////////////////////////////////////////////////////////////////////
+    String ZaySonUtility::GetSafetyString(chars text)
+    {
+        String Collector;
+        for(sint32 c = 0, cold = 0; true; ++c)
+        {
+            if(text[c] == '\0')
+            {
+                Collector += String(text + cold, c - cold).Trim();
+                break;
+            }
+            else if(text[c] == ',')
+            {
+                Collector += String(text + cold, c - cold).Trim() + ", ";
+                cold = c + 1;
+            }
+            else if(text[c] == '\'' || text[c] == '\"')
+            {
+                Collector += String(text + cold, c - cold).Trim();
+                cold = c + 1;
+
+                const char EndCode = text[c];
+                while(text[++c] != '\0' && (text[c] != EndCode || text[c - 1] == '\\'));
+
+                String LiteralText(text + cold, c - cold); // 따옴표안쪽
+                LiteralText.Replace("\\\\", "([****])");
+                LiteralText.Replace("\\\'", "\'");
+                LiteralText.Replace("\\\"", "\"");
+                LiteralText.Replace("\\", "\\\\"); // 슬래시기호는 쌍슬래시로
+                LiteralText.Replace("([****])", "\\\\");
+                LiteralText.Replace("\'", "\\\'"); // 내부 따옴표는 쌍슬래시+따옴표로
+                LiteralText.Replace("\"", "\\\"");
+                Collector += '\'' + LiteralText + '\''; // 외부 따옴표는 단따옴표만 인정
+                cold = c + 1;
+            }
+        }
+        return Collector;
+    }
+
+    Strings ZaySonUtility::GetCommaStrings(chars text)
+    {
+        Strings SubStrings;
+        for(sint32 c = 0, cold = 0; true; ++c)
+        {
+            if(text[c] == '\0')
+            {
+                SubStrings.AtAdding() = String(text + cold, c - cold).Trim();
+                break;
+            }
+            else if(text[c] == ',')
+            {
+                SubStrings.AtAdding() = String(text + cold, c - cold).Trim();
+                cold = c + 1;
+            }
+            else if(text[c] == '\'' || text[c] == '\"')
+            {
+                const char EndCode = text[c];
+                while(text[++c] != '\0' && (text[c] != EndCode || text[c - 1] == '\\'));
+            }
+        }
+        return SubStrings;
+    }
+
+    bool ZaySonUtility::IsFunctionCall(chars text, sint32* prmbegin, sint32* prmend)
+    {
+        chars Focus = text;
+        // 공백스킵
+        while(*Focus == ' ') Focus++;
+        // 함수명의 탈락조건
+        if(boss_isalpha(*Focus) == 0)
+            return false; // 첫글자가 영문이 아닐 경우 탈락
+        while(*(++Focus) != '(' && *Focus != '\0')
+            if(boss_isalnum(*Focus) == 0 && *Focus != '_')
+                return false; // 영문, 숫자가 아닐 경우 함수탈락
+
+        // 파라미터 발라내기
+        if(*Focus == '(')
+        {
+            const sint32 ParamBeginPos = (Focus + 1) - text;
+            sint32 DeepLevel = 1;
+            while(*(++Focus) != '\0')
+            {
+                if(*Focus == '(') DeepLevel++;
+                else if(*Focus == ')')
+                {
+                    if(--DeepLevel == 0)
+                    {
+                        if(prmbegin) *prmbegin = ParamBeginPos;
+                        if(prmend) *prmend = Focus - text;
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    ZaySonInterface::ConditionType ZaySonUtility::ToCondition(chars text, bool* withelse)
+    {
+        if(withelse) *withelse = false;
+        branch;
+        jump(!String::Compare(text, "if(", 3))
+            return ZaySonInterface::ConditionType::If;
+        jump(!String::Compare(text, "iffocused(", 10))
+            return ZaySonInterface::ConditionType::IfFocused;
+        jump(!String::Compare(text, "ifhovered(", 10))
+            return ZaySonInterface::ConditionType::IfHovered;
+        jump(!String::Compare(text, "ifpressed(", 10))
+            return ZaySonInterface::ConditionType::IfPressed;
+        jump(!String::Compare(text, "elif(", 5))
+        {
+            if(withelse) *withelse = true;
+            return ZaySonInterface::ConditionType::If;
+        }
+        jump(!String::Compare(text, "eliffocused(", 12))
+        {
+            if(withelse) *withelse = true;
+            return ZaySonInterface::ConditionType::IfFocused;
+        }
+        jump(!String::Compare(text, "elifhovered(", 12))
+        {
+            if(withelse) *withelse = true;
+            return ZaySonInterface::ConditionType::IfHovered;
+        }
+        jump(!String::Compare(text, "elifpressed(", 12))
+        {
+            if(withelse) *withelse = true;
+            return ZaySonInterface::ConditionType::IfPressed;
+        }
+        jump(!String::Compare(text, "else"))
+            return ZaySonInterface::ConditionType::Else;
+        jump(!String::Compare(text, "endif"))
+            return ZaySonInterface::ConditionType::Endif;
+        return ZaySonInterface::ConditionType::Unknown;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
     // ZayUIElement
     ////////////////////////////////////////////////////////////////////////////////
     class ZayUIElement
@@ -502,10 +724,10 @@ namespace BOSS
                             // 지역변수 수집
                             Solvers LocalSolvers;
                             const Point ViewPos = panel.toview(0, 0);
-                            LocalSolvers.AtAdding().Link(ViewName, "p.x").Parse(String::FromFloat(ViewPos.x)).Execute();
-                            LocalSolvers.AtAdding().Link(ViewName, "p.y").Parse(String::FromFloat(ViewPos.y)).Execute();
-                            LocalSolvers.AtAdding().Link(ViewName, "p.w").Parse(String::FromFloat(panel.w())).Execute();
-                            LocalSolvers.AtAdding().Link(ViewName, "p.h").Parse(String::FromFloat(panel.h())).Execute();
+                            LocalSolvers.AtAdding().Link(ViewName, "pX").Parse(String::FromFloat(ViewPos.x)).Execute();
+                            LocalSolvers.AtAdding().Link(ViewName, "pY").Parse(String::FromFloat(ViewPos.y)).Execute();
+                            LocalSolvers.AtAdding().Link(ViewName, "pW").Parse(String::FromFloat(panel.w())).Execute();
+                            LocalSolvers.AtAdding().Link(ViewName, "pH").Parse(String::FromFloat(panel.h())).Execute();
                             if(1 < iend && 0 < UIName.Length())
                             {
                                 LocalSolvers.AtAdding().Link(ViewName, UIName + "V").Parse(String::FromInteger(i)).Execute();
@@ -543,10 +765,10 @@ namespace BOSS
                 {
                     chars CurVariable = mClickCodeCaptures[i];
                     branch;
-                    jump(!String::Compare(CurVariable, "p.x")) fish(CurVariable) = String::FromFloat(ViewPos.x);
-                    jump(!String::Compare(CurVariable, "p.y")) fish(CurVariable) = String::FromFloat(ViewPos.y);
-                    jump(!String::Compare(CurVariable, "p.w")) fish(CurVariable) = String::FromFloat(panel.w());
-                    jump(!String::Compare(CurVariable, "p.h")) fish(CurVariable) = String::FromFloat(panel.h());
+                    jump(!String::Compare(CurVariable, "pX")) fish(CurVariable) = String::FromFloat(ViewPos.x);
+                    jump(!String::Compare(CurVariable, "pY")) fish(CurVariable) = String::FromFloat(ViewPos.y);
+                    jump(!String::Compare(CurVariable, "pW")) fish(CurVariable) = String::FromFloat(panel.w());
+                    jump(!String::Compare(CurVariable, "pH")) fish(CurVariable) = String::FromFloat(panel.h());
                     else fish(CurVariable) = Solver().Link(mRefRoot->ViewName()).Parse(CurVariable).ExecuteOnly().ToText(true);
                 }
             }
@@ -659,144 +881,6 @@ namespace BOSS
         ZayUIs mCreateCodes;
         ZayUIs mChildren;
     };
-
-    ////////////////////////////////////////////////////////////////////////////////
-    // ZaySonUtility
-    ////////////////////////////////////////////////////////////////////////////////
-    String ZaySonUtility::GetSafetyString(chars text)
-    {
-        String Collector;
-        for(sint32 c = 0, cold = 0; true; ++c)
-        {
-            if(text[c] == '\0')
-            {
-                Collector += String(text + cold, c - cold).Trim();
-                break;
-            }
-            else if(text[c] == ',')
-            {
-                Collector += String(text + cold, c - cold).Trim() + ", ";
-                cold = c + 1;
-            }
-            else if(text[c] == '\'' || text[c] == '\"')
-            {
-                Collector += String(text + cold, c - cold).Trim();
-                cold = c + 1;
-
-                const char EndCode = text[c];
-                while(text[++c] != '\0' && (text[c] != EndCode || text[c - 1] == '\\'));
-
-                String LiteralText(text + cold, c - cold); // 따옴표안쪽
-                LiteralText.Replace("\\\\", "([****])");
-                LiteralText.Replace("\\\'", "\'");
-                LiteralText.Replace("\\\"", "\"");
-                LiteralText.Replace("\\", "\\\\"); // 슬래시기호는 쌍슬래시로
-                LiteralText.Replace("([****])", "\\\\");
-                LiteralText.Replace("\'", "\\\'"); // 내부 따옴표는 쌍슬래시+따옴표로
-                LiteralText.Replace("\"", "\\\"");
-                Collector += '\'' + LiteralText + '\''; // 외부 따옴표는 단따옴표만 인정
-                cold = c + 1;
-            }
-        }
-        return Collector;
-    }
-
-    Strings ZaySonUtility::GetCommaStrings(chars text)
-    {
-        Strings SubStrings;
-        for(sint32 c = 0, cold = 0; true; ++c)
-        {
-            if(text[c] == '\0')
-            {
-                SubStrings.AtAdding() = String(text + cold, c - cold).Trim();
-                break;
-            }
-            else if(text[c] == ',')
-            {
-                SubStrings.AtAdding() = String(text + cold, c - cold).Trim();
-                cold = c + 1;
-            }
-            else if(text[c] == '\'' || text[c] == '\"')
-            {
-                const char EndCode = text[c];
-                while(text[++c] != '\0' && (text[c] != EndCode || text[c - 1] == '\\'));
-            }
-        }
-        return SubStrings;
-    }
-
-    bool ZaySonUtility::IsFunctionCall(chars text, sint32* prmbegin, sint32* prmend)
-    {
-        chars Focus = text;
-        // 공백스킵
-        while(*Focus == ' ') Focus++;
-        // 함수명의 탈락조건
-        if(boss_isalpha(*Focus) == 0)
-            return false; // 첫글자가 영문이 아닐 경우 탈락
-        while(*(++Focus) != '(' && *Focus != '\0')
-            if(boss_isalnum(*Focus) == 0 && *Focus != '_')
-                return false; // 영문, 숫자가 아닐 경우 함수탈락
-
-        // 파라미터 발라내기
-        if(*Focus == '(')
-        {
-            const sint32 ParamBeginPos = (Focus + 1) - text;
-            sint32 DeepLevel = 1;
-            while(*(++Focus) != '\0')
-            {
-                if(*Focus == '(') DeepLevel++;
-                else if(*Focus == ')')
-                {
-                    if(--DeepLevel == 0)
-                    {
-                        if(prmbegin) *prmbegin = ParamBeginPos;
-                        if(prmend) *prmend = Focus - text;
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    ZaySonInterface::ConditionType ZaySonUtility::ToCondition(chars text, bool* withelse)
-    {
-        if(withelse) *withelse = false;
-        branch;
-        jump(!String::Compare(text, "if(", 3))
-            return ZaySonInterface::ConditionType::If;
-        jump(!String::Compare(text, "iffocused(", 10))
-            return ZaySonInterface::ConditionType::IfFocused;
-        jump(!String::Compare(text, "ifhovered(", 10))
-            return ZaySonInterface::ConditionType::IfHovered;
-        jump(!String::Compare(text, "ifpressed(", 10))
-            return ZaySonInterface::ConditionType::IfPressed;
-        jump(!String::Compare(text, "elif(", 5))
-        {
-            if(withelse) *withelse = true;
-            return ZaySonInterface::ConditionType::If;
-        }
-        jump(!String::Compare(text, "eliffocused(", 12))
-        {
-            if(withelse) *withelse = true;
-            return ZaySonInterface::ConditionType::IfFocused;
-        }
-        jump(!String::Compare(text, "elifhovered(", 12))
-        {
-            if(withelse) *withelse = true;
-            return ZaySonInterface::ConditionType::IfHovered;
-        }
-        jump(!String::Compare(text, "elifpressed(", 12))
-        {
-            if(withelse) *withelse = true;
-            return ZaySonInterface::ConditionType::IfPressed;
-        }
-        jump(!String::Compare(text, "else"))
-            return ZaySonInterface::ConditionType::Else;
-        jump(!String::Compare(text, "endif"))
-            return ZaySonInterface::ConditionType::Endif;
-        return ZaySonInterface::ConditionType::Unknown;
-    }
 
     ////////////////////////////////////////////////////////////////////////////////
     // ZaySon

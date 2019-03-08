@@ -1,11 +1,33 @@
 ﻿#pragma once
 #include <service/boss_zay.hpp>
+#include <functional>
 
 namespace BOSS
 {
     //! \brief 뷰스크립트 문서객체모델
     class ZaySonDocument
     {
+        BOSS_DECLARE_NONCOPYABLE_CLASS(ZaySonDocument)
+    public:
+        ZaySonDocument(chars chain);
+        ~ZaySonDocument();
+        ZaySonDocument(ZaySonDocument&& rhs);
+        ZaySonDocument& operator=(ZaySonDocument&& rhs);
+
+    public:
+        typedef std::function<void(const Solver*)> UpdateCB;
+
+    public:
+        void Add(chars variable, chars formula);
+        void AddJson(const Context& json, const String nameheader = "");
+        void AddFlush();
+        void Update(chars variable, chars formula);
+        void CheckUpdatedSolvers(uint64 msec, UpdateCB cb);
+
+    private:
+        String mChain;
+        Solvers mSolvers;
+        sint32 mExecutedCount;
     };
 
     //! \brief 뷰스크립트 원형

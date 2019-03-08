@@ -1911,6 +1911,7 @@
                     mLastOffsetX += SpaceWidth;
                     return &NewCodePack.mCode;
                 }
+                else BOSS_ASSERT(String::Format("NickName이 \"%s\"인 폰트는 등록되어 있지 않습니다", (chars) mNickName), false);
                 return nullptr;
             }
 

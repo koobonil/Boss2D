@@ -408,7 +408,58 @@ namespace BOSS
 
             sint32 Popup_MessageDialog(chars title, chars text, DialogButtonType type)
             {
-                #if BOSS_LINUX & !defined(BOSS_SILENT_NIGHT_IS_ENABLED)
+                #if BOSS_WINDOWS & !defined(BOSS_SILENT_NIGHT_IS_ENABLED)
+                    UINT DialogType = MB_ICONINFORMATION | MB_OK;
+                    switch(type)
+                    {
+                    case DBT_YesNo:
+                        DialogType = MB_ICONQUESTION | MB_YESNO;
+                        break;
+                    case DBT_OKCancel:
+                        DialogType = MB_ICONINFORMATION | MB_OKCANCEL;
+                        break;
+                    case DBT_OkCancelIgnore:
+                        DialogType = MB_ICONWARNING | MB_ABORTRETRYIGNORE;
+                        break;
+                    }
+
+                    WString Caption = WString::FromChars(title);
+                    WString Text = WString::FromChars(text);
+                    int Result = MessageBoxW(NULL, Text, Caption, DialogType);
+                    switch(type)
+                    {
+                    case DBT_YesNo:
+                        switch(Result)
+                        {
+                        case IDYES:
+                            return 0;
+                        case IDNO:
+                            return 1;
+                        }
+                        break;
+                    case DBT_Ok:
+                    case DBT_OKCancel:
+                        switch(Result)
+                        {
+                        case IDOK:
+                            return 0;
+                        case IDCANCEL:
+                            return 1;
+                        }
+                        break;
+                    case DBT_OkCancelIgnore:
+                        switch(Result)
+                        {
+                        case IDOK:
+                            return 0;
+                        case IDCANCEL:
+                            return 1;
+                        case IDIGNORE:
+                            return 2;
+                        }
+                        break;
+                    }
+                #elif BOSS_LINUX & !defined(BOSS_SILENT_NIGHT_IS_ENABLED)
                     GtkMessageType MessageType = GTK_MESSAGE_INFO; // DBT_Ok
                     GtkButtonsType ButtonsType = GTK_BUTTONS_OK;
                     switch(type)
