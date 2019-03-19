@@ -2166,8 +2166,7 @@
             {
                 FreeFont CurFreeFont(CanvasClass::get()->font_ft_nickname(), CanvasClass::get()->font_ft_height());
                 const WString NewString = WString::FromChars(string, count);
-                CurFreeFont.GetWidth(NewString, NewString.Length());
-                return 0;
+                return CurFreeFont.GetWidth(NewString, NewString.Length());
             }
             return CanvasClass::get()->painter().fontMetrics().width(QString::fromUtf8(string, count));
         }
@@ -2178,8 +2177,7 @@
             if(CanvasClass::get()->is_font_ft())
             {
                 FreeFont CurFreeFont(CanvasClass::get()->font_ft_nickname(), CanvasClass::get()->font_ft_height());
-                CurFreeFont.GetWidth(string, count);
-                return 0;
+                return CurFreeFont.GetWidth(string, count);
             }
             return CanvasClass::get()->painter().fontMetrics().width(QString::fromWCharArray(string, count));
         }

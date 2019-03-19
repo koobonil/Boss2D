@@ -60,7 +60,7 @@ namespace BOSS
         {
             auto& NewSolver = mSolvers.AtAdding();
             NewSolver.Link(mChain, nameheader.Left(nameheader.Length() - 1));
-            NewSolver.Parse(String::Format("\'%s\'", CurValue));
+            NewSolver.Parse(String::Format("\"%s\"", CurValue));
         }
     }
 
@@ -107,7 +107,7 @@ namespace BOSS
             }
             else if(text[c] == '\'' || text[c] == '\"')
             {
-                Collector += String(text + cold, c - cold).Trim();
+                Collector += String(text + cold, c - cold);
                 cold = c + 1;
 
                 const char EndCode = text[c];

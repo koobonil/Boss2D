@@ -105,8 +105,8 @@
     if(auto _ = (PANEL)._push_color(R, G, B, A))
 #define ZAY_RGBA_IF(PANEL, R, G, B, A, QUERY) \
     if(auto _ = (QUERY)? (PANEL)._push_color(R, G, B, A) : (PANEL)._push_pass())
-#define ZAY_COLOR(PANEL, COLOR) \
-    if(auto _ = (PANEL)._push_color(COLOR))
+#define ZAY_COLOR(PANEL, ...) \
+    if(auto _ = (PANEL)._push_color(Color(__VA_ARGS__)))
 #define ZAY_COLOR_IF(PANEL, COLOR, QUERY) \
     if(auto _ = (QUERY)? (PANEL)._push_color(COLOR) : (PANEL)._push_pass())
 #define ZAY_COLOR_CLEAR(PANEL) \

@@ -26,9 +26,15 @@ namespace BOSS
         this->a = a;
     }
 
-    Color::Color(chars rgba)
+    Color::Color(chars rgb_or_rgba)
     {
-        operator=(rgba);
+        operator=(rgb_or_rgba);
+    }
+
+    Color::Color(chars rgb, float a)
+    {
+        operator=(rgb);
+        this->a = Math::Clamp(255 * a, 0, 255);
     }
 
     Color::~Color()

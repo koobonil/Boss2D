@@ -34,7 +34,8 @@ namespace BOSS
         Color(const Color& rhs);
         Color(uint32 rgba);
         Color(uint08 r, uint08 g, uint08 b, uint08 a = 0xFF);
-        Color(chars rgba);
+        Color(chars rgb_or_rgba);
+        Color(chars rgb, float a);
         ~Color();
 
         Color& operator=(const Color& rhs);
