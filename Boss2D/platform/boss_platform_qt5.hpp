@@ -3602,7 +3602,6 @@
             void Remove()
             {
                 QOpenGLContext* ctx = QOpenGLContext::currentContext();
-                BOSS_ASSERT("OpenGL의 Context접근에 실패하였습니다", ctx);
                 if(ctx)
                 {
                     QOpenGLFunctions* f = ctx->functions();
