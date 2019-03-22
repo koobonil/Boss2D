@@ -738,6 +738,21 @@ namespace BOSS
         Platform::Graphics::DrawString(CalcRect.l, CalcRect.t, CalcRect.Width(), CalcRect.Height(), string, count, UIFA_LeftTop);
     }
 
+    bool ZayPanel::textbox(chars string, sint32 linegap) const
+    {
+        const Clip& LastClip = m_stack_clip[-1];
+        sint32 AddY = 0;
+        while(*string)
+        {
+            const sint32 CurHeight = Platform::Graphics::GetStringHeight();
+            const sint32 CurLength = Platform::Graphics::GetLengthOfString(LastClip.Width(), string);
+            Platform::Graphics::DrawString(LastClip.l, LastClip.t + AddY, LastClip.Width(), LastClip.Height(), string, CurLength, UIFA_LeftTop);
+            AddY += CurHeight + linegap;
+            string += CurLength;
+        }
+        return false;
+    }
+
     void ZayPanel::sub(chars uigroup, id_surface surface) const
     {
         auto CurCollector = TouchCollector::ST(uigroup);

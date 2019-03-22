@@ -310,6 +310,7 @@ namespace BOSS
         bool text(chars string, sint32 count, UIFontAlign align = UIFA_CenterMiddle, UIFontElide elide = UIFE_None) const;
         void text(float x, float y, chars string, UIFontAlign align = UIFA_CenterMiddle) const; // 중점식
         void text(float x, float y, chars string, sint32 count, UIFontAlign align = UIFA_CenterMiddle) const; // 중점식
+        bool textbox(chars string, sint32 linegap) const;
         void sub(chars uigroup, id_surface surface) const;
         PanelState state(chars uiname = nullptr) const;
         Point toview(float x, float y) const;
