@@ -14,7 +14,7 @@ namespace BOSS
     {
     public:
         TouchRect() {BOSS_ASSERT("잘못된 시나리오입니다", false);}
-        TouchRect(chars uiname, float l, float t, float r, float b, float zoom, ZayPanel::SubGestureCB cb, sint32 scroll, bool hoverpass)
+        TouchRect(chars uiname, float l, float t, float r, float b, float zoom, ZayPanel::SubGestureCB cb, sint32 scrollsense, bool hoverpass)
         {
             mName = uiname;
             mL = l;
@@ -23,7 +23,7 @@ namespace BOSS
             mB = b;
             mZoom = zoom;
             mCB = cb;
-            mScroll = scroll;
+            mScrollSence = scrollsense;
             mHoverPass = hoverpass;
         }
         ~TouchRect() {}
@@ -32,10 +32,10 @@ namespace BOSS
         {BOSS_ASSERT("잘못된 시나리오입니다", false); return *this;}
 
     public:
-        static buffer Create(chars uiname, float l, float t, float r, float b, float zoom, ZayPanel::SubGestureCB cb, sint32 scroll, bool hoverpass)
+        static buffer Create(chars uiname, float l, float t, float r, float b, float zoom, ZayPanel::SubGestureCB cb, sint32 scrollsense, bool hoverpass)
         {
             buffer NewBuffer = Buffer::AllocNoConstructorOnce<TouchRect>(BOSS_DBG 1);
-            BOSS_CONSTRUCTOR(NewBuffer, 0, TouchRect, uiname, l, t, r, b, zoom, cb, scroll, hoverpass);
+            BOSS_CONSTRUCTOR(NewBuffer, 0, TouchRect, uiname, l, t, r, b, zoom, cb, scrollsense, hoverpass);
             return NewBuffer;
         }
 
@@ -47,7 +47,7 @@ namespace BOSS
         float mB;
         float mZoom;
         ZayPanel::SubGestureCB mCB;
-        sint32 mScroll;
+        sint32 mScrollSence; // -1은 스크롤아님, 0~N : 스크롤민감도
         bool mHoverPass;
     };
     typedef Object<TouchRect> TouchRectObject;
@@ -194,12 +194,20 @@ namespace BOSS
         return NullPoint;
     }
 
-    Point ZayObject::scroll(chars uiname) const
+    Point ZayObject::scrollpos(chars uiname) const
     {
         if(auto CurTouch = (const ZayView::Touch*) ((const ZayView*) m_finder_data)->m_touch)
         if(auto CurScroll = CurTouch->getscroll_const(uiname))
             return Point(CurScroll->m_pos->x(), CurScroll->m_pos->y());
         return Point();
+    }
+
+    Size ZayObject::scrollsize(chars uiname) const
+    {
+        if(auto CurTouch = (const ZayView::Touch*) ((const ZayView*) m_finder_data)->m_touch)
+        if(auto CurScroll = CurTouch->getscroll_const(uiname))
+            return Size(CurScroll->m_size.w, CurScroll->m_size.h);
+        return Size();
     }
 
     bool ZayObject::isScrollSensing(chars uiname) const
@@ -210,7 +218,22 @@ namespace BOSS
         return false;
     }
 
-    void ZayObject::moveScroll(chars uiname, float ox, float oy, float x, float y, float sec)
+    bool ZayObject::isScrollTouched(chars uiname) const
+    {
+        if(auto CurTouch = (ZayView::Touch*) ((ZayView*) m_finder_data)->m_touch)
+        if(auto CurScroll = CurTouch->getscroll(uiname))
+            return CurScroll->m_usercontrol;
+        return false;
+    }
+
+    void ZayObject::clearScrollTouch(chars uiname)
+    {
+        if(auto CurTouch = (ZayView::Touch*) ((ZayView*) m_finder_data)->m_touch)
+        if(auto CurScroll = CurTouch->getscroll(uiname))
+            CurScroll->m_usercontrol = false;
+    }
+
+    void ZayObject::moveScroll(chars uiname, float ox, float oy, float x, float y, float sec, bool touch)
     {
         if(auto CurTouch = (ZayView::Touch*) ((ZayView*) m_finder_data)->m_touch)
         if(auto CurScroll = CurTouch->getscroll(uiname))
@@ -218,6 +241,7 @@ namespace BOSS
             CurScroll->Reset(ox, oy);
             CurScroll->Moving(x, y, sec, 0.1, 0.2);
             CurScroll->m_sense = false;
+            CurScroll->m_usercontrol |= touch;
         }
     }
 
@@ -745,10 +769,10 @@ namespace BOSS
         while(*string)
         {
             const sint32 CurHeight = Platform::Graphics::GetStringHeight();
-            const sint32 CurLength = Platform::Graphics::GetLengthOfString(LastClip.Width(), string);
+            const sint32 CurLength = Platform::Graphics::GetLengthOfString(true, LastClip.Width(), string);
             Platform::Graphics::DrawString(LastClip.l, LastClip.t + AddY, LastClip.Width(), LastClip.Height(), string, CurLength, UIFA_LeftTop);
             AddY += CurHeight + linegap;
-            string += CurLength;
+            string += (string[CurLength] == ' ')? CurLength + 1 : CurLength; // 다음 글자가 빈칸이면 +1
         }
         return false;
     }
@@ -771,7 +795,7 @@ namespace BOSS
                     LastClip.t + CurTouchRect.mT * CurTouchRect.mZoom * VRate,
                     LastClip.l + CurTouchRect.mR * CurTouchRect.mZoom * HRate,
                     LastClip.t + CurTouchRect.mB * CurTouchRect.mZoom * VRate,
-                    LastZoom, CurTouchRect.mCB, CurTouchRect.mScroll, CurTouchRect.mHoverPass, &DirtyTest);
+                    LastZoom, CurTouchRect.mCB, CurTouchRect.mScrollSence, CurTouchRect.mHoverPass, &DirtyTest);
             }
         }
         CurCollector->mRefTouch = m_ref_touch;
@@ -1111,7 +1135,7 @@ namespace BOSS
         _pop_clip();
     }
 
-    void ZayPanel::_add_ui(chars uiname, SubGestureCB cb, sint32 scroll, bool hoverpass)
+    void ZayPanel::_add_ui(chars uiname, SubGestureCB cb, sint32 scrollsense, bool hoverpass)
     {
         if(uiname && uiname[0])
         {
@@ -1126,9 +1150,9 @@ namespace BOSS
                 const float& LastZoom = m_stack_zoom[-1];
                 if(auto CurCollector = (TouchCollector*) m_ref_touch_collector)
                     CurCollector->mTouchRects.AtAdding() =
-                        TouchRect::Create(uiname, LastClip.l, LastClip.t, LastClip.r, LastClip.b, LastZoom, cb, scroll, hoverpass);
+                        TouchRect::Create(uiname, LastClip.l, LastClip.t, LastClip.r, LastClip.b, LastZoom, cb, scrollsense, hoverpass);
                 else if(auto CurTouch = (ZayView::Touch*) m_ref_touch)
-                    CurTouch->update(uiname, LastClip.l, LastClip.t, LastClip.r, LastClip.b, LastZoom, cb, scroll, hoverpass);
+                    CurTouch->update(uiname, LastClip.l, LastClip.t, LastClip.r, LastClip.b, LastZoom, cb, scrollsense, hoverpass);
             }
         }
     }
@@ -1579,9 +1603,9 @@ namespace BOSS
     void ZayView::OnTouch(TouchType type, sint32 id, sint32 x, sint32 y)
     {
         Touch* CurTouch = (Touch*) m_touch;
-        const Element* BackScrollElement = nullptr;
-        const Element& CurElement = CurTouch->get(x, y, BackScrollElement);
-        const Element* PressElement = CurTouch->getpress();
+        const Element* ScrollElement = nullptr;
+        const Element* PressElement = CurTouch->getpress(); // Press가 존재해야 Scroll도 찾음
+        const Element& CurElement = CurTouch->get(x, y, PressElement, ScrollElement);
         GestureType SavedType = GT_Null;
 
         bool NeedUpdate = CurTouch->hovertest(x, y);
@@ -1608,15 +1632,15 @@ namespace BOSS
                 case TT_Moving: CurElement.m_cb(this, &CurElement, SavedType = GT_Moving, x, y); break;
                 case TT_Press: CurElement.m_cb(this, &CurElement, SavedType = GT_Pressed, x, y); break;
                 case TT_Dragging:
-                    // 백스크롤 존재시 sensitive초과된 Dragging발생한 경우 이벤트전이
-                    if(BackScrollElement && BackScrollElement->m_cb && BackScrollElement != PressElement &&
-                        BackScrollElement->m_scroll < CurTouch->press_to_xy(x, y))
+                    // 관련 스크롤 존재시 sensitive초과된 Dragging발생한 경우 이벤트전이
+                    if(ScrollElement && ScrollElement != PressElement && ScrollElement->m_cb
+                        && ScrollElement->m_scrollsence < CurTouch->press_to_xy(x, y))
                     {
                         if(PressElement && PressElement->m_cb)
                             PressElement->m_cb(this, PressElement, GT_OutReleased, x, y);
-                        BackScrollElement->m_cb(this, BackScrollElement, SavedType = GT_Pressed, x, y);
+                        ScrollElement->m_cb(this, ScrollElement, SavedType = GT_Pressed, x, y);
                         // 백스크롤을 강제로 Press화
-                        CurTouch->changepress(BackScrollElement);
+                        CurTouch->changepress(ScrollElement);
                         CurTouch->setpress_xy(x, y);
                         NeedUpdate = true;
                     }
@@ -1744,7 +1768,7 @@ namespace BOSS
         m_zoom = 1;
         m_cb = nullptr;
         m_subcb = nullptr;
-        m_scroll = false;
+        m_scrollsence = -1;
         m_hoverpass = false;
         m_hoverid = -1;
         m_saved_xy.x = 0;
@@ -1769,7 +1793,7 @@ namespace BOSS
         m_zoom = rhs.m_zoom;
         m_cb = rhs.m_cb;
         m_subcb = rhs.m_subcb;
-        m_scroll = rhs.m_scroll;
+        m_scrollsence = rhs.m_scrollsence;
         m_hoverpass = rhs.m_hoverpass;
         m_hoverid = rhs.m_hoverid;
         m_saved_xy.x = rhs.m_saved_xy.x;
@@ -1819,6 +1843,7 @@ namespace BOSS
         m_size.w = 0;
         m_size.h = 0;
         m_sense = false;
+        m_usercontrol = false;
     }
 
     ZayView::Scroll::~Scroll()
@@ -1832,6 +1857,7 @@ namespace BOSS
         if(rhs.m_pos) m_pos = new Tween2D(*rhs.m_pos);
         m_size = rhs.m_size;
         m_sense = rhs.m_sense;
+        m_usercontrol = rhs.m_usercontrol;
         return *this;
     }
 
@@ -1931,7 +1957,7 @@ namespace BOSS
     }
 
     void ZayView::Touch::update(chars uiname, float l, float t, float r, float b,
-        float zoom, ZayPanel::SubGestureCB cb, sint32 scroll, bool hoverpass, bool* dirtytest)
+        float zoom, ZayPanel::SubGestureCB cb, sint32 scrollsense, bool hoverpass, bool* dirtytest)
     {
         if(uiname == nullptr || uiname[0] == '\0' || r <= l || b <= t)
             return;
@@ -1947,7 +1973,7 @@ namespace BOSS
         CurElement.m_zoom = zoom;
         CurElement.m_cb = SubGestureCB;
         CurElement.m_subcb = cb;
-        CurElement.m_scroll = scroll;
+        CurElement.m_scrollsence = scrollsense;
         CurElement.m_hoverpass = hoverpass;
 
         const sint32 CellL = Math::Max(0, CurElement.m_rect.l / Cell::Size);
@@ -1984,7 +2010,7 @@ namespace BOSS
         return nullptr;
     }
 
-    const ZayView::Element& ZayView::Touch::get(sint32 x, sint32 y, const Element*& backscroll) const
+    const ZayView::Element& ZayView::Touch::get(sint32 x, sint32 y, const Element* press, const Element*& scroll) const
     {
         if(const Cell* CurCell = getcell_const(x, y))
         {
@@ -1994,13 +2020,24 @@ namespace BOSS
                 const rect128& CurRect = CurElement.m_rect;
                 if(CurRect.l <= x && CurRect.t <= y && x < CurRect.r && y < CurRect.b)
                 {
-                    if(CurElement.m_scroll == -1 && 0 < i) // 현재가 스크롤이 아니고 뒷판이 존재했을때
+                    // 관련된 스크롤조사
+                    if(press && press->m_scrollsence == -1) // 스크롤이 아닌 눌러진 영역이 있고
                     {
-                        Element& NextElement = *CurCell->m_elements[i - 1];
-                        const rect128& NextRect = NextElement.m_rect;
-                        // 뒷판이 스크롤이고 영역에 들어왔다면
-                        if(NextElement.m_scroll != -1 && NextRect.l <= x && NextRect.t <= y && x < NextRect.r && y < NextRect.b)
-                            backscroll = &NextElement;
+                        for(sint32 j = i; 0 <= j; --j) // 터치영역을 포함하여 바닥까지 조사
+                        {
+                            Element& ScrollElement = *CurCell->m_elements[j];
+                            if(ScrollElement.m_scrollsence != -1) // 대상 영역이 스크롤영역이고
+                            {
+                                const rect128& NextRect = ScrollElement.m_rect;
+                                if(NextRect.l <= x && NextRect.t <= y && x < NextRect.r && y < NextRect.b) // 영역에 들어왔고
+                                {
+                                    // 스크롤의 명칭이 CurElement의 명칭에 포함관계일때 스크롤찾음
+                                    if(!String::Compare(press->m_name, ScrollElement.m_name, ScrollElement.m_name.Length()))
+                                        scroll = &ScrollElement;
+                                    break; // 관련된 스크롤을 못찾더라도 스크롤영역을 만나면 break
+                                }
+                            }
+                        }
                     }
                     return CurElement;
                 }

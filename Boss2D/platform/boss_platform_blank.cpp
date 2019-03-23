@@ -936,7 +936,7 @@
             return false;
         }
 
-        sint32 Platform::Graphics::GetLengthOfString(sint32 clipping_width, chars string, sint32 count)
+        sint32 Platform::Graphics::GetLengthOfString(bool byword, sint32 clipping_width, chars string, sint32 count)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
 
@@ -944,7 +944,7 @@
             return 0;
         }
 
-        sint32 Platform::Graphics::GetLengthOfStringW(sint32 clipping_width, wchars string, sint32 count)
+        sint32 Platform::Graphics::GetLengthOfStringW(bool byword, sint32 clipping_width, wchars string, sint32 count)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
 

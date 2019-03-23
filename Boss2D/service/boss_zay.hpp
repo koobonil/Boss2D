@@ -247,9 +247,12 @@ namespace BOSS
         const rect128& rect(chars uiname = nullptr) const;
         const float zoom(chars uiname = nullptr) const;
         const point64& oldxy(chars uiname = nullptr) const;
-        Point scroll(chars uiname) const;
-        bool isScrollSensing(chars uiname) const;
-        void moveScroll(chars uiname, float ox, float oy, float x, float y, float sec);
+        Point scrollpos(chars uiname) const;
+        Size scrollsize(chars uiname) const;
+        bool isScrollSensing(chars uiname) const; // 스크롤이 벽에 의해 튕겨지고 있음
+        bool isScrollTouched(chars uiname) const; // 스크롤이 사용자에 의해 터치됨
+        void clearScrollTouch(chars uiname); // 터치여부를 초기화
+        void moveScroll(chars uiname, float ox, float oy, float x, float y, float sec, bool touch);
         void resizeForced(sint32 w = -1, sint32 h = -1);
         bool getResizingValue(sint32& w, sint32& h);
 
@@ -384,7 +387,7 @@ namespace BOSS
         void _pop_mask();
         void _pop_font();
         void _pop_zoom();
-        void _add_ui(chars uiname, SubGestureCB cb, sint32 scroll, bool hoverpass);
+        void _add_ui(chars uiname, SubGestureCB cb, sint32 scrollsense, bool hoverpass);
 
     private:
         bool _push_scissor(float l, float t, float r, float b);
@@ -584,7 +587,7 @@ namespace BOSS
             float m_zoom;
             GestureCB m_cb;
             ZayPanel::SubGestureCB m_subcb;
-            sint32 m_scroll;
+            sint32 m_scrollsence; // -1은 스크롤아님, 0~N : 스크롤민감도
             bool m_hoverpass;
             sint32 m_hoverid;
             mutable point64 m_saved_xy;
@@ -615,6 +618,7 @@ namespace BOSS
             Tween2D* m_pos;
             size64 m_size;
             bool m_sense;
+            bool m_usercontrol;
         };
 
     private:
@@ -654,7 +658,7 @@ namespace BOSS
                 float zoom, ZayPanel::SubGestureCB cb, sint32 scroll, bool hoverpass, bool* dirtytest = nullptr);
             const Element* background() const;
             const Element* find(chars uiname, sint32 lag) const;
-            const Element& get(sint32 x, sint32 y, const Element*& backscroll) const;
+            const Element& get(sint32 x, sint32 y, const Element* press, const Element*& backscroll) const;
             bool hovertest(sint32 x, sint32 y);
 
         private:

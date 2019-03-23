@@ -977,21 +977,23 @@ namespace BOSS
 
             /*!
             \brief 특정 가로길이 공간에 잘려진 문자열 수량얻기
-            \param width : 가로길이(px)
+            \param byword : 단어단위 적용여부
+            \param clipping_width : 자를 가로길이(px)
             \param string : 문자열
             \param count : 문자열의 길이(char단위)
             \return 잘린 문자열의 수량
             */
-            static sint32 GetLengthOfString(sint32 clipping_width, chars string, sint32 count = -1);
+            static sint32 GetLengthOfString(bool byword, sint32 clipping_width, chars string, sint32 count = -1);
 
             /*!
             \brief 특정 가로길이 공간에 잘려진 문자열 수량얻기(UTF16)
-            \param width : 가로길이(px)
+            \param byword : 단어단위 적용여부
+            \param clipping_width : 자를 가로길이(px)
             \param string : 문자열
             \param count : 문자열의 길이(wchar단위)
             \return 잘린 문자열의 수량
             */
-            static sint32 GetLengthOfStringW(sint32 clipping_width, wchars string, sint32 count = -1);
+            static sint32 GetLengthOfStringW(bool byword, sint32 clipping_width, wchars string, sint32 count = -1);
 
             /*!
             \brief 폰트의 가로길이 얻기

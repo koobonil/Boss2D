@@ -1988,9 +1988,22 @@
                 for(sint32 i = 0; i < count; ++i)
                 {
                     auto CurCode = mRefGlyph->GetCode((uint32) string[i]);
-                    SumWidth += CurCode->mSavedWidth;
-                    if(clipping_width < SumWidth)
+                    if(clipping_width < (SumWidth += CurCode->mSavedWidth))
                         return i;
+                }
+                return count;
+            }
+            sint32 GetLengthByWordOf(sint32 clipping_width, wchars string, sint32 count)
+            {
+                BOSS_ASSERT("count에는 음수값이 올 수 없습니다", 0 <= count);
+                sint32 SumWidth = 0, SavedLength = 0;
+                for(sint32 i = 0; i < count; ++i)
+                {
+                    const uint32 CurCode = (uint32) string[i];
+                    auto CurCodeData = mRefGlyph->GetCode(CurCode);
+                    if(CurCode == L' ') SavedLength = i;
+                    if(clipping_width < (SumWidth += CurCodeData->mSavedWidth))
+                        return (SavedLength == 0)? i : SavedLength;
                 }
                 return count;
             }
@@ -2107,7 +2120,7 @@
         }
 
         template<typename TYPE>
-        static sint32 _GetLengthOfString(sint32 clipping_width, const TYPE* string, sint32 count)
+        static sint32 _GetLengthOfString(bool byword, sint32 clipping_width, const TYPE* string, sint32 count)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
             if(CanvasClass::get()->is_font_ft())
@@ -2116,8 +2129,10 @@
                 if(sizeof(TYPE) == 1)
                 {
                     const WString NewString = WString::FromChars((chars) string, count);
+                    if(byword) return CurFreeFont.GetLengthByWordOf(clipping_width, NewString, NewString.Length());
                     return CurFreeFont.GetLengthOf(clipping_width, NewString, NewString.Length());
                 }
+                if(byword) return CurFreeFont.GetLengthByWordOf(clipping_width, (wchars) string, (count < 0)? boss_wcslen((wchars) string) : count);
                 return CurFreeFont.GetLengthOf(clipping_width, (wchars) string, (count < 0)? boss_wcslen((wchars) string) : count);
             }
 
@@ -2149,14 +2164,14 @@
             return StringFocus - string;
         }
 
-        sint32 Platform::Graphics::GetLengthOfString(sint32 clipping_width, chars string, sint32 count)
+        sint32 Platform::Graphics::GetLengthOfString(bool byword, sint32 clipping_width, chars string, sint32 count)
         {
-            return _GetLengthOfString(clipping_width, string, count);
+            return _GetLengthOfString(byword, clipping_width, string, count);
         }
 
-        sint32 Platform::Graphics::GetLengthOfStringW(sint32 clipping_width, wchars string, sint32 count)
+        sint32 Platform::Graphics::GetLengthOfStringW(bool byword, sint32 clipping_width, wchars string, sint32 count)
         {
-            return _GetLengthOfString(clipping_width, string, count);
+            return _GetLengthOfString(byword, clipping_width, string, count);
         }
 
         sint32 Platform::Graphics::GetStringWidth(chars string, sint32 count)
