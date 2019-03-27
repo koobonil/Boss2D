@@ -81,6 +81,9 @@ namespace BOSS
         m_patch_cached_dst_visible_h = rhs.m_patch_cached_dst_visible_h;
         m_patch_cached_dst_x = ToReference(rhs.m_patch_cached_dst_x);
         m_patch_cached_dst_y = ToReference(rhs.m_patch_cached_dst_y);
+        m_rebuild_hint_width = rhs.m_rebuild_hint_width;
+        m_rebuild_hint_height = rhs.m_rebuild_hint_height;
+        m_rebuild_hint_msec = rhs.m_rebuild_hint_msec;
         return *this;
     }
 
@@ -599,6 +602,19 @@ namespace BOSS
         }
     }
 
+    bool Image::GetRebuildHint(sint32 width, sint32 height, float sec) const
+    {
+        if(m_rebuild_hint_width != width || m_rebuild_hint_height != height)
+        {
+            m_rebuild_hint_width = width;
+            m_rebuild_hint_height = height;
+            m_rebuild_hint_msec = Platform::Utility::CurrentTimeMsec();
+        }
+        else if(sec < (Platform::Utility::CurrentTimeMsec() - m_rebuild_hint_msec) * 0.001f)
+            return true;
+        return false;
+    }
+
     sint32 Image::GetImageWidth() const
     {
         return Bmp::GetWidth(m_bitmap);
@@ -776,6 +792,9 @@ namespace BOSS
         m_patch_cached_dst_visible_h = false;
         m_patch_cached_dst_x.Clear();
         m_patch_cached_dst_y.Clear();
+        m_rebuild_hint_width = 0;
+        m_rebuild_hint_height = 0;
+        m_rebuild_hint_msec = Platform::Utility::CurrentTimeMsec();
     }
 
     void Image::MakeData(sint32 l, sint32 t, sint32 r, sint32 b)

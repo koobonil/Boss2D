@@ -31,6 +31,7 @@ namespace BOSS
         void ChangeToMagentaAlpha();
         void RestoreFromMagentaAlpha();
         void ReplaceAlphaChannelBy(id_bitmap_read src);
+        bool GetRebuildHint(sint32 width, sint32 height, float sec) const;
 
     public:
         inline bool HasBitmap() const {return (m_bitmap != nullptr);}
@@ -114,6 +115,9 @@ namespace BOSS
         mutable bool m_patch_cached_dst_visible_h;
         mutable sint32s m_patch_cached_dst_x;
         mutable sint32s m_patch_cached_dst_y;
+        mutable sint32 m_rebuild_hint_width;
+        mutable sint32 m_rebuild_hint_height;
+        mutable uint64 m_rebuild_hint_msec;
     };
     typedef Array<Image> Images;
 }

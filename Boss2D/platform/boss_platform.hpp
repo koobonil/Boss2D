@@ -465,10 +465,9 @@ namespace BOSS
             static chars GetArgument(sint32 i, sint32* getcount = nullptr);
 
             /*!
-            \brief 프로그램을 OS에 URL스키마로 등록
+            \brief URL스키마의 내용을 체크
             \param schema : URL스키마(예: http, https, mailto)
-            \param exepath : 레지스트리에 기록할 실행파일의 경로(생략시 레지스트리에 URL스키마의 존재유무만 확인)
-            \param forcewrite : 무조건 기록
+            \param comparepath : 비교할 패스(comparepath의 길이까지만 비교)
             \return 성공여부
             */
             static bool TestUrlSchema(chars schema, chars comparepath);
@@ -578,6 +577,14 @@ namespace BOSS
             \return 사용 가능한 메모리양(바이트단위)
             */
             static sint64 CurrentAvailableMemory(sint64* totalbytes = nullptr);
+
+            /*!
+            \brief 디스크의 가용공간현황
+            \param drivecode : 드라이브코드(1~26)
+            \param totalbytes : 전체 디스크양(바이트단위)
+            \return 사용 가능한 디스크양(바이트단위)
+            */
+            static sint64 CurrentAvailableDisk(sint32 drivecode, sint64* totalbytes = nullptr);
 
             /*!
             \brief 마지막 핫키를 반환(비워짐)

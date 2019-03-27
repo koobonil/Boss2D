@@ -10,7 +10,7 @@ namespace BOSS
         BOSS_DECLARE_NONCOPYABLE_CLASS(ZaySonDocument)
     public:
         ZaySonDocument(chars chain);
-        ~ZaySonDocument();
+        virtual ~ZaySonDocument();
         ZaySonDocument(ZaySonDocument&& rhs);
         ZaySonDocument& operator=(ZaySonDocument&& rhs);
 
@@ -23,31 +23,14 @@ namespace BOSS
         void AddFlush();
         void Update(chars variable, chars formula);
         void CheckUpdatedSolvers(uint64 msec, UpdateCB cb);
-        void ReserverFlush();
+
+    protected:
+        virtual void PostProcess(const String key, const String value) {}
 
     private:
-        static void RemoveCB(chars itemname, payload data);
-        class DownloadReserver
-        {
-            BOSS_DECLARE_STANDARD_CLASS(DownloadReserver)
-        public:
-            DownloadReserver();
-            ~DownloadReserver();
-        public:
-            static sint32 OnTask(buffer& self, Queue<buffer>& query, Queue<buffer>& answer, id_common common);
-        public:
-            String mPath;
-            String mFileName;
-            String mUrl;
-        };
-        typedef Array<DownloadReserver> DownloadReservers;
-
-    private:
-        String mChain;
+        const String mChain;
         Solvers mSolvers;
         sint32 mExecutedCount;
-        DownloadReservers mReservers;
-        id_tasking mReserverTask;
     };
 
     //! \brief 뷰스크립트 원형

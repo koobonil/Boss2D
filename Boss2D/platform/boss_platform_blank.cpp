@@ -634,6 +634,12 @@
             return PlatformImpl::Wrap::Utility_CurrentAvailableMemory(totalbytes);
         }
 
+        sint64 Platform::Utility::CurrentAvailableDisk(sint32 drivecode, sint64* totalbytes)
+        {
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+            return 0;
+        }
+
         sint32 Platform::Utility::LastHotKey()
         {
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);

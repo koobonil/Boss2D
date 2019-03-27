@@ -226,71 +226,78 @@ namespace BOSS
     static uint08s _Request(id_curl curl, chars url, chars headerdata, AddOn::Curl::SendType sendtype, chars senddata, sint32 datalen, String* redirect_url, sint32 successcode, sint32 timeout)
     {
         if(!curl) return uint08s();
-        ((CurlStruct*) curl)->mCoreCacheBytes.SubtractionAll();
-        CURL* CurCurl = ((CurlStruct*) curl)->mId;
-
-        curl_easy_setopt(CurCurl, CURLOPT_URL, url);
-        curl_easy_setopt(CurCurl, CURLOPT_SSL_VERIFYPEER, 0L);
-        BOSS::UploadData PutData;
-        if(sendtype == AddOn::Curl::ST_Put)
+        while(true)
         {
-            PutData.mLength = (datalen == -1)? boss_strlen(senddata) : datalen;
-            PutData.mFocus = 0;
-            PutData.mData = senddata;
-            curl_easy_setopt(CurCurl, CURLOPT_UPLOAD, 1);
-            curl_easy_setopt(CurCurl, CURLOPT_READDATA, &PutData);
-            curl_easy_setopt(CurCurl, CURLOPT_READFUNCTION, BOSS::OnUpload);
-            curl_easy_setopt(CurCurl, CURLOPT_INFILESIZE_LARGE, (curl_off_t) PutData.mLength);
-        }
-        else curl_easy_setopt(CurCurl, CURLOPT_UPLOAD, 0);
-        if(sendtype == AddOn::Curl::ST_Post)
-        {
-            curl_easy_setopt(CurCurl, CURLOPT_POST, 1);
-            curl_easy_setopt(CurCurl, CURLOPT_POSTFIELDS , senddata);
-            curl_easy_setopt(CurCurl, CURLOPT_POSTFIELDSIZE, (datalen == -1)? boss_strlen(senddata) : datalen);
-        }
-        else curl_easy_setopt(CurCurl, CURLOPT_POST, 0);
-        curl_easy_setopt(CurCurl, CURLOPT_WRITEDATA, &((CurlStruct*) curl)->mCoreCacheBytes);
-        curl_easy_setopt(CurCurl, CURLOPT_WRITEFUNCTION, CurlWriteToUint08s);
+            ((CurlStruct*) curl)->mCoreCacheBytes.SubtractionAll();
+            CURL* CurCurl = ((CurlStruct*) curl)->mId;
 
-        curl_slist* cheader = nullptr;
-        cheader = BOSS::_MakeCHeader(cheader, url);
-        cheader = curl_slist_append(cheader, "User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0");
-        cheader = curl_slist_append(cheader, "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-        cheader = curl_slist_append(cheader, "Accept-Language: ko-kr,ko;q=0.8,en-us;q=0.5,en;q=0.3");
-        cheader = curl_slist_append(cheader, "Connection: keep-alive");
-
-        // 헤더데이터 추가분
-        String HeaderData = (headerdata)? headerdata : "";
-        if(HeaderData.Find(0, "Content-Type:") == -1)
-            cheader = curl_slist_append(cheader, "Content-Type: application/x-www-form-urlencoded");
-        if(0 < HeaderData.Length())
-        {
-            HeaderData.Replace("\r", "");
-            HeaderData.Replace('\n', '\0');
-            chars HeaderFocus = (chars) HeaderData;
-            for(sint32 i = 0, iend = HeaderData.Length(); i < iend; ++i)
+            curl_easy_setopt(CurCurl, CURLOPT_URL, url);
+            curl_easy_setopt(CurCurl, CURLOPT_SSL_VERIFYPEER, 0L);
+            BOSS::UploadData PutData;
+            if(sendtype == AddOn::Curl::ST_Put)
             {
-                cheader = curl_slist_append(cheader, &HeaderFocus[i]);
-                while(HeaderFocus[++i] != '\0');
+                PutData.mLength = (datalen == -1)? boss_strlen(senddata) : datalen;
+                PutData.mFocus = 0;
+                PutData.mData = senddata;
+                curl_easy_setopt(CurCurl, CURLOPT_UPLOAD, 1);
+                curl_easy_setopt(CurCurl, CURLOPT_READDATA, &PutData);
+                curl_easy_setopt(CurCurl, CURLOPT_READFUNCTION, BOSS::OnUpload);
+                curl_easy_setopt(CurCurl, CURLOPT_INFILESIZE_LARGE, (curl_off_t) PutData.mLength);
             }
-        }
-        curl_easy_setopt(CurCurl, CURLOPT_HTTPHEADER, cheader);
-
-        curl_easy_setopt(CurCurl, CURLOPT_TIMEOUT, timeout);
-        CURLcode res = curl_easy_perform(CurCurl);
-        curl_slist_free_all(cheader);
-
-        if(res == CURLE_OK)
-        {
-            long statLong = 0;
-            if(CURLE_OK == curl_easy_getinfo(CurCurl, CURLINFO_HTTP_CODE, &statLong))
-            if(redirect_url && statLong == successcode)
+            else curl_easy_setopt(CurCurl, CURLOPT_UPLOAD, 0);
+            if(sendtype == AddOn::Curl::ST_Post)
             {
-                char* location = nullptr;
-                curl_easy_getinfo(CurCurl, CURLINFO_REDIRECT_URL, &location);
-                *redirect_url = location;
+                curl_easy_setopt(CurCurl, CURLOPT_POST, 1);
+                curl_easy_setopt(CurCurl, CURLOPT_POSTFIELDS , senddata);
+                curl_easy_setopt(CurCurl, CURLOPT_POSTFIELDSIZE, (datalen == -1)? boss_strlen(senddata) : datalen);
             }
+            else curl_easy_setopt(CurCurl, CURLOPT_POST, 0);
+            curl_easy_setopt(CurCurl, CURLOPT_WRITEDATA, &((CurlStruct*) curl)->mCoreCacheBytes);
+            curl_easy_setopt(CurCurl, CURLOPT_WRITEFUNCTION, CurlWriteToUint08s);
+
+            curl_slist* cheader = nullptr;
+            cheader = BOSS::_MakeCHeader(cheader, url);
+            cheader = curl_slist_append(cheader, "User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0");
+            cheader = curl_slist_append(cheader, "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+            cheader = curl_slist_append(cheader, "Accept-Language: ko-kr,ko;q=0.8,en-us;q=0.5,en;q=0.3");
+            cheader = curl_slist_append(cheader, "Connection: keep-alive");
+
+            // 헤더데이터 추가분
+            String HeaderData = (headerdata)? headerdata : "";
+            if(HeaderData.Find(0, "Content-Type:") == -1)
+                cheader = curl_slist_append(cheader, "Content-Type: application/x-www-form-urlencoded");
+            if(0 < HeaderData.Length())
+            {
+                HeaderData.Replace("\r", "");
+                HeaderData.Replace('\n', '\0');
+                chars HeaderFocus = (chars) HeaderData;
+                for(sint32 i = 0, iend = HeaderData.Length(); i < iend; ++i)
+                {
+                    cheader = curl_slist_append(cheader, &HeaderFocus[i]);
+                    while(HeaderFocus[++i] != '\0');
+                }
+            }
+            curl_easy_setopt(CurCurl, CURLOPT_HTTPHEADER, cheader);
+            if(timeout != -1)
+                curl_easy_setopt(CurCurl, CURLOPT_TIMEOUT, timeout);
+
+            CURLcode res = curl_easy_perform(CurCurl);
+            curl_slist_free_all(cheader);
+
+            if(res == CURLE_OK)
+            {
+                long statLong = 0;
+                if(CURLE_OK == curl_easy_getinfo(CurCurl, CURLINFO_HTTP_CODE, &statLong))
+                if(redirect_url && statLong == successcode)
+                {
+                    char* location = nullptr;
+                    curl_easy_getinfo(CurCurl, CURLINFO_REDIRECT_URL, &location);
+                    *redirect_url = location;
+                }
+                break;
+            }
+            else if(timeout != -1)
+                break;
         }
         return ((CurlStruct*) curl)->mCoreCacheBytes;
     }

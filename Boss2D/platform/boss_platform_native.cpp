@@ -683,6 +683,12 @@
             return PlatformImpl::Wrap::Utility_CurrentAvailableMemory(totalbytes);
         }
 
+        sint64 Platform::Utility::CurrentAvailableDisk(sint32 drivecode, sint64* totalbytes)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return 0;
+        }
+
         sint32 Platform::Utility::LastHotKey()
         {
             BOSS_ASSERT("Further development is needed.", false);
@@ -1343,7 +1349,7 @@
 
             String AbsoluteName = BOSS::Platform::File::RootForAssetsRem() + String::FromWChars(itemname);
             if(AbsoluteName[-2] == '/' || AbsoluteName[-2] == '\\')
-                AbsoluteName.Sub(1);
+                AbsoluteName.SubTail(1);
 
             #if BOSS_WINDOWS
                 return WString::FromChars(AbsoluteName);

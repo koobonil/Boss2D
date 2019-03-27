@@ -1087,6 +1087,14 @@
             return PlatformImpl::Wrap::Utility_CurrentAvailableMemory(totalbytes);
         }
 
+        sint64 Platform::Utility::CurrentAvailableDisk(sint32 drivecode, sint64* totalbytes)
+        {
+            const char DrivePath[3] = {(char) ('A' + (drivecode - 1)), ':', '\0'};
+            QStorageInfo StorageInfo(DrivePath);
+            if(totalbytes) *totalbytes = StorageInfo.bytesTotal();
+            return StorageInfo.bytesAvailable();
+        }
+
         static sint32 gHotKeyCode = -1;
         #if BOSS_WINDOWS && defined(_MSC_VER)
             static HHOOK gHookForHotKey = NULL;

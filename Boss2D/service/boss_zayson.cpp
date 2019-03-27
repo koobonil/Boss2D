@@ -6,32 +6,24 @@ namespace BOSS
     ////////////////////////////////////////////////////////////////////////////////
     // ZaySonDocument
     ////////////////////////////////////////////////////////////////////////////////
-    ZaySonDocument::ZaySonDocument(chars chain)
+    ZaySonDocument::ZaySonDocument(chars chain) : mChain(chain)
     {
-        mChain = chain;
         mExecutedCount = 0;
-        mReserverTask = nullptr;
     }
 
     ZaySonDocument::~ZaySonDocument()
     {
-        Tasking::Release(mReserverTask, true);
     }
 
-    ZaySonDocument::ZaySonDocument(ZaySonDocument&& rhs)
+    ZaySonDocument::ZaySonDocument(ZaySonDocument&& rhs) : mChain(ToReference(rhs.mChain))
     {
         operator=(ToReference(rhs));
     }
 
     ZaySonDocument& ZaySonDocument::operator=(ZaySonDocument&& rhs)
     {
-        mChain = ToReference(rhs.mChain);
         mSolvers = ToReference(rhs.mSolvers);
         mExecutedCount = rhs.mExecutedCount; rhs.mExecutedCount = 0;
-        mReservers = ToReference(rhs.mReservers);
-        Tasking::Release(mReserverTask, true);
-        mReserverTask = rhs.mReserverTask;
-        rhs.mReserverTask = nullptr;
         return *this;
     }
 
@@ -68,45 +60,7 @@ namespace BOSS
             auto& NewSolver = mSolvers.AtAdding();
             NewSolver.Link(mChain, Key);
             NewSolver.Parse(String::Format("\"%s\"", CurValue));
-
-            // 마지막 키명 추출
-            sint32 DotPos = -1, NextDotPos = -1;
-            while((NextDotPos = Key.Find(DotPos + 1, ".")) != -1) DotPos = NextDotPos;
-            const String LastKey = (DotPos == -1)? Key : Key.Right(Key.Length() - (DotPos + 1));
-
-            // 같은 폴더내의 리소스가 최신상태가 아니면 지워준다
-            if(!LastKey.Compare("updated_at"))
-            {
-                String MidPath = Key;
-                MidPath.Replace(".", "/");
-                const String NewUpdate = CurValue;
-                if(0 < NewUpdate.Length())
-                {
-                    const String OldUpdate = String::FromAsset("web-cache/" + MidPath + ".txt");
-                    if(!!OldUpdate.Compare(NewUpdate))
-                        Platform::File::Search(Platform::File::RootForAssetsRem() + "web-cache/" + MidPath.Left(MidPath.Length() - LastKey.Length() - 1), RemoveCB, nullptr, true);
-                    NewUpdate.ToAsset("web-cache/" + MidPath + ".txt", true);
-                }
-            }
-            // 리소스 다운로드예약
-            else if(LastKey.Find(0, "_url") != -1)
-            {
-                const String Value = CurValue;
-                String FileExt = "";
-                branch;
-                jump(!Value.Right(4).CompareNoCase(".jpg")) FileExt = ".jpg";
-                jump(!Value.Right(4).CompareNoCase(".mp4")) FileExt = ".mp4";
-                jump(!Value.Right(4).CompareNoCase(".ogg")) FileExt = ".ogg";
-                jump(!Value.Right(5).CompareNoCase(".webm")) FileExt = ".webm";
-                if(0 < FileExt.Length())
-                {
-                    auto& NewReserver = mReservers.AtAdding();
-                    String MidPath = Key;
-                    NewReserver.mPath = "web-cache/" + MidPath.Replace(".", "/").Left(MidPath.Length() - LastKey.Length());
-                    NewReserver.mFileName = LastKey + FileExt;
-                    NewReserver.mUrl = Value;
-                }
-            }
+            PostProcess(Key, CurValue);
         }
     }
 
@@ -131,56 +85,6 @@ namespace BOSS
         for(sint32 i = 0; i < mExecutedCount; ++i)
             if(msec <= mSolvers[i].resultmsec())
                 cb(&mSolvers[i]);
-    }
-
-    void ZaySonDocument::ReserverFlush()
-    {
-        if(!mReserverTask)
-        {
-            mReserverTask = Tasking::Create(DownloadReserver::OnTask);
-            for(sint32 i = 0, iend = mReservers.Count(); i < iend; ++i)
-            {
-                buffer NewQuery = Buffer::Alloc<DownloadReserver>(BOSS_DBG 1);
-                *((DownloadReserver*) NewQuery) = ToReference(mReservers[i]);
-                Tasking::SendQuery(mReserverTask, NewQuery);
-            }
-        }
-        mReservers.Clear();
-    }
-
-    void ZaySonDocument::RemoveCB(chars itemname, payload data)
-    {
-        if(Platform::File::ExistForDir(itemname))
-            Platform::File::Search(itemname, RemoveCB, nullptr, true);
-        Platform::File::Remove(WString::FromChars(itemname), true);
-    }
-
-    ZaySonDocument::DownloadReserver::DownloadReserver()
-    {
-    }
-
-    ZaySonDocument::DownloadReserver::~DownloadReserver()
-    {
-    }
-
-    sint32 ZaySonDocument::DownloadReserver::OnTask(buffer& self, Queue<buffer>& query, Queue<buffer>& answer, id_common common)
-    {
-        if(buffer CurQuery = query.Dequeue(nullptr))
-        {
-            auto& CurReserver = *((DownloadReserver*) CurQuery);
-            if(Asset::Exist(CurReserver.mPath + CurReserver.mFileName) == roottype_null)
-            if(id_curl NewCurl = AddOn::Curl::Create(3000))
-            {
-                sint32 BufferSize = 0;
-                bytes DataBuffer = AddOn::Curl::GetBytes(NewCurl, CurReserver.mUrl, &BufferSize);
-                auto NewAsset = Asset::OpenForWrite(CurReserver.mPath + CurReserver.mFileName, true);
-                Asset::Write(NewAsset, DataBuffer, BufferSize);
-                Asset::Close(NewAsset);
-                AddOn::Curl::Release(NewCurl);
-            }
-            Buffer::Free(CurQuery);
-        }
-        return 100;
     }
 
     ////////////////////////////////////////////////////////////////////////////////

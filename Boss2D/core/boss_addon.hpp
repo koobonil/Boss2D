@@ -51,8 +51,8 @@ namespace BOSS
             enum SendType {ST_NoSend, ST_Put, ST_Post};
 
         public:
-            static id_curl Create(sint32 timeout = 0);
-            static id_curl CreateForUser(chars username, chars password, sint32 timeout = 0);
+            static id_curl Create(sint32 timeout = -1);
+            static id_curl CreateForUser(chars username, chars password, sint32 timeout = -1);
             static id_curl Clone(id_curl curl);
             static void Release(id_curl curl);
             static chars GetString(id_curl curl, chars url,
@@ -157,6 +157,9 @@ namespace BOSS
             static chars ReleaseMD5(id_md5 md5);
             static void UpdateMD5(id_md5 md5, bytes binary, sint32 length);
             static chars ToMD5(bytes binary, sint32 length);
+            static chars ToSHA256(bytes binary, sint32 length, bool base64);
+            static chars ToBASE64(bytes binary, sint32 length);
+            static buffer FromBASE64(chars base64);
         };
 
         //! \brief TESSERACT연동

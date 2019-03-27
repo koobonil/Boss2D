@@ -566,12 +566,15 @@ namespace BOSS
             const float DstY = -image.T() * YRate;
             const float DstWidth = image.GetImageWidth() * XRate;
             const float DstHeight = image.GetImageHeight() * YRate;
-            const sint32 ImageWidth = (rebuild)? ((sint32) DstWidth) * PixelScale : image.GetImageWidth();
-            const sint32 ImageHeight = (rebuild)? ((sint32) DstHeight) * PixelScale : image.GetImageHeight();
+            const sint32 RebuildWidth = ((sint32) DstWidth) * PixelScale;
+            const sint32 RebuildHeight = ((sint32) DstHeight) * PixelScale;
 
             const Color& LastColor = m_stack_color[-1];
-            Platform::Graphics::DrawImage(image.GetImage(LastColor, ImageWidth, ImageHeight),
-                0, 0, ImageWidth, ImageHeight, LastClip.l + DstX, LastClip.t + DstY, DstWidth, DstHeight);
+            if(rebuild && image.GetRebuildHint(RebuildWidth, RebuildHeight, 0.5))
+                Platform::Graphics::DrawImage(image.GetImage(LastColor, RebuildWidth, RebuildHeight),
+                    0, 0, RebuildWidth, RebuildHeight, LastClip.l + DstX, LastClip.t + DstY, DstWidth, DstHeight);
+            else Platform::Graphics::DrawImage(image.GetImage(LastColor, image.GetImageWidth(), image.GetImageHeight()),
+                0, 0, image.GetImageWidth(), image.GetImageHeight(), LastClip.l + DstX, LastClip.t + DstY, DstWidth, DstHeight);
         }
 
         if(image.HasChild())

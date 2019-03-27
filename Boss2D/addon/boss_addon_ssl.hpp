@@ -17,4 +17,12 @@ namespace BOSS
         MD5_CTX mCTX;
         unsigned char mDigest[MD5_DIGEST_LENGTH];
     };
+
+    class BASE64Class
+    {
+    public:
+        static size_t CalcedDecodeLength(const char* b64input);
+        static buffer Base64Decode(chars b64message);
+        static String Base64Encode(bytes data, size_t length);
+    };
 }

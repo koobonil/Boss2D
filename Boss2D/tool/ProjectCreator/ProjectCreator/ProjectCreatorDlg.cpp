@@ -212,7 +212,7 @@ void CProjectCreatorDlg::OnCreateClick()
     if(CorpName.Length() == 0) CorpName = "mycompany";
 
     String GetPath;
-    if(Platform::Popup::FileDialog(GetPath, nullptr, "압축을 풀 폴더를 지정하세요", true))
+    if(Platform::Popup::FileDialog(DST_Dir, GetPath, nullptr, "압축을 풀 폴더를 지정하세요"))
     if(HRSRC ResInfo = FindResourceW(NULL, MAKEINTRESOURCEW(IDR_ZIP1), L"ZIP"))
     if(HANDLE Res = LoadResource(NULL, ResInfo))
     {
