@@ -222,6 +222,7 @@ namespace BOSS
     public:
         typedef const void* (*FinderCB)(void*, chars);
         typedef void (*UpdaterCB)(void*, sint32);
+        typedef void (*ScrollerCB)(const size64&, const point64&);
 
     public:
         ZayObject();
@@ -248,7 +249,7 @@ namespace BOSS
         const float zoom(chars uiname = nullptr) const;
         const point64& oldxy(chars uiname = nullptr) const;
         Point scrollpos(chars uiname) const;
-        Size scrollsize(chars uiname) const;
+        void setscroller(chars uiname, ScrollerCB cb);
         bool isScrollSensing(chars uiname) const; // 스크롤이 벽에 의해 튕겨지고 있음
         bool isScrollTouched(chars uiname) const; // 스크롤이 사용자에 의해 터치됨
         void clearScrollTouch(chars uiname); // 터치여부를 초기화
@@ -370,7 +371,7 @@ namespace BOSS
         StackBinder _push_clip_ui_by_rect(const Rect& r, bool doScissor, chars uiname, SubGestureCB cb = nullptr, bool hoverpass = true);
         StackBinder _push_clip_by_child(sint32 ix, sint32 iy, sint32 xcount, sint32 ycount, bool doScissor);
         StackBinder _push_clip_ui_by_child(sint32 ix, sint32 iy, sint32 xcount, sint32 ycount, bool doScissor, chars uiname, SubGestureCB cb = nullptr, bool hoverpass = true);
-        StackBinder _push_scroll_ui(float contentw, float contenth, chars uiname, SubGestureCB cb = nullptr, sint32 sensitive = 0, sint32 senseborder = 0);
+        StackBinder _push_scroll_ui(float contentw, float contenth, chars uiname, SubGestureCB cb = nullptr, sint32 sensitive = 0, sint32 senseborder = 0, bool loop = false, float loopw = 0, float looph = 0);
         StackBinder _push_color(sint32 r, sint32 g, sint32 b, sint32 a);
         StackBinder _push_color(const Color& color);
         StackBinder _push_color_clear();
@@ -612,11 +613,13 @@ namespace BOSS
             void Move(float x, float y, float sec);
             void Moving(float x, float y, float sec, float unitsec, float unitrate);
             void Reset(float x, float y);
-            void ValidSize(sint32 width, sint32 height);
+            void SetInfo(sint32 width, sint32 height, sint32 ix, sint32 iy);
 
         public:
             Tween2D* m_pos;
             size64 m_size;
+            point64 m_idx;
+            ZayObject::ScrollerCB m_cb;
             bool m_sense;
             bool m_usercontrol;
         };

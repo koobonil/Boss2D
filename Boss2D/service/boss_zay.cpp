@@ -202,12 +202,11 @@ namespace BOSS
         return Point();
     }
 
-    Size ZayObject::scrollsize(chars uiname) const
+    void ZayObject::setscroller(chars uiname, ScrollerCB cb)
     {
-        if(auto CurTouch = (const ZayView::Touch*) ((const ZayView*) m_finder_data)->m_touch)
-        if(auto CurScroll = CurTouch->getscroll_const(uiname))
-            return Size(CurScroll->m_size.w, CurScroll->m_size.h);
-        return Size();
+        if(auto CurTouch = (ZayView::Touch*) ((ZayView*) m_finder_data)->m_touch)
+        if(auto CurScroll = CurTouch->getscroll(uiname))
+            CurScroll->m_cb = cb;
     }
 
     bool ZayObject::isScrollSensing(chars uiname) const
@@ -559,15 +558,14 @@ namespace BOSS
 
         if(visible)
         {
-            static const sint32 PixelScale = Platform::Utility::GetPixelScale();
             const float XRate = LastClip.Width() / ImageWidth;
             const float YRate = LastClip.Height() / ImageHeight;
             const float DstX = -image.L() * XRate;
             const float DstY = -image.T() * YRate;
             const float DstWidth = image.GetImageWidth() * XRate;
             const float DstHeight = image.GetImageHeight() * YRate;
-            const sint32 RebuildWidth = ((sint32) DstWidth) * PixelScale;
-            const sint32 RebuildHeight = ((sint32) DstHeight) * PixelScale;
+            const sint32 RebuildWidth = (sint32) DstWidth;
+            const sint32 RebuildHeight = (sint32) DstHeight;
 
             const Color& LastColor = m_stack_color[-1];
             if(rebuild && image.GetRebuildHint(RebuildWidth, RebuildHeight, 0.5))
@@ -913,7 +911,7 @@ namespace BOSS
         return StackBinder(this); // 하위진입불가
     }
 
-    ZayPanel::StackBinder ZayPanel::_push_scroll_ui(float contentw, float contenth, chars uiname, SubGestureCB cb, sint32 sensitive, sint32 senseborder)
+    ZayPanel::StackBinder ZayPanel::_push_scroll_ui(float contentw, float contenth, chars uiname, SubGestureCB cb, sint32 sensitive, sint32 senseborder, bool loop, float loopw, float looph)
     {
         if(auto CurTouch = (ZayView::Touch*) m_ref_touch)
         {
@@ -925,51 +923,78 @@ namespace BOSS
             }
 
             const Clip& LastClip = m_stack_clip[-1];
-            contentw = Math::MaxF(contentw, LastClip.Width());
-            contenth = Math::MaxF(contenth, LastClip.Height());
-            CurScroll->ValidSize(contentw - LastClip.Width(), contenth - LastClip.Height());
-
-            // 한계적용
             sint32 ScrollX = CurScroll->m_pos->x();
             sint32 ScrollY = CurScroll->m_pos->y();
-            const bool OverSense =
-                ScrollX < -CurScroll->m_size.w - senseborder || senseborder < ScrollX ||
-                ScrollY < -CurScroll->m_size.h - senseborder || senseborder < ScrollY;
-            ScrollX = Math::Clamp(ScrollX, -CurScroll->m_size.w - senseborder, senseborder);
-            ScrollY = Math::Clamp(ScrollY, -CurScroll->m_size.h - senseborder, senseborder);
 
-            // 센스기능(벽튕기기)
-            if(!CurScroll->m_sense && (CurScroll->m_pos->IsArrivedAlmost(1.8) || OverSense))
+            if(loop)
             {
-                if(senseborder == 0)
+                // 루프처리
+                sint32 BeginIndexX = 0, BeginIndexY = 0;
+                if(0 < loopw)
                 {
-                    CurScroll->Reset(ScrollX, ScrollY);
-                    CurScroll->m_sense = true;
+                    if(ScrollX <= -loopw) BeginIndexX = (sint32) (ScrollX / -loopw);
+                    else if(0 < ScrollX) BeginIndexX = (ScrollX + loopw - 1) / -loopw;
+                    ScrollX += loopw * BeginIndexX;
                 }
-                else
+                if(0 < looph)
                 {
-                    uint08 UpdateCode = 0xFF;
-                    float NewX = ScrollX;
-                    if(0 < ScrollX) NewX = 0;
-                    else if(ScrollX < -CurScroll->m_size.w) NewX = -CurScroll->m_size.w;
-                    else UpdateCode &= 0xF0;
-                    float NewY = ScrollY;
-                    if(0 < ScrollY) NewY = 0;
-                    else if(ScrollY < -CurScroll->m_size.h) NewY = -CurScroll->m_size.h;
-                    else UpdateCode &= 0x0F;
-                    if(UpdateCode)
-                    {
-                        CurScroll->Reset(ScrollX, ScrollY);
-                        CurScroll->Moving(NewX, NewY, 0.5, 0.1, 0.9);
-                        CurScroll->m_sense = true;
-                    }
+                    if(ScrollY <= -looph) BeginIndexY = (sint32) (ScrollY / -looph);
+                    else if(0 < ScrollY) BeginIndexY = (ScrollY + looph - 1) / -looph;
+                    ScrollY += looph * BeginIndexY;
+                }
+                CurScroll->SetInfo(0, 0, BeginIndexX, BeginIndexY);
+
+                if(auto CurBinder = _push_clip(ScrollX, ScrollY, LastClip.r - LastClip.l, LastClip.b - LastClip.t, false))
+                {
+                    _add_ui(uiname, cb, sensitive, false);
+                    return StackBinder(ToReference(CurBinder));
                 }
             }
-
-            if(auto CurBinder = _push_clip(ScrollX, ScrollY, ScrollX + contentw, ScrollY + contenth, false))
+            else
             {
-                _add_ui(uiname, cb, sensitive, false);
-                return StackBinder(ToReference(CurBinder));
+                const float ContentWidth = Math::MaxF(contentw, LastClip.Width());
+                const float ContentHeight = Math::MaxF(contenth, LastClip.Height());
+                // 한계적용
+                CurScroll->SetInfo(ContentWidth - LastClip.Width(), ContentHeight - LastClip.Height(), 0, 0);
+                const bool OverSense =
+                    ScrollX < -CurScroll->m_size.w - senseborder || senseborder < ScrollX ||
+                    ScrollY < -CurScroll->m_size.h - senseborder || senseborder < ScrollY;
+                ScrollX = Math::Clamp(ScrollX, -CurScroll->m_size.w - senseborder, senseborder);
+                ScrollY = Math::Clamp(ScrollY, -CurScroll->m_size.h - senseborder, senseborder);
+
+                // 센스기능(벽튕기기)
+                if(!CurScroll->m_sense && (CurScroll->m_pos->IsArrivedAlmost(1.8) || OverSense))
+                {
+                    if(senseborder == 0)
+                    {
+                        CurScroll->Reset(ScrollX, ScrollY);
+                        CurScroll->m_sense = true;
+                    }
+                    else
+                    {
+                        uint08 UpdateCode = 0xFF;
+                        float NewX = ScrollX;
+                        if(0 < ScrollX) NewX = 0;
+                        else if(ScrollX < -CurScroll->m_size.w) NewX = -CurScroll->m_size.w;
+                        else UpdateCode &= 0xF0;
+                        float NewY = ScrollY;
+                        if(0 < ScrollY) NewY = 0;
+                        else if(ScrollY < -CurScroll->m_size.h) NewY = -CurScroll->m_size.h;
+                        else UpdateCode &= 0x0F;
+                        if(UpdateCode)
+                        {
+                            CurScroll->Reset(ScrollX, ScrollY);
+                            CurScroll->Moving(NewX, NewY, 0.5, 0.1, 0.9);
+                            CurScroll->m_sense = true;
+                        }
+                    }
+                }
+
+                if(auto CurBinder = _push_clip(ScrollX, ScrollY, ScrollX + ContentWidth, ScrollY + ContentHeight, false))
+                {
+                    _add_ui(uiname, cb, sensitive, false);
+                    return StackBinder(ToReference(CurBinder));
+                }
             }
         }
         return StackBinder(this); // 하위진입불가
@@ -1845,6 +1870,9 @@ namespace BOSS
         m_pos = nullptr;
         m_size.w = 0;
         m_size.h = 0;
+        m_idx.x = 0;
+        m_idx.y = 0;
+        m_cb = nullptr;
         m_sense = false;
         m_usercontrol = false;
     }
@@ -1859,6 +1887,8 @@ namespace BOSS
         delete m_pos; m_pos = nullptr;
         if(rhs.m_pos) m_pos = new Tween2D(*rhs.m_pos);
         m_size = rhs.m_size;
+        m_idx = rhs.m_idx;
+        m_cb = rhs.m_cb;
         m_sense = rhs.m_sense;
         m_usercontrol = rhs.m_usercontrol;
         return *this;
@@ -1900,10 +1930,13 @@ namespace BOSS
         m_pos->Reset(x, y);
     }
 
-    void ZayView::Scroll::ValidSize(sint32 width, sint32 height)
+    void ZayView::Scroll::SetInfo(sint32 width, sint32 height, sint32 ix, sint32 iy)
     {
         m_size.w = width;
         m_size.h = height;
+        m_idx.x = ix;
+        m_idx.y = iy;
+        if(m_cb) m_cb(m_size, m_idx);
     }
 
     ZayView::Touch::Touch()

@@ -525,18 +525,10 @@ namespace BOSS
             static void GetCursorPos(point64& pos);
 
             /*!
-            \brief 픽셀크기 얻기
-            \return 픽셀크기(1, 2, 3...)
+            \brief OS의 사용자배율 얻기
+            \return 사용자배율(1.0, 1.25, 1.5, 1.75, 2.0...)
             */
-            static sint32 GetPixelScale();
-
-            /*!
-            \brief 플랫폼에 따른 폰트 배율 얻기
-            \param def_depth : 기준 Depth
-            \param def_dpi : 기준 DPI
-            \return 폰트 배율
-            */
-            static float GetFontScaleRate(sint32 def_depth = 32, sint32 def_dpi = 96);
+            static float GetPixelRatio();
 
             /*!
             \brief OS명칭 얻기
@@ -1017,6 +1009,16 @@ namespace BOSS
             \return 가로길이(px)
             */
             static sint32 GetStringWidthW(wchars string, sint32 count = -1);
+
+            /*!
+            \brief 프리타입전용 폰트의 가로길이 얻기(그래픽스상황 관계없음)
+            \param nickname : 프리타입 Create시 작성한 nickname
+            \param height : 세로길이(px)
+            \param string : 문자열
+            \param count : 문자열의 길이(char단위)
+            \return 가로길이(px)
+            */
+            static sint32 GetFreeTypeStringWidth(chars nickname, sint32 height, chars string, sint32 count = -1);
 
             /*!
             \brief 폰트의 세로길이 얻기

@@ -1041,20 +1041,10 @@
             pos.y = CursorPos.y();
         }
 
-        sint32 Platform::Utility::GetPixelScale()
+        float Platform::Utility::GetPixelRatio()
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_window);
-            if(!g_window) return 1;
-            return g_window->devicePixelRatio();
-        }
-
-        float Platform::Utility::GetFontScaleRate(sint32 def_depth, sint32 def_dpi)
-        {
-            BOSS_ASSERT("호출시점이 적절하지 않습니다", g_window);
-            if(!g_window) return 1;
-            float depth_rate = def_depth / (float) g_window->depth();
-            float dpi_rate = g_window->logicalDpiX() / (float) def_dpi;
-            return depth_rate * dpi_rate;
+            return g_window->devicePixelRatioF();
         }
 
         chars Platform::Utility::GetOSName()
@@ -1287,14 +1277,6 @@
         void Platform::Graphics::SetFont(chars name, float size)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", CanvasClass::get());
-            #if BOSS_MAC_OSX
-                size *= 1.2f;
-            #elif BOSS_IPHONE
-                size *= 1.2f;
-            #elif BOSS_ANDROID
-                static const sint32 PixelScale = Platform::Utility::GetPixelScale();
-                size *= 0.3f * PixelScale;
-            #endif
             CanvasClass::get()->SetFont(name, (sint32) size);
         }
 
@@ -2203,6 +2185,13 @@
                 return CurFreeFont.GetWidth(string, count);
             }
             return CanvasClass::get()->painter().fontMetrics().width(QString::fromWCharArray(string, count));
+        }
+
+        sint32 Platform::Graphics::GetFreeTypeStringWidth(chars nickname, sint32 height, chars string, sint32 count)
+        {
+            FreeFont CurFreeFont(nickname, height);
+            const WString NewString = WString::FromChars(string, count);
+            return CurFreeFont.GetWidth(NewString, NewString.Length());
         }
 
         sint32 Platform::Graphics::GetStringHeight()

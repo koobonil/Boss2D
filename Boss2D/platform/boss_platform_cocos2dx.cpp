@@ -665,7 +665,7 @@
             BOSS_ASSERT("Further development is needed.", false);
         }
 
-        sint32 Platform::Utility::GetPixelScale()
+        float Platform::Utility::GetPixelRatio()
         {
             BOSS_ASSERT("Further development is needed.", false);
             return 1;
@@ -1132,6 +1132,14 @@
             TempLabel->retain();
             TempLabel->release();
             return Result;
+        }
+
+        sint32 Platform::Graphics::GetFreeTypeStringWidth(chars nickname, sint32 height, chars string, sint32 count)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", ViewAPI::CurPainter());
+
+            BOSS_ASSERT("Further development is needed.", false);
+            return 0;
         }
 
         sint32 Platform::Graphics::GetStringHeight()

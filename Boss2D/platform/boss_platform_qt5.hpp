@@ -3106,6 +3106,7 @@
             {
                 QOpenGLContext* ctx = QOpenGLContext::currentContext();
                 QOpenGLFunctions* f = ctx->functions();
+                const float DeviceRatio = Platform::Utility::GetPixelRatio();
 
                 f->glBindFramebuffer(GL_FRAMEBUFFER, fbo); TestGL(BOSS_DBG 0);
                 GLint ViewPortValues[4] = {0};
@@ -3114,8 +3115,8 @@
                     const GLint DstWidth = ViewPortValues[2] / 4;
                     const GLint DstHeight = ViewPortValues[3] / 4;
                 #else
-                    const GLint DstWidth = ViewPortValues[2];
-                    const GLint DstHeight = ViewPortValues[3];
+                    const GLint DstWidth = ViewPortValues[2] / DeviceRatio;
+                    const GLint DstHeight = ViewPortValues[3] / DeviceRatio;
                 #endif
                 BOSS::Rect NewRect;
                 NewRect.l = (rect.l / DstWidth - 0.5) * 2;
@@ -3175,8 +3176,10 @@
                 f->glEnable(GL_SCISSOR_TEST); TestGL(BOSS_DBG 0);
                 const QRect& CurScissor = CanvasClass::get()->scissor();
                 const int ScreenHeight = CanvasClass::get()->painter().window().height();
-                f->glScissor(CurScissor.x(), ScreenHeight - (CurScissor.y() + CurScissor.height()),
-                    CurScissor.width(), CurScissor.height());
+                f->glScissor(CurScissor.x() * DeviceRatio,
+                    (ScreenHeight - (CurScissor.y() + CurScissor.height())) * DeviceRatio,
+                    CurScissor.width() * DeviceRatio,
+                    CurScissor.height() * DeviceRatio);
 
                 mAttrib[0].vertices[0] = NewRect.l;
                 mAttrib[0].vertices[1] = NewRect.t;
