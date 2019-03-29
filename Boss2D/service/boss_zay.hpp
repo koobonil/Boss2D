@@ -680,6 +680,8 @@ namespace BOSS
             inline Scroll* getscroll(chars uiname) {return m_scrollmap.Access(uiname);}
             inline const Scroll* getscroll_const(chars uiname) const {return m_scrollmap.Access(uiname);}
             inline Scroll* getscroll_valid(chars uiname) {return &m_scrollmap(uiname);}
+            inline void setlasttouch(TouchType type) {m_lasttouch = type;}
+            inline TouchType getlasttouch() const {return m_lasttouch;}
 
         public:
             inline bool changefocus(const Element* element)
@@ -728,6 +730,7 @@ namespace BOSS
             sint32 m_hover_x;
             sint32 m_hover_y;
             Map<Scroll> m_scrollmap;
+            TouchType m_lasttouch;
         };
 
     private:
@@ -778,6 +781,7 @@ namespace BOSS
         void OnKey(sint32 code, chars text, bool pressed) override;
 
     private:
+        void _checklose(GestureType type, const Element* element, sint32 x, sint32 y);
         void _gesture(GestureType type, sint32 x, sint32 y);
 
     public:

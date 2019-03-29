@@ -660,9 +660,20 @@
             return nullptr;
         }
 
+        void Platform::Utility::SetCursor(CursorRole role)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+        }
+
         void Platform::Utility::GetCursorPos(point64& pos)
         {
             BOSS_ASSERT("Further development is needed.", false);
+        }
+
+        bool Platform::Utility::GetCursorPosInWindow(point64& pos)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return false;
         }
 
         float Platform::Utility::GetPixelRatio()

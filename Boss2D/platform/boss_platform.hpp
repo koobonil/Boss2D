@@ -34,6 +34,9 @@ namespace BOSS
     enum MaskRole {MR_SrcOver, MR_DstOver, MR_Clear, MR_Src, MR_Dst,
         MR_SrcIn, MR_DstIn, MR_SrcOut, MR_DstOut,
         MR_SrcAtop, MR_DstAtop, MR_Xor, MR_Default = MR_SrcOver};
+    enum CursorRole {CR_Arrow, CR_UpArrow, CR_Cross, CR_Wait, CR_IBeam, CR_Blank,
+        CR_SizeVer, CR_SizeHor, CR_SizeBDiag, CR_SizeFDiag, CR_SizeAll,
+        CR_PointingHand, CR_OpenHand, CR_ClosedHand, CR_Forbidden, CR_Busy, CR_WhatsThis};
     enum DialogShellType {DST_FileOpen, DST_FileSave, DST_Dir};
     enum DialogButtonType {DBT_YesNo, DBT_Ok, DBT_OKCancel, DBT_OkCancelIgnore};
     enum ConnectStatus {CS_Connecting, CS_Connected, CS_Disconnected};
@@ -519,10 +522,23 @@ namespace BOSS
             static id_bitmap ImageToBitmap(id_image_read image, orientationtype ori = orientationtype_fliped0);
 
             /*!
+            \brief 커서모양 바꾸기
+            \param role : 커서모양
+            */
+            static void SetCursor(CursorRole role);
+
+            /*!
             \brief 커서위치 얻기
-            \param pos : 커서위치(px)
+            \param pos : 윈도우좌표계 커서위치(px)
             */
             static void GetCursorPos(point64& pos);
+
+            /*!
+            \brief 윈도우내 커서위치 얻기
+            \param pos : 클라이언트좌표계 커서위치(px)
+            \return 윈도우의 안쪽인지의 여부
+            */
+            static bool GetCursorPosInWindow(point64& pos);
 
             /*!
             \brief OS의 사용자배율 얻기

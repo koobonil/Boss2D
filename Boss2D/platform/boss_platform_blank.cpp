@@ -590,9 +590,20 @@
             return nullptr;
         }
 
+        void Platform::Utility::SetCursor(CursorRole role)
+        {
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+        }
+
         void Platform::Utility::GetCursorPos(point64& pos)
         {
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+        }
+
+        bool Platform::Utility::GetCursorPosInWindow(point64& pos)
+        {
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+            return false;
         }
 
         float Platform::Utility::GetPixelRatio()

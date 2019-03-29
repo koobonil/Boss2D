@@ -1034,11 +1034,47 @@
             return Result;
         }
 
+        void Platform::Utility::SetCursor(CursorRole role)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
+            switch(role)
+            {
+            case CR_Arrow: g_window->setCursor(Qt::ArrowCursor); break;
+            case CR_UpArrow: g_window->setCursor(Qt::UpArrowCursor); break;
+            case CR_Cross: g_window->setCursor(Qt::CrossCursor); break;
+            case CR_Wait: g_window->setCursor(Qt::WaitCursor); break;
+            case CR_IBeam: g_window->setCursor(Qt::IBeamCursor); break;
+            case CR_Blank: g_window->setCursor(Qt::BlankCursor); break;
+            case CR_SizeVer: g_window->setCursor(Qt::SizeVerCursor); break;
+            case CR_SizeHor: g_window->setCursor(Qt::SizeHorCursor); break;
+            case CR_SizeBDiag: g_window->setCursor(Qt::SizeBDiagCursor); break;
+            case CR_SizeFDiag: g_window->setCursor(Qt::SizeFDiagCursor); break;
+            case CR_SizeAll: g_window->setCursor(Qt::SizeAllCursor); break;
+            case CR_PointingHand: g_window->setCursor(Qt::PointingHandCursor); break;
+            case CR_OpenHand: g_window->setCursor(Qt::OpenHandCursor); break;
+            case CR_ClosedHand: g_window->setCursor(Qt::ClosedHandCursor); break;
+            case CR_Forbidden: g_window->setCursor(Qt::ForbiddenCursor); break;
+            case CR_Busy: g_window->setCursor(Qt::BusyCursor); break;
+            case CR_WhatsThis: g_window->setCursor(Qt::WhatsThisCursor); break;
+            }
+        }
+
         void Platform::Utility::GetCursorPos(point64& pos)
         {
-            const QPoint& CursorPos = CursorPrivate::pos();
+            const QPoint CursorPos = CursorPrivate::pos();
             pos.x = CursorPos.x();
             pos.y = CursorPos.y();
+        }
+
+        bool Platform::Utility::GetCursorPosInWindow(point64& pos)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
+            const QPoint CursorPos = CursorPrivate::pos();
+            pos.x = CursorPos.x() - g_window->x();
+            pos.y = CursorPos.y() - g_window->y();
+            return !(CursorPos.x() < g_window->x() || CursorPos.y() < g_window->y()
+                || g_window->x() + g_window->width() <= CursorPos.x()
+                || g_window->y() + g_window->height() <= CursorPos.y());
         }
 
         float Platform::Utility::GetPixelRatio()

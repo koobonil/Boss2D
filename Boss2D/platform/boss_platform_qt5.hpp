@@ -1445,8 +1445,6 @@
             m_height = 0;
             m_request = WR_Null;
             m_paintcount = 0;
-            m_tooltip_x = 0;
-            m_tooltip_y = 0;
             m_longpress_x = 0;
             m_longpress_y = 0;
 
@@ -1748,8 +1746,6 @@
             {
                 touch(TT_Moving, 0, event->x(), event->y());
                 m_tooltip_timer.start(300);
-                m_tooltip_x = event->x();
-                m_tooltip_y = event->y();
                 Platform::Popup::HideToolTip();
             }
             else
@@ -1852,7 +1848,9 @@
         void tooltip_timeout()
         {
             m_tooltip_timer.stop();
-            touch(TT_ToolTip, 0, m_tooltip_x, m_tooltip_y);
+            point64 CursorPos;
+            if(Platform::Utility::GetCursorPosInWindow(CursorPos))
+                touch(TT_ToolTip, 0, CursorPos.x, CursorPos.y);
         }
 
         void longpress_timeout()
@@ -1877,14 +1875,12 @@
         sint32 m_height;
         WidgetRequest m_request;
         sint32 m_paintcount;
-        sint32 m_tooltip_x;
-        sint32 m_tooltip_y;
-        sint32 m_longpress_x;
-        sint32 m_longpress_y;
         QTimer m_tick_timer;
         QTimer m_update_timer;
         QTimer m_tooltip_timer;
         QTimer m_longpress_timer;
+        sint32 m_longpress_x;
+        sint32 m_longpress_y;
     };
 
     class GenericView : public FramePrivate

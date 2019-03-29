@@ -1622,10 +1622,19 @@ namespace BOSS
         }
         ((ZayController*) m_class)->nextFrame();
 
-        // 매프레임마다 화면갱신을 위한 터치를 일으킴(마우스기기를 위한 시나리오)
+        // 마우스이벤트 처리
         Touch* CurTouch = (Touch*) m_touch;
-        if(!CurTouch->ishovered(0)) // 호버ID가 0이 아니라면, 즉 저장된 호버좌표가 있다면
-            OnTouch(TT_Render, 0, CurTouch->hoverx(), CurTouch->hovery());
+        point64 CursorPos;
+        if(!Platform::Utility::GetCursorPosInWindow(CursorPos))
+        {
+            // 포커스 제거
+            if(CurTouch->changefocus(nullptr))
+                m_class->invalidate();
+            // MovingLosed와 DroppingLosed의 처리
+            _checklose(GT_Null, nullptr, CursorPos.x, CursorPos.y);
+        }
+        // 마우스이동없이 엘리먼트 스스로 움직일 가능성
+        else OnTouch(TT_Render, 0, CursorPos.x, CursorPos.y);
     }
 
     void ZayView::OnTouch(TouchType type, sint32 id, sint32 x, sint32 y)
@@ -1649,84 +1658,79 @@ namespace BOSS
         else if(type == TT_Release)
             NeedUpdate |= CurTouch->changepress(nullptr);
 
-        if(type != TT_Render)
+        // 랜더이벤트의 치환
+        if(type == TT_Render)
         {
-            if(CurElement.m_cb)
+            switch(CurTouch->getlasttouch())
             {
-                auto LockID = m_ref_func->m_lock(m_class);
-                const bool IsSameElement = (&CurElement == PressElement);
-                switch(type)
-                {
-                case TT_Moving: CurElement.m_cb(this, &CurElement, SavedType = GT_Moving, x, y); break;
-                case TT_Press: CurElement.m_cb(this, &CurElement, SavedType = GT_Pressed, x, y); break;
-                case TT_Dragging:
-                    // 관련 스크롤 존재시 sensitive초과된 Dragging발생한 경우 이벤트전이
-                    if(ScrollElement && ScrollElement != PressElement && ScrollElement->m_cb
-                        && ScrollElement->m_scrollsence < CurTouch->press_to_xy(x, y))
-                    {
-                        if(PressElement && PressElement->m_cb)
-                            PressElement->m_cb(this, PressElement, GT_OutReleased, x, y);
-                        ScrollElement->m_cb(this, ScrollElement, SavedType = GT_Pressed, x, y);
-                        // 백스크롤을 강제로 Press화
-                        CurTouch->changepress(ScrollElement);
-                        CurTouch->setpress_xy(x, y);
-                        NeedUpdate = true;
-                    }
-                    else
-                    {
-                        if(!IsSameElement && PressElement && PressElement->m_cb)
-                            PressElement->m_cb(this, PressElement, GT_OutDragging, x, y);
-                        CurElement.m_cb(this, &CurElement, SavedType = ((IsSameElement)? GT_InDragging : GT_Dropping), x, y);
-                    }
-                    break;
-                case TT_Release:
-                    CurElement.m_cb(this, &CurElement, SavedType = ((IsSameElement)? GT_InReleased : GT_Dropped), x, y);
-                    if(!IsSameElement && PressElement && PressElement->m_cb)
-                        PressElement->m_cb(this, PressElement, GT_OutReleased, x, y);
-                    break;
-                case TT_WheelUp: case TT_WheelDown:
-                case TT_WheelPress: case TT_WheelDragging: case TT_WheelRelease:
-                case TT_ExtendPress: case TT_ExtendDragging: case TT_ExtendRelease:
-                    CurElement.m_cb(this, &CurElement, (GestureType) (type - TT_WheelUp + GT_WheelUp), x, y);
-                    // Peek처리
-                    if(&CurElement != CurTouch->background())
-                        CurTouch->background()->m_cb(this, CurTouch->background(),
-                            (GestureType) (type - TT_WheelUp + GT_WheelUpPeeked), x, y);
-                    break;
-                case TT_ToolTip:
-                    CurElement.m_cb(this, &CurElement, GT_ToolTip, x, y);
-                    break;
-                case TT_LongPress:
-                    CurElement.m_cb(this, &CurElement, GT_LongPressed, x, y);
-                    break;
-                }
-                m_ref_func->m_unlock(LockID);
-            }
-
-            // MovingLosed와 DroppingLosed의 처리
-            if(SavedType != GT_Null)
-            {
-                if(const Element* OldMover = CurTouch->changemoving(&CurElement, SavedType))
-                {
-                    if(OldMover->m_cb)
-                    {
-                        auto LockID = m_ref_func->m_lock(m_class);
-                        OldMover->m_cb(this, OldMover, GT_MovingLosed, x, y);
-                        m_ref_func->m_unlock(LockID);
-                    }
-                }
-
-                if(const Element* OldDropper = CurTouch->changedropping(&CurElement, SavedType))
-                {
-                    if(OldDropper->m_cb)
-                    {
-                        auto LockID = m_ref_func->m_lock(m_class);
-                        OldDropper->m_cb(this, OldDropper, GT_DroppingLosed, x, y);
-                        m_ref_func->m_unlock(LockID);
-                    }
-                }
+            case TT_Press: type = TT_Dragging; break;
+            case TT_ExtendPress: type = TT_ExtendDragging; break;
+            case TT_WheelPress: type = TT_WheelDragging; break;
+            default: type = TT_Moving; break;
             }
         }
+        else if(type == TT_Press || type == TT_ExtendPress || type == TT_WheelPress)
+            CurTouch->setlasttouch(type);
+        else if((CurTouch->getlasttouch() == TT_Press && type == TT_Release)
+            || (CurTouch->getlasttouch() == TT_ExtendPress && type == TT_ExtendRelease)
+            || (CurTouch->getlasttouch() == TT_WheelPress && type == TT_WheelRelease))
+            CurTouch->setlasttouch(TT_Null);
+
+        if(CurElement.m_cb)
+        {
+            auto LockID = m_ref_func->m_lock(m_class);
+            const bool IsSameElement = (&CurElement == PressElement);
+            switch(type)
+            {
+            case TT_Moving: CurElement.m_cb(this, &CurElement, SavedType = GT_Moving, x, y); break;
+            case TT_Press: CurElement.m_cb(this, &CurElement, SavedType = GT_Pressed, x, y); break;
+            case TT_Dragging:
+                // 관련 스크롤 존재시 sensitive초과된 Dragging발생한 경우 이벤트전이
+                if(ScrollElement && ScrollElement != PressElement && ScrollElement->m_cb
+                    && ScrollElement->m_scrollsence < CurTouch->press_to_xy(x, y))
+                {
+                    if(PressElement && PressElement->m_cb)
+                        PressElement->m_cb(this, PressElement, GT_OutReleased, x, y);
+                    ScrollElement->m_cb(this, ScrollElement, SavedType = GT_Pressed, x, y);
+                    // 백스크롤을 강제로 Press화
+                    CurTouch->changepress(ScrollElement);
+                    CurTouch->setpress_xy(x, y);
+                    NeedUpdate = true;
+                }
+                else
+                {
+                    if(!IsSameElement && PressElement && PressElement->m_cb)
+                        PressElement->m_cb(this, PressElement, GT_OutDragging, x, y);
+                    CurElement.m_cb(this, &CurElement, SavedType = ((IsSameElement)? GT_InDragging : GT_Dropping), x, y);
+                }
+                break;
+            case TT_Release:
+                CurElement.m_cb(this, &CurElement, SavedType = ((IsSameElement)? GT_InReleased : GT_Dropped), x, y);
+                if(!IsSameElement && PressElement && PressElement->m_cb)
+                    PressElement->m_cb(this, PressElement, GT_OutReleased, x, y);
+                break;
+            case TT_WheelUp: case TT_WheelDown:
+            case TT_WheelPress: case TT_WheelDragging: case TT_WheelRelease:
+            case TT_ExtendPress: case TT_ExtendDragging: case TT_ExtendRelease:
+                CurElement.m_cb(this, &CurElement, (GestureType) (type - TT_WheelUp + GT_WheelUp), x, y);
+                // Peek처리
+                if(&CurElement != CurTouch->background())
+                    CurTouch->background()->m_cb(this, CurTouch->background(),
+                        (GestureType) (type - TT_WheelUp + GT_WheelUpPeeked), x, y);
+                break;
+            case TT_ToolTip:
+                CurElement.m_cb(this, &CurElement, GT_ToolTip, x, y);
+                break;
+            case TT_LongPress:
+                CurElement.m_cb(this, &CurElement, GT_LongPressed, x, y);
+                break;
+            }
+            m_ref_func->m_unlock(LockID);
+        }
+
+        // MovingLosed와 DroppingLosed의 처리
+        if(SavedType != GT_Null)
+            _checklose(SavedType, &CurElement, x, y);
 
         if(NeedUpdate)
             m_class->invalidate();
@@ -1739,6 +1743,29 @@ namespace BOSS
             m_ref_func->m_notify(NT_KeyPress, text, sint32o(code), nullptr);
         else m_ref_func->m_notify(NT_KeyRelease, text, sint32o(code), nullptr);
         m_ref_func->m_unlock(LockID);
+    }
+
+    void ZayView::_checklose(GestureType type, const Element* element, sint32 x, sint32 y)
+    {
+        Touch* CurTouch = (Touch*) m_touch;
+        if(const Element* OldMover = CurTouch->changemoving(element, type))
+        {
+            if(OldMover->m_cb)
+            {
+                auto LockID = m_ref_func->m_lock(m_class);
+                OldMover->m_cb(this, OldMover, GT_MovingLosed, x, y);
+                m_ref_func->m_unlock(LockID);
+            }
+        }
+        if(const Element* OldDropper = CurTouch->changedropping(element, type))
+        {
+            if(OldDropper->m_cb)
+            {
+                auto LockID = m_ref_func->m_lock(m_class);
+                OldDropper->m_cb(this, OldDropper, GT_DroppingLosed, x, y);
+                m_ref_func->m_unlock(LockID);
+            }
+        }
     }
 
     void ZayView::_gesture(GestureType type, sint32 x, sint32 y)
@@ -1953,6 +1980,7 @@ namespace BOSS
         m_press_y = 0;
         m_hover_x = -1;
         m_hover_y = -1;
+        m_lasttouch = TT_Null;
     }
 
     ZayView::Touch::~Touch()
@@ -1977,6 +2005,7 @@ namespace BOSS
         m_hover_x = rhs.m_hover_x;
         m_hover_y = rhs.m_hover_y;
         m_scrollmap = rhs.m_scrollmap;
+        m_lasttouch = rhs.m_lasttouch;
         return *this;
     }
 
