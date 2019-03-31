@@ -1070,11 +1070,11 @@
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
             const QPoint CursorPos = CursorPrivate::pos();
-            pos.x = CursorPos.x() - g_window->x();
-            pos.y = CursorPos.y() - g_window->y();
-            return !(CursorPos.x() < g_window->x() || CursorPos.y() < g_window->y()
-                || g_window->x() + g_window->width() <= CursorPos.x()
-                || g_window->y() + g_window->height() <= CursorPos.y());
+            const QRect ClientRect = g_window->geometry();
+            pos.x = CursorPos.x() - ClientRect.left();
+            pos.y = CursorPos.y() - ClientRect.top();
+            return !(CursorPos.x() < ClientRect.left() || CursorPos.y() < ClientRect.top()
+                || ClientRect.right() <= CursorPos.x() || ClientRect.bottom() <= CursorPos.y());
         }
 
         float Platform::Utility::GetPixelRatio()

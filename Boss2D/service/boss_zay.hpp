@@ -184,17 +184,17 @@ namespace BOSS
     enum CommandType {CT_Create, CT_CanQuit, CT_Destroy, CT_Size, CT_Tick};
     enum GestureType {
         // 일반
-        GT_Null, GT_Moving, GT_MovingLosed, GT_Pressed,
-        GT_InDragging, GT_OutDragging, GT_InReleased, GT_OutReleased,
-        GT_Dropping, GT_DroppingLosed, GT_Dropped,
+        GT_Null, GT_Moving, GT_MovingIdle, GT_MovingLosed, GT_Pressed,
+        GT_InDragging, GT_InDraggingIdle, GT_OutDragging, GT_OutDraggingIdle, GT_InReleased, GT_OutReleased,
+        GT_Dropping, GT_DroppingIdle, GT_DroppingLosed, GT_Dropped,
         // 마우스휠
-        GT_WheelUp, GT_WheelDown, GT_WheelPress, GT_WheelDragging, GT_WheelRelease,
+        GT_WheelUp, GT_WheelDown, GT_WheelPress, GT_WheelDragging, GT_WheelDraggingIdle, GT_WheelRelease,
         // 마우스확장
-        GT_ExtendPress, GT_ExtendDragging, GT_ExtendRelease,
+        GT_ExtendPress, GT_ExtendDragging, GT_ExtendDraggingIdle, GT_ExtendRelease,
         // 마우스휠피크(자식패널에게 이벤트가 전달될 경우, 최상단인 OnPanel에도 전달)
-        GT_WheelUpPeeked, GT_WheelDownPeeked, GT_WheelPressPeeked, GT_WheelDraggingPeeked, GT_WheelReleasePeeked,
+        GT_WheelUpPeeked, GT_WheelDownPeeked, GT_WheelPressPeeked, GT_WheelDraggingPeeked, GT_WheelDraggingIdlePeeked, GT_WheelReleasePeeked,
         // 마우스확장피크(자식패널에게 이벤트가 전달될 경우, 최상단인 OnPanel에도 전달)
-        GT_ExtendPressPeeked, GT_ExtendDraggingPeeked, GT_ExtendReleasePeeked,
+        GT_ExtendPressPeeked, GT_ExtendDraggingPeeked, GT_ExtendDraggingIdlePeeked, GT_ExtendReleasePeeked,
         // 특수
         GT_ToolTip, GT_LongPressed};
     enum PanelState {PS_Null = 0x00, PS_Hovered = 0x01, PS_Focused = 0x02,
@@ -254,6 +254,7 @@ namespace BOSS
         bool isScrollTouched(chars uiname) const; // 스크롤이 사용자에 의해 터치됨
         void clearScrollTouch(chars uiname); // 터치여부를 초기화
         void moveScroll(chars uiname, float ox, float oy, float x, float y, float sec, bool touch);
+        void stopScroll(chars uiname, bool touch);
         void resizeForced(sint32 w = -1, sint32 h = -1);
         bool getResizingValue(sint32& w, sint32& h);
 
@@ -612,6 +613,7 @@ namespace BOSS
             void Init(Updater* updater, float x, float y);
             void Move(float x, float y, float sec);
             void Moving(float x, float y, float sec, float unitsec, float unitrate);
+            void Stop();
             void Reset(float x, float y);
             void SetInfo(sint32 width, sint32 height, sint32 ix, sint32 iy);
 

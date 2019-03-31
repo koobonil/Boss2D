@@ -68,14 +68,19 @@ namespace BOSS
         ZaySon& operator=(ZaySon&& rhs);
 
     public:
+        enum class LogType {Info, Warning, Error};
+        typedef std::function<void(LogType type, chars text)> LoggerCB;
+
+    public:
         void Load(chars viewname, const Context& context);
         void Reload(const Context& context);
+        void SetLogger(LoggerCB cb);
         const String& ViewName() const override;
         ZaySonInterface& AddComponent(ZayExtend::ComponentType type, chars name, ZayExtend::ComponentCB cb, chars paramcomment = nullptr) override;
         ZaySonInterface& AddGlue(chars name, ZayExtend::GlueCB cb) override;
         const ZayExtend* FindComponent(chars name) const;
         const ZayExtend* FindGlue(chars name) const;
-        sint32 Render(ZayPanel& panel, sint32 compmax = 0x7FFFFFFF);
+        void Render(ZayPanel& panel);
 
     private:
         String mViewName;
@@ -83,22 +88,15 @@ namespace BOSS
         Map<ZayExtend> mExtendMap;
 
     public:
-        void SetDebugCompName(chars name, chars comment) const;
-        void SetDebugFocusedCompID(sint32 id = -1) const;
-        void AddDebugError(chars name) const;
-        chars debugCompName() const;
-        sint32 debugFocusedCompID() const;
-        sint32 debugErrorCountMax() const;
-        chars debugErrorName(sint32 i) const;
-        float debugErrorShowRate(sint32 i, bool countdown) const;
+        void SendClickable(bool enable) const;
+        void SendErrorLog(chars log) const;
+        void SetFocusCompID(sint32 id);
+        void ClearFocusCompID();
+        inline sint32 debugFocusedCompID() const
+        {return mDebugFocusedCompID;}
 
     private:
-        mutable String mDebugCompName;
-        mutable sint32 mDebugFocusedCompID;
-        static const sint32 mDebugErrorCountMax = 10;
-        static const sint32 mDebugErrorShowMax = 150;
-        mutable sint32 mDebugErrorFocus;
-        mutable String mDebugErrorName[mDebugErrorCountMax];
-        mutable sint32 mDebugErrorShowCount[mDebugErrorCountMax];
+        LoggerCB mDebugLogger;
+        sint32 mDebugFocusedCompID;
     };
 }

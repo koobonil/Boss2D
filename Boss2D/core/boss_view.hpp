@@ -8,11 +8,11 @@ namespace BOSS
     enum NotifyType {NT_Normal, NT_KeyPress, NT_KeyRelease, NT_SocketReceive, NT_CameraCapture, NT_AddOn};
     enum TouchType {TT_Null,
         // 일반
-        TT_Moving, TT_Press, TT_Dragging, TT_Release,
+        TT_Moving, TT_MovingIdle, TT_Press, TT_Dragging, TT_DraggingIdle, TT_Release,
         // 마우스휠
-        TT_WheelUp, TT_WheelDown, TT_WheelPress, TT_WheelDragging, TT_WheelRelease,
+        TT_WheelUp, TT_WheelDown, TT_WheelPress, TT_WheelDragging, TT_WheelDraggingIdle, TT_WheelRelease,
         // 마우스확장(우클릭드래그)
-        TT_ExtendPress, TT_ExtendDragging, TT_ExtendRelease,
+        TT_ExtendPress, TT_ExtendDragging, TT_ExtendDraggingIdle, TT_ExtendRelease,
         // 특수
         TT_ToolTip, TT_LongPress, TT_Render};
 

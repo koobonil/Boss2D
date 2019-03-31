@@ -244,6 +244,17 @@ namespace BOSS
         }
     }
 
+    void ZayObject::stopScroll(chars uiname, bool touch)
+    {
+        if(auto CurTouch = (ZayView::Touch*) ((ZayView*) m_finder_data)->m_touch)
+        if(auto CurScroll = CurTouch->getscroll(uiname))
+        {
+            CurScroll->Stop();
+            CurScroll->m_sense = false;
+            CurScroll->m_usercontrol |= touch;
+        }
+    }
+
     void ZayObject::resizeForced(sint32 w, sint32 h)
     {
         m_resizing_width = w;
@@ -1216,6 +1227,7 @@ namespace BOSS
     ////////////////////////////////////////////////////////////////////////////////
     // ZayExtend
     ////////////////////////////////////////////////////////////////////////////////
+    extern void ZayExtendFocus(bool enable, const void* uielement);
     extern void ZayExtendTouch(chars uiname, const void* uielement);
 
     ZayExtend::ZayExtend(ComponentType type, ComponentCB ccb, GlueCB gcb)
@@ -1290,8 +1302,15 @@ namespace BOSS
         auto UIElement = mUIElement;
         return ZAY_GESTURE_NT(n, t, UIElement)
             {
-                if(t == GT_InReleased)
+                if(t == GT_Moving)
+                    ZayExtendFocus(true, UIElement);
+                else if(t == GT_MovingLosed)
+                    ZayExtendFocus(false, UIElement);
+                else if(t == GT_InReleased)
+                {
                     ZayExtendTouch(n, UIElement);
+                    ZayExtendFocus(false, UIElement);
+                }
             };
     }
 
@@ -1663,10 +1682,10 @@ namespace BOSS
         {
             switch(CurTouch->getlasttouch())
             {
-            case TT_Press: type = TT_Dragging; break;
-            case TT_ExtendPress: type = TT_ExtendDragging; break;
-            case TT_WheelPress: type = TT_WheelDragging; break;
-            default: type = TT_Moving; break;
+            case TT_Press: type = TT_DraggingIdle; break;
+            case TT_ExtendPress: type = TT_ExtendDraggingIdle; break;
+            case TT_WheelPress: type = TT_WheelDraggingIdle; break;
+            default: type = TT_MovingIdle; break;
             }
         }
         else if(type == TT_Press || type == TT_ExtendPress || type == TT_WheelPress)
@@ -1683,6 +1702,7 @@ namespace BOSS
             switch(type)
             {
             case TT_Moving: CurElement.m_cb(this, &CurElement, SavedType = GT_Moving, x, y); break;
+            case TT_MovingIdle: CurElement.m_cb(this, &CurElement, GT_MovingIdle, x, y); break;
             case TT_Press: CurElement.m_cb(this, &CurElement, SavedType = GT_Pressed, x, y); break;
             case TT_Dragging:
                 // 관련 스크롤 존재시 sensitive초과된 Dragging발생한 경우 이벤트전이
@@ -1704,14 +1724,19 @@ namespace BOSS
                     CurElement.m_cb(this, &CurElement, SavedType = ((IsSameElement)? GT_InDragging : GT_Dropping), x, y);
                 }
                 break;
+            case TT_DraggingIdle:
+                if(!IsSameElement && PressElement && PressElement->m_cb)
+                    PressElement->m_cb(this, PressElement, GT_OutDraggingIdle, x, y);
+                CurElement.m_cb(this, &CurElement, (IsSameElement)? GT_InDraggingIdle : GT_DroppingIdle, x, y);
+                break;
             case TT_Release:
                 CurElement.m_cb(this, &CurElement, SavedType = ((IsSameElement)? GT_InReleased : GT_Dropped), x, y);
                 if(!IsSameElement && PressElement && PressElement->m_cb)
                     PressElement->m_cb(this, PressElement, GT_OutReleased, x, y);
                 break;
             case TT_WheelUp: case TT_WheelDown:
-            case TT_WheelPress: case TT_WheelDragging: case TT_WheelRelease:
-            case TT_ExtendPress: case TT_ExtendDragging: case TT_ExtendRelease:
+            case TT_WheelPress: case TT_WheelDragging: case TT_WheelDraggingIdle: case TT_WheelRelease:
+            case TT_ExtendPress: case TT_ExtendDragging: case TT_ExtendDraggingIdle: case TT_ExtendRelease:
                 CurElement.m_cb(this, &CurElement, (GestureType) (type - TT_WheelUp + GT_WheelUp), x, y);
                 // Peek처리
                 if(&CurElement != CurTouch->background())
@@ -1949,6 +1974,12 @@ namespace BOSS
             sec -= unitsec;
         }
         m_pos->MoveTo(x, y, sec);
+    }
+
+    void ZayView::Scroll::Stop()
+    {
+        BOSS_ASSERT("잘못된 시나리오입니다", m_pos);
+        m_pos->ResetPathes();
     }
 
     void ZayView::Scroll::Reset(float x, float y)
@@ -2196,8 +2227,16 @@ namespace BOSS
     void ZayView::Touch::GestureCB(ZayView* manager, const Element* data, GestureType type, sint32 x, sint32 y)
     {
         manager->_gesture(type, x, y);
-        data->m_saved_xy.x = x;
-        data->m_saved_xy.y = y;
+        switch(type)
+        {
+        case GT_MovingIdle: case GT_InDraggingIdle: case GT_OutDraggingIdle: case GT_DroppingIdle:
+        case GT_WheelDraggingIdle: case GT_ExtendDraggingIdle: case GT_WheelDraggingIdlePeeked: case GT_ExtendDraggingIdlePeeked:
+            break;
+        default:
+            data->m_saved_xy.x = x;
+            data->m_saved_xy.y = y;
+            break;
+        }
     }
 
     void ZayView::Touch::SubGestureCB(ZayView* manager, const Element* data, GestureType type, sint32 x, sint32 y)
@@ -2205,8 +2244,16 @@ namespace BOSS
         if(data->m_subcb)
         {
             data->m_subcb((ZayObject*) manager->GetClass(), data->m_name, type, x, y);
-            data->m_saved_xy.x = x;
-            data->m_saved_xy.y = y;
+            switch(type)
+            {
+            case GT_MovingIdle: case GT_InDraggingIdle: case GT_OutDraggingIdle: case GT_DroppingIdle:
+            case GT_WheelDraggingIdle: case GT_ExtendDraggingIdle: case GT_WheelDraggingIdlePeeked: case GT_ExtendDraggingIdlePeeked:
+                break;
+            default:
+                data->m_saved_xy.x = x;
+                data->m_saved_xy.y = y;
+                break;
+            }
         }
     }
 
