@@ -403,6 +403,9 @@ namespace BOSS
 
     SolverValue SolverValue::MakeByText(Text value)
     {
+        value.Replace("\\\\", "\\");
+        value.Replace("\\\'", "\'");
+        value.Replace("\\\"", "\"");
         SolverValue Result(SolverValueType::Text);
         Result.mText = value;
         return Result;
@@ -882,7 +885,11 @@ namespace BOSS
                 else if(*formula == '\'' || *formula == '\"')
                 {
                     chars End = formula;
-                    while(*(++End)) if(*End == *formula) break;
+                    while(*(++End))
+                    {
+                        if(End[0] == '\\' && End[1] != '\0') End++;
+                        else if(*End == *formula) break;
+                    }
                     NewOperand = SolverLiteral(SolverValue::MakeByText(String(formula + 1, End - formula - 1))).clone();
                     formula += (End - formula - 1 + 2) - 1;
                 }

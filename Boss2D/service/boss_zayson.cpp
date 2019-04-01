@@ -107,7 +107,9 @@ namespace BOSS
             }
             else if(text[c] == '\'' || text[c] == '\"')
             {
-                Collector += String(text + cold, c - cold);
+                const String LaidText = String(text + cold, c - cold).Trim();
+                if(0 < LaidText.Length())
+                    Collector += LaidText + ' ';
                 cold = c + 1;
 
                 const char EndCode = text[c];
@@ -123,6 +125,10 @@ namespace BOSS
                 LiteralText.Replace("\"", "\\\"");
                 Collector += '\'' + LiteralText + '\''; // 외부 따옴표는 단따옴표만 인정
                 cold = c + 1;
+
+                // 따옴표 마무리가 안된 경우
+                if(text[c] == '\0')
+                    break;
             }
         }
         return Collector;
@@ -272,7 +278,7 @@ namespace BOSS
 
     public:
         virtual void Render(ZayPanel& panel, const String& defaultname, DebugLogs& logs) const {}
-        virtual void OnFocus(bool enable) {}
+        virtual void OnCursor(CursorRole role) {}
         virtual void OnTouch(chars uiname) {}
 
     public:
@@ -286,11 +292,11 @@ namespace BOSS
     typedef Array<ZayUI> ZayUIs;
 
     ////////////////////////////////////////////////////////////////////////////////
-    // ZayExtendFocus
+    // ZayExtendCursor
     ////////////////////////////////////////////////////////////////////////////////
-    void ZayExtendFocus(bool enable, const void* uielement)
+    void ZayExtendCursor(CursorRole role, const void* uielement)
     {
-        ((ZayUIElement*) uielement)->OnFocus(enable);
+        ((ZayUIElement*) uielement)->OnCursor(role);
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -781,10 +787,10 @@ namespace BOSS
                 }
             }
         }
-        void OnFocus(bool enable) override
+        void OnCursor(CursorRole role) override
         {
             if(0 < mClickCodes.Count())
-                mRefRoot->SendClickable(enable);
+                mRefRoot->SendCursor(role);
         }
         void OnTouch(chars uiname) override
         {
@@ -1025,10 +1031,10 @@ namespace BOSS
         }
     }
 
-    void ZaySon::SendClickable(bool enable) const
+    void ZaySon::SendCursor(CursorRole role) const
     {
         if(mDebugLogger != nullptr)
-            mDebugLogger(LogType::Info, (enable)? "Clickable:true" : "Clickable:false");
+            mDebugLogger(LogType::Option, "Cursor:" + String::FromInteger((sint32) role));
     }
 
     void ZaySon::SendErrorLog(chars log) const

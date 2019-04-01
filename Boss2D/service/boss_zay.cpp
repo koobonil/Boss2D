@@ -1227,7 +1227,7 @@ namespace BOSS
     ////////////////////////////////////////////////////////////////////////////////
     // ZayExtend
     ////////////////////////////////////////////////////////////////////////////////
-    extern void ZayExtendFocus(bool enable, const void* uielement);
+    extern void ZayExtendCursor(CursorRole role, const void* uielement);
     extern void ZayExtendTouch(chars uiname, const void* uielement);
 
     ZayExtend::ZayExtend(ComponentType type, ComponentCB ccb, GlueCB gcb)
@@ -1302,14 +1302,14 @@ namespace BOSS
         auto UIElement = mUIElement;
         return ZAY_GESTURE_NT(n, t, UIElement)
             {
-                if(t == GT_Moving)
-                    ZayExtendFocus(true, UIElement);
+                if(t == GT_Moving || t == GT_MovingIdle)
+                    ZayExtendCursor(CR_PointingHand, UIElement);
                 else if(t == GT_MovingLosed)
-                    ZayExtendFocus(false, UIElement);
+                    ZayExtendCursor(CR_Arrow, UIElement);
                 else if(t == GT_InReleased)
                 {
                     ZayExtendTouch(n, UIElement);
-                    ZayExtendFocus(false, UIElement);
+                    ZayExtendCursor(CR_Busy, UIElement);
                 }
             };
     }

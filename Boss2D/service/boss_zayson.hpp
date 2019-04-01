@@ -68,7 +68,7 @@ namespace BOSS
         ZaySon& operator=(ZaySon&& rhs);
 
     public:
-        enum class LogType {Info, Warning, Error};
+        enum class LogType {Info, Warning, Error, Option};
         typedef std::function<void(LogType type, chars text)> LoggerCB;
 
     public:
@@ -88,7 +88,7 @@ namespace BOSS
         Map<ZayExtend> mExtendMap;
 
     public:
-        void SendClickable(bool enable) const;
+        void SendCursor(CursorRole role) const;
         void SendErrorLog(chars log) const;
         void SetFocusCompID(sint32 id);
         void ClearFocusCompID();
