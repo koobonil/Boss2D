@@ -254,6 +254,7 @@ namespace BOSS
         bool isScrollTouched(chars uiname) const; // 스크롤이 사용자에 의해 터치됨
         void clearScrollTouch(chars uiname); // 터치여부를 초기화
         void moveScroll(chars uiname, float ox, float oy, float x, float y, float sec, bool touch);
+        void resetScroll(chars uiname, float x, float y, bool touch);
         void stopScroll(chars uiname, bool touch);
         void resizeForced(sint32 w = -1, sint32 h = -1);
         bool getResizingValue(sint32& w, sint32& h);

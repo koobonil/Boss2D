@@ -244,6 +244,17 @@ namespace BOSS
         }
     }
 
+    void ZayObject::resetScroll(chars uiname, float x, float y, bool touch)
+    {
+        if(auto CurTouch = (ZayView::Touch*) ((ZayView*) m_finder_data)->m_touch)
+        if(auto CurScroll = CurTouch->getscroll(uiname))
+        {
+            CurScroll->Reset(x, y);
+            CurScroll->m_sense = false;
+            CurScroll->m_usercontrol |= touch;
+        }
+    }
+
     void ZayObject::stopScroll(chars uiname, bool touch)
     {
         if(auto CurTouch = (ZayView::Touch*) ((ZayView*) m_finder_data)->m_touch)

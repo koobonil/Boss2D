@@ -1940,6 +1940,16 @@
                 else BOSS_ASSERT(String::Format("NickName이 \"%s\"인 폰트는 등록되어 있지 않습니다", (chars) mNickName), false);
                 return nullptr;
             }
+            void GetInfo(uint32 code, sint32* width = nullptr, sint32* ascent = nullptr)
+            {
+                if(auto CurCodePack = mCodeMap.Access(code))
+                {
+                    if(width) *width = CurCodePack->mCode.mSavedWidth;
+                    if(ascent) *ascent = CurCodePack->mCode.mSavedAscent;
+                }
+                else if(auto CurFreeType = AddOn::FreeType::Get(mNickName))
+                    AddOn::FreeType::GetInfo(CurFreeType, mFontHeight, code, width, ascent);
+            }
 
         private:
             const String mNickName;
@@ -2013,8 +2023,9 @@
                 sint32 SumWidth = 0;
                 for(sint32 i = 0; i < count; ++i)
                 {
-                    auto CurCode = mRefGlyph->GetCode((uint32) string[i]);
-                    if(clipping_width < (SumWidth += CurCode->mSavedWidth))
+                    sint32 GetWidth = 0;
+                    mRefGlyph->GetInfo((uint32) string[i], &GetWidth);
+                    if(clipping_width < (SumWidth += GetWidth))
                         return i;
                 }
                 return count;
@@ -2026,9 +2037,10 @@
                 for(sint32 i = 0; i < count; ++i)
                 {
                     const uint32 CurCode = (uint32) string[i];
-                    auto CurCodeData = mRefGlyph->GetCode(CurCode);
+                    sint32 GetWidth = 0;
+                    mRefGlyph->GetInfo(CurCode, &GetWidth);
                     if(CurCode == L' ') SavedLength = i;
-                    if(clipping_width < (SumWidth += CurCodeData->mSavedWidth))
+                    if(clipping_width < (SumWidth += GetWidth))
                         return (SavedLength == 0)? i : SavedLength;
                 }
                 return count;
@@ -2039,14 +2051,17 @@
                 sint32 SumWidth = 0;
                 for(sint32 i = 0; i < count; ++i)
                 {
-                    auto CurCode = mRefGlyph->GetCode((uint32) string[i]);
-                    SumWidth += CurCode->mSavedWidth;
+                    sint32 GetWidth = 0;
+                    mRefGlyph->GetInfo((uint32) string[i], &GetWidth);
+                    SumWidth += GetWidth;
                 }
                 return SumWidth;
             }
             sint32 GetAscent(wchar_t code)
             {
-                return mRefGlyph->GetCode((uint32) code)->mSavedAscent;
+                sint32 GetAscent = 0;
+                mRefGlyph->GetInfo((uint32) code, nullptr, &GetAscent);
+                return GetAscent;
             }
 
         private:
