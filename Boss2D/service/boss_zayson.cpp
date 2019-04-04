@@ -78,6 +78,7 @@ namespace BOSS
             CurSolver->Parse(formula);
             CurSolver->Execute(true);
         }
+        else BOSS_ASSERT(String::Format("해당 변수(%s)를 찾을 수 없습니다", variable), false);
     }
 
     void ZaySonDocument::CheckUpdatedSolvers(uint64 msec, UpdateCB cb)
