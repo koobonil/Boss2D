@@ -2006,13 +2006,16 @@
                 Platform::Graphics::BeginGL();
                 for(sint32 i = 0; i < count; ++i)
                 {
-                    auto CurCode = mRefGlyph->GetCode((uint32) string[i]);
-                    if(CurCode)
+                    const uint32 CurCode = (uint32) string[i];
+                    if(CurCode == L'\n') continue;
+
+                    auto CurCodeData = mRefGlyph->GetCode(CurCode);
+                    if(CurCodeData)
                     {
-                        Platform::Graphics::DrawTextureToFBO((id_texture_read) CurCode->mRefTexture,
-                            CurCode->mUVPos.x, CurCode->mUVPos.y, CurCode->mUVSize.w, CurCode->mUVSize.h, orientationtype_normal0,
-                            false, x + CurCode->mRenderPos.x * justifyrate, y + CurCode->mRenderPos.y, CurCode->mUVSize.w * justifyrate, CurCode->mUVSize.h, CurColor);
-                        x += CurCode->mSavedWidth * justifyrate;
+                        Platform::Graphics::DrawTextureToFBO((id_texture_read) CurCodeData->mRefTexture,
+                            CurCodeData->mUVPos.x, CurCodeData->mUVPos.y, CurCodeData->mUVSize.w, CurCodeData->mUVSize.h, orientationtype_normal0,
+                            false, x + CurCodeData->mRenderPos.x * justifyrate, y + CurCodeData->mRenderPos.y, CurCodeData->mUVSize.w * justifyrate, CurCodeData->mUVSize.h, CurColor);
+                        x += CurCodeData->mSavedWidth * justifyrate;
                     }
                 }
                 Platform::Graphics::EndGL();
@@ -2023,8 +2026,11 @@
                 sint32 SumWidth = 0;
                 for(sint32 i = 0; i < count; ++i)
                 {
+                    const uint32 CurCode = (uint32) string[i];
+                    if(CurCode == L'\n') return i + 1;
+
                     sint32 GetWidth = 0;
-                    mRefGlyph->GetInfo((uint32) string[i], &GetWidth);
+                    mRefGlyph->GetInfo(CurCode, &GetWidth);
                     if(clipping_width < (SumWidth += GetWidth))
                         return i;
                 }
@@ -2033,15 +2039,17 @@
             sint32 GetLengthByWordOf(sint32 clipping_width, wchars string, sint32 count)
             {
                 BOSS_ASSERT("count에는 음수값이 올 수 없습니다", 0 <= count);
-                sint32 SumWidth = 0, SavedLength = 0;
+                sint32 SumWidth = 0, SavedFocus = 0;
                 for(sint32 i = 0; i < count; ++i)
                 {
                     const uint32 CurCode = (uint32) string[i];
+                    if(CurCode == L'\n') return i + 1;
+
                     sint32 GetWidth = 0;
                     mRefGlyph->GetInfo(CurCode, &GetWidth);
-                    if(CurCode == L' ') SavedLength = i;
+                    if(CurCode == L' ') SavedFocus = i;
                     if(clipping_width < (SumWidth += GetWidth))
-                        return (SavedLength == 0)? i : SavedLength;
+                        return (SavedFocus == 0)? i : SavedFocus;
                 }
                 return count;
             }
@@ -3760,12 +3768,8 @@
             delete Semaphore;
 
             // 클라이언트
-            QLocalSocket* Client = new QLocalSocket();
-            Client->abort();
-            Client->connectToServer(name);
-
             if(isserver) *isserver = false;
-            return (id_pipe) new PipeClientPrivate(Client);
+            return (id_pipe) new PipeClientPrivate(name);
         }
 
         void Platform::Pipe::Close(id_pipe pipe)

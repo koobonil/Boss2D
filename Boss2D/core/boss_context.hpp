@@ -181,7 +181,7 @@ namespace BOSS
         \brief 자신의 정수값 얻기
         \return 정수값
         */
-        const sint32 GetInt() const;
+        const sint64 GetInt() const;
 
         /*!
         \brief 자신의 소수값 얻기
@@ -201,7 +201,7 @@ namespace BOSS
         \param value : 디폴트값
         \return 정수값
         */
-        const sint32 GetInt(const sint32 value) const;
+        const sint64 GetInt(const sint64 value) const;
 
         /*!
         \brief 자신의 소수값 얻기(디폴트처리)
@@ -340,7 +340,7 @@ namespace BOSS
 
         // 캐시데이터
         mutable char* m_parsedString;
-        mutable sint32* m_parsedInt;
+        mutable sint64* m_parsedInt;
         mutable float* m_parsedFloat;
     };
     typedef Array<Context> Contexts;

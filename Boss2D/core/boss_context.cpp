@@ -226,10 +226,10 @@ namespace BOSS
         return m_valueOffset;
     }
 
-    const sint32 Context::GetInt() const
+    const sint64 Context::GetInt() const
     {
         if(!m_parsedInt)
-            m_parsedInt = new sint32(Parser::GetInt(m_valueOffset, m_valueLength));
+            m_parsedInt = new sint64(Parser::GetInt<sint64>(m_valueOffset, m_valueLength));
         return *m_parsedInt;
     }
 
@@ -245,7 +245,7 @@ namespace BOSS
         return (m_valueOffset)? GetString() : value;
     }
 
-    const sint32 Context::GetInt(const sint32 value) const
+    const sint64 Context::GetInt(const sint64 value) const
     {
         return (m_valueOffset)? GetInt() : value;
     }
@@ -900,7 +900,7 @@ namespace BOSS
 
         // 셋팅
         Set(Value, ValueLength);
-        m_parsedInt = new sint32(*((sint32*) &DataField[0]));
+        m_parsedInt = new sint64(*((sint32*) &DataField[0]));
         m_parsedFloat = new float(*((float*) &DataField[1]));
 
         // 키워드식 자식

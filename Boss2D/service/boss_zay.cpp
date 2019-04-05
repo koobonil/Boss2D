@@ -787,15 +787,21 @@ namespace BOSS
 
     bool ZayPanel::textbox(chars string, sint32 linegap) const
     {
+        String MultiText(string);
+        MultiText.Replace("\\\\", "\\");
+        MultiText.Replace("\\n", "\n");
+        WString MultiTextW = WString::FromChars(MultiText);
+        wchars TextW = MultiTextW;
+
         const Clip& LastClip = m_stack_clip[-1];
         sint32 AddY = 0;
-        while(*string)
+        while(*TextW)
         {
             const sint32 CurHeight = Platform::Graphics::GetStringHeight();
-            const sint32 CurLength = Platform::Graphics::GetLengthOfString(true, LastClip.Width(), string);
-            Platform::Graphics::DrawString(LastClip.l, LastClip.t + AddY, LastClip.Width(), LastClip.Height(), string, CurLength, UIFA_LeftTop);
+            sint32 CurLength = Platform::Graphics::GetLengthOfStringW(true, LastClip.Width(), TextW);
+            Platform::Graphics::DrawStringW(LastClip.l, LastClip.t + AddY, LastClip.Width(), LastClip.Height(), TextW, CurLength, UIFA_LeftTop);
             AddY += CurHeight + linegap;
-            string += (string[CurLength] == ' ')? CurLength + 1 : CurLength; // 다음 글자가 빈칸이면 +1
+            TextW += CurLength + (TextW[CurLength] == L' ');
         }
         return false;
     }

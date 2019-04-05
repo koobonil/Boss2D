@@ -4416,26 +4416,26 @@
     private slots:
         void OnNewConnection()
         {
-            mLastClient = mServer->nextPendingConnection();
-            connect(mLastClient, &QLocalSocket::disconnected, this, &PipeServerPrivate::OnDisconnected);
-
+            QLocalSocket* NewClient = mServer->nextPendingConnection();
             if(mStatus == CS_Connecting)
             {
                 mStatus = CS_Connected;
+                mLastClient = NewClient;
                 connect(mLastClient, &QLocalSocket::readyRead, this, &PipeServerPrivate::OnReadyRead);
+                connect(mLastClient, &QLocalSocket::disconnected, this, &PipeServerPrivate::OnDisconnected);
             }
-            else mLastClient->disconnectFromServer();
-        }
-        void OnDisconnected()
-        {
-            mStatus = CS_Connecting;
-            mLastClient = nullptr;
+            else NewClient->disconnectFromServer();
         }
         void OnReadyRead()
         {
             mLastClient = (QLocalSocket*) sender();
             if(sint64 PacketSize = mLastClient->bytesAvailable())
                 mLastClient->read((char*) mData.AtDumpingAdded(PacketSize), PacketSize);
+        }
+        void OnDisconnected()
+        {
+            mStatus = CS_Connecting;
+            mLastClient = nullptr;
         }
 
     private:
@@ -4449,11 +4449,15 @@
         Q_OBJECT
 
     public:
-        PipeClientPrivate(QLocalSocket* client)
+        PipeClientPrivate(chars name)
         {
-            mClient = client;
-            connect(client, &QLocalSocket::disconnected, this, &PipeClientPrivate::OnDisconnected);
-            connect(client, &QLocalSocket::readyRead, this, &PipeClientPrivate::OnReadyRead);
+            mClient = new QLocalSocket();
+            connect(mClient, &QLocalSocket::readyRead, this, &PipeClientPrivate::OnReadyRead);
+            connect(mClient, &QLocalSocket::connected, this, &PipeClientPrivate::OnConnected);
+            connect(mClient, &QLocalSocket::disconnected, this, &PipeClientPrivate::OnDisconnected);
+
+            mClient->abort();
+            mClient->connectToServer(name);
         }
         ~PipeClientPrivate() override
         {
@@ -4471,15 +4475,18 @@
         }
 
     private slots:
+        void OnReadyRead()
+        {
+            if(sint64 PacketSize = mClient->bytesAvailable())
+                mClient->read((char*) mData.AtDumpingAdded(PacketSize), PacketSize);
+        }
+        void OnConnected()
+        {
+            mStatus = CS_Connected;
+        }
         void OnDisconnected()
         {
             mStatus = CS_Disconnected;
-        }
-        void OnReadyRead()
-        {
-            mStatus = CS_Connected;
-            if(sint64 PacketSize = mClient->bytesAvailable())
-                mClient->read((char*) mData.AtDumpingAdded(PacketSize), PacketSize);
         }
 
     private:
