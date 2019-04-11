@@ -329,7 +329,7 @@ namespace BOSS
             const String ConditionText = context.GetString();
             mConditionType = ZaySonUtility::ToCondition(ConditionText, &mWithElse);
             if(mConditionType == ZaySonInterface::ConditionType::Unknown)
-                root.SendErrorLog(String::Format("알 수 없는 조건문입니다(%s, Load)", (chars) ConditionText));
+                root.SendErrorLog("조건문 판독실패", String::Format("알 수 없는 조건문입니다(%s, Load)", (chars) ConditionText));
 
             sint32 PosB, PosE;
             if(ZaySonUtility::IsFunctionCall(ConditionText, &PosB, &PosE)) // ()사용여부와 파라미터 발라내기
@@ -528,7 +528,7 @@ namespace BOSS
                 mRequestType = ZaySonInterface::RequestType::Function;
                 mGlueFunction = root.FindGlue(TextTest.Left(PosB - 1));
                 if(!mGlueFunction)
-                    root.SendErrorLog(String::Format("글루함수를 찾을 수 없습니다(%s, Load)", (chars) TextTest.Left(PosB - 1)));
+                    root.SendWarningLog("글루 바인딩실패", String::Format("글루함수를 찾을 수 없습니다(%s, Load)", (chars) TextTest.Left(PosB - 1)));
                 auto Params = ZaySonUtility::GetCommaStrings(TextTest.Middle(PosB, PosE - PosB));
                 for(sint32 i = 0, iend = Params.Count(); i < iend; ++i)
                     mRSolvers.AtAdding().Link(root.ViewName()).Parse(Params[i]); // 파라미터들
@@ -586,7 +586,7 @@ namespace BOSS
                     FindedSolver->Parse(mRSolvers[0].ExecuteOnly().ToText(true));
                     FindedSolver->Execute();
                 }
-                else mRefRoot->SendErrorLog(String::Format("변수를 업데이트하는데 실패하였습니다(%s, Transaction)",
+                else mRefRoot->SendErrorLog("변수 업데이트실패", String::Format("변수를 찾을 수 없습니다(%s, Transaction)",
                     (chars) mLSolver.ExecuteVariableName()));
             }
             else if(mRequestType == ZaySonInterface::RequestType::Function)
@@ -756,7 +756,7 @@ namespace BOSS
                     }
                 }
             }
-            else mRefRoot->SendErrorLog(String::Format("컴포넌트함수를 찾을 수 없습니다(%s, Render)", (chars) mCompName));
+            else mRefRoot->SendWarningLog("컴포넌트 랜더링실패", String::Format("컴포넌트함수를 찾을 수 없습니다(%s, Render)", (chars) mCompName));
         }
         void RenderChildren(ZayPanel& panel, chars uiname, const String& defaultname, DebugLogs& logs) const
         {
@@ -936,6 +936,7 @@ namespace BOSS
         auto NewView = new ZayViewElement();
         NewView->Load(*this, context);
         mUIElement = NewView;
+        SendInfoLog("제이썬 로드성공", String::Format("제이썬을 로드하였습니다(%s, Reload)", (chars) mViewName));
     }
 
     void ZaySon::SetLogger(LoggerCB cb)
@@ -1035,14 +1036,28 @@ namespace BOSS
     void ZaySon::SendCursor(CursorRole role) const
     {
         if(mDebugLogger != nullptr)
-            mDebugLogger(LogType::Option, "Cursor:" + String::FromInteger((sint32) role));
+            mDebugLogger(LogType::Option, "Cursor", String::FromInteger((sint32) role));
     }
 
-    void ZaySon::SendErrorLog(chars log) const
+    void ZaySon::SendInfoLog(chars title, chars detail) const
     {
         if(mDebugLogger == nullptr)
-            BOSS_TRACE("[ZaySonError] %s", log);
-        else mDebugLogger(LogType::Error, log);
+            BOSS_TRACE("[ZaySonInfo] %s (%s)", title, detail);
+        else mDebugLogger(LogType::Info, title, detail);
+    }
+
+    void ZaySon::SendWarningLog(chars title, chars detail) const
+    {
+        if(mDebugLogger == nullptr)
+            BOSS_TRACE("[ZaySonWarning] %s (%s)", title, detail);
+        else mDebugLogger(LogType::Warning, title, detail);
+    }
+
+    void ZaySon::SendErrorLog(chars title, chars detail) const
+    {
+        if(mDebugLogger == nullptr)
+            BOSS_TRACE("[ZaySonError] %s (%s)", title, detail);
+        else mDebugLogger(LogType::Error, title, detail);
     }
 
     void ZaySon::SetFocusCompID(sint32 id)

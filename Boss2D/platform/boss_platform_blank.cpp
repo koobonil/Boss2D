@@ -226,6 +226,13 @@
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
         }
 
+        void Platform::SetWindowFlash()
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
+
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+        }
+
         bool Platform::SetWindowMask(id_image_read image)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
@@ -478,6 +485,16 @@
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data);
 
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+        }
+
+        void Platform::Popup::ShowSplash(chars filepath)
+        {
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+        }
+
+        void Platform::Popup::HideSplash()
+        {
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
         }
 
@@ -1506,6 +1523,20 @@
             return Result;
         }
 
+        const String Platform::File::RootForDesktop()
+        {
+            String Result = "";
+            BOSS_ASSERT("Further development is needed.", false);
+            return Result;
+        }
+
+        const String Platform::File::RootForStartup()
+        {
+            String Result = "";
+            BOSS_ASSERT("Further development is needed.", false);
+            return Result;
+        }
+
         ////////////////////////////////////////////////////////////////////////////////
         // SOUND
         ////////////////////////////////////////////////////////////////////////////////
@@ -1777,7 +1808,7 @@
         ////////////////////////////////////////////////////////////////////////////////
         // PIPE
         ////////////////////////////////////////////////////////////////////////////////
-        id_pipe Platform::Pipe::Open(chars name, bool* isserver)
+        id_pipe Platform::Pipe::Open(chars name)
         {
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
             return nullptr;
@@ -1786,6 +1817,12 @@
         void Platform::Pipe::Close(id_pipe pipe)
         {
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+        }
+
+        bool Platform::Pipe::IsServer(id_pipe pipe)
+        {
+            BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);
+            return false;
         }
 
         ConnectStatus Platform::Pipe::Status(id_pipe pipe)

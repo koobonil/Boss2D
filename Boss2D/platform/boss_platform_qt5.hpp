@@ -4309,14 +4309,16 @@
         Q_OBJECT
 
     public:
-        PipePrivate()
+        PipePrivate(QSharedMemory* semaphore)
         {
             mStatus = CS_Connecting;
             mTempContext = nullptr;
+            mSemaphore = semaphore;
         }
         virtual ~PipePrivate()
         {
             delete mTempContext;
+            delete mSemaphore;
         }
 
     public:
@@ -4338,6 +4340,7 @@
         }
 
     public:
+        virtual bool IsServer() const = 0;
         virtual bool SendCore(bytes data, sint32 size) = 0;
         virtual void FlushCore() = 0;
 
@@ -4380,6 +4383,7 @@
         ConnectStatus mStatus;
         chararray mData;
         Context* mTempContext;
+        QSharedMemory* mSemaphore;
     };
 
     class PipeServerPrivate : public PipePrivate
@@ -4387,20 +4391,22 @@
         Q_OBJECT
 
     public:
-        PipeServerPrivate(QLocalServer* server, QSharedMemory* semaphore)
+        PipeServerPrivate(QLocalServer* server, QSharedMemory* semaphore) : PipePrivate(semaphore)
         {
             mServer = server;
-            mSemaphore = semaphore;
             mLastClient = nullptr;
             connect(server, &QLocalServer::newConnection, this, &PipeServerPrivate::OnNewConnection);
         }
         ~PipeServerPrivate() override
         {
             delete mServer;
-            delete mSemaphore;
         }
 
     private:
+        bool IsServer() const override
+        {
+            return true;
+        }
         bool SendCore(bytes data, sint32 size) override
         {
             if(mLastClient)
@@ -4440,7 +4446,6 @@
 
     private:
         QLocalServer* mServer;
-        QSharedMemory* mSemaphore;
         QLocalSocket* mLastClient;
     };
 
@@ -4449,7 +4454,7 @@
         Q_OBJECT
 
     public:
-        PipeClientPrivate(chars name)
+        PipeClientPrivate(chars name, QSharedMemory* semaphore) : PipePrivate(semaphore)
         {
             mClient = new QLocalSocket();
             connect(mClient, &QLocalSocket::readyRead, this, &PipeClientPrivate::OnReadyRead);
@@ -4465,6 +4470,10 @@
         }
 
     private:
+        bool IsServer() const override
+        {
+            return false;
+        }
         bool SendCore(bytes data, sint32 size) override
         {
             return (mClient->write((chars) data, size) == size);

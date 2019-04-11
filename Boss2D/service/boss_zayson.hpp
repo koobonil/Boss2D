@@ -69,7 +69,7 @@ namespace BOSS
 
     public:
         enum class LogType {Info, Warning, Error, Option};
-        typedef std::function<void(LogType type, chars text)> LoggerCB;
+        typedef std::function<void(LogType type, chars title, chars detail)> LoggerCB;
 
     public:
         void Load(chars viewname, const Context& context);
@@ -89,7 +89,9 @@ namespace BOSS
 
     public:
         void SendCursor(CursorRole role) const;
-        void SendErrorLog(chars log) const;
+        void SendInfoLog(chars title, chars detail) const;
+        void SendWarningLog(chars title, chars detail) const;
+        void SendErrorLog(chars title, chars detail) const;
         void SetFocusCompID(sint32 id);
         void ClearFocusCompID();
         inline sint32 debugFocusedCompID() const

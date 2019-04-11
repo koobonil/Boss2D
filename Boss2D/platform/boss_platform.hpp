@@ -121,6 +121,11 @@ namespace BOSS
         static void SetWindowVisible(bool visible);
 
         /*!
+        \brief 윈도우 강조하기
+        */
+        static void SetWindowFlash();
+
+        /*!
         \brief 윈도우마스크 설정
         \param image : 마스킹할 이미지(nullptr이면 마스킹옵션이 제거됨)
         \return 성공여부(윈도우가 frameless스타일이어야 성공)
@@ -407,6 +412,17 @@ namespace BOSS
             \brief 툴팁 감추기
             */
             static void HideToolTip();
+
+            /*!
+            \brief 스플래시 보여주기
+            \param filepath : 파일경로(png)
+            */
+            static void ShowSplash(chars filepath);
+
+            /*!
+            \brief 스플래시 감추기
+            */
+            static void HideSplash();
         };
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -1554,6 +1570,18 @@ namespace BOSS
             \return 경로
             */
             static const String RootForData();
+
+            /*!
+            \brief 바탕화면 경로얻기
+            \return 경로
+            */
+            static const String RootForDesktop();
+
+            /*!
+            \brief 스타트업 경로얻기
+            \return 경로
+            */
+            static const String RootForStartup();
         };
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -1857,11 +1885,10 @@ namespace BOSS
             /*!
             \brief 파이프 열기
             \param name : 파이프명칭
-            \param isserver : 내가 서버인지의 여부
             \return 파이프ID(nullptr은 실패)
             \see Close
             */
-            static id_pipe Open(chars name, bool* isserver = nullptr);
+            static id_pipe Open(chars name);
 
             /*!
             \brief 파이프 닫기
@@ -1869,6 +1896,13 @@ namespace BOSS
             \see Open
             */
             static void Close(id_pipe pipe);
+
+            /*!
+            \brief 서버인지의 여부
+            \param pipe : 파이프ID
+            \see 서버이면 true
+            */
+            static bool IsServer(id_pipe pipe);
 
             /*!
             \brief 연결상태 조사

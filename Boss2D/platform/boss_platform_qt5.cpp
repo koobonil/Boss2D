@@ -166,6 +166,7 @@
                     PlatformQuit();
                 }
                 g_window = nullptr;
+                Platform::Popup::HideSplash();
             }
             Platform::Option::SetFlag("AssertPopup", false);
 
@@ -385,6 +386,21 @@
                 if(!visible)
                     g_window->hide();
             }
+        }
+
+        void Platform::SetWindowFlash()
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
+
+            #if BOSS_WINDOWS
+                FLASHWINFO FlashInfo;
+                FlashInfo.cbSize = sizeof(FlashInfo);
+                FlashInfo.hwnd = (HWND) g_window->winId();
+                FlashInfo.dwFlags = FLASHW_TRAY | FLASHW_TIMERNOFG;
+                FlashInfo.uCount = 20;
+                FlashInfo.dwTimeout = 400;
+                FlashWindowEx(&FlashInfo);
+            #endif
         }
 
         bool Platform::SetWindowMask(id_image_read image)
@@ -785,6 +801,20 @@
             #ifndef BOSS_SILENT_NIGHT_IS_ENABLED
                 QToolTip::hideText();
             #endif
+        }
+
+        static QSplashScreen* g_splash = nullptr;
+        void Platform::Popup::ShowSplash(chars filepath)
+        {
+            HideSplash();
+            g_splash = new QSplashScreen(QPixmap(filepath));
+            g_splash->show();
+        }
+
+        void Platform::Popup::HideSplash()
+        {
+            delete g_splash;
+            g_splash = nullptr;
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -3157,6 +3187,22 @@
             return PlatformImpl::Core::GetCopiedRoot(2);
         }
 
+        const String Platform::File::RootForDesktop()
+        {
+            String NewPath = QStandardPaths::standardLocations(QStandardPaths::DesktopLocation).value(0).toUtf8().constData();
+            NewPath = PlatformImpl::Core::NormalPath(NewPath + '/', false);
+            _CreateMiddleDir(NewPath);
+            return NewPath;
+        }
+
+        const String Platform::File::RootForStartup()
+        {
+            String NewPath = QStandardPaths::standardLocations(QStandardPaths::ApplicationsLocation).value(0).toUtf8().constData();
+            NewPath = PlatformImpl::Core::NormalPath(NewPath + '/', false);
+            _CreateMiddleDir(NewPath);
+            return NewPath;
+        }
+
         ////////////////////////////////////////////////////////////////////////////////
         // SOUND
         ////////////////////////////////////////////////////////////////////////////////
@@ -3751,31 +3797,38 @@
         ////////////////////////////////////////////////////////////////////////////////
         // PIPE
         ////////////////////////////////////////////////////////////////////////////////
-        id_pipe Platform::Pipe::Open(chars name, bool* isserver)
+        id_pipe Platform::Pipe::Open(chars name)
         {
+            // 서버
             QSharedMemory* Semaphore = new QSharedMemory(name);
             if(!Semaphore->attach() && Semaphore->create(1))
             {
-                // 서버
-                QLocalServer* Server = new QLocalServer();
-                if(Server->listen(name))
-                {
-                    if(isserver) *isserver = true;
-                    return (id_pipe) new PipeServerPrivate(Server, Semaphore);
-                }
-                delete Server;
+                QLocalServer* NewServer = new QLocalServer();
+                if(NewServer->listen(name))
+                    return (id_pipe) new PipeServerPrivate(NewServer, Semaphore);
+                delete NewServer;
             }
             delete Semaphore;
 
             // 클라이언트
-            if(isserver) *isserver = false;
-            return (id_pipe) new PipeClientPrivate(name);
+            Semaphore = new QSharedMemory((chars) (String(name) + ".client"));
+            if(!Semaphore->attach() && Semaphore->create(1))
+                return (id_pipe) new PipeClientPrivate(name, Semaphore);
+            delete Semaphore;
+            return nullptr;
         }
 
         void Platform::Pipe::Close(id_pipe pipe)
         {
             auto OldPipe = (PipePrivate*) pipe;
             delete OldPipe;
+        }
+
+        bool Platform::Pipe::IsServer(id_pipe pipe)
+        {
+            auto CurPipe = (PipePrivate*) pipe;
+            if(!CurPipe) return false;
+            return CurPipe->IsServer();
         }
 
         ConnectStatus Platform::Pipe::Status(id_pipe pipe)
