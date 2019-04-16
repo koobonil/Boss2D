@@ -309,6 +309,7 @@ namespace BOSS
     BOSS_DECLARE_ID(id_bitmap);
     BOSS_DECLARE_ID(id_flash);
     BOSS_DECLARE_ID(id_image);
+    BOSS_DECLARE_ID(id_image_routine);
     BOSS_DECLARE_ID(id_texture);
     BOSS_DECLARE_ID(id_surface);
     BOSS_DECLARE_ID(id_clock);

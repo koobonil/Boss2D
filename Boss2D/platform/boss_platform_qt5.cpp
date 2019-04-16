@@ -1535,27 +1535,73 @@
             #endif
         }
 
-        id_image Platform::Graphics::CreateImage(id_bitmap_read bitmap, const Color coloring, sint32 resizing_width, sint32 resizing_height)
+        id_image Platform::Graphics::CreateImage(id_bitmap_read bitmap)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
-
             const sint32 SrcWidth = Bmp::GetWidth(bitmap);
             const sint32 SrcHeight = Bmp::GetHeight(bitmap);
-            const sint32 DstWidth = (resizing_width == -1)? SrcWidth : resizing_width;
-            const sint32 DstHeight = (resizing_height == -1)? SrcHeight : resizing_height;
-            ImagePrivate NewImage(DstWidth, DstHeight, ImagePrivate::Format_ARGB32);
+            ImagePrivate NewImage(SrcWidth, SrcHeight, ImagePrivate::Format_ARGB32);
 
-            const bool NeedColoring = (coloring.rgba != Color::ColoringDefault);
-            const bool NeedResizing = (DstWidth != SrcWidth || DstHeight != SrcHeight);
             Bmp::bitmappixel* DstBits = (Bmp::bitmappixel*) NewImage.bits();
             const Bmp::bitmappixel* SrcBits = (const Bmp::bitmappixel*) Bmp::GetBits(bitmap);
-            if(NeedColoring || NeedResizing)
+            for(sint32 y = 0; y < SrcHeight; ++y)
+                Memory::Copy(&DstBits[y * SrcWidth], &SrcBits[(SrcHeight - 1 - y) * SrcWidth], sizeof(Bmp::bitmappixel) * SrcWidth);
+
+            buffer NewPixmap = Buffer::Alloc<PixmapPrivate>(BOSS_DBG 1);
+            ((PixmapPrivate*) NewPixmap)->convertFromImage(NewImage);
+            return (id_image) NewPixmap;
+        }
+
+        sint32 Platform::Graphics::GetImageWidth(id_image_read image)
+        {
+            if(const PixmapPrivate* CurPixmap = (const PixmapPrivate*) image)
+                return CurPixmap->width();
+            return 0;
+        }
+
+        sint32 Platform::Graphics::GetImageHeight(id_image_read image)
+        {
+            if(const PixmapPrivate* CurPixmap = (const PixmapPrivate*) image)
+                return CurPixmap->height();
+            return 0;
+        }
+
+        void Platform::Graphics::RemoveImage(id_image image)
+        {
+            Buffer::Free((buffer) image);
+        }
+
+        static uint08 g_alphaTable[256 * 256];
+        static uint08 g_colorTable[256 * 256];
+        class ImageRoutine
+        {
+        public:
+            ImageRoutine()
             {
-                // 컬러링 테이블링
-                static uint08 AlphaTable[256 * 256];
-                static uint08 ColorTable[256 * 256];
+                mSrcWidth = 0;
+                mSrcHeight = 0;
+                mDstWidth = 0;
+                mDstHeight = 0;
+                mPlatformImage = nullptr;
+                mNeedResizing = false;
+                mNeedColoring = false;
+                mDstBits = nullptr;
+                mSrcBits = nullptr;
+                mResultFocusBegin = 0;
+                mResultFocusEnd = 0;
+                mResultImage = nullptr;
+            }
+            ~ImageRoutine()
+            {
+                delete mPlatformImage;
+                Platform::Graphics::RemoveImage(mResultImage);
+            }
+
+        public:
+            void ValidColorTabling()
+            {
                 static bool NeedTabling = true;
-                if(NeedColoring && NeedTabling)
+                if(NeedTabling && mNeedColoring)
                 {
                     NeedTabling = false;
                     for(sint32 src = 0; src < 256; ++src)
@@ -1567,14 +1613,14 @@
                             if(key < 0x80)
                             {
                                 const sint32 key2 = 0x80 - key;
-                                AlphaTable[i] = (uint08) (src * key / 0x80);
-                                ColorTable[i] = (uint08) (src - key2 + key2 * (0x80 - src) / 0x80);
+                                g_alphaTable[i] = (uint08) (src * key / 0x80);
+                                g_colorTable[i] = (uint08) (src - key2 + key2 * (0x80 - src) / 0x80);
                             }
                             else
                             {
                                 const sint32 src2 = src * 2;
-                                AlphaTable[i] = (uint08) (src2 - (src2 - src) * (0xFF - key) / 0x7F);
-                                ColorTable[i] = (uint08) (0xFF - (0xFF - src) * (0xFF - key) / 0x7F);
+                                g_alphaTable[i] = (uint08) (src2 - (src2 - src) * (0xFF - key) / 0x7F);
+                                g_colorTable[i] = (uint08) (0xFF - (0xFF - src) * (0xFF - key) / 0x7F);
                             }
                         }
                         else
@@ -1582,48 +1628,63 @@
                             if(key < 0x80)
                             {
                                 const uint08 value = (uint08) (src * key / 0x80);
-                                AlphaTable[i] = value;
-                                ColorTable[i] = value;
+                                g_alphaTable[i] = value;
+                                g_colorTable[i] = value;
                             }
                             else
                             {
                                 const sint32 key2 = key - 0x80;
                                 const uint08 value = (uint08) (src + key2 - key2 * (src - 0x80) / 0x7F);
-                                AlphaTable[i] = value;
-                                ColorTable[i] = value;
+                                g_alphaTable[i] = value;
+                                g_colorTable[i] = value;
                             }
                         }
                     }
                 }
-
-                // 리사이징이 있는 경우
-                if(NeedResizing)
+            }
+            void ValidResizeTabling()
+            {
+                if(mSxPool.Count() == 0 && mNeedResizing)
                 {
                     const uint32 level = 16; // 2의 승수
-                    // 스트레칭 테이블링
-                    sint32s& sxpool = *BOSS_STORAGE_SYS(sint32s);
-                    sint32* sxpool_ptr = sxpool.AtDumping(0, DstWidth * 4);
-                    sint32* sxbegins = &sxpool_ptr[DstWidth * 0];
-                    sint32* sxends = &sxpool_ptr[DstWidth * 1];
-                    sint32* sxbegin_rates = &sxpool_ptr[DstWidth * 2];
-                    sint32* sxend_rates = &sxpool_ptr[DstWidth * 3];
-                    for(sint32 dx = 0; dx < DstWidth; ++dx)
+                    sint32* sxpool_ptr = mSxPool.AtDumping(0, mDstWidth * 4);
+                    sint32* sxbegins = &sxpool_ptr[mDstWidth * 0];
+                    sint32* sxends = &sxpool_ptr[mDstWidth * 1];
+                    sint32* sxbegin_rates = &sxpool_ptr[mDstWidth * 2];
+                    sint32* sxend_rates = &sxpool_ptr[mDstWidth * 3];
+                    for(sint32 dx = 0; dx < mDstWidth; ++dx)
                     {
                         sint32 SumA = 0, SumR = 0, SumG = 0, SumB = 0, SumAlphaRate = 0, SumColorRate = 0;
-                        sxbegins[dx] = dx * SrcWidth / DstWidth;
-                        sxends[dx] = ((dx + 1) * SrcWidth + DstWidth - 1) / DstWidth;
-                        sxbegin_rates[dx] = (sxbegins[dx] + 1) * level - dx * level * SrcWidth / DstWidth;
-                        sxend_rates[dx] = ((dx + 1) * level * SrcWidth + DstWidth - 1) / DstWidth - (sxends[dx] - 1) * level;
+                        sxbegins[dx] = dx * mSrcWidth / mDstWidth;
+                        sxends[dx] = ((dx + 1) * mSrcWidth + mDstWidth - 1) / mDstWidth;
+                        sxbegin_rates[dx] = (sxbegins[dx] + 1) * level - dx * level * mSrcWidth / mDstWidth;
+                        sxend_rates[dx] = ((dx + 1) * level * mSrcWidth + mDstWidth - 1) / mDstWidth - (sxends[dx] - 1) * level;
                     }
-                    // 스트레칭
-                    for(sint32 dy = 0; dy < DstHeight; ++dy)
+                }
+            }
+            void BuildBegin(sint32 build_line)
+            {
+                mResultFocusBegin = mResultFocusEnd;
+                mResultFocusEnd = Math::Min(mResultFocusEnd + build_line, mDstHeight);
+            }
+            void ResizingOnce()
+            {
+                if(mNeedResizing)
+                {
+                    const uint32 level = 16; // 2의 승수
+                    const sint32* sxpool_ptr = mSxPool.AtDumping(0, mDstWidth * 4);
+                    const sint32* sxbegins = &sxpool_ptr[mDstWidth * 0];
+                    const sint32* sxends = &sxpool_ptr[mDstWidth * 1];
+                    const sint32* sxbegin_rates = &sxpool_ptr[mDstWidth * 2];
+                    const sint32* sxend_rates = &sxpool_ptr[mDstWidth * 3];
+                    for(sint32 dy = mResultFocusBegin; dy < mResultFocusEnd; ++dy)
                     {
-                        Bmp::bitmappixel* CurDstBits = &DstBits[dy * DstWidth];
-                        const sint32 sybegin = dy * SrcHeight / DstHeight;
-                        const sint32 syend = ((dy + 1) * SrcHeight + DstHeight - 1) / DstHeight;
-                        const sint32 sybegin_rate = (sybegin + 1) * level - dy * level * SrcHeight / DstHeight;
-                        const sint32 syend_rate = ((dy + 1) * level * SrcHeight + DstHeight - 1) / DstHeight - (syend - 1) * level;
-                        for(sint32 dx = 0; dx < DstWidth; ++dx)
+                        Bmp::bitmappixel* CurDstBits = &mDstBits[dy * mDstWidth];
+                        const sint32 sybegin = dy * mSrcHeight / mDstHeight;
+                        const sint32 syend = ((dy + 1) * mSrcHeight + mDstHeight - 1) / mDstHeight;
+                        const sint32 sybegin_rate = (sybegin + 1) * level - dy * level * mSrcHeight / mDstHeight;
+                        const sint32 syend_rate = ((dy + 1) * level * mSrcHeight + mDstHeight - 1) / mDstHeight - (syend - 1) * level;
+                        for(sint32 dx = 0; dx < mDstWidth; ++dx)
                         {
                             // 과한 축소로 오버플로우가 발생하여 색상오류가 나면 아래 선언을 uint32에서 float로 바꾸면 됨
                             uint32 SumA = 0, SumR = 0, SumG = 0, SumB = 0, SumAlphaRate = 0, SumColorRate = 0;
@@ -1633,7 +1694,7 @@
                             const sint32 sxend_rate = sxend_rates[dx];
                             for(sint32 sy = sybegin; sy < syend; ++sy)
                             {
-                                const Bmp::bitmappixel* CurSrcBits = &SrcBits[(SrcHeight - 1 - sy) * SrcWidth];
+                                const Bmp::bitmappixel* CurSrcBits = &mSrcBits[(mSrcHeight - 1 - sy) * mSrcWidth];
                                 const sint32 sy_rate = (sy == sybegin)? sybegin_rate : ((sy < syend - 1)? level : syend_rate);
                                 for(sint32 sx = sxbegin; sx < sxend; ++sx)
                                 {
@@ -1664,18 +1725,22 @@
                             CurDstBits++;
                         }
                     }
-                    // 리사이징과 함께 컬러링도 있는 경우
-                    if(NeedColoring)
+                }
+            }
+            void ColoringOnce()
+            {
+                if(mNeedColoring)
+                {
+                    const uint08* CurTableA = &g_alphaTable[mColoring.a * 256];
+                    const uint08* CurTableR = &g_colorTable[mColoring.r * 256];
+                    const uint08* CurTableG = &g_colorTable[mColoring.g * 256];
+                    const uint08* CurTableB = &g_colorTable[mColoring.b * 256];
+                    if(mNeedResizing)
                     {
-                        // 컬러링
-                        const uint08* CurTableA = &AlphaTable[coloring.a * 256];
-                        const uint08* CurTableR = &ColorTable[coloring.r * 256];
-                        const uint08* CurTableG = &ColorTable[coloring.g * 256];
-                        const uint08* CurTableB = &ColorTable[coloring.b * 256];
-                        for(sint32 y = 0; y < DstHeight; ++y)
+                        for(sint32 y = mResultFocusBegin; y < mResultFocusEnd; ++y)
                         {
-                            Bmp::bitmappixel* CurDstBits = &DstBits[y * DstWidth];
-                            for(sint32 x = 0; x < DstWidth; ++x)
+                            Bmp::bitmappixel* CurDstBits = &mDstBits[y * mDstWidth];
+                            for(sint32 x = 0; x < mDstWidth; ++x)
                             {
                                 CurDstBits->a = CurTableA[CurDstBits->a];
                                 CurDstBits->r = CurTableR[CurDstBits->r];
@@ -1685,20 +1750,11 @@
                             }
                         }
                     }
-                }
-                // 컬러링만 있는 경우
-                else
-                {
-                    // 컬러링
-                    const uint08* CurTableA = &AlphaTable[coloring.a * 256];
-                    const uint08* CurTableR = &ColorTable[coloring.r * 256];
-                    const uint08* CurTableG = &ColorTable[coloring.g * 256];
-                    const uint08* CurTableB = &ColorTable[coloring.b * 256];
-                    for(sint32 y = 0; y < DstHeight; ++y)
+                    else for(sint32 y = mResultFocusBegin; y < mResultFocusEnd; ++y)
                     {
-                        Bmp::bitmappixel* CurDstBits = &DstBits[y * DstWidth];
-                        const Bmp::bitmappixel* CurSrcBits = &SrcBits[(SrcHeight - 1 - y) * SrcWidth];
-                        for(sint32 x = 0; x < DstWidth; ++x)
+                        Bmp::bitmappixel* CurDstBits = &mDstBits[y * mDstWidth];
+                        const Bmp::bitmappixel* CurSrcBits = &mSrcBits[(mSrcHeight - 1 - y) * mSrcWidth];
+                        for(sint32 x = 0; x < mDstWidth; ++x)
                         {
                             CurDstBits->a = CurTableA[CurSrcBits->a];
                             CurDstBits->r = CurTableR[CurSrcBits->r];
@@ -1710,33 +1766,72 @@
                     }
                 }
             }
-            // 컬러링도 없고 리사이징도 없는 경우
-            else for(sint32 y = 0; y < DstHeight; ++y)
-                Memory::Copy(&DstBits[y * DstWidth], &SrcBits[(SrcHeight - 1 - y) * SrcWidth],
-                    sizeof(Bmp::bitmappixel) * SrcWidth);
+            void BuildEnd()
+            {
+                if(mResultFocusEnd == mDstHeight)
+                {
+                    buffer NewPixmap = Buffer::Alloc<PixmapPrivate>(BOSS_DBG 1);
+                    ((PixmapPrivate*) NewPixmap)->convertFromImage(*mPlatformImage);
+                    mResultImage = (id_image) NewPixmap;
+                    // 불필요한 요소 해제
+                    delete mPlatformImage;
+                    mPlatformImage = nullptr;
+                    mSxPool.Clear();
+                }
+            }
 
-            buffer NewPixmap = Buffer::Alloc<PixmapPrivate>(BOSS_DBG 1);
-            ((PixmapPrivate*) NewPixmap)->convertFromImage(NewImage);
-            return (id_image) NewPixmap;
+        public:
+            sint32 mSrcWidth;
+            sint32 mSrcHeight;
+            sint32 mDstWidth;
+            sint32 mDstHeight;
+            ImagePrivate* mPlatformImage;
+            bool mNeedResizing;
+            bool mNeedColoring;
+            Color mColoring;
+            Bmp::bitmappixel* mDstBits;
+            const Bmp::bitmappixel* mSrcBits;
+            sint32s mSxPool;
+            sint32 mResultFocusBegin;
+            sint32 mResultFocusEnd;
+            id_image mResultImage;
+        };
+
+        id_image_routine Platform::Graphics::CreateImageRoutine(id_bitmap_read bitmap, sint32 resizing_width, sint32 resizing_height, const Color coloring)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
+            auto NewImageRoutine = (ImageRoutine*) Buffer::Alloc<ImageRoutine>(BOSS_DBG 1);
+            NewImageRoutine->mSrcWidth = Bmp::GetWidth(bitmap);
+            NewImageRoutine->mSrcHeight = Bmp::GetHeight(bitmap);
+            NewImageRoutine->mDstWidth = (resizing_width == -1)? NewImageRoutine->mSrcWidth : resizing_width;
+            NewImageRoutine->mDstHeight = (resizing_height == -1)? NewImageRoutine->mSrcHeight : resizing_height;
+            NewImageRoutine->mPlatformImage = new ImagePrivate(NewImageRoutine->mDstWidth, NewImageRoutine->mDstHeight, ImagePrivate::Format_ARGB32);
+            NewImageRoutine->mNeedResizing = (NewImageRoutine->mDstWidth != NewImageRoutine->mSrcWidth || NewImageRoutine->mDstHeight != NewImageRoutine->mSrcHeight);
+            NewImageRoutine->mNeedColoring = (coloring.rgba != Color::ColoringDefault);
+            NewImageRoutine->mColoring = coloring;
+            NewImageRoutine->mDstBits = (Bmp::bitmappixel*) NewImageRoutine->mPlatformImage->bits();
+            NewImageRoutine->mSrcBits = (const Bmp::bitmappixel*) Bmp::GetBits(bitmap);
+            NewImageRoutine->ValidColorTabling();
+            NewImageRoutine->ValidResizeTabling();
+            return (id_image_routine) NewImageRoutine;
         }
 
-        sint32 Platform::Graphics::GetImageWidth(id_image_read image)
+        id_image_read Platform::Graphics::BuildImageRoutineOnce(id_image_routine routine, sint32 build_line)
         {
-            if(const PixmapPrivate* CurPixmap = (const PixmapPrivate*) image)
-                return CurPixmap->width();
-            return 0;
+            auto CurImageRoutine = (ImageRoutine*) routine;
+            if(!CurImageRoutine->mResultImage)
+            {
+                CurImageRoutine->BuildBegin(build_line);
+                CurImageRoutine->ResizingOnce();
+                CurImageRoutine->ColoringOnce();
+                CurImageRoutine->BuildEnd();
+            }
+            return CurImageRoutine->mResultImage;
         }
 
-        sint32 Platform::Graphics::GetImageHeight(id_image_read image)
+        void Platform::Graphics::RemoveImageRoutine(id_image_routine routine)
         {
-            if(const PixmapPrivate* CurPixmap = (const PixmapPrivate*) image)
-                return CurPixmap->height();
-            return 0;
-        }
-
-        void Platform::Graphics::RemoveImage(id_image image)
-        {
-            Buffer::Free((buffer) image);
+            Buffer::Free((buffer) routine);
         }
 
         void Platform::Graphics::DrawImage(id_image_read image, float ix, float iy, float iw, float ih, float x, float y, float w, float h)

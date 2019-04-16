@@ -966,7 +966,7 @@
             BOSS_ASSERT("Further development is needed.", false);
         }
 
-        id_image Platform::Graphics::CreateImage(id_bitmap_read bitmap, const Color coloring, sint32 resizing_width, sint32 resizing_height)
+        id_image Platform::Graphics::CreateImage(id_bitmap_read bitmap)
         {
             BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
 
@@ -991,6 +991,25 @@
         }
 
         void Platform::Graphics::RemoveImage(id_image image)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+        }
+
+        id_image_routine Platform::Graphics::CreateImageRoutine(id_bitmap_read bitmap, sint32 resizing_width, sint32 resizing_height, const Color coloring)
+        {
+            BOSS_ASSERT("호출시점이 적절하지 않습니다", g_data && g_window);
+
+            BOSS_ASSERT("Further development is needed.", false);
+            return nullptr;
+        }
+
+        id_image_read Platform::Graphics::BuildImageRoutineOnce(id_image_routine routine, sint32 build_line)
+        {
+            BOSS_ASSERT("Further development is needed.", false);
+            return nullptr;
+        }
+
+        void Platform::Graphics::RemoveImageRoutine(id_image_routine routine)
         {
             BOSS_ASSERT("Further development is needed.", false);
         }

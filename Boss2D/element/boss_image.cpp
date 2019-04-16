@@ -11,17 +11,18 @@ namespace BOSS
     {
         m_fileformat = Format::Null;
         m_bitmap = nullptr;
-        m_image_cache_max = 8;
         ResetData();
     }
 
     Image::Image(const Image& rhs)
     {
+        m_bitmap = nullptr;
         operator=(rhs);
     }
 
     Image::Image(Image&& rhs)
     {
+        m_bitmap = nullptr;
         operator=(ToReference(rhs));
     }
 
@@ -38,8 +39,6 @@ namespace BOSS
         m_filepath = rhs.m_filepath;
         m_fileformat = rhs.m_fileformat;
         m_bitmap = (rhs.m_bitmap)? Bmp::Clone(rhs.m_bitmap) : nullptr;
-        m_image_cache_max = rhs.m_image_cache_max;
-
         m_valid_rect.l = rhs.m_valid_rect.l;
         m_valid_rect.t = rhs.m_valid_rect.t;
         m_valid_rect.r = rhs.m_valid_rect.r;
@@ -59,10 +58,7 @@ namespace BOSS
         m_fileformat = rhs.m_fileformat; rhs.m_fileformat = Format::Null;
         Bmp::Remove(m_bitmap);
         m_bitmap = rhs.m_bitmap; rhs.m_bitmap = nullptr;
-        m_image_cache_max = rhs.m_image_cache_max;
-        m_image_cached_map = ToReference(rhs.m_image_cached_map);
-        m_image_cached_queue = ToReference(rhs.m_image_cached_queue);
-
+        m_builder = ToReference(rhs.m_builder);
         m_valid_rect.l = rhs.m_valid_rect.l;
         m_valid_rect.t = rhs.m_valid_rect.t;
         m_valid_rect.r = rhs.m_valid_rect.r;
@@ -81,9 +77,6 @@ namespace BOSS
         m_patch_cached_dst_visible_h = rhs.m_patch_cached_dst_visible_h;
         m_patch_cached_dst_x = ToReference(rhs.m_patch_cached_dst_x);
         m_patch_cached_dst_y = ToReference(rhs.m_patch_cached_dst_y);
-        m_rebuild_hint_width = rhs.m_rebuild_hint_width;
-        m_rebuild_hint_height = rhs.m_rebuild_hint_height;
-        m_rebuild_hint_msec = rhs.m_rebuild_hint_msec;
         return *this;
     }
 
@@ -602,19 +595,6 @@ namespace BOSS
         }
     }
 
-    bool Image::GetRebuildHint(sint32 width, sint32 height, float sec) const
-    {
-        if(m_rebuild_hint_width != width || m_rebuild_hint_height != height)
-        {
-            m_rebuild_hint_width = width;
-            m_rebuild_hint_height = height;
-            m_rebuild_hint_msec = Platform::Utility::CurrentTimeMsec();
-        }
-        else if(sec < (Platform::Utility::CurrentTimeMsec() - m_rebuild_hint_msec) * 0.001f)
-            return true;
-        return false;
-    }
-
     sint32 Image::GetImageWidth() const
     {
         return Bmp::GetWidth(m_bitmap);
@@ -767,9 +747,7 @@ namespace BOSS
 
     void Image::ResetCache()
     {
-        m_image_cached_map.RemoveAll();
-        while(m_image_cached_queue.Count())
-            delete m_image_cached_queue.Dequeue();
+        m_builder.Clear();
     }
 
     void Image::ResetData()
@@ -792,9 +770,6 @@ namespace BOSS
         m_patch_cached_dst_visible_h = false;
         m_patch_cached_dst_x.Clear();
         m_patch_cached_dst_y.Clear();
-        m_rebuild_hint_width = 0;
-        m_rebuild_hint_height = 0;
-        m_rebuild_hint_msec = Platform::Utility::CurrentTimeMsec();
     }
 
     void Image::MakeData(sint32 l, sint32 t, sint32 r, sint32 b)
@@ -850,39 +825,94 @@ namespace BOSS
         m_patch_cached_dst_y.AtWherever(m_patch_calced_src_y.Count() - 1);
     }
 
-    id_image_read Image::GetImageCore(const Color& coloring, sint32 width, sint32 height) const
+    id_image_read Image::GetImageCore(sint32 resizing_width, sint32 resizing_height, const Color coloring) const
     {
         if(!m_bitmap) return nullptr;
-        width = Math::Max(1, width);
-        height = Math::Max(1, height);
-        const sint64 SizingKey = ((uint64) width) | (((uint64) height) << 32);
-        if(PlatformImage* Result = m_image_cached_map[coloring.rgba][SizingKey].Value())
-            return Result->mImage;
+        m_builder.ValidBitmap(m_bitmap);
+        return m_builder.GetImage(resizing_width, resizing_height, coloring);
+    }
 
-        // 최대수량을 초과한 오래된 캐시를 제거
-        while(m_image_cache_max <= m_image_cached_queue.Count())
+    Image::Builder::Builder()
+    {
+        mOriginalImage = nullptr;
+        mRoutine = nullptr;
+        Clear();
+    }
+
+    Image::Builder::Builder(Builder&& rhs)
+    {
+        mOriginalImage = nullptr;
+        mRoutine = nullptr;
+        operator=(ToReference(rhs));
+    }
+
+    Image::Builder::~Builder()
+    {
+        Clear();
+    }
+
+    Image::Builder& Image::Builder::operator=(Builder&& rhs)
+    {
+        Platform::Graphics::RemoveImage(mOriginalImage);
+        Platform::Graphics::RemoveImageRoutine(mRoutine);
+        m_RefBitmap = rhs.m_RefBitmap;
+        m_BitmapWidth = rhs.m_BitmapWidth;
+        m_BitmapHeight = rhs.m_BitmapHeight;
+        mOriginalImage = rhs.mOriginalImage;
+        mRoutineResize = rhs.mRoutineResize;
+        mRoutineColor = rhs.mRoutineColor;
+        mRoutine = rhs.mRoutine;
+        rhs.mOriginalImage = nullptr;
+        rhs.mRoutine = nullptr;
+        return *this;
+    }
+
+    void Image::Builder::Clear()
+    {
+        m_RefBitmap = nullptr;
+        m_BitmapWidth = 0;
+        m_BitmapHeight = 0;
+        Platform::Graphics::RemoveImage(mOriginalImage);
+        mOriginalImage = nullptr;
+        mRoutineResize.w = mRoutineResize.h = 0;
+        mRoutineColor.rgba = Color::ColoringDefault;
+        Platform::Graphics::RemoveImageRoutine(mRoutine);
+        mRoutine = nullptr;
+    }
+
+    void Image::Builder::ValidBitmap(id_bitmap_read bitmap)
+    {
+        if(m_RefBitmap != bitmap)
         {
-            const CacheKeys* OldCacheKeys = m_image_cached_queue.Dequeue();
-            m_image_cached_map[OldCacheKeys->coloring][OldCacheKeys->sizing].RemoveValue();
-            delete OldCacheKeys;
+            Clear();
+            m_RefBitmap = bitmap;
+            m_BitmapWidth = Bmp::GetWidth(bitmap);
+            m_BitmapHeight = Bmp::GetHeight(bitmap);
         }
-        CacheKeys* NewCacheKeys = new CacheKeys;
-        NewCacheKeys->coloring = coloring.rgba;
-        NewCacheKeys->sizing = SizingKey;
-        m_image_cached_queue.Enqueue(NewCacheKeys);
-
-        // 옵션대로 생성하여 캐시맵에 할당
-        PlatformImage* NewImage = m_image_cached_map[coloring.rgba][SizingKey].CreateValue();
-        return (NewImage->mImage = Platform::Graphics::CreateImage(m_bitmap, coloring, width, height));
     }
 
-    Image::PlatformImage::PlatformImage()
+    id_image_read Image::Builder::GetOriginalImage()
     {
-        mImage = nullptr;
+        if(!mOriginalImage)
+            mOriginalImage = Platform::Graphics::CreateImage(m_RefBitmap);
+        return mOriginalImage;
     }
 
-    Image::PlatformImage::~PlatformImage()
+    id_image_read Image::Builder::GetImage(sint32 resizing_width, sint32 resizing_height, const Color coloring)
     {
-        Platform::Graphics::RemoveImage(mImage);
+        if((resizing_width == -1 || resizing_width == m_BitmapWidth) &&
+            (resizing_height == -1 || resizing_height == m_BitmapHeight) && coloring.rgba == Color::ColoringDefault)
+            return GetOriginalImage();
+        if(mRoutineResize.w != resizing_width || mRoutineResize.h != resizing_height || mRoutineColor.rgba != coloring.rgba)
+        {
+            mRoutineResize.w = resizing_width;
+            mRoutineResize.h = resizing_height;
+            mRoutineColor = coloring;
+            Platform::Graphics::RemoveImageRoutine(mRoutine);
+            mRoutine = Platform::Graphics::CreateImageRoutine(m_RefBitmap, resizing_width, resizing_height, coloring);
+        }
+        id_image_read Result = Platform::Graphics::BuildImageRoutineOnce(mRoutine,
+            40000 / ((mRoutineResize.w == -1)? m_BitmapWidth : mRoutineResize.w) + 1);
+        return (Result)? Result : GetOriginalImage();
     }
 }

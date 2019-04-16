@@ -31,16 +31,14 @@ namespace BOSS
         void ChangeToMagentaAlpha();
         void RestoreFromMagentaAlpha();
         void ReplaceAlphaChannelBy(id_bitmap_read src);
-        bool GetRebuildHint(sint32 width, sint32 height, float sec) const;
 
     public:
         inline bool HasBitmap() const {return (m_bitmap != nullptr);}
         inline id_bitmap_read GetBitmap() const {return m_bitmap;}
-        inline id_image_read GetImage() const {return GetImageCore(Color(Color::ColoringDefault), GetImageWidth(), GetImageHeight());}
-        inline id_image_read GetImage(const Color& coloring) const {return GetImageCore(coloring, GetImageWidth(), GetImageHeight());}
-        inline id_image_read GetImage(const sint32 width, const sint32 height) const {return GetImageCore(Color(Color::ColoringDefault), width, height);}
-        inline id_image_read GetImage(const Color& coloring, const sint32 width, const sint32 height) const {return GetImageCore(coloring, width, height);}
-        inline void SetImageCacheMax(const sint32 count) {BOSS_ASSERT("count값은 1이상이어야 합니다", 1 <= count); m_image_cache_max = count;}
+        inline id_image_read GetImage() const {return GetImageCore();}
+        inline id_image_read GetImage(const sint32 width, const sint32 height) const {return GetImageCore(width, height);}
+        inline id_image_read GetImage(const Color& coloring) const {return GetImageCore(-1, -1, coloring);}
+        inline id_image_read GetImage(const sint32 width, const sint32 height, const Color& coloring) const {return GetImageCore(width, height, coloring);}
         sint32 GetImageWidth() const;
         sint32 GetImageHeight() const;
         inline sint32 GetWidth() const {return m_valid_rect.r - m_valid_rect.l;}
@@ -81,25 +79,36 @@ namespace BOSS
         void ResetData();
         void MakeData(sint32 l, sint32 t, sint32 r, sint32 b);
         void RecalcData();
-        id_image_read GetImageCore(const Color& coloring, sint32 width, sint32 height) const;
+        id_image_read GetImageCore(sint32 resizing_width = -1, sint32 resizing_height = -1, const Color coloring = Color::ColoringDefault) const;
 
     private:
-        class PlatformImage
+        class Builder
         {
         public:
-            PlatformImage();
-            ~PlatformImage();
-            id_image mImage;
+            Builder();
+            Builder(Builder&& rhs);
+            ~Builder();
+            Builder& operator=(Builder&& rhs);
+        public:
+            void Clear();
+            void ValidBitmap(id_bitmap_read bitmap);
+            id_image_read GetOriginalImage();
+            id_image_read GetImage(sint32 resizing_width = -1, sint32 resizing_height = -1, const Color coloring = Color::ColoringDefault);
+        private:
+            id_bitmap_read m_RefBitmap;
+            sint32 m_BitmapWidth;
+            sint32 m_BitmapHeight;
+            id_image mOriginalImage;
+            size64 mRoutineResize;
+            Color mRoutineColor;
+            id_image_routine mRoutine;
         };
 
     private:
         String m_filepath;
         Format m_fileformat;
         id_bitmap m_bitmap;
-        sint32 m_image_cache_max;
-        mutable Tree<PlatformImage> m_image_cached_map;
-        typedef struct {uint32 coloring; sint64 sizing;} CacheKeys;
-        mutable Queue<CacheKeys*> m_image_cached_queue;
+        mutable Builder m_builder;
         rect128 m_valid_rect;
         Array<ixzone64, datatype_pod_canmemcpy> m_child_ixzone;
         Array<iyzone64, datatype_pod_canmemcpy> m_child_iyzone;
@@ -115,9 +124,6 @@ namespace BOSS
         mutable bool m_patch_cached_dst_visible_h;
         mutable sint32s m_patch_cached_dst_x;
         mutable sint32s m_patch_cached_dst_y;
-        mutable sint32 m_rebuild_hint_width;
-        mutable sint32 m_rebuild_hint_height;
-        mutable uint64 m_rebuild_hint_msec;
     };
     typedef Array<Image> Images;
 }

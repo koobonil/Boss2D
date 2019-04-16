@@ -936,13 +936,9 @@ namespace BOSS
             /*!
             \brief 이미지 생성
             \param bitmap : 비트맵
-            \param coloring : 컬러링 색상
-            \param resizing_width : 리사이징용 가로길이(px)
-            \param resizing_height : 리사이징용 세로길이(px)
             \return 생성된 이미지
             */
-            static id_image CreateImage(id_bitmap_read bitmap,
-                const Color coloring = Color::ColoringDefault, sint32 resizing_width = -1, sint32 resizing_height = -1);
+            static id_image CreateImage(id_bitmap_read bitmap);
 
             /*!
             \brief 이미지 가로길이 얻기
@@ -963,6 +959,30 @@ namespace BOSS
             \param image : 이미지
             */
             static void RemoveImage(id_image image);
+
+            /*!
+            \brief 이미지루틴 생성
+            \param bitmap : 비트맵
+            \param coloring : 컬러링 색상
+            \param resizing_width : 리사이징용 가로길이(px)
+            \param resizing_height : 리사이징용 세로길이(px)
+            \return 이미지루틴
+            */
+            static id_image_routine CreateImageRoutine(id_bitmap_read bitmap, sint32 resizing_width = -1, sint32 resizing_height = -1, const Color coloring = Color::ColoringDefault);
+
+            /*!
+            \brief 이미지루틴에 빌드를 가하여 이미지 생성
+            \param routine : 비트맵
+            \param build_line : 빌드할 라인수
+            \return 생성된 이미지(실패시 nullptr)
+            */
+            static id_image_read BuildImageRoutineOnce(id_image_routine routine, sint32 build_line);
+
+            /*!
+            \brief 이미지루틴 삭제
+            \param routine : 이미지루틴
+            */
+            static void RemoveImageRoutine(id_image_routine routine);
 
             /*!
             \brief 이미지 출력
