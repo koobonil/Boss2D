@@ -912,7 +912,7 @@ namespace BOSS
             mRoutine = Platform::Graphics::CreateImageRoutine(m_RefBitmap, resizing_width, resizing_height, coloring);
         }
         id_image_read Result = Platform::Graphics::BuildImageRoutineOnce(mRoutine,
-            40000 / ((mRoutineResize.w == -1)? m_BitmapWidth : mRoutineResize.w) + 1);
+            (mRoutineResize.w == 0)? 0 : 40000 / ((mRoutineResize.w == -1)? m_BitmapWidth : mRoutineResize.w) + 1);
         return (Result)? Result : GetOriginalImage();
     }
 }

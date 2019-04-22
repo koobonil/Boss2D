@@ -1440,7 +1440,7 @@
             if(manager)
                 manager->SetCallback(m_view_cb, m_view_data);
 
-            m_input_enabled = true;
+            m_event_blocked = false;
             m_width = 0;
             m_height = 0;
             m_request = WR_Null;
@@ -1648,14 +1648,11 @@
             m_view_manager->SendNotify(type, topic, in, out);
         }
 
-        inline bool isInputEnabled() const
+        inline bool setEventBlocked(bool block)
         {
-            return m_input_enabled;
-        }
-
-        inline void setInputEnabled(bool enable)
-        {
-            m_input_enabled = enable;
+            const bool HasBlocked = m_event_blocked;
+            m_event_blocked = block;
+            return HasBlocked;
         }
 
     public:
@@ -1713,7 +1710,7 @@
 
         void mousePressEvent(MouseEventPrivate* event)
         {
-            if(!m_input_enabled)
+            if(m_event_blocked)
             {
                 event->ignore();
                 return;
@@ -1736,7 +1733,7 @@
 
         void mouseMoveEvent(MouseEventPrivate* event)
         {
-            if(!m_input_enabled)
+            if(m_event_blocked)
             {
                 event->ignore();
                 return;
@@ -1764,7 +1761,7 @@
 
         void mouseReleaseEvent(MouseEventPrivate* event)
         {
-            if(!m_input_enabled)
+            if(m_event_blocked)
             {
                 event->ignore();
                 return;
@@ -1782,7 +1779,7 @@
 
         void wheelEvent(WheelEventPrivate* event)
         {
-            if(!m_input_enabled)
+            if(m_event_blocked)
             {
                 event->ignore();
                 return;
@@ -1803,7 +1800,7 @@
 
         void keyPressEvent(KeyEventPrivate* event)
         {
-            if(!m_input_enabled)
+            if(m_event_blocked)
             {
                 event->ignore();
                 return;
@@ -1814,7 +1811,7 @@
 
         void keyReleaseEvent(KeyEventPrivate* event)
         {
-            if(!m_input_enabled)
+            if(m_event_blocked)
             {
                 event->ignore();
                 return;
@@ -1826,6 +1823,8 @@
     private:
         void tick_timeout()
         {
+            if(m_event_blocked)
+                return;
             if(m_request == WR_Null)
                 sendTick();
             else
@@ -1840,6 +1839,8 @@
 
         void update_timeout()
         {
+            if(m_event_blocked)
+                return;
             if(m_paintcount == 0)
                 m_update_timer.stop();
             getWidgetForPaint()->update();
@@ -1847,6 +1848,8 @@
 
         void tooltip_timeout()
         {
+            if(m_event_blocked)
+                return;
             m_tooltip_timer.stop();
             point64 CursorPos;
             if(Platform::Utility::GetCursorPosInWindow(CursorPos))
@@ -1855,6 +1858,8 @@
 
         void longpress_timeout()
         {
+            if(m_event_blocked)
+                return;
             m_longpress_timer.stop();
             touch(TT_LongPress, 0, m_longpress_x, m_longpress_y);
         }
@@ -1870,7 +1875,7 @@
         WidgetPrivate* m_paint_device;
 
     private:
-        bool m_input_enabled;
+        bool m_event_blocked;
         sint32 m_width;
         sint32 m_height;
         WidgetRequest m_request;

@@ -442,9 +442,9 @@ namespace BOSS
     public: // 함수파라미터
         class Payload
         {
-            BOSS_DECLARE_NONCOPYABLE_INITIALIZED_CLASS(Payload, mUIElement(nullptr))
+            BOSS_DECLARE_NONCOPYABLE_INITIALIZED_CLASS(Payload, mElementID(-1))
         public:
-            Payload(const ZayExtend* owner, chars uiname = nullptr, void* uielement = nullptr, const SolverValue* param = nullptr);
+            Payload(const ZayExtend* owner, chars uiname = nullptr, sint32 elementid = -1, const SolverValue* param = nullptr);
             ~Payload();
 
         public:
@@ -472,7 +472,7 @@ namespace BOSS
         private:
             const ZayExtend* mOwner;
             chars mUIName;
-            void* const mUIElement;
+            const sint32 mElementID;
             SolverValues mParams;
         };
         const Payload operator()() const;
@@ -488,7 +488,7 @@ namespace BOSS
         bool HasGlue() const;
         void ResetForComponent(ComponentType type, ComponentCB cb);
         void ResetForGlue(GlueCB cb);
-        Payload MakePayload(chars uiname = nullptr, const void* uielement = nullptr) const;
+        Payload MakePayload(chars uiname = nullptr, sint32 elementid = -1) const;
 
     private:
         ComponentType mComponentType;

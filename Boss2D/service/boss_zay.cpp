@@ -1246,8 +1246,8 @@ namespace BOSS
     ////////////////////////////////////////////////////////////////////////////////
     // ZayExtend
     ////////////////////////////////////////////////////////////////////////////////
-    extern void ZayExtendCursor(CursorRole role, const void* uielement);
-    extern void ZayExtendTouch(chars uiname, const void* uielement);
+    extern void ZayExtendCursor(CursorRole role, sint32 elementid);
+    extern void ZayExtendTouch(chars uiname, sint32 elementid);
 
     ZayExtend::ZayExtend(ComponentType type, ComponentCB ccb, GlueCB gcb)
     {
@@ -1260,8 +1260,8 @@ namespace BOSS
     {
     }
 
-    ZayExtend::Payload::Payload(const ZayExtend* owner, chars uiname, void* uielement, const SolverValue* param)
-        : mUIElement(uielement)
+    ZayExtend::Payload::Payload(const ZayExtend* owner, chars uiname, sint32 elementid, const SolverValue* param)
+        : mElementID(elementid)
     {
         mOwner = owner;
         mUIName = uiname;
@@ -1318,17 +1318,17 @@ namespace BOSS
 
     ZayPanel::SubGestureCB ZayExtend::Payload::MakeGesture() const
     {
-        auto UIElement = mUIElement;
-        return ZAY_GESTURE_NT(n, t, UIElement)
+        auto ElementID = mElementID;
+        return ZAY_GESTURE_NT(n, t, ElementID)
             {
                 if(t == GT_Moving || t == GT_MovingIdle)
-                    ZayExtendCursor(CR_PointingHand, UIElement);
+                    ZayExtendCursor(CR_PointingHand, ElementID);
                 else if(t == GT_MovingLosed)
-                    ZayExtendCursor(CR_Arrow, UIElement);
+                    ZayExtendCursor(CR_Arrow, ElementID);
                 else if(t == GT_InReleased)
                 {
-                    ZayExtendTouch(n, UIElement);
-                    ZayExtendCursor(CR_Busy, UIElement);
+                    ZayExtendTouch(n, ElementID);
+                    ZayExtendCursor(CR_Busy, ElementID);
                 }
             };
     }
@@ -1446,27 +1446,27 @@ namespace BOSS
 
     ZayExtend::Payload ZayExtend::operator()(const SolverValue& value) const
     {
-        return Payload(this, nullptr, nullptr, &value);
+        return Payload(this, nullptr, -1, &value);
     }
 
     ZayExtend::Payload ZayExtend::operator()(sint32 value) const
     {
-        return Payload(this, nullptr, nullptr, &SolverValue::MakeByInteger(value));
+        return Payload(this, nullptr, -1, &SolverValue::MakeByInteger(value));
     }
 
     ZayExtend::Payload ZayExtend::operator()(sint64 value) const
     {
-        return Payload(this, nullptr, nullptr, &SolverValue::MakeByInteger(value));
+        return Payload(this, nullptr, -1, &SolverValue::MakeByInteger(value));
     }
 
     ZayExtend::Payload ZayExtend::operator()(SolverValue::Float value) const
     {
-        return Payload(this, nullptr, nullptr, &SolverValue::MakeByFloat(value));
+        return Payload(this, nullptr, -1, &SolverValue::MakeByFloat(value));
     }
 
     ZayExtend::Payload ZayExtend::operator()(SolverValue::Text value) const
     {
-        return Payload(this, nullptr, nullptr, &SolverValue::MakeByText(value));
+        return Payload(this, nullptr, -1, &SolverValue::MakeByText(value));
     }
 
     bool ZayExtend::HasComponent() const
@@ -1495,9 +1495,9 @@ namespace BOSS
         mGlueCB = cb;
     }
 
-    ZayExtend::Payload ZayExtend::MakePayload(chars uiname, const void* uielement) const
+    ZayExtend::Payload ZayExtend::MakePayload(chars uiname, sint32 elementid) const
     {
-        return Payload(this, uiname, (void*) uielement);
+        return Payload(this, uiname, elementid);
     }
 
     ////////////////////////////////////////////////////////////////////////////////

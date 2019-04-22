@@ -224,8 +224,12 @@
                 Length = AssertMessage.toWCharArray(AssertMessageW);
                 AssertMessageW[Length] = L'\0';
 
-                switch(MessageBoxW((HWND) ((g_window)? (ublock) g_window->winId() : NULL),
-                    AssertMessageW, L"ASSERT BREAK", MB_ICONWARNING | MB_ABORTRETRYIGNORE))
+                const bool WasBlocked = g_data->getMainAPI()->setEventBlocked(true);
+                const int Result = MessageBoxW((HWND) ((g_window)? (ublock) g_window->winId() : NULL),
+                    AssertMessageW, L"ASSERT BREAK", MB_ICONWARNING | MB_ABORTRETRYIGNORE);
+                g_data->getMainAPI()->setEventBlocked(WasBlocked);
+
+                switch(Result)
                 {
                 case IDABORT: delete[] AssertMessageW; return 0;
                 case IDIGNORE: delete[] AssertMessageW; return 1;
@@ -238,11 +242,15 @@
                     AssertInfo[0], AssertInfo[1],
                     AssertInfo[2], AssertInfo[3]);
 
+                const bool WasBlocked = g_data->getMainAPI()->setEventBlocked(true);
                 QMessageBox AssertBox(QMessageBox::Warning, "ASSERT BREAK", QString::fromUtf8(name),
                     QMessageBox::Yes | QMessageBox::No | QMessageBox::NoToAll);
                 AssertBox.setInformativeText(AssertMessage);
                 AssertBox.setDefaultButton(QMessageBox::Yes);
-                switch(AssertBox.exec())
+                const int Result = AssertBox.exec();
+                g_data->getMainAPI()->setEventBlocked(WasBlocked);
+
+                switch(Result)
                 {
                 case QMessageBox::Yes: return 0;
                 case QMessageBox::NoToAll: return 1;
@@ -1644,7 +1652,7 @@
             }
             void ValidResizeTabling()
             {
-                if(mSxPool.Count() == 0 && mNeedResizing)
+                if(mSxPool.Count() == 0 && mNeedResizing && 0 < mDstWidth)
                 {
                     const uint32 level = 16; // 2의 승수
                     sint32* sxpool_ptr = mSxPool.AtDumping(0, mDstWidth * 4);
@@ -1669,7 +1677,7 @@
             }
             void ResizingOnce()
             {
-                if(mNeedResizing)
+                if(mNeedResizing && 0 < mDstWidth)
                 {
                     const uint32 level = 16; // 2의 승수
                     const sint32* sxpool_ptr = mSxPool.AtDumping(0, mDstWidth * 4);

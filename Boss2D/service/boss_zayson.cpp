@@ -242,10 +242,33 @@ namespace BOSS
         enum class Type {Unknown, Condition, Asset, Param, Request, Component, View};
 
     public:
-        ZayUIElement(Type type = Type::Unknown) : mType(type) {mRefRoot = nullptr;}
-        virtual ~ZayUIElement() {}
+        ZayUIElement(Type type = Type::Unknown) : mType(type)
+        {
+            mID = MakeID();
+            STMAP()[mID] = this;
+            mRefRoot = nullptr;
+        }
+        virtual ~ZayUIElement()
+        {
+            STMAP().Remove(mID);
+        }
+
+    private:
+        sint32 MakeID()
+        {
+            static sint32 LastID = -1;
+            return ++LastID;
+        }
+        static Map<ZayUIElement*>& STMAP()
+        {static Map<ZayUIElement*> _; return _;}
 
     public:
+        static ZayUIElement* Get(sint32 id)
+        {
+            if(auto Result = STMAP().Access(id))
+                return *Result;
+            return nullptr;
+        }
         static SolverValue GetResult(chars viewname, chars formula)
         {
             Solver NewSolver;
@@ -284,6 +307,7 @@ namespace BOSS
 
     public:
         Type mType;
+        sint32 mID;
         const ZaySon* mRefRoot;
         Solver mUINameSolver;
         Solver mUILoopSolver;
@@ -295,17 +319,19 @@ namespace BOSS
     ////////////////////////////////////////////////////////////////////////////////
     // ZayExtendCursor
     ////////////////////////////////////////////////////////////////////////////////
-    void ZayExtendCursor(CursorRole role, const void* uielement)
+    void ZayExtendCursor(CursorRole role, sint32 elementid)
     {
-        ((ZayUIElement*) uielement)->OnCursor(role);
+        if(auto CurUIElement = ZayUIElement::Get(elementid))
+            CurUIElement->OnCursor(role);
     }
 
     ////////////////////////////////////////////////////////////////////////////////
     // ZayExtendTouch
     ////////////////////////////////////////////////////////////////////////////////
-    void ZayExtendTouch(chars uiname, const void* uielement)
+    void ZayExtendTouch(chars uiname, sint32 elementid)
     {
-        ((ZayUIElement*) uielement)->OnTouch(uiname);
+        if(auto CurUIElement = ZayUIElement::Get(elementid))
+            CurUIElement->OnTouch(uiname);
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -690,7 +716,7 @@ namespace BOSS
                         else if(0 < mClickCodes.Count()) ComponentName = defaultname;
 
                         // 파라미터 없음
-                        ZayExtend::Payload ParamCollector = CurComponent->MakePayload(ComponentName, this);
+                        ZayExtend::Payload ParamCollector = CurComponent->MakePayload(ComponentName, mID);
                         ZAY_EXTEND(ParamCollector >> panel)
                         {
                             if(mCompID == mRefRoot->debugFocusedCompID())
@@ -741,7 +767,7 @@ namespace BOSS
                         }
 
                         // 파라미터 수집
-                        ZayExtend::Payload ParamCollector = CurComponent->MakePayload(ComponentName, this);
+                        ZayExtend::Payload ParamCollector = CurComponent->MakePayload(ComponentName, mID);
                         if(auto CurCompValue = (const ZayParamElement*) mCompValues[CollectedCompValues[i]].ConstPtr())
                         {
                             for(sint32 j = 0, jend = CurCompValue->mParamSolvers.Count(); j < jend; ++j)
