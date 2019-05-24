@@ -873,6 +873,19 @@ namespace BOSS
         }
     }
 
+    VisibleState ZayPanel::visible() const
+    {
+        const Clip& LastClip = m_stack_clip[-1];
+        const Rect& LastScissor = m_stack_scissor[-1];
+
+        VisibleState Result = VS_Visible;
+        Result = (VisibleState) (Result | (VS_Left * (LastClip.r <= LastScissor.l)));
+        Result = (VisibleState) (Result | (VS_Top * (LastClip.b <= LastScissor.t)));
+        Result = (VisibleState) (Result | (VS_Right * (LastScissor.r <= LastClip.l)));
+        Result = (VisibleState) (Result | (VS_Bottom * (LastScissor.b <= LastClip.t)));
+        return Result;
+    }
+
     uint32 ZayPanel::fbo() const
     {
         if(m_ref_surface)
@@ -1110,11 +1123,11 @@ namespace BOSS
         m_clipped_width = NewClip.Width();
         m_clipped_height = NewClip.Height();
 
-        Rect& NewRect = m_stack_scissor.AtAdding();
-        const Rect& LastRect = m_stack_scissor[-2];
-        NewRect = Rect(LastRect.l / zoom, LastRect.t / zoom, LastRect.r / zoom, LastRect.b / zoom);
+        Rect& NewScissor = m_stack_scissor.AtAdding();
+        const Rect& LastScissor = m_stack_scissor[-2];
+        NewScissor = Rect(LastScissor.l / zoom, LastScissor.t / zoom, LastScissor.r / zoom, LastScissor.b / zoom);
 
-        Platform::Graphics::SetScissor(NewRect.l, NewRect.t, NewRect.Width(), NewRect.Height());
+        Platform::Graphics::SetScissor(NewScissor.l, NewScissor.t, NewScissor.Width(), NewScissor.Height());
         return StackBinder(this, ST_Zoom);
     }
 
@@ -1130,11 +1143,11 @@ namespace BOSS
         m_clipped_width = NewClip.Width();
         m_clipped_height = NewClip.Height();
 
-        Rect& NewRect = m_stack_scissor.AtAdding();
-        const Rect& LastRect = m_stack_scissor[-2];
-        NewRect = Rect(LastRect.l * LastZoom, LastRect.t * LastZoom, LastRect.r * LastZoom, LastRect.b * LastZoom);
+        Rect& NewScissor = m_stack_scissor.AtAdding();
+        const Rect& LastScissor = m_stack_scissor[-2];
+        NewScissor = Rect(LastScissor.l * LastZoom, LastScissor.t * LastZoom, LastScissor.r * LastZoom, LastScissor.b * LastZoom);
 
-        Platform::Graphics::SetScissor(NewRect.l, NewRect.t, NewRect.Width(), NewRect.Height());
+        Platform::Graphics::SetScissor(NewScissor.l, NewScissor.t, NewScissor.Width(), NewScissor.Height());
         return StackBinder(this, ST_Zoom);
     }
 
@@ -1217,20 +1230,20 @@ namespace BOSS
 
     bool ZayPanel::_push_scissor(float l, float t, float r, float b)
     {
-        Rect& NewRect = m_stack_scissor.AtAdding();
-        const Rect& LastRect = m_stack_scissor[-2];
-        NewRect.l = Math::MaxF(l, LastRect.l);
-        NewRect.t = Math::MaxF(t, LastRect.t);
-        NewRect.r = Math::MinF(r, LastRect.r);
-        NewRect.b = Math::MinF(b, LastRect.b);
+        Rect& NewScissor = m_stack_scissor.AtAdding();
+        const Rect& LastScissor = m_stack_scissor[-2];
+        NewScissor.l = Math::MaxF(l, LastScissor.l);
+        NewScissor.t = Math::MaxF(t, LastScissor.t);
+        NewScissor.r = Math::MinF(r, LastScissor.r);
+        NewScissor.b = Math::MinF(b, LastScissor.b);
 
-        if(m_test_scissor && (NewRect.r <= NewRect.l || NewRect.b <= NewRect.t))
+        if(m_test_scissor && (NewScissor.r <= NewScissor.l || NewScissor.b <= NewScissor.t))
         {
             m_stack_scissor.SubtractionOne();
             return false;
         }
 
-        Platform::Graphics::SetScissor(NewRect.l, NewRect.t, NewRect.Width(), NewRect.Height());
+        Platform::Graphics::SetScissor(NewScissor.l, NewScissor.t, NewScissor.Width(), NewScissor.Height());
         return true;
     }
 
@@ -1239,8 +1252,8 @@ namespace BOSS
         BOSS_ASSERT("Pop할 잔여스택이 없습니다", 1 < m_stack_scissor.Count());
         m_stack_scissor.SubtractionOne();
 
-        const Rect& LastRect = m_stack_scissor[-1];
-        Platform::Graphics::SetScissor(LastRect.l, LastRect.t, LastRect.Width(), LastRect.Height());
+        const Rect& LastScissor = m_stack_scissor[-1];
+        Platform::Graphics::SetScissor(LastScissor.l, LastScissor.t, LastScissor.Width(), LastScissor.Height());
     }
 
     ////////////////////////////////////////////////////////////////////////////////

@@ -362,13 +362,8 @@ namespace BOSS
             if(OneWord & 0x80)
             {
                 AddUrlCode(NewWords, OneWord);
-                char TwoWord;
-                do
-                {
-                    TwoWord = m_words[++i];
-                    AddUrlCode(NewWords, TwoWord);
-                }
-                while(TwoWord & 0x80);
+                while(m_words[i + 1] & 0x80)
+                    AddUrlCode(NewWords, m_words[++i]);
             }
             else
             {
@@ -377,12 +372,16 @@ namespace BOSS
                 jump('A' <= OneWord && OneWord <= 'Z') SafeMatched = true;
                 jump('a' <= OneWord && OneWord <= 'z') SafeMatched = true;
                 jump('0' <= OneWord && OneWord <= '9') SafeMatched = true;
-                else while(*safeword)
+                else
                 {
-                    if(*(safeword++) == OneWord)
+                    chars SafeWordFocus = safeword;
+                    while(*SafeWordFocus)
                     {
-                        SafeMatched = true;
-                        break;
+                        if(*(SafeWordFocus++) == OneWord)
+                        {
+                            SafeMatched = true;
+                            break;
+                        }
                     }
                 }
                 if(SafeMatched)

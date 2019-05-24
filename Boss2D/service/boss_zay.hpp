@@ -200,6 +200,9 @@ namespace BOSS
     enum PanelState {PS_Null = 0x00, PS_Hovered = 0x01, PS_Focused = 0x02,
         PS_Pressed = 0x04, PS_Dragging = 0x08, PS_Dropping = 0x10};
     static PanelState operator|(PanelState a, PanelState b) {return (PanelState) (int(a) | int(b));}
+    enum VisibleState {VS_Visible = 0x00,
+        VS_Left = 0x01, VS_Top = 0x10, VS_Right = 0x02, VS_Bottom = 0x20,
+        VS_LeftTop = 0x11, VS_RightTop = 0x12, VS_LeftBottom = 0x21, VS_RightBottom = 0x22};
     enum SynchronizeModel {SM_Null, SM_UpdateAll, // 전체 동기화
         SM_Rename, SM_Move, SM_Modify, // 자신의 에디트
         SM_AddChild, SM_InsertChild, SM_RemoveChild, // 자식의 개체관리
@@ -321,6 +324,7 @@ namespace BOSS
         PanelState state(chars uiname = nullptr) const;
         Point toview(float x, float y) const;
         void test(UITestOrder order);
+        VisibleState visible() const;
         uint32 fbo() const;
 
     public:

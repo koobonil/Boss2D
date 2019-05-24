@@ -3459,6 +3459,7 @@
             }
             static SocketBox* Access(id_socket id)
             {
+                if(id == nullptr) return nullptr;
                 BOSS_ASSERT("타 스레드에서 생성된 소켓입니다", (ST().m_lastId >> 32) == (((ublock) id) >> 32));
                 return ST().m_map.Access(PtrToUint64(id));
             }

@@ -288,10 +288,10 @@ namespace BOSS
 
         /*!
         \brief URL스트링으로 저장
-        \param safeword : 알파벳, 숫자와 더불어 추가로 보존할 안전한 문자코드
+        \param safeword : 알파벳, 숫자이외에 보존할 안전한 문자코드(%와 +는 불가)
         \return URL스트링
         */
-        String ToUrlString(chars safeword = "-+_.!~*'()") const;
+        String ToUrlString(chars safeword = "-_.!~*'()") const;
 
     public:
         /*!
