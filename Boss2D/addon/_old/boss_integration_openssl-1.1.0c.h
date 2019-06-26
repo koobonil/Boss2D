@@ -182,7 +182,7 @@
 #define BOSS_OPENSSL_U_modes_lcl_h                    "addon/openssl-1.1.0c_for_boss/crypto/modes/modes_lcl.h"
 #define BOSS_OPENSSL_U_ui_locl_h                      "addon/openssl-1.1.0c_for_boss/crypto/ui/ui_locl.h"
 
-#ifndef BOSS_OPENSSL_ONLY_MACRO
+#ifndef BOSS_OPENSSL_DETOUR
     #ifdef __cplusplus
         extern "C" {
     #endif

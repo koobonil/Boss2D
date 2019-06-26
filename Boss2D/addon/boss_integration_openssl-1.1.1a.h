@@ -259,7 +259,7 @@
 #define BOSS_OPENSSL_U_f_impl_h                       "addon/openssl-1.1.1a_for_boss/crypto/ec/curve448/arch_32/f_impl.h"
 #define BOSS_OPENSSL_U_field_h                        "addon/openssl-1.1.1a_for_boss/crypto/ec/curve448/field.h"
 
-#ifndef BOSS_OPENSSL_ONLY_MACRO
+#ifndef BOSS_OPENSSL_DETOUR
     #ifdef __cplusplus
         extern "C" {
     #endif
@@ -267,6 +267,21 @@
         #include <addon/openssl-1.1.1a_for_boss/include/openssl/evp.h>
         #include <addon/openssl-1.1.1a_for_boss/crypto/evp/evp_locl.h>
         #include <addon/openssl-1.1.1a_for_boss/include/openssl/srtp.h>
+    #ifdef __cplusplus
+        }
+    #endif
+#else
+    #ifdef __cplusplus
+        extern "C" {
+    #endif
+        #include <addon/openssl-1.1.1a_for_boss/include/openssl/ssl.h>
+        const SSL_METHOD *DTLSv1_2_client_method(void);
+        const SSL_METHOD *TLSv1_2_client_method(void);
+        const SSL_METHOD *DTLSv1_client_method(void);
+        const SSL_METHOD *DTLSv1_server_method(void);
+        const SSL_METHOD *TLSv1_client_method(void);
+        const SSL_METHOD *TLSv1_server_method(void);
+        unsigned char *ASN1_STRING_data(ASN1_STRING *x);
     #ifdef __cplusplus
         }
     #endif

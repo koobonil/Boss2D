@@ -2,6 +2,9 @@
 #include <platform/boss_platform.hpp>
 #include <platform/boss_platform_impl.hpp>
 
+#undef size_t
+#undef ssize_t
+
 #ifdef BOSS_PLATFORM_QT5
 
     #include <element/boss_image.hpp>

@@ -29,17 +29,8 @@
 #define BOSS_FAKEWIN_STDCALL            //__stdcall
 
 #if BOSS_LINUX | BOSS_MAC_OSX | BOSS_WINDOWS_MINGW
-    #define alloca(N) boss_fakewin_alloca(N)
-    #define _alloca(N) boss_fakewin_alloca(N)
-    #ifdef __cplusplus
-        extern "C" {
-    #endif
-    void* boss_fakewin_alloca(boss_size_t size);
-    #ifdef __cplusplus
-        }
-    #endif
-#else
-    #define _alloca(N) alloca(N)
+    #define alloca(N) __builtin_alloca(N)
+    #define _alloca(N) __builtin_alloca(N)
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

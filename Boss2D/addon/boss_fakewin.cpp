@@ -10,14 +10,6 @@
 #include <platform/boss_platform.hpp>
 #include "boss_fakewin.h"
 
-#if BOSS_LINUX | BOSS_MAC_OSX | BOSS_WINDOWS_MINGW
-    extern "C" void* boss_fakewin_alloca(boss_size_t size)
-    {
-        static uint08s _;
-        return _.AtDumping(0, size);
-    }
-#endif
-
 #undef GetCurrentDirectoryW
 extern "C" DWORD boss_fakewin_GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR lpBuffer)
 {
