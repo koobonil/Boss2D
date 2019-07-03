@@ -210,11 +210,19 @@ inline void operator delete[](void*, sblock) {}
     private: \
         NAME(data* gift) {mData = gift; mData->mRef++;} \
     public: \
-        NAME() {mData = (data*) Buffer::Alloc<data, datatype_pod_canmemcpy_zeroset>(BOSS_DBG 1); mData->mRef = 1;} \
+        NAME() {alloc();} \
+        NAME(NAME&& rhs) {mData = rhs.mData; rhs.alloc();} \
         NAME(const NAME& rhs) {mData = rhs.mData; mData->mRef++;} \
         NAME(id_share rhs) {mData = (data*) rhs; mData->mRef++;} \
         NAME(id_cloned_share rhs) {mData = (data*) rhs;} \
         ~NAME() {release();} \
+        NAME& operator=(NAME&& rhs) \
+        { \
+            release(); \
+            mData = rhs.mData; \
+            rhs.alloc(); \
+            return *this; \
+        } \
         NAME& operator=(const NAME& rhs) \
         { \
             release(); \
@@ -247,12 +255,18 @@ inline void operator delete[](void*, sblock) {}
         inline id_share share() {return (id_share) mData;} \
         inline id_cloned_share cloned_share() {mData->mRef++; return (id_cloned_share) mData;} \
     private: \
+        inline void alloc() \
+        { \
+            mData = (data*) Buffer::Alloc<data, datatype_pod_canmemcpy_zeroset>(BOSS_DBG 1); \
+            mData->mRef = 1; \
+        } \
         inline void release() \
         { \
-            if(mData && --mData->mRef == 0) \
+            if(--mData->mRef == 0) \
             { \
                 Buffer::Free(mData->mBuf); \
                 Buffer::Free((buffer) mData); \
+                mData = nullptr; \
             } \
         } \
     }; \

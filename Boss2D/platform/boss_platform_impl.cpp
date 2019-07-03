@@ -171,6 +171,79 @@ namespace BOSS
                 #endif
             }
 
+            chars Utility_GetDeviceID()
+            {
+                static String DeviceID;
+                if(DeviceID.Length())
+                    return DeviceID;
+
+                // 하드웨어정보
+                sint32 OSCode16 = 0x1F; // 32가지
+                Map<String> StringCollector;
+                #if BOSS_WINDOWS
+                    OSCode16 &= 0x01;
+                    wchar_t UserName[256 + 1];
+                    DWORD UserNameLen = 256 + 1;
+                    if(GetUserNameW(UserName, &UserNameLen))
+                        StringCollector("UserName") = String::FromWChars(UserName);
+                    DWORD VolSerial = 0;
+                    if(GetVolumeInformationA("C:/", NULL, NULL, &VolSerial, NULL, NULL, NULL, NULL))
+                        StringCollector("VolSerial") = String::Format("%X", VolSerial);
+                #else
+                    OSCode16 &= 0x00;
+                    StringCollector.AtAdding() = "null";
+                #endif
+
+                // 핑거프린트화
+                String FingerPrint;
+                for(sint32 i = 0, iend = StringCollector.Count(); i < iend; ++i)
+                {
+                    if(0 < i) FingerPrint += '_';
+                    FingerPrint += *StringCollector.AccessByOrder(i);
+                }
+
+                // CRC64처리
+                uint64 CrcTable[256];
+                for(sint32 i = 0; i < 256; ++i)
+                {
+                    uint64 crc = i;
+                    for(sint32 j = 0; j < 8; ++j)
+                    {
+                        if(crc & 1)
+                            crc = (crc >> 1) ^ 0xC96C5795D7870F42;
+                        else crc >>= 1;
+                    }
+                    CrcTable[i] = crc;
+                }
+                uint64 CrcCode = 0;
+                chars CrcFocus = FingerPrint;
+                while(*CrcFocus)
+                    CrcCode = CrcTable[(CrcCode ^ *(CrcFocus++)) & 0xFF] ^ (CrcCode >> 8);
+
+                // 6자리 장치식별코드
+                sint32 DeviceCode[10];
+                DeviceCode[0] = ((OSCode16 & 0x1F) << 1) | (CrcCode & 0x1);
+                for(sint32 i = 0; i < 9; ++i)
+                    DeviceCode[i + 1] = (CrcCode >> (1 + i * 7)) & 0x3F;
+
+                // 장치식별ID화
+                for(sint32 i = 0; i < 10; ++i)
+                {
+                    const sint32 CurCode = DeviceCode[i];
+                    if(CurCode < 26)
+                        DeviceID += 'A' + CurCode;
+                    else if(CurCode < 26 + 26)
+                        DeviceID += 'a' + (CurCode - 26);
+                    else if(CurCode < 26 + 26 + 10)
+                        DeviceID += '0' + (CurCode - 26 - 26);
+                    // 어차피 CRC64과정에서 손실된 정보라 미관상 조금 더 손실시킴
+                    else if(CurCode == 10 + 26 + 26)
+                        DeviceID += 'x';
+                    else DeviceID += 'X';
+                }
+                return DeviceID;
+            }
+
             sint64 Utility_CurrentAvailableMemory(sint64* totalbytes)
             {
                 #if BOSS_WINDOWS

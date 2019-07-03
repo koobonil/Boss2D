@@ -569,6 +569,12 @@ namespace BOSS
             static chars GetOSName();
 
             /*!
+            \brief 디바이스ID 얻기
+            \return 디바이스ID
+            */
+            static chars GetDeviceID();
+
+            /*!
             \brief 콜백함수(ThreadCB)를 스레드방식으로 실행
             \param cb : 콜백함수
             \param data : 콜백함수에 전달할 데이터

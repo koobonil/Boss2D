@@ -634,6 +634,11 @@
             return PlatformImpl::Wrap::Utility_GetOSName();
         }
 
+        chars Platform::Utility::GetDeviceID()
+        {
+            return PlatformImpl::Wrap::Utility_GetDeviceID();
+        }
+
         void Platform::Utility::Threading(ThreadCB cb, payload data)
         {
             BOSS_ASSERT("This is blank platform. You can use BOSS_PLATFORM_XXX.", false);

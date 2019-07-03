@@ -28,6 +28,7 @@ namespace BOSS
             void SubWindowProcedure(sint32 id);
 
             chars Utility_GetOSName();
+            chars Utility_GetDeviceID();
             sint64 Utility_CurrentAvailableMemory(sint64* totalbytes);
 
             void Option_SetOptionFlag(chars name, bool flag);
