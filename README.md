@@ -1,4 +1,3 @@
 # Boss2D
-Qt기반 오픈소스연동 게임엔진
-
-[![Watch the video](https://image.slidesharecdn.com/qt-180628023200/95/qtvs-22-1024.jpg?cb=1530153187)](https://www.slideshare.net/slideshow/embed_code/key/flS44JPZkmey9p)
+This repository has been moved to a different location.
+https://github.com/BonexGoo/Boss2D
